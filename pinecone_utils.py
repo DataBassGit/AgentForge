@@ -1,20 +1,28 @@
+import configparser
 import pinecone
 
-PINECONE_API_KEY = "" #This is where you place your API Key
-PINECONE_ENVIRONMENT = "us-east4-gcp" #This is the environment name where your index lives.
+# Read configuration file
+config = configparser.ConfigParser()
+config.read('config.ini')
+STORAGE_API_KEY = config.get('Pinecone', 'api_key')
+STORAGE_ENVIRONMENT = config.get('Pinecone', 'environment')
+
 
 YOUR_TABLE_NAME = "test-table"
 DIMENSION = 768
 METRIC = "cosine"
 POD_TYPE = "p1"
 
-def init_pinecone():
-    pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 
-def deinit_pinecone():
+def init_storage():
+    pinecone.init(api_key=STORAGE_API_KEY, environment=STORAGE_ENVIRONMENT)
+
+
+def deinit_storage():
     pinecone.deinit()
 
-def create_pinecone_index(table_name):
+
+def create_storage_index(table_name):
     dimension = 768
     metric = "cosine"
     pod_type = "p1"
@@ -22,13 +30,14 @@ def create_pinecone_index(table_name):
         pinecone.create_index(
             table_name, dimension=dimension, metric=metric, pod_type=pod_type
         )
-    global pinecone_index
-    pinecone_index = pinecone.Index(table_name)
+    global storage_index
+    storage_index = pinecone.Index(table_name)
 
 
-def delete_pinecone_index():
-    if YOUR_TABLE_NAME in pinecone.list_indexes():
-        pinecone.delete_index(YOUR_TABLE_NAME)
+def delete_storage_index(table_name):
+    if table_name in pinecone.list_indexes():
+        pinecone.delete_index(table_name)
 
-def connect_to_index():
-    return pinecone.Index(YOUR_TABLE_NAME)
+
+def connect_to_index(table_name):
+    return pinecone.Index(table_name)

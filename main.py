@@ -1,9 +1,34 @@
+import configparser
 import time
 from collections import deque
 from typing import Dict, List
-import pinecone_utils
-import embedding_utils
 import task_agents
+
+# Read configuration file
+config = configparser.ConfigParser()
+config.read('config.ini')
+language_model_api = config.get('LanguageModelAPI', 'library')
+storage_api = config.get('StorageAPI', 'library')
+embedding_library = config.get('EmbeddingLibrary', 'library')
+
+if language_model_api == 'oobabooga_api':
+    from oobabooga_api import generate_text
+elif language_model_api == 'openai_api':
+    from openai_api import generate_text
+else:
+    raise ValueError(f"Unsupported Language Model API library: {language_model_api}")
+
+if storage_api == 'pinecone':
+    import pinecone_utils as storage_utils
+else:
+    raise ValueError(f"Unsupported Storage API library: {storage_api}")
+
+if embedding_library == 'sentence_transformers':
+    import embedding_utils
+else:
+    raise ValueError(f"Unsupported Embedding Library: {embedding_library}")
+
+
 
 # Set Variables
 YOUR_TABLE_NAME = "test-table"
@@ -38,10 +63,10 @@ PARAMS = {
 }
 
 # Initialize Pinecone
-pinecone_utils.init_pinecone()
+storage_utils.init_storage()
 
 # Create Pinecone index
-pinecone_utils.create_pinecone_index(YOUR_TABLE_NAME)
+storage_utils.create_storage_index(YOUR_TABLE_NAME)
 
 # Task list
 task_list = deque([])
@@ -72,7 +97,7 @@ while True:
         print(str(task["task_id"]) + ": " + task["task_name"])
 
         # Send to execution function to complete the task based on the context
-        context = task_agents.context_agent(OBJECTIVE, YOUR_TABLE_NAME, 5, embedding_utils.get_ada_embedding, pinecone_utils.pinecone_index)
+        context = task_agents.context_agent(OBJECTIVE, YOUR_TABLE_NAME, 5, embedding_utils.get_ada_embedding, storage_utils.storage_index)
         result = task_agents.execution_agent(OBJECTIVE, task["task_name"], context, PARAMS)
         this_task_id = int(task["task_id"])
         print(
@@ -84,7 +109,7 @@ while True:
         enriched_result = {"data": result}
         result_id = f'result_{task["task_id"]}'
         vector = enriched_result["data"]
-        pinecone_utils.pinecone_index.upsert(
+        storage_utils.storage_index.upsert(
             [
                 (
                     result_id,
@@ -93,13 +118,4 @@ while True:
                 )
             ]
         )
-
-    # Step 3: Create new tasks and reprioritize task list
-    new_tasks = task_agents.task_creation_agent(OBJECTIVE, enriched_result, task["task_name"], [t["task_name"] for t in task_list], PARAMS)
-    for new_task in new_tasks:
-        task_id_counter += 1
-        new_task.update({"task_id": task_id_counter})
-        add_task(new_task)
-    task_list = deque(task_agents.prioritization_agent(this_task_id, task_list, OBJECTIVE, PARAMS))
-
-    time.sleep(1)  # Sleep before checking the task list again
+       
