@@ -17,7 +17,7 @@ pip install -r requirements.txt
 
 Note: You may want to create a virtual environment to isolate the project's dependencies.
 
-3. Set up the Oobabooga API by following the instructions in their text-generation-webui repository. You need to download the repository and follow their setup instructions.
+3. Set up the Oobabooga API by following the instructions in their text-generation-webui repository. (https://github.com/oobabooga/text-generation-webui) You need to download the repository and follow their setup instructions.
 
 4. Modify the start-webui.bat file in the Oobabooga repository to match the following content:
 
