@@ -47,6 +47,8 @@ This modification ensures that the Oobabooga API starts correctly.
 
 5. Make sure you have a language model installed. You can either run download-models.bat and select your own, your you can download a model from huggingface directly and save it in the /oogabooga-windows/text-generation-webui/models folder.
 
+6. Update the config.ini file in the root directory with the API keys, and evironment variables if you are using external hosted API services.
+
 ## Usage
 1. Run the main.py script to start the BabyBoogaAGI:
 
