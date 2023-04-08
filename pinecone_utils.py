@@ -6,10 +6,8 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 STORAGE_API_KEY = config.get('Pinecone', 'api_key')
 STORAGE_ENVIRONMENT = config.get('Pinecone', 'environment')
-
-
-YOUR_TABLE_NAME = "test-table"
-DIMENSION = 768
+YOUR_TABLE_NAME = config.get('Pinecone', 'indexname')
+DIMENSION = config.get('Pinecone', 'dimension')
 METRIC = "cosine"
 POD_TYPE = "p1"
 
