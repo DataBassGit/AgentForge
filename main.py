@@ -7,16 +7,10 @@ import task_agents
 # Read configuration file
 config = configparser.ConfigParser()
 config.read('config.ini')
-language_model_api = config.get('LanguageModelAPI', 'library')
 storage_api = config.get('StorageAPI', 'library')
 embedding_library = config.get('EmbeddingLibrary', 'library')
 
-if language_model_api == 'oobabooga_api':
-    from oobabooga_api import generate_text
-elif language_model_api == 'openai_api':
-    from openai_api import generate_text
-else:
-    raise ValueError(f"Unsupported Language Model API library: {language_model_api}")
+
 
 if storage_api == 'pinecone':
     import pinecone_utils as storage_utils
@@ -31,7 +25,7 @@ else:
 
 
 # Set Variables
-YOUR_TABLE_NAME = "test-table"
+YOUR_TABLE_NAME = storage_utils.YOUR_TABLE_NAME
 OBJECTIVE = "Write a program for an AI to use to search the internet."
 YOUR_FIRST_TASK = "Develop a task list."
 PARAMS = {
@@ -66,7 +60,7 @@ PARAMS = {
 storage_utils.init_storage()
 
 # Create Pinecone index
-storage_utils.create_storage_index(YOUR_TABLE_NAME)
+storage_utils.create_storage_index(storage_utils.YOUR_TABLE_NAME)
 
 # Task list
 task_list = deque([])

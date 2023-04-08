@@ -1,5 +1,19 @@
 from typing import Dict, List
-from oobabooga_api import generate_text
+
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+language_model_api = config.get('LanguageModelAPI', 'library')
+
+if language_model_api == 'oobabooga_api':
+    from oobabooga_api import generate_text
+elif language_model_api == 'openai_api':
+    from openai_api import generate_text
+else:
+    raise ValueError(f"Unsupported Language Model API library: {language_model_api}")
+
+
+
 
 def task_creation_agent(objective: str, result: Dict, task_description: str, task_list: List[str], params: Dict):
     prompt = (
