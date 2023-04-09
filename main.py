@@ -1,60 +1,42 @@
 import configparser
-import time
 from collections import deque
-from typing import Dict, List
-import task_agents
+from typing import Dict
+# from Agents import task_agents
+
+from Agents.execution_agent import execution_agent
+from Agents.context_agent import context_agent
+from Personas.load_persona_data import load_persona_data
 
 # Read configuration file
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('Config/config.ini')
 storage_api = config.get('StorageAPI', 'library')
 embedding_library = config.get('EmbeddingLibrary', 'library')
 
-
-
+# Load Pinecone API | Discuss with Data
 if storage_api == 'pinecone':
-    import pinecone_utils as storage_utils
+    from Utilities import pinecone_utils as storage_utils, embedding_utils
 else:
     raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
 if embedding_library == 'sentence_transformers':
-    import embedding_utils
+    pass
 else:
     raise ValueError(f"Unsupported Embedding Library: {embedding_library}")
 
 
+def add_task(task: Dict):
+    task_list.append(task)
+
 
 # Set Variables
 YOUR_TABLE_NAME = storage_utils.YOUR_TABLE_NAME
-OBJECTIVE = "Write a program for an AI to use to search the internet."
-YOUR_FIRST_TASK = "Develop a task list."
-PARAMS = {
-    'max_new_tokens': 200,
-    'temperature': 0.5,
-    'top_p': 0.9,
-    'typical_p': 1,
-    'n': 1,
-    'stop': None,
-    'do_sample': True,
-    'return_prompt': False,
-    'return_metadata': False,
-    'typical_p': 0.95,
-    'repetition_penalty': 1.05,
-    'encoder_repetition_penalty': 1.0,
-    'top_k': 0,
-    'min_length': 0,
-    'no_repeat_ngram_size': 2,
-    'num_beams': 1,
-    'penalty_alpha': 0,
-    'length_penalty': 1.0,
-    'early_stopping': False,
-    'pad_token_id': None,  # Padding token ID, if required
-    'eos_token_id': None,  # End-of-sentence token ID, if required
-    'use_cache': True,     # Whether to use caching
-    'num_return_sequences': 1,  # Number of sequences to return for each input
-    'bad_words_ids': None,  # List of token IDs that should not appear in the generated text
-    'seed': -1,
-}
+
+# Load persona data
+persona_data = load_persona_data('Personas/default.json')
+PARAMS = persona_data['Params']
+OBJECTIVE = persona_data['Objective']
+YOUR_FIRST_TASK = persona_data['Tasks'][0]
 
 # Initialize Pinecone
 storage_utils.init_storage()
@@ -64,9 +46,6 @@ storage_utils.create_storage_index(storage_utils.YOUR_TABLE_NAME)
 
 # Task list
 task_list = deque([])
-
-def add_task(task: Dict):
-    task_list.append(task)
 
 # Add the first task
 first_task = {"task_id": 1, "task_name": YOUR_FIRST_TASK}
@@ -91,8 +70,8 @@ while True:
         print(str(task["task_id"]) + ": " + task["task_name"])
 
         # Send to execution function to complete the task based on the context
-        context = task_agents.context_agent(OBJECTIVE, YOUR_TABLE_NAME, 5, embedding_utils.get_ada_embedding, storage_utils.storage_index)
-        result = task_agents.execution_agent(OBJECTIVE, task["task_name"], context, PARAMS)
+        context = context_agent(OBJECTIVE, YOUR_TABLE_NAME, 5, embedding_utils.get_ada_embedding, storage_utils.storage_index)
+        result = execution_agent(OBJECTIVE, task["task_name"], context, PARAMS)
         this_task_id = int(task["task_id"])
         print(
             "\033[93m\033[1m" + "\n*****TASK RESULT*****\n" + "\033[0m\033[0m"
@@ -101,8 +80,14 @@ while True:
 
         # Step 2: Enrich result and store in Pinecone
         enriched_result = {"data": result}
+        # print(f"\n\n Enriched Result: {enriched_result}")
+
         result_id = f'result_{task["task_id"]}'
+        # print(f"\n\n Result ID: {result_id}")
+
         vector = enriched_result["data"]
+        # print(f"\n\n Vector: {vector}")
+
         storage_utils.storage_index.upsert(
             [
                 (
@@ -112,4 +97,4 @@ while True:
                 )
             ]
         )
-       
+

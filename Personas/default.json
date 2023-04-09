@@ -1,0 +1,35 @@
+{
+  "Name": "BigBooga",
+  "Objective": "Write a program for an AI to use to search the internet.",
+  "Tasks": [
+    "Develop a task list.",
+    "Reflect on the task list",
+    "Act out the task list"
+  ],
+  "Params": {
+    "max_new_tokens": 200,
+    "temperature": 0.5,
+    "top_p": 0.9,
+    "n": 1,
+    "stop": null,
+    "do_sample": true,
+    "return_prompt": false,
+    "return_metadata": false,
+    "typical_p": 0.95,
+    "repetition_penalty": 1.05,
+    "encoder_repetition_penalty": 1.0,
+    "top_k": 0,
+    "min_length": 0,
+    "no_repeat_ngram_size": 2,
+    "num_beams": 1,
+    "penalty_alpha": 0,
+    "length_penalty": 1.0,
+    "early_stopping": false,
+    "pad_token_id": null,
+    "eos_token_id": null,
+    "use_cache": true,
+    "num_return_sequences": 1,
+    "bad_words_ids": null,
+    "seed": -1
+  }
+}
