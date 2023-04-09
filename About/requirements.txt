@@ -1,4 +1,0 @@
-pinecone-client==2.2.1
-sentence_transformers==2.2.2
-torch==2.0.0
-openai
