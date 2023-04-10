@@ -13,14 +13,18 @@ config.read('Config/config.ini')
 storage_api = config.get('StorageAPI', 'library')
 embedding_library = config.get('EmbeddingLibrary', 'library')
 
-# Load Pinecone API | Discuss with Data
+
+# Load Storage API
 if storage_api == 'pinecone':
-    from Utilities import pinecone_utils as storage_utils, embedding_utils
+    from Utilities import pinecone_utils as storage_utils
+elif storage_api == 'chroma':
+    from Utilities import chroma_utils as storage_utils
 else:
     raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
+
 if embedding_library == 'sentence_transformers':
-    pass
+    from Utilities import embedding_utils
 else:
     raise ValueError(f"Unsupported Embedding Library: {embedding_library}")
 
@@ -30,19 +34,35 @@ def add_task(task: Dict):
 
 
 # Set Variables
-YOUR_TABLE_NAME = storage_utils.YOUR_TABLE_NAME
+collection_name = storage_utils.YOUR_COLLECTION_NAME
+
+# Initialize Storage
+storage_utils.init_storage()
+
+# Create Pinecone index
+storage_utils.create_collection(collection_name)
+
+# print()
+# raise ValueError("Stopped")
+
+# Set Variables
+# YOUR_TABLE_NAME = storage_utils.YOUR_TABLE_NAME
+
+# Initialize Pinecone
+# storage_utils.init_storage()
+
+# Create Pinecone index
+# storage_utils.create_storage_index(storage_utils.YOUR_TABLE_NAME)
+
+
+
+
 
 # Load persona data
 persona_data = load_persona_data('Personas/default.json')
 PARAMS = persona_data['Params']
 OBJECTIVE = persona_data['Objective']
 YOUR_FIRST_TASK = persona_data['Tasks'][0]
-
-# Initialize Pinecone
-storage_utils.init_storage()
-
-# Create Pinecone index
-storage_utils.create_storage_index(storage_utils.YOUR_TABLE_NAME)
 
 # Task list
 task_list = deque([])
@@ -69,8 +89,11 @@ while True:
         )
         print(str(task["task_id"]) + ": " + task["task_name"])
 
+        # print(f"\n\n\nMain.py Storage Utils: {storage_utils.get_storage_index()}")
+        # raise ValueError("Stopped")
+
         # Send to execution function to complete the task based on the context
-        context = context_agent(OBJECTIVE, YOUR_TABLE_NAME, 5, embedding_utils.get_ada_embedding, storage_utils.storage_index)
+        context = context_agent(OBJECTIVE, collection_name, 5, embedding_utils.get_ada_embedding, storage_utils.get_storage_index())
         result = execution_agent(OBJECTIVE, task["task_name"], context, PARAMS)
         this_task_id = int(task["task_id"])
         print(
@@ -88,13 +111,21 @@ while True:
         vector = enriched_result["data"]
         # print(f"\n\n Vector: {vector}")
 
-        storage_utils.storage_index.upsert(
-            [
-                (
-                    result_id,
-                    embedding_utils.get_ada_embedding(vector).tolist(),
-                    {"task": task["task_name"], "result": result},
-                )
-            ]
-        )
+        print("Result ID:", result_id)
+        print("Vector:", vector)
+        print("Task:", task["task_name"])
+        print("Result:", result)
+
+        try:
+            storage_utils.get_storage_index().upsert(
+                [
+                    (
+                        result_id,
+                        embedding_utils.get_ada_embedding(vector).tolist(),
+                        {"task": task["task_name"], "result": result},
+                    )
+                ]
+            )
+        except Exception as e:
+            print("Error during upsert:", e)
 

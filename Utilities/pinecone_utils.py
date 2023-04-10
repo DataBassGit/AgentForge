@@ -11,6 +11,9 @@ DIMENSION = config.get('Pinecone', 'dimension')
 METRIC = "cosine"
 POD_TYPE = "p1"
 
+# Global variable for storage index
+storage_index = None
+
 
 def init_storage():
     pinecone.init(api_key=STORAGE_API_KEY, environment=STORAGE_ENVIRONMENT)
@@ -39,3 +42,10 @@ def delete_storage_index(table_name):
 
 def connect_to_index(table_name):
     return pinecone.Index(table_name)
+
+
+# Accessor function to get the storage index
+def get_storage_index():
+    global storage_index
+    return storage_index
+
