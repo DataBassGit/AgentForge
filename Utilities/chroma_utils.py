@@ -2,43 +2,41 @@ import configparser
 import chromadb
 from chromadb.config import Settings
 
+global client
+global collection
+
 # Read configuration file
 config = configparser.ConfigParser()
 config.read('Config/config.ini')
-CHROMA_DB_IMPL = config.get('ChromaDB', 'chroma_db_impl')
-PERSIST_DIRECTORY = config.get('ChromaDB', 'persist_directory', fallback=None)
-YOUR_COLLECTION_NAME = config.get('ChromaDB', 'collection_name')
 
-global client
-global collection
+db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
+collection_name = config.get('ChromaDB', 'collection_name')
+chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
 
 
 def init_storage():
     global client
-    settings = Settings(CHROMA_DB_IMPL)
-    if PERSIST_DIRECTORY:
-        settings.persist_directory = PERSIST_DIRECTORY
+    settings = Settings(chroma_db_impl)
+    if db_path:
+        settings.persist_directory = db_path
     client = chromadb.Client(settings)
 
 
-def deinit_storage():
+def unload_storage():
     global client
     client = None
 
 
-def create_collection(collection_name):
-    # global client
+def create_storage():
     if collection_name not in client.list_collections():
         client.create_collection(collection_name)
     global collection
     collection = client.get_collection(collection_name)
 
-    # print(collection)
 
-
-def delete_collection(collection_name):
+def delete_collection():
     if collection_name in client.list_collections():
-        client.delete_collection(collection_name)
+        client.delete_collection()
 
 
 def get_collection():
