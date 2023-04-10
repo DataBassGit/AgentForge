@@ -39,3 +39,18 @@ def create_collection(collection_name):
 def delete_collection(collection_name):
     if collection_name in client.list_collections():
         client.delete_collection(collection_name)
+
+
+def get_collection():
+    global collection
+    return collection
+
+
+def save_to_collection(result_id, task, result):
+    global collection
+
+    collection.add(
+        ids=[result_id],
+        metadatas=[task],
+        documents=[result]
+    )

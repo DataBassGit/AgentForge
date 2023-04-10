@@ -5,11 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e06f8e6f-21fc-47a9-abca-cc70fee4eaa8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Utilities/chroma_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Agents/context_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/context_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/config.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utilities/pinecone_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/pinecone_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utilities/chroma_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/chroma_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -56,11 +54,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\BigBoogaAGI" />
       <recent name="F:\BigBoogaAGI\Agents\Func" />
       <recent name="F:\BigBoogaAGI\Agents" />
       <recent name="F:\BigBoogaAGI\APIs" />
       <recent name="F:\BigBoogaAGI\About" />
-      <recent name="F:\BigBoogaAGI\Config" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
