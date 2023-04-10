@@ -5,26 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e06f8e6f-21fc-47a9-abca-cc70fee4eaa8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agents/Func/initialize_agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agents/Func/initialize_config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agents/context_agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agents/execution_agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agents/prioritization_agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agents/task_creation_agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Config/config.ini" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Personas/default.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Personas/load_persona_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/About/LICENSE" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/About/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.ini" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/embedding_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/embedding_utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Utilities/chroma_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agents/context_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/context_agent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utilities/pinecone_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/pinecone_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/oobabooga_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/APIs/oobabooga_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openai_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/APIs/openai_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pinecone_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/pinecone_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/About/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/task_agents.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
