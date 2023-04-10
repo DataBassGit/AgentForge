@@ -33,29 +33,32 @@ def add_task(task: Dict):
     task_list.append(task)
 
 
-# Set Variables
-collection_name = storage_utils.YOUR_COLLECTION_NAME
+if storage_api == 'pinecone':
+    # Set Variables
+    collection_name = storage_utils.YOUR_TABLE_NAME
 
-# Initialize Storage
-storage_utils.init_storage()
+    # Initialize Pinecone
+    storage_utils.init_storage()
 
-# Create Pinecone index
-storage_utils.create_collection(collection_name)
+    # Create Pinecone index
+    storage_utils.create_storage_index(collection_name)
+elif storage_api == 'chroma':
+    # Set Variables
+    collection_name = storage_utils.YOUR_COLLECTION_NAME
+
+    # Initialize Storage
+    storage_utils.init_storage()
+
+    # Create Pinecone index
+    storage_utils.create_collection(collection_name)
+else:
+    raise ValueError("Stopped")
 
 # print()
 # raise ValueError("Stopped")
 
 # Set Variables
 # YOUR_TABLE_NAME = storage_utils.YOUR_TABLE_NAME
-
-# Initialize Pinecone
-# storage_utils.init_storage()
-
-# Create Pinecone index
-# storage_utils.create_storage_index(storage_utils.YOUR_TABLE_NAME)
-
-
-
 
 
 # Load persona data
@@ -73,8 +76,12 @@ add_task(first_task)
 
 # Main loop
 task_id_counter = 1
+
 while True:
-    if task_list:
+    if len(task_list) == 0:
+        print("\n\nStopped!")
+        quit()
+    else:
         # Print the task list
         print(
             "\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m"
@@ -93,39 +100,59 @@ while True:
         # raise ValueError("Stopped")
 
         # Send to execution function to complete the task based on the context
-        context = context_agent(OBJECTIVE, collection_name, 5, embedding_utils.get_ada_embedding, storage_utils.get_storage_index())
-        result = execution_agent(OBJECTIVE, task["task_name"], context, PARAMS)
+        # context = context_agent(OBJECTIVE, collection_name, 5, embedding_utils.get_ada_embedding, storage_utils.get_storage_index())
+
+        # print(f"\n\nContext:\n{context}")
+        # raise ValueError("Stopped")
+
+        # context = context_agent(OBJECTIVE, collection_name, 5, embedding_utils.get_ada_embedding, storage_utils.get_collection())
+        # result = execution_agent(OBJECTIVE, task["task_name"], context, PARAMS)
+        result = execution_agent(OBJECTIVE, task["task_name"], ["None"], PARAMS)
         this_task_id = int(task["task_id"])
         print(
             "\033[93m\033[1m" + "\n*****TASK RESULT*****\n" + "\033[0m\033[0m"
         )
         print(result)
-
-        # Step 2: Enrich result and store in Pinecone
-        enriched_result = {"data": result}
-        # print(f"\n\n Enriched Result: {enriched_result}")
-
+        #
+        # # Step 2: Enrich result and store in Pinecone
+        # enriched_result = {"data": result}
+        # # print(f"\n\n Enriched Result: {enriched_result}")
+        #
         result_id = f'result_{task["task_id"]}'
-        # print(f"\n\n Result ID: {result_id}")
-
-        vector = enriched_result["data"]
-        # print(f"\n\n Vector: {vector}")
-
-        print("Result ID:", result_id)
-        print("Vector:", vector)
-        print("Task:", task["task_name"])
-        print("Result:", result)
+        # # print(f"\n\n Result ID: {result_id}")
+        #
+        # vector = enriched_result["data"]
+        # # print(f"\n\n Vector: {vector}")
+        #
+        # print("Result ID:", result_id)
+        # print("Vector:", vector)
+        # print("Task:", task["task_name"])
+        # print("Result:", result)
 
         try:
-            storage_utils.get_storage_index().upsert(
-                [
-                    (
-                        result_id,
-                        embedding_utils.get_ada_embedding(vector).tolist(),
-                        {"task": task["task_name"], "result": result},
-                    )
-                ]
-            )
+            storage_utils.save_to_collection(result_id, task, result)
+
+            # storage_utils.get_storage_index().upsert(
+            #     [
+            #         (
+            #             result_id,
+            #             embedding_utils.get_ada_embedding(vector).tolist(),
+            #             {"task": task["task_name"], "result": result},
+            #         )
+            #     ]
+            # )
         except Exception as e:
             print("Error during upsert:", e)
 
+        # print(task)
+
+        dbresults = storage_utils.get_collection().query(
+            query_texts=[task["task_name"]],
+            n_results=1,
+            # where={"metadata_field": "is_equal_to_this"},
+            # where_document={"$contains":"search_string"}
+        )
+        #
+        print(dbresults)
+
+        # raise ValueError("Stopped")
