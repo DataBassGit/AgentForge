@@ -7,7 +7,7 @@ generate_text = set_model_api()
 
 def prioritization_agent(this_task_id: int, task_list: List, objective: str, params: Dict):
     task_names = [t["task_name"] for t in task_list]
-    #print("\n***This Task ID***: " + this_task_id)
+    print("\n***This Task ID***: " + this_task_id)
     next_task_id = int(this_task_id) 
     next_task_id += 1
 

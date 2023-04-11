@@ -1,5 +1,7 @@
 from collections import deque
 from Agents.execution_agent import execution_agent
+from Agents.task_creation_agent import task_creation_agent
+from Agents.prioritization_agent import prioritization_agent
 from Agents.context_agent import context_agent
 from Personas.load_persona_data import load_persona_data
 from Utilities import storage_interface as storage
@@ -26,13 +28,16 @@ result = "None"
 task_id_counter = 1
 
 while True:
+    print(f"\nPrinting Current Tasklist: {task_list} ")
     if len(task_list) == 0:
         print("\n\nStopped!")
         quit()
     else:
         # Print the task list
         func.print_task_list(task_list)
-
+        
+        
+        
         # Step 1: Pull the first task
         task = task_list.popleft()
         func.print_next_task(task)
@@ -51,5 +56,30 @@ while True:
 
         except Exception as e:
             print("Error during upsert:", e)
+        
+        create_tasks = task_creation_agent(OBJECTIVE, result, task["task_name"], task, PARAMS)
+        
+        #debug
+        #print(create_tasks)
+        
+        try:
+            storage.save_result(task, create_tasks)
 
-        print(storage.get_result(task))
+        except Exception as e:
+            print("Error during upsert:", e)
+            
+        prioritize_tasks = prioritization_agent(task["task_id"], task_list, OBJECTIVE, PARAMS)
+        
+        #debug
+        print(prioritize_tasks)
+        task_list = deque(prioritize_tasks)
+        
+        try:
+            
+            storage.save_result(task, prioritize_tasks)
+            
+        except Exception as e:
+            print("Error during upsert:", e)
+        
+        
+        #print(storage.get_result(task))
