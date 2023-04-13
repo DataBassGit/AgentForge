@@ -5,76 +5,59 @@ config = configparser.ConfigParser()
 config.read('Config/config.ini')
 storage_api = config.get('StorageAPI', 'library')
 
-global storage_utils
 
+class StorageInterface:
+    _instance = None
 
-def initialize_storage():
-    global storage_utils
+    storage_utils = None
 
-    if storage_api == 'chroma':
-        from Utilities import chroma_utils as storage_utils
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(StorageInterface, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
-    elif storage_api == 'pinecone':  # NEEDS REWORK
-        from Utilities import pinecone_utils as storage_utils
+    def __init__(self):
+        # Add your initialization code here
+        self.initialize_storage()
+        pass
 
-    else:
-        raise ValueError(f"Unsupported Storage API library: {storage_api}")
+    def initialize_storage(self):
+        if storage_api == 'chroma':
+            from Utilities.chroma_utils import ChromaUtils
+            self.storage_utils = ChromaUtils()
 
-    # Initialize Chroma
-    storage_utils.init_storage()
+        else:
+            raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
-    # Create Pinecone index
-    storage_utils.create_storage()
+        # Initialize Chroma
+        self.storage_utils.init_storage()
 
-    return storage_utils
+        # Create Pinecone index
+        self.storage_utils.create_storage()
 
+        return self.storage_utils
 
-def get_storage():
-    if storage_api == 'chroma':
-        return storage_utils.get_collection()
+    def get_storage(self):
+        if storage_api == 'chroma':
+            return self.storage_utils.get_collection()
 
-    elif storage_api == 'pinecone':  # NEEDS REWORK
-        return storage_utils.get_storage_index()
+        else:
+            raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
-    else:
-        raise ValueError(f"Unsupported Storage API library: {storage_api}")
+    def get_task(self):
+        pass
 
-
-def get_result(task):
-    print(f"task: {task}")
-
-    global storage_utils
-    result = storage_utils.get_collection().query(
-        query_texts=[task["task_name"]],
-        n_results=1
-    )
-
-    return result
-
-
-def save_result(task, result):
-    global storage_utils
-
-    task_id = f'result_{task["task_id"]}'
-
-    if storage_api == 'chroma':
-        storage_utils.save_to_collection(task_id, task, result)
-
-    elif storage_api == 'pinecone':
-        from Utilities import embedding_utils
-        # Enrich result and store in Pinecone | THIS FEELS LIKE IT'S COMPLETELY USELESS
-        enriched_result = {"data": result}
-        vector = enriched_result["data"]
-
-        storage_utils.get_storage_index().upsert(
-            [
-                (
-                    task_id,
-                    embedding_utils.get_ada_embedding(vector).tolist(),
-                    {"task": task["task_name"], "result": result},
-                )
-            ]
+    def get_result(self, task):
+        result = self.storage_utils.get_collection().query(
+            query_texts=[task["task_desc"]],
+            n_results=1
         )
 
-    else:
-        raise ValueError(f"Unsupported Storage API library: {storage_api}")
+        return result
+
+    def save_result(self, task, result):
+        if storage_api == 'chroma':
+            self.storage_utils.save_to_collection(task, result)
+
+        else:
+            raise ValueError(f"Unsupported Storage API library: {storage_api}")
