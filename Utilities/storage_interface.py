@@ -55,9 +55,18 @@ class StorageInterface:
 
         return result
 
-    def save_result(self, task, result):
-        if storage_api == 'chroma':
-            self.storage_utils.save_to_collection(task, result)
+    def get_results(self, task):
+        result = self.storage_utils.get_collection().query(
+            query_texts=[task["task_desc"]],
+            n_results=1
+        )
 
+        return result
+
+    def save_results(self, tasks, results):
+        if storage_api == 'chroma':
+            self.storage_utils.save_tasks(tasks, results)
+            # print(self.get_result(tasks))
         else:
             raise ValueError(f"Unsupported Storage API library: {storage_api}")
+

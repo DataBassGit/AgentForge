@@ -1,3 +1,4 @@
+import uuid
 from collections import deque
 from Agents.execution_agent import ExecutionAgent
 from Agents.task_creation_agent import TaskCreationAgent
@@ -18,42 +19,50 @@ objective = persona_data['Objective']
 first_task = persona_data['Tasks'][0]
 
 # Task list
-task_list = deque([])
+# task_list = deque([])
 
-# Add the first task
-first_task = {"task_id": 1, "task_order": 1, "task_desc": first_task, "task_status": "pending"}
-func.add_task(task_list, first_task)
+# first_task = {"task_id": uuid.uuid4(), "task_order": 1, "task_desc": first_task, "task_status": "pending"}
+# func.add_task(task_list, first_task)
 
 # Main loop
 result = "None"
 task_id_counter = 1
+task = {"list_id": uuid.uuid4(), "task_order": 1, "task_desc": first_task, "task_status": "pending"}
+task_list = []
+
+# Add the first task
+
+
+# create_tasks = taskCreationAgent.run_task_creation_agent(objective, ["None"], first_task, [], params)
+# print(f"Task Agent: {create_tasks}")
+#
+# quit()
 
 while True:
     # print(f"\nPrinting Current Tasklist: {task_list} ")
-    if len(task_list) == 0:
-        print("\n\nStopped!")
-        quit()
-    else:
-        # Print the task list
-        func.print_task_list(task_list)
+    # if len(task_list) == 0:
+    #     print("\n\nStopped!")
+    #     quit()
+    # else:
 
-        # Step 1: Pull the first task
-        task = task_list.popleft()
-        func.print_next_task(task)
+    # Print the task list
+    task_list = taskCreationAgent.run_task_creation_agent(objective, result, task, task_list, params)
+    func.print_task_list(task_list)
+    # print(f"Task Agent: {create_tasks}")
 
-        result = executionAgent.execution_agent(objective, task, ["None"], params)
-        func.print_result(result)
+    task_list = prioritizationAgent.run_prioritization_agent(task["task_order"], task_list, objective, params)
+    func.print_task_list(task_list)
 
-        this_task_id = int(task["task_id"])
+    # print(f"Prior Agent: {task_list}")
 
-        create_tasks = taskCreationAgent.task_creation_agent(objective, result, task, task, params)
-        
-        #debug
-        print(f"Task Agent: {create_tasks}")
+    # task_list = deque(prioritize_tasks)
 
-        prioritize_tasks = prioritizationAgent.prioritization_agent(task["task_id"], task_list, objective, params)
-        
-        #debug
-        print(f"Prior Agent: {prioritize_tasks}")
-        task_list = deque(prioritize_tasks)
+    # Step 1: Pull the first task
+    # task = task_list.popleft()
+    # func.print_next_task(task)
+    #
+    # result = executionAgent.run_execution_agent(objective, task, ["None"], params)
+    # func.print_result(result)
+
+    quit()
 

@@ -1,4 +1,6 @@
 import configparser
+import uuid
+
 import chromadb
 from chromadb.config import Settings
 
@@ -47,16 +49,30 @@ class ChromaUtils:
     def get_collection(self):
         return self.collection
 
-    def save_to_collection(self, task, result):
+    def save_tasks(self, tasks, results):
+        task_orders = [task["task_order"] for task in tasks]
 
-        meta = {
-            "task_order": task["task_order"],
-            "task_desc": task["task_desc"],
-            "task_status": task["task_status"]
-        }
+        metadatas = [
+            {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for
+            task in tasks]
 
         self.collection.add(
-            ids=str(task['task_id']),
-            metadatas=meta,
-            documents=result
+            ids=[str(order) for order in task_orders],
+            metadatas=metadatas,
+            documents=results
         )
+
+        print(self.collection.get())
+
+        # task_order = task["task_order"]
+        # self.collection.add(
+        #     ids=[str(order) for order in task_order],
+        #     metadatas=[
+        #         {"task_status": task["task_status"], "task_desc": task["task_desc"], "task_id": task["task_id"]}],
+        #     documents=result
+        # )
+
+    def save_results(self, task, result):
+        pass
+
+

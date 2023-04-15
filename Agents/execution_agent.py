@@ -13,7 +13,7 @@ class ExecutionAgent:
         self.generate_text = set_model_api()
         self.storage = StorageInterface()
 
-    def execution_agent(self, objective: str, task: [], context: List, params: Dict) -> str:
+    def run_execution_agent(self, objective: str, task: [], context: List, params: Dict) -> str:
 
         if language_model_api == 'openai_api':
             prompt = [
@@ -28,9 +28,11 @@ class ExecutionAgent:
 
         result = self.generate_text(prompt, params).strip()
 
-        try:
-            self.storage.save_result(task, result)
+        print(f"\n\nExec: {result}")
+        # quit()
 
+        try:
+            self.storage.save_results(task, result)
         except Exception as e:
             print("Error during upsert:", e)
 

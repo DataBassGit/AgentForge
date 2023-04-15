@@ -13,7 +13,7 @@ class TaskCreationAgent:
         self.generate_text = set_model_api()
         self.storage = StorageInterface()
 
-    def task_creation_agent(self, objective: str, result: Dict, task: [], task_list: List[str], params: Dict):
+    def run_task_creation_agent(self, objective: str, result: Dict, task: [], task_list: List[str], params: Dict):
         if language_model_api == 'openai_api':
             prompt = [
                 {"role": "system",
@@ -21,7 +21,7 @@ class TaskCreationAgent:
                 {"role": "user",
                  "content": f"The last completed task has the result: {result}. This result was based on this task description: {task['task_desc']}. "
                             f"These are incomplete tasks: {', '.join(task_list)}. "
-                            f"Based on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return the tasks as an array."},
+                            f"Based on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return the tasks as an array"},
             ]
 
         else:
@@ -29,15 +29,32 @@ class TaskCreationAgent:
             raise ValueError('Language model not found. Please check the language_model_api variable.')
 
         new_tasks = self.generate_text(prompt, params).strip().split("\n")
+        # print(f"\nNew Tasks: {new_tasks}")
 
         result = [{"task_desc": task_desc} for task_desc in new_tasks]
+        # print(f"\nResult: {result}")
 
-        try:
-            self.storage.save_result(task, result)
+        filtered_results = [task for task in result if task['task_desc'] and task['task_desc'][0].isdigit()]
+        # print(f"\nFilters: {filtered_results}\n\n")
 
-        except Exception as e:
-            print("Error during upsert:", e)
+        ordered_results = [
+            {'task_order': int(task['task_desc'].split('. ', 1)[0]), 'task_desc': task['task_desc'].split('. ', 1)[1]}
+            for task in filtered_results]
+
+        print(f"\nOrdered: {ordered_results}\n\n")
+
+        # quit()
+
+        # try:
+        #     self.storage.save_result(task, result)
+        #
+        # except Exception as e:
+        #     print("Error during upsert:", e)
 
         # print(self.storage.get_result(task))
 
-        return result
+        return ordered_results
+
+
+
+
