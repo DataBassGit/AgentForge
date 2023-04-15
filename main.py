@@ -53,6 +53,7 @@ while True:
     task_list = prioritizationAgent.run_prioritization_agent(task["task_order"], task_list, objective, params)
     func.print_task_list(task_list)
 
+
     # print(f"Prior Agent: {task_list}")
 
     # task_list = deque(prioritize_tasks)
@@ -61,7 +62,7 @@ while True:
     # task = task_list.popleft()
     # func.print_next_task(task)
     #
-    # result = executionAgent.run_execution_agent(objective, task, ["None"], params)
+    result = executionAgent.run_execution_agent(objective, params)
     # func.print_result(result)
 
     quit()

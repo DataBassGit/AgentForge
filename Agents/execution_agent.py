@@ -13,14 +13,20 @@ class ExecutionAgent:
         self.generate_text = set_model_api()
         self.storage = StorageInterface()
 
-    def run_execution_agent(self, objective: str, task: [], context: List, params: Dict) -> str:
-
+    def run_execution_agent(self, objective: str, params: Dict) -> str:
+        #print(self.storage.get_storage().get())
+        try:
+            context = [task['task_desc'] for task in self.storage.get_storage().get()]
+        except:
+            context = []
+        print(f"\nContext: {context}")
+        task = ["Develop a task list"]
         if language_model_api == 'openai_api':
             prompt = [
                 {"role": "system",
                  "content": f"You are an AI who performs one task based on the following objective: {objective}.\n"},
                 {"role": "user",
-                 "content": f"Take into account these previously completed tasks: {context}\nYour task: {task['task_desc']}\nResponse:"},
+                 "content": f"Take into account these previously completed tasks: {context}\nYour task: {task}\nResponse:"},
             ]
         else:
             print('\nLanguage Model Not Found!')

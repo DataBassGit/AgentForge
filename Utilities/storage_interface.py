@@ -46,7 +46,8 @@ class StorageInterface:
 
     def get_task(self):
         pass
-
+    def sel_collection(self,name):
+        self.storage_utils.select_collection(name)
     def get_result(self, task):
         result = self.storage_utils.get_collection().query(
             query_texts=[task["task_desc"]],
@@ -70,3 +71,8 @@ class StorageInterface:
         else:
             raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
+    def create_col(self, collection):
+        if storage_api == 'chroma':
+            self.storage_utils.create_storage(collection)
+        else:
+            raise ValueError(f"Unsupported Storage API library: {storage_api}")

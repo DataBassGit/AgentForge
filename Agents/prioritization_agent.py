@@ -48,12 +48,25 @@ class PrioritizationAgent:
         print(f"\n\nPrior: {task_list}")
         # quit()
 
-        try:
+        result = task_list
+        print(f"\nResult: {result}")
 
-            print(f"\nTask_List:{task_list}")
-            print(f"\nTask_Descs:{task_descs}")
-            self.storage.save_results(task_list, task_descs)
+        # Filter tasks based on the task_order
+        filtered_results = [task for task in result if task['task_order'].isdigit()]
+        # print(f"\nFilters: {filtered_results}\n\n")
+
+        ordered_results = [
+            {'task_order': int(task['task_order']), 'task_desc': task['task_desc']}
+            for task in filtered_results]
+
+        task_desc_list = [task['task_desc'] for task in ordered_results]
+
+        try:
+            self.storage.sel_collection("tasks")
+            self.storage.save_results(ordered_results, task_desc_list)
         except Exception as e:
-            print("Error during upsert:", e)
+            print("Error during upsert:", e, "\nCreating table... Name: tasks")
+            self.storage.create_collection("tasks")
+            self.storage.save_results(ordered_results, task_desc_list)
 
         return task_list

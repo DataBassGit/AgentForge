@@ -37,6 +37,10 @@ class ChromaUtils:
     def unload_storage(self):
         self.client = None
 
+    def select_collection(self, colname):
+        if collection_name in self.client.list_collections():
+            self.collection = self.client.get_collection(name=str(colname))
+
     def create_storage(self):
         if collection_name not in self.client.list_collections():
             self.client.create_collection(collection_name)
@@ -62,7 +66,7 @@ class ChromaUtils:
             documents=results
         )
 
-        print(self.collection.get())
+        #print(self.collection.get())
 
         # task_order = task["task_order"]
         # self.collection.add(

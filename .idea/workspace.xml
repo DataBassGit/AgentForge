@@ -8,10 +8,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Agents/execution_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/execution_agent.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Agents/prioritization_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/prioritization_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agents/task_creation_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/task_creation_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Readme.md" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/chroma_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/chroma_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utilities/function_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/function_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/storage_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/storage_interface.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -29,9 +27,6 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/venv/Lib/site-packages/pinecone/core/client/rest.py" root0="SKIP_INSPECTION" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
