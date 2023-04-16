@@ -1,5 +1,7 @@
 # BabyBoogaAGI
-BabyBoogaAGI is an AI-powered task automation system that generates, prioritizes, and executes tasks based on a given objective. It uses Pinecone, SentenceTransformer, and the Oobabooga API for text generation to accomplish its tasks.
+BabyBoogaAGI is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, BabyBoogaAGI aims to deliver efficient and reliable task management solutions.
+
+The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures. Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve. By fostering a collaborative and accessible environment, BabyBoogaAGI seeks to contribute to the advancement of AI research and development across various domains.
 
 ## Installation
 1. Clone the repository:
@@ -14,43 +16,12 @@ cd BabyBoogaAGI
 ```
 pip install -r requirements.txt
 ```
+3. Update the config.ini file in the Config directory with the API keys, and evironment variables if you are using locally hosted API services.
 
-Note: You may want to create a virtual environment to isolate the project's dependencies.
-
-3. Set up the Oobabooga API by following the instructions in their text-generation-webui repository. (https://github.com/oobabooga/text-generation-webui) You need to download the repository and follow their setup instructions.
-
-4. Modify the start-webui.bat file in the Oobabooga repository to match the following content:
-
-```
-@echo off
-
-@echo Starting the API...
-
-cd /D "%~dp0"
-
-set MAMBA_ROOT_PREFIX=%cd%\installer_files\mamba
-set INSTALL_ENV_DIR=%cd%\installer_files\env
-
-if not exist "%MAMBA_ROOT_PREFIX%\condabin\micromamba.bat" (
- call "%MAMBA_ROOT_PREFIX%\micromamba.exe" shell hook >nul 2>&1
-)
-call "%MAMBA_ROOT_PREFIX%\condabin\micromamba.bat" activate "%INSTALL_ENV_DIR%" || ( echo MicroMamba hook not found. && goto end )
-cd text-generation-webui
-
-#This is the line that needs to be changed:
-python server.py --auto-devices --listen --no-stream
-
-:end
-pause
-```
-This modification ensures that the Oobabooga API starts correctly.
-
-5. Make sure you have a language model installed. You can either run download-models.bat and select your own, your you can download a model from huggingface directly and save it in the /oogabooga-windows/text-generation-webui/models folder.
-
-6. Update the config.ini file in the root directory with the API keys, and evironment variables if you are using external hosted API services.
+4. Modify the default.json file in the Personas directory with your objective and tasks. You can also adjust parameters and update the agent prompts here.
 
 ## Usage
-1. Run the main.py script to start the BabyBoogaAGI:
+1. Run the main.py script to start BabyBoogaAGI:
 
 ```
 python main.py
