@@ -28,7 +28,9 @@ python main.py
 ```
 This script will initialize the AI system, generate tasks, prioritize them, and execute the tasks based on the given objective.
 
-2. Monitor the output to see the tasks being generated and executed. The script will continue running until you manually stop it.
+2. Select whether you want to use auto or manual mode. Automode will run continuously. This is dangerous if you are using a paid LLM API. If you select manual mode, you will be able to add additional context or instructions to the prompt sent ot the Execution Agent.
+
+3. Monitor the output to see the tasks being generated and executed.
 
 ## Contributing
 Feel free to open issues or submit pull requests with improvements or bug fixes. Your contributions are welcome!
