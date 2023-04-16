@@ -1,6 +1,6 @@
 import configparser
 import uuid
-
+from datetime import datetime
 import chromadb
 from chromadb.config import Settings
 
@@ -9,7 +9,6 @@ config = configparser.ConfigParser()
 config.read('Config/config.ini')
 
 db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
-collection_name = config.get('ChromaDB', 'collection_name')
 chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
 
 
@@ -21,30 +20,40 @@ class ChromaUtils:
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
+            print("\nCreating chroma utils")
             cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
+
     def __init__(self):
         # Add your initialization code here
+        print("initializing chroma utils")
         self.init_storage()
+
 
     def init_storage(self):
         settings = Settings(chroma_db_impl)
         if db_path:
             settings.persist_directory = db_path
-        self.client = chromadb.Client(settings)
+        if self.client is None:
+            self.client = chromadb.Client(settings)
 
     def unload_storage(self):
         self.client = None
 
     def select_collection(self, colname):
-        if collection_name in self.client.list_collections():
-            self.collection = self.client.get_collection(name=str(colname))
+        print(f"\n\nSelecting collection: {colname}")
+        try:
+            self.collection = self.client.get_collection(colname)
+        except Exception as e:
+            raise ValueError(f"Collection {colname} not found. Error: {e}")
 
-    def create_storage(self):
-        if collection_name not in self.client.list_collections():
+    def create_storage(self,collection_name):
+        try:
+            print("\nCreating collection: ", collection_name)
             self.client.create_collection(collection_name)
-        self.collection = self.client.get_collection(collection_name)
+        except Exception as e:
+            print("\n\nError creating collection: ", e)
 
     def delete_collection(self):
         if collection_name in self.client.list_collections():
@@ -53,30 +62,30 @@ class ChromaUtils:
     def get_collection(self):
         return self.collection
 
-    def save_tasks(self, tasks, results):
+    def save_tasks(self, tasks, results, collection_name):
         task_orders = [task["task_order"] for task in tasks]
-
+        self.select_collection(collection_name)
         metadatas = [
-            {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for
-            task in tasks]
+            {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
 
+        print("saving task debug:", self.collection)
         self.collection.add(
-            ids=[str(order) for order in task_orders],
+
             metadatas=metadatas,
-            documents=results
+            documents=results,
+            ids = [str(order) for order in task_orders]
         )
 
-        #print(self.collection.get())
+    def save_results(self, result, collection_name):
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # task_order = task["task_order"]
-        # self.collection.add(
-        #     ids=[str(order) for order in task_order],
-        #     metadatas=[
-        #         {"task_status": task["task_status"], "task_desc": task["task_desc"], "task_id": task["task_id"]}],
-        #     documents=result
-        # )
+        self.select_collection(collection_name)
+        self.collection.add(
+            documents=[result],
+            metadatas=[{"timestamp": timestamp}],
+            ids=[str(uuid.uuid4())],
+        )
 
-    def save_results(self, task, result):
-        pass
-
+    def list_collections(self):
+        return self.client.list_collections()
 

@@ -6,8 +6,10 @@ from Agents.prioritization_agent import PrioritizationAgent
 from Agents.context_agent import context_agent
 from Personas.load_persona_data import load_persona_data
 from Utilities import function_utils as func
+from Utilities.storage_interface import StorageInterface
 
 # Load Agents
+storage = StorageInterface()
 executionAgent = ExecutionAgent()
 taskCreationAgent = TaskCreationAgent()
 prioritizationAgent = PrioritizationAgent()
@@ -18,11 +20,7 @@ params = persona_data['Params']
 objective = persona_data['Objective']
 first_task = persona_data['Tasks'][0]
 
-# Task list
-# task_list = deque([])
 
-# first_task = {"task_id": uuid.uuid4(), "task_order": 1, "task_desc": first_task, "task_status": "pending"}
-# func.add_task(task_list, first_task)
 
 # Main loop
 result = "None"
@@ -30,40 +28,20 @@ task_id_counter = 1
 task = {"list_id": uuid.uuid4(), "task_order": 1, "task_desc": first_task, "task_status": "pending"}
 task_list = []
 
-# Add the first task
-
-
-# create_tasks = taskCreationAgent.run_task_creation_agent(objective, ["None"], first_task, [], params)
-# print(f"Task Agent: {create_tasks}")
-#
-# quit()
-
 while True:
-    # print(f"\nPrinting Current Tasklist: {task_list} ")
-    # if len(task_list) == 0:
-    #     print("\n\nStopped!")
-    #     quit()
-    # else:
 
     # Print the task list
-    task_list = taskCreationAgent.run_task_creation_agent(objective, result, task, task_list, params)
+    task_list = taskCreationAgent.run_task_creation_agent(objective, params)
     func.print_task_list(task_list)
-    # print(f"Task Agent: {create_tasks}")
 
     task_list = prioritizationAgent.run_prioritization_agent(task["task_order"], task_list, objective, params)
     func.print_task_list(task_list)
-
-
     # print(f"Prior Agent: {task_list}")
 
-    # task_list = deque(prioritize_tasks)
-
     # Step 1: Pull the first task
-    # task = task_list.popleft()
-    # func.print_next_task(task)
-    #
+
     result = executionAgent.run_execution_agent(objective, params)
     # func.print_result(result)
 
-    quit()
+    #quit()
 

@@ -14,9 +14,11 @@ class ExecutionAgent:
         self.storage = StorageInterface()
 
     def run_execution_agent(self, objective: str, params: Dict) -> str:
-        #print(self.storage.get_storage().get())
+        self.storage.sel_collection("tasks")
+        print(self.storage.get_storage().get())
+        print("\n\n")
         try:
-            context = [task['task_desc'] for task in self.storage.get_storage().get()]
+            context = self.storage.get_storage().get()['documents']
         except:
             context = []
         print(f"\nContext: {context}")
@@ -28,6 +30,7 @@ class ExecutionAgent:
                 {"role": "user",
                  "content": f"Take into account these previously completed tasks: {context}\nYour task: {task}\nResponse:"},
             ]
+            print(f"\nPrompt: {prompt}")
         else:
             print('\nLanguage Model Not Found!')
             raise ValueError('Language model not found. Please check the language_model_api variable.')
@@ -38,10 +41,14 @@ class ExecutionAgent:
         # quit()
 
         try:
-            self.storage.save_results(task, result)
+            self.storage.sel_collection("results")
+            self.storage.save_results(result, "results")
         except Exception as e:
-            print("Error during upsert:", e)
+            print("Error during upsert:", e, "\nCreating table... Name: results")
+            self.storage.create_col("results")
+            self.storage.save_results(result, "results")
 
-        # print(self.storage.get_result(task))
+            print("Table created!")
+        print(self.storage.get_storage().get())
 
         return result

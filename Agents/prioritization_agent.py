@@ -15,9 +15,9 @@ class PrioritizationAgent:
 
     def run_prioritization_agent(self, this_task_order: int, task_list: List, objective: str, params: Dict):
         task_descs = [t["task_desc"] for t in task_list]
-        # print("\n***This Task ID***: " + this_task_id)
         next_task_order = int(this_task_order)
         next_task_order += 1
+        print("\n***This Task ID***: " + str(this_task_order))
 
         prompt = ""
 
@@ -46,14 +46,12 @@ class PrioritizationAgent:
                 task_list.append({"task_order": task_order, "task_desc": task_desc})
 
         print(f"\n\nPrior: {task_list}")
-        # quit()
 
         result = task_list
         print(f"\nResult: {result}")
 
         # Filter tasks based on the task_order
         filtered_results = [task for task in result if task['task_order'].isdigit()]
-        # print(f"\nFilters: {filtered_results}\n\n")
 
         ordered_results = [
             {'task_order': int(task['task_order']), 'task_desc': task['task_desc']}
@@ -63,10 +61,12 @@ class PrioritizationAgent:
 
         try:
             self.storage.sel_collection("tasks")
-            self.storage.save_results(ordered_results, task_desc_list)
+            self.storage.save_tasks(ordered_results, task_desc_list, "tasks")
         except Exception as e:
             print("Error during upsert:", e, "\nCreating table... Name: tasks")
-            self.storage.create_collection("tasks")
-            self.storage.save_results(ordered_results, task_desc_list)
+            self.storage.create_col("tasks")
+            self.storage.save_tasks(ordered_results, task_desc_list, "tasks")
 
-        return task_list
+            print("Table created!")
+
+        return ordered_results

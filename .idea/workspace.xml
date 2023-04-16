@@ -8,7 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Agents/execution_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/execution_agent.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Agents/prioritization_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/prioritization_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Readme.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agents/task_creation_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/task_creation_agent.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/chroma_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/chroma_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/storage_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/storage_interface.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
