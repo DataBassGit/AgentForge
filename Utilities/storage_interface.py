@@ -40,13 +40,13 @@ class StorageInterface:
                 self.storage_utils.select_collection(storage)
                 self.storage_utils.save_tasks(task_dicts, task_descs, "tasks")
             except Exception as e:
-                print("Error during upsert:", e, "\nCreating table... Name: tasks")
+                #print("Error during upsert:", e, "\nCreating table... Name: tasks")
                 self.storage_utils.create_storage(storage)
-                print("\nPersona data: ", task_dicts)
+                #print("\nPersona data: ", task_dicts)
                 self.storage_utils.save_tasks(task_dicts, task_descs, "tasks")
 
-                print("Table created!")
-                print(self.storage_utils.get_collection().get())
+                #print("Table created!")
+                #print(self.storage_utils.get_collection().get())
         else:
             raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
@@ -103,5 +103,11 @@ class StorageInterface:
     def save_results(self, results, collection_name):
         if storage_api == 'chroma':
             self.storage_utils.save_results(results, collection_name)
+        else:
+            raise ValueError(f"Unsupported Storage API library: {storage_api}")
+
+    def delete_col(self, name):
+        if storage_api == 'chroma':
+            self.storage_utils.delete_collection(name)
         else:
             raise ValueError(f"Unsupported Storage API library: {storage_api}")

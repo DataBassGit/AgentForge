@@ -11,7 +11,6 @@
       <change beforePath="$PROJECT_DIR$/Agents/task_creation_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/task_creation_agent.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/chroma_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/chroma_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/storage_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/storage_interface.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -50,7 +50,7 @@ class TaskCreationAgent:
             {'task_order': int(task['task_desc'].split('. ', 1)[0]), 'task_desc': task['task_desc'].split('. ', 1)[1]}
             for task in filtered_results]
 
-        print(f"\nOrdered: {ordered_results}\n\n")
+        #print(f"\nOrdered: {ordered_results}\n\n")
 
         return ordered_results
 

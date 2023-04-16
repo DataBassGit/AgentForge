@@ -27,7 +27,7 @@ class ChromaUtils:
 
     def __init__(self):
         # Add your initialization code here
-        print("initializing chroma utils")
+        #print("initializing chroma utils")
         self.init_storage()
 
 
@@ -42,7 +42,7 @@ class ChromaUtils:
         self.client = None
 
     def select_collection(self, colname):
-        print(f"\n\nSelecting collection: {colname}")
+        #print(f"\n\nSelecting collection: {colname}")
         try:
             self.collection = self.client.get_collection(colname)
         except Exception as e:
@@ -55,9 +55,11 @@ class ChromaUtils:
         except Exception as e:
             print("\n\nError creating collection: ", e)
 
-    def delete_collection(self):
-        if collection_name in self.client.list_collections():
-            self.client.delete_collection()
+    def delete_collection(self, collection_name):
+        try:
+            self.client.delete_collection(collection_name)
+        except Exception as e:
+            print("\n\nError deleting collection: ", e)
 
     def get_collection(self):
         return self.collection
@@ -68,7 +70,7 @@ class ChromaUtils:
         metadatas = [
             {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
 
-        print("saving task debug:", self.collection)
+        #print("saving task debug:", self.collection)
         self.collection.add(
 
             metadatas=metadatas,
