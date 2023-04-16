@@ -11,7 +11,6 @@ config.read('Config/config.ini')
 db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
 chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
 
-
 class ChromaUtils:
     _instance = None
 
@@ -24,31 +23,27 @@ class ChromaUtils:
             cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
-
     def __init__(self):
         # Add your initialization code here
-        #print("initializing chroma utils")
         self.init_storage()
 
-
     def init_storage(self):
-        settings = Settings(chroma_db_impl)
-        if db_path:
-            settings.persist_directory = db_path
         if self.client is None:
+            settings = Settings(chroma_db_impl)
+            if db_path:
+                settings.persist_directory = db_path
             self.client = chromadb.Client(settings)
 
     def unload_storage(self):
         self.client = None
 
-    def select_collection(self, colname):
-        #print(f"\n\nSelecting collection: {colname}")
+    def select_collection(self, collection_name):
         try:
-            self.collection = self.client.get_collection(colname)
+            self.collection = self.client.get_collection(collection_name)
         except Exception as e:
-            raise ValueError(f"Collection {colname} not found. Error: {e}")
+            raise ValueError(f"Collection {collection_name} not found. Error: {e}")
 
-    def create_storage(self,collection_name):
+    def create_storage(self, collection_name):
         try:
             print("\nCreating collection: ", collection_name)
             self.client.create_collection(collection_name)
@@ -70,7 +65,6 @@ class ChromaUtils:
         metadatas = [
             {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
 
-        #print("saving task debug:", self.collection)
         self.collection.add(
 
             metadatas=metadatas,
@@ -90,4 +84,3 @@ class ChromaUtils:
 
     def list_collections(self):
         return self.client.list_collections()
-

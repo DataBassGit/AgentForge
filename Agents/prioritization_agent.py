@@ -2,6 +2,12 @@ from typing import Dict, List
 from Agents.Func.initialize_agent import set_model_api
 from Agents.Func.initialize_agent import language_model_api
 from Utilities.storage_interface import StorageInterface
+from Personas.load_persona_data import load_persona_data
+
+# Load persona data
+persona_data = load_persona_data('Personas/default.json')
+params = persona_data['PrioritizationAgent']['Params']
+objective = persona_data['Objective']
 
 
 class PrioritizationAgent:
@@ -13,28 +19,24 @@ class PrioritizationAgent:
         self.generate_text = set_model_api()
         self.storage = StorageInterface()
 
-    def run_prioritization_agent(self, this_task_order: int, task_list: List, objective: str, params: Dict):
+    def run_prioritization_agent(self, this_task_order: int, task_list: List):
         task_descs = [t["task_desc"] for t in task_list]
         next_task_order = int(this_task_order)
         next_task_order += 1
-        #print("\n***This Task ID***: " + str(this_task_order))
 
-        prompt = ""
+        system_prompt = persona_data['PrioritizationAgent']['Prompts']['SystemPrompt'].format(task_descs=task_descs)
+        context_prompt = persona_data['PrioritizationAgent']['Prompts']['ContextPrompt'].format(objective=objective)
+        instruction_prompt = persona_data['PrioritizationAgent']['Prompts']['InstructionPrompt'].format(
+            next_task_order=next_task_order)
 
-        if language_model_api == 'openai_api':
-            prompt = [
-                {"role": "system",
-                 "content": f"You are a task prioritization AI tasked with cleaning the formatting of and reprioritizing the following tasks: {task_descs}. "},
-                {"role": "user",
-                 "content": f"Consider the ultimate objective of your team: {objective}. Do not remove any tasks. Return the result as a numbered list, like:\n"
-                            f"#. First task\n"
-                            f"#. Second task\n"
-                            f"Start the task list with number {next_task_order}."},
-            ]
-
-        else:
-            print('\nLanguage Model Not Found!')
-            raise ValueError('Language model not found. Please check the language_model_api variable.')
+        prompt = [
+            {"role": "system",
+             "content": f"{system_prompt}"},
+            {"role": "user",
+             "content": f"{context_prompt}"
+                        f"{instruction_prompt}"},
+        ]
+        # print(f"\nPrompt: {prompt}")
 
         new_tasks = self.generate_text(prompt, params).strip().split("\n")
         task_list = []
@@ -45,10 +47,7 @@ class PrioritizationAgent:
                 task_desc = task_parts[1].strip()
                 task_list.append({"task_order": task_order, "task_desc": task_desc})
 
-        #print(f"\n\nPrior: {task_list}")
-
         result = task_list
-        print(f"\nPrioritized Tasks: {result}")
 
         # Filter tasks based on the task_order
         filtered_results = [task for task in result if task['task_order'].isdigit()]
@@ -61,16 +60,10 @@ class PrioritizationAgent:
 
         try:
             self.storage.delete_col("tasks")
+            self.storage.create_col("tasks")
         except Exception as e:
             print("Error deleting table:", e)
-        try:
-            self.storage.sel_collection("tasks")
-            self.storage.save_tasks(ordered_results, task_desc_list, "tasks")
-        except Exception as e:
-            print("Error during upsert:", e, "\nCreating table... Name: tasks")
-            self.storage.create_col("tasks")
-            self.storage.save_tasks(ordered_results, task_desc_list, "tasks")
 
-            print("Table created!")
+        self.storage.save_tasks(ordered_results, task_desc_list, "tasks")
 
         return ordered_results

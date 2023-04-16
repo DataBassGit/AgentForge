@@ -6,7 +6,7 @@ import json
 config = configparser.ConfigParser()
 config.read('Config/config.ini')
 OPENAI_API_KEY = config.get('OpenAI', 'api_key')
-MODEL_ID = config.get('OpenAI', 'model_id')
+MODEL_ID = config.get('OpenAI', 'fast_model')
 
 # Initialize OpenAI library
 openai.api_key = OPENAI_API_KEY
