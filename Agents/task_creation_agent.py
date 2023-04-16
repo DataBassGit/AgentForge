@@ -22,7 +22,7 @@ class TaskCreationAgent:
         self.storage.sel_collection("tasks")
         task = self.storage.get_storage().get()['documents'][0]
         task_list = self.storage.get_storage().get()['documents']
-        if language_model_api == 'openai_api':
+        if language_model_api == 'oobabooga_api':
             prompt = [
                 {"role": "system",
                  "content": f"You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}, "},
@@ -50,7 +50,7 @@ class TaskCreationAgent:
             {'task_order': int(task['task_desc'].split('. ', 1)[0]), 'task_desc': task['task_desc'].split('. ', 1)[1]}
             for task in filtered_results]
 
-        #print(f"\nOrdered: {ordered_results}\n\n")
+        print(f"\nOrdered: {ordered_results}\n\n")
 
         return ordered_results
 
