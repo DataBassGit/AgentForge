@@ -45,7 +45,7 @@ class ChromaUtils:
 
     def create_storage(self, collection_name):
         try:
-            print("\nCreating collection: ", collection_name)
+            # print("\nCreating collection: ", collection_name)
             self.client.create_collection(collection_name)
         except Exception as e:
             print("\n\nError creating collection: ", e)

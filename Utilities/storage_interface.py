@@ -31,7 +31,7 @@ class StorageInterface:
 
     def initialize_storage(self):
         if self.storage_utils is None:
-            print("Initializing storage...")
+            # print("Initializing storage...")
             if storage_api == 'chroma':
                 storage = "tasks"
                 from Utilities.chroma_utils import ChromaUtils

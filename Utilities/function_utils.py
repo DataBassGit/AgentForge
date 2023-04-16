@@ -1,3 +1,7 @@
+import os
+from datetime import datetime
+
+
 class Functions:
     mode = None
 
@@ -46,3 +50,16 @@ class Functions:
         # Print the task result
         print("\033[93m\033[1m" + "\n*****TASK RESULT*****\n" + "\033[0m\033[0m")
         print(result)
+
+        # Save the result to a log.txt file in the /Logs/ folder
+        log_folder = "Logs"
+        log_file = "log.txt"
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Create the Logs folder if it doesn't exist
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
+
+        # Save the result to the log file
+        with open(os.path.join(log_folder, log_file), "a") as f:
+            f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")

@@ -3,6 +3,7 @@ from Agents.Func.initialize_agent import set_model_api
 from Agents.Func.initialize_agent import language_model_api
 from Utilities.storage_interface import StorageInterface
 from Personas.load_persona_data import load_persona_data
+from Utilities.function_utils import Functions
 
 # Load persona data
 persona_data = load_persona_data('Personas/default.json')
@@ -10,6 +11,9 @@ objective = persona_data['Objective']
 params = persona_data['TaskCreationAgent']['Params']
 system_prompt = persona_data['TaskCreationAgent']['Prompts']['SystemPrompt'].format(objective=objective)
 instruction_prompt = persona_data['TaskCreationAgent']['Prompts']['InstructionPrompt']
+
+#init functions
+functions = Functions()
 
 
 class TaskCreationAgent:
@@ -65,8 +69,17 @@ class TaskCreationAgent:
             print(f"Error: {e}")
 
         # print(f"\nOrdered: {ordered_results}\n\n")
+        task_desc_list = [task['task_desc'] for task in ordered_results]
 
-        return ordered_results
+        try:
+            self.storage.delete_col("tasks")
+            self.storage.create_col("tasks")
+        except Exception as e:
+            print("Error deleting table:", e)
+
+        self.storage.save_tasks(ordered_results, task_desc_list, "tasks")
+
+        # functions.print_task_list(ordered_results)
 
 
 

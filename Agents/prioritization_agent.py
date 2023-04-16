@@ -3,11 +3,15 @@ from Agents.Func.initialize_agent import set_model_api
 from Agents.Func.initialize_agent import language_model_api
 from Utilities.storage_interface import StorageInterface
 from Personas.load_persona_data import load_persona_data
+from Utilities.function_utils import Functions
 
 # Load persona data
 persona_data = load_persona_data('Personas/default.json')
 params = persona_data['PrioritizationAgent']['Params']
 objective = persona_data['Objective']
+
+#init functions
+functions = Functions()
 
 
 class PrioritizationAgent:
@@ -19,8 +23,16 @@ class PrioritizationAgent:
         self.generate_text = set_model_api()
         self.storage = StorageInterface()
 
-    def run_prioritization_agent(self, this_task_order: int, task_list: List):
-        task_descs = [t["task_desc"] for t in task_list]
+    def run_prioritization_agent(self):
+        # task_descs = [t["task_desc"] for t in task_list]
+
+        self.storage.sel_collection("tasks")
+        task_descs = self.storage.get_storage().get()['documents']
+        this_task_order = self.storage.get_storage().get()['ids'][0]
+
+        # print(f"\nTask Descriptions: {task_descs}")
+        # print(f"This task order: {this_task_order}")
+
         next_task_order = int(this_task_order)
         next_task_order += 1
 
@@ -66,4 +78,5 @@ class PrioritizationAgent:
 
         self.storage.save_tasks(ordered_results, task_desc_list, "tasks")
 
-        return ordered_results
+        functions.print_task_list(ordered_results)
+

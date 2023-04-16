@@ -3,12 +3,15 @@ from Agents.Func.initialize_agent import set_model_api
 from Agents.Func.initialize_agent import language_model_api
 from Utilities.storage_interface import StorageInterface
 from Personas.load_persona_data import load_persona_data
+from Utilities.function_utils import Functions
 
 # Load persona data
 persona_data = load_persona_data('Personas/default.json')
 params = persona_data['ExecutionAgent']['Params']
 objective = persona_data['Objective']
 
+#init functions
+functions = Functions()
 
 class ExecutionAgent:
     generate_text = None
@@ -22,20 +25,20 @@ class ExecutionAgent:
     def run_execution_agent(self, feedback) -> str:
         self.storage.sel_collection("tasks")
 
-        print(f"\nFeedback: {feedback}\n")
+        # print(f"\nFeedback: {feedback}\n")
 
         try:
             context = self.storage.get_storage().get()['documents']
         except Exception as e:
             context = []
-        print(f"\nContext: {context}")
+        # print(f"\nContext: {context}")
 
         try:
             task = self.storage.get_storage().get()['documents'][0]
         except Exception as e:
             print("failed to get task:", e)
             task = objective
-        print(f"\nTask: {task}")
+        # print(f"\nTask: {task}")
 
         system_prompt = persona_data['ExecutionAgent']['Prompts']['SystemPrompt'].format(objective=objective)
         context_prompt = persona_data['ExecutionAgent']['Prompts']['ContextPrompt'].format(context=context)
@@ -55,11 +58,11 @@ class ExecutionAgent:
                         f"{feedback_prompt}"},
 
         ]
-        print(f"\nPrompt: {prompt}")
+        # print(f"\nPrompt: {prompt}")
 
         result = self.generate_text(prompt, params).strip()
 
-        print(f"\n\nExec: {result}")
+        # print(f"\n\nExec: {result}")
 
         try:
             self.storage.sel_collection("results")
@@ -68,4 +71,4 @@ class ExecutionAgent:
             self.storage.create_col("results")
             self.storage.save_results(result, "results")
 
-        return result
+        functions.print_result(result)
