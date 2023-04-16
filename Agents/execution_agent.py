@@ -2,6 +2,12 @@ from typing import Dict, List
 from Agents.Func.initialize_agent import set_model_api
 from Agents.Func.initialize_agent import language_model_api
 from Utilities.storage_interface import StorageInterface
+from Personas.load_persona_data import load_persona_data
+
+# Load persona data
+persona_data = load_persona_data('Personas/default.json')
+params = persona_data['ExecutionAgent']['Params']
+objective = persona_data['Objective']
 
 
 class ExecutionAgent:
@@ -13,47 +19,46 @@ class ExecutionAgent:
         self.generate_text = set_model_api()
         self.storage = StorageInterface()
 
-    def run_execution_agent(self, objective: str, params: Dict) -> str:
+    def run_execution_agent(self, feedback) -> str:
         self.storage.sel_collection("tasks")
-        #print(self.storage.get_storage().get())
-        #print("\n\n")
+
+        print(f"\nFeedback: {feedback}\n")
+
         try:
             context = self.storage.get_storage().get()['documents']
-        except:
+        except Exception as e:
             context = []
         print(f"\nContext: {context}")
+
         try:
             task = self.storage.get_storage().get()['documents'][0]
         except Exception as e:
             print("failed to get task:", e)
             task = objective
         print(f"\nTask: {task}")
-        if language_model_api == 'openai_api':
-            prompt = [
-                {"role": "system",
-                 "content": f"You are an AI who performs one task based on the following objective: {objective}.\n"},
-                {"role": "user",
-                 "content": f"Take into account these previously completed tasks: {context}\nYour task: {task}\nResponse:"},
-            ]
-            #print(f"\nPrompt: {prompt}")
-        else:
-            print('\nLanguage Model Not Found!')
-            raise ValueError('Language model not found. Please check the language_model_api variable.')
+
+        system_prompt = persona_data['ExecutionAgent']['Prompts']['SystemPrompt'].format(objective=objective)
+        context_prompt = persona_data['ExecutionAgent']['Prompts']['ContextPrompt'].format(context=context)
+        instruction_prompt = persona_data['ExecutionAgent']['Prompts']['InstructionPrompt'].format(task=task)
+
+        prompt = [
+            {"role": "system",
+             "content": f"{system_prompt}"},
+            {"role": "user",
+             "content": f"{context_prompt}"
+                        f"{instruction_prompt}"},
+        ]
+        # print(f"\nPrompt: {prompt}")
 
         result = self.generate_text(prompt, params).strip()
 
         print(f"\n\nExec: {result}")
-        # quit()
 
         try:
             self.storage.sel_collection("results")
             self.storage.save_results(result, "results")
         except Exception as e:
-            #print("Error during upsert:", e, "\nCreating table... Name: results")
             self.storage.create_col("results")
             self.storage.save_results(result, "results")
-
-            #print("Table created!")
-        #print(self.storage.get_storage().get())
 
         return result
