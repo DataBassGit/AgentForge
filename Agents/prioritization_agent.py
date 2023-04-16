@@ -17,11 +17,11 @@ class PrioritizationAgent:
         task_descs = [t["task_desc"] for t in task_list]
         next_task_order = int(this_task_order)
         next_task_order += 1
-        #print("\n***This Task ID***: " + str(this_task_order))
+        print("\n***This Task ID***: " + str(this_task_order))
 
         prompt = ""
 
-        if language_model_api == 'openai_api':
+        if language_model_api == 'oobabooga_api':
             prompt = [
                 {"role": "system",
                  "content": f"You are a task prioritization AI tasked with cleaning the formatting of and reprioritizing the following tasks: {task_descs}. "},
@@ -45,10 +45,10 @@ class PrioritizationAgent:
                 task_desc = task_parts[1].strip()
                 task_list.append({"task_order": task_order, "task_desc": task_desc})
 
-        #print(f"\n\nPrior: {task_list}")
+        print(f"\n\nPrior: {task_list}")
 
         result = task_list
-        print(f"\nPrioritized Tasks: {result}")
+        print(f"\nResult: {result}")
 
         # Filter tasks based on the task_order
         filtered_results = [task for task in result if task['task_order'].isdigit()]
@@ -59,10 +59,6 @@ class PrioritizationAgent:
 
         task_desc_list = [task['task_desc'] for task in ordered_results]
 
-        try:
-            self.storage.delete_col("tasks")
-        except Exception as e:
-            print("Error deleting table:", e)
         try:
             self.storage.sel_collection("tasks")
             self.storage.save_tasks(ordered_results, task_desc_list, "tasks")

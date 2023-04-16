@@ -1,12 +1,6 @@
 {
-  "Name": "BigBooga",
-  "Objective": "Create an asphalt project schedular web app that is interactive.",
-  "Tasks": [
-    "Develop a task list.",
-    "Reflect on the task list",
-    "Act out the task list"
-  ],
-  "Params": {
+  "prompt": "Write a program for an AI to use to search the internet. Develop a task list. Reflect on the task list. Act out the task list",
+  "params": {
     "max_new_tokens": 200,
     "temperature": 0.7,
     "top_p": 0.5,
