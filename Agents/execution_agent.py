@@ -41,14 +41,21 @@ class ExecutionAgent:
         context_prompt = persona_data['ExecutionAgent']['Prompts']['ContextPrompt'].format(context=context)
         instruction_prompt = persona_data['ExecutionAgent']['Prompts']['InstructionPrompt'].format(task=task)
 
+        if feedback is None:
+            feedback_prompt = ""
+        else:
+            feedback_prompt = persona_data['ExecutionAgent']['Prompts']['FeedbackPrompt'].format(feedback=feedback)
+
         prompt = [
             {"role": "system",
              "content": f"{system_prompt}"},
             {"role": "user",
              "content": f"{context_prompt}"
-                        f"{instruction_prompt}"},
+                        f"{instruction_prompt}"
+                        f"{feedback_prompt}"},
+
         ]
-        # print(f"\nPrompt: {prompt}")
+        print(f"\nPrompt: {prompt}")
 
         result = self.generate_text(prompt, params).strip()
 

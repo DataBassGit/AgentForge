@@ -78,8 +78,9 @@
     "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": "You are an AI who performs one task based on the following objective: {objective}\n",
-      "ContextPrompt": "Take into account the list of tasks: {context}\\n",
-      "InstructionPrompt": "Your current task: {task}\\nResponse:"
+      "ContextPrompt": "Take into account the list of tasks: {context}\n",
+      "InstructionPrompt": "Your current task: {task}\nResponse:\n",
+      "FeedbackPrompt" : "Take into consideration the following feedback from the user: {feedback}"
     },
     "Params": {
       "max_new_tokens": 200,

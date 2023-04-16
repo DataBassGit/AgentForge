@@ -1,11 +1,9 @@
 import uuid
-import keyboard
 from Agents.execution_agent import ExecutionAgent
 from Agents.task_creation_agent import TaskCreationAgent
 from Agents.prioritization_agent import PrioritizationAgent
 from Personas.load_persona_data import load_persona_data
 from Utilities.function_utils import Functions
-from Utilities import function_utils as func
 from Utilities.storage_interface import StorageInterface
 
 # Load Agents
@@ -28,7 +26,7 @@ task_list = []
 functions = Functions()
 functions.set_auto_mode()
 
-# Add a variable to store context
+# Add a variable to store user feedback
 feedback = ""
 
 while True:
@@ -45,6 +43,4 @@ while True:
     # Run Execution Agent
     result = executionAgent.run_execution_agent(feedback)
     functions.print_result(result)
-
-
 

@@ -63,9 +63,9 @@ class StorageInterface:
     def get_task(self):
         pass
 
-    def sel_collection(self,name):
+    def sel_collection(self, name):
         self.storage_utils.select_collection(name)
-        
+
     def get_result(self, task):
         result = self.storage_utils.get_collection().query(
             query_texts=[task["task_desc"]],
