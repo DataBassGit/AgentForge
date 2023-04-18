@@ -6,9 +6,9 @@ from Utilities.storage_interface import StorageInterface
 
 # Load Agents
 storage = StorageInterface()
-executionAgent = ExecutionAgent()
 taskCreationAgent = TaskCreationAgent()
 prioritizationAgent = PrioritizationAgent()
+executionAgent = ExecutionAgent()
 
 # Add a variable to set the mode
 functions = Functions()

@@ -1,74 +1,70 @@
-from typing import Dict, List
-from Agents.Func.initialize_agent import set_model_api
-from Agents.Func.initialize_agent import language_model_api
-from Utilities.storage_interface import StorageInterface
-from Personas.load_persona_data import load_persona_data
-from Utilities.function_utils import Functions
+from Agents.Func.agent_functions import AgentFunctions
 
-# Load persona data
-persona_data = load_persona_data('Personas/default.json')
-params = persona_data['ExecutionAgent']['Params']
-objective = persona_data['Objective']
-
-#init functions
-functions = Functions()
 
 class ExecutionAgent:
-    generate_text = None
-    storage = None
+    agent_data = None
+    agent_funcs = None
 
     def __init__(self):
-        # Add your initialization code here
-        self.generate_text = set_model_api()
-        self.storage = StorageInterface()
+        self.agent_funcs = AgentFunctions('ExecutionAgent')
+        self.agent_data = self.agent_funcs.agent_data
 
-    def run_execution_agent(self, feedback) -> str:
-        self.storage.sel_collection("tasks")
-
-        # print(f"\nFeedback: {feedback}\n")
+    def run_execution_agent(self, feedback):
+        self.agent_data['storage'].sel_collection("tasks")
 
         try:
-            context = self.storage.get_storage().get()['documents']
+            context = self.agent_data['storage'].get_storage().get()['documents']
         except Exception as e:
             context = []
-        # print(f"\nContext: {context}")
 
         try:
-            task = self.storage.get_storage().get()['documents'][0]
+            task = self.agent_data['storage'].get_storage().get()['documents'][0]
         except Exception as e:
             print("failed to get task:", e)
-            task = objective
-        # print(f"\nTask: {task}")
+            task = self.agent_data['objective']
 
-        system_prompt = persona_data['ExecutionAgent']['Prompts']['SystemPrompt'].format(objective=objective)
-        context_prompt = persona_data['ExecutionAgent']['Prompts']['ContextPrompt'].format(context=context)
-        instruction_prompt = persona_data['ExecutionAgent']['Prompts']['InstructionPrompt'].format(task=task)
+        prompt_formats = {
+            'SystemPrompt': {'objective': self.agent_data['objective']},
+            'ContextPrompt': {'context': context},
+            'InstructionPrompt': {'task': task}
+        }
 
-        if feedback is None:
-            feedback_prompt = ""
+        prompt = self.generate_prompt(prompt_formats, feedback=feedback)
+        result = self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
+
+        self.save_results(result)
+        self.agent_funcs.print_result(result)
+
+    def generate_prompt(self, prompt_formats, feedback=""):
+        # Load Prompts
+        system_prompt = self.agent_data['prompts']['SystemPrompt']
+        context_prompt = self.agent_data['prompts']['ContextPrompt']
+        instruction_prompt = self.agent_data['prompts']['InstructionPrompt']
+
+        if feedback != "":
+            feedback_prompt = self.agent_data['prompts']['FeedbackPrompt']
         else:
-            feedback_prompt = persona_data['ExecutionAgent']['Prompts']['FeedbackPrompt'].format(feedback=feedback)
+            feedback_prompt = ""
+
+        # Format Prompts
+        system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
+        context_prompt = context_prompt.format(**prompt_formats.get('ContextPrompt', {}))
+        instruction_prompt = instruction_prompt.format(**prompt_formats.get('InstructionPrompt', {}))
+        feedback_prompt = feedback_prompt.format(feedback=feedback)
 
         prompt = [
-            {"role": "system",
-             "content": f"{system_prompt}"},
-            {"role": "user",
-             "content": f"{context_prompt}"
-                        f"{instruction_prompt}"
-                        f"{feedback_prompt}"},
-
+            {"role": "system", "content": f"{system_prompt}"},
+            {"role": "user", "content": f"{context_prompt}{instruction_prompt}{feedback_prompt}"}
         ]
+
         # print(f"\nPrompt: {prompt}")
+        return prompt
 
-        result = self.generate_text(prompt, params).strip()
-
-        # print(f"\n\nExec: {result}")
-
+    def save_results(self, result):
+        col_name = "results"
         try:
-            self.storage.sel_collection("results")
-            self.storage.save_results(result, "results")
+            self.agent_data['storage'].sel_collection(col_name)
+            self.agent_data['storage'].save_results(result, col_name)
         except Exception as e:
-            self.storage.create_col("results")
-            self.storage.save_results(result, "results")
-
-        functions.print_result(result)
+            self.agent_data['storage'].create_col(col_name)
+            self.agent_data['storage'].save_results(result, col_name)

@@ -4,17 +4,13 @@ import json
 
 # Read configuration file
 config = configparser.ConfigParser()
-config.read('Config/config.ini')
-OPENAI_API_KEY = config.get('OpenAI', 'api_key')
-MODEL_ID = config.get('OpenAI', 'fast_model')
-
-# Initialize OpenAI library
-openai.api_key = OPENAI_API_KEY
+config.read('Config/api_keys.ini')
+openai.api_key = config.get('OpenAI', 'api_key')
 
 
-def generate_text(prompt, params):
+def generate_text(prompt, model, params):
     response = openai.ChatCompletion.create(
-        model=MODEL_ID,
+        model=model,
         messages=prompt,
         max_tokens=params["max_new_tokens"],
         n=params["n"],

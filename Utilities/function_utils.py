@@ -23,7 +23,7 @@ class Functions:
         context = None
         # Check if the mode is manual
         if self.mode == 'manual':
-            user_input = input("Allow AI to continue? (y/n/auto) or enter context: ")
+            user_input = input("Allow AI to continue? (y/n/auto) or provide feedback: ")
             if user_input.lower() == 'y':
                 pass
             elif user_input.lower() == 'n':
