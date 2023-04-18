@@ -7,6 +7,7 @@
     "3. Act out the task list"
   ],
   "TaskCreationAgent": {
+    "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": "You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}",
@@ -41,6 +42,7 @@
     }
   },
   "PrioritizationAgent": {
+    "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": "You are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_descs}",
@@ -75,6 +77,7 @@
     }
   },
   "ExecutionAgent": {
+    "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": "You are an AI who performs one task based on the following objective: {objective}\n",
