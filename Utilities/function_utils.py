@@ -1,4 +1,7 @@
 import os
+import keyboard
+import threading
+import time
 from datetime import datetime
 
 
@@ -6,32 +9,57 @@ class Functions:
     mode = None
 
     def __init__(self):
-        # Add your initialization code here
-        pass
+        self.mode = None
+
+        # Start a separate thread to listen for 'Esc' key press
+        self.listen_for_esc_lock = threading.Lock()
+        self.listen_for_esc_thread = threading.Thread(target=self.listen_for_esc, daemon=True)
+        self.listen_for_esc_thread.start()
+
+    def listen_for_esc(self):
+        while True:
+            with self.listen_for_esc_lock:
+                if keyboard.is_pressed('esc') and self.mode == 'auto':
+                    print("\nSwitching to Manual Mode...")
+                    self.mode = 'manual'
+                    keyboard.read_event(suppress=True)  # Clear the event buffer
 
     def set_auto_mode(self):
-        self.mode = input("Enter Auto or Manual Mode? (a/m): ")
+        print("\nEnter Auto or Manual Mode? (a/m)")
+        while True:
+            event = keyboard.read_event()
+            if event.event_type == 'down':
+                if event.name.lower() == 'a':
+                    self.mode = 'auto'
+                    print(f"\nEntering Auto Mode - Press 'Esc' to return to Manual Mode!\n")
+                    break
+                elif event.name.lower() == 'm':
+                    self.mode = 'manual'
+                    break
+                elif event.name.lower() == 'esc':
+                    self.mode = 'manual'
+                    break
 
-        if self.mode.lower() == 'a':
-            self.mode = 'auto'
-        else:
-            self.mode = 'manual'
-
-        print(self.mode)
+        # print(self.mode)
 
     def check_auto_mode(self):
         context = None
-        # Check if the mode is manual
-        if self.mode == 'manual':
-            user_input = input("Allow AI to continue? (y/n/auto) or provide feedback: ")
-            if user_input.lower() == 'y':
-                pass
-            elif user_input.lower() == 'n':
-                quit()
-            elif user_input.lower() == 'auto':
-                self.mode = 'auto'
-            else:
-                context = user_input
+
+        # Acquire the lock while this function is running
+        with self.listen_for_esc_lock:
+            # Check if the mode is manual
+            if self.mode == 'manual':
+                user_input = input("\nAllow AI to continue? (y/n/auto) or provide feedback: ")
+                if user_input.lower() == 'y':
+                    pass
+                elif user_input.lower() == 'n':
+                    quit()
+                elif user_input.lower() == 'auto':
+                    self.mode = 'auto'
+                    print(f"\nEntering Auto Mode - Press 'Esc' to return to Manual Mode!\n")
+                    time.sleep(1)
+                else:
+                    context = user_input
 
         return context
 
@@ -48,7 +76,7 @@ class Functions:
 
     def print_result(self, result):
         # Print the task result
-        print("\033[93m\033[1m" + "\n*****TASK RESULT*****\n" + "\033[0m\033[0m")
+        print("\033[92m\033[1m" + "\n*****TASK RESULT*****\n" + "\033[0m\033[0m")
         print(result)
 
         # Save the result to a log.txt file in the /Logs/ folder

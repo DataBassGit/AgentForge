@@ -11,6 +11,7 @@ config.read('Config/config.ini')
 db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
 chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
 
+
 class ChromaUtils:
     _instance = None
 
@@ -21,11 +22,13 @@ class ChromaUtils:
         if not cls._instance:
             print("\nCreating chroma utils")
             cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
+            cls._instance.init_storage()
         return cls._instance
 
     def __init__(self):
         # Add your initialization code here
-        self.init_storage()
+        # self.init_storage()
+        pass
 
     def init_storage(self):
         if self.client is None:

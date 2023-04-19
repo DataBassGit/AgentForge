@@ -1,1 +1,4 @@
 /venv/
+Config/api_keys.ini
+.idea/workspace.xml
+Logs/log.txt

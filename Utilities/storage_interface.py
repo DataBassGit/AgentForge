@@ -10,8 +10,8 @@ task_list = persona_data['Tasks']
 task_dicts = [{"task_order": i + 1, "task_desc": task} for i, task in enumerate(task_list)]
 for task_dict in task_dicts:
     print("Task: ", task_dict["task_desc"])
-task_descs = [task_dict["task_desc"] for task_dict in task_dicts]
-print("\nTasks: ", task_descs)
+task_list = [task_dict["task_desc"] for task_dict in task_dicts]
+print("\nTasks: ", task_list)
 
 
 class StorageInterface:
@@ -22,11 +22,12 @@ class StorageInterface:
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(StorageInterface, cls).__new__(cls, *args, **kwargs)
+            cls._instance.initialize_storage()
         return cls._instance
 
     def __init__(self):
         # Add your initialization code here
-        self.initialize_storage()
+        # self.initialize_storage()
         pass
 
     def initialize_storage(self):
@@ -38,10 +39,10 @@ class StorageInterface:
                 self.storage_utils = ChromaUtils()
                 try:
                     self.storage_utils.select_collection(storage)
-                    self.storage_utils.save_tasks(task_dicts, task_descs, "tasks")
+                    self.storage_utils.save_tasks(task_dicts, task_list, "tasks")
                 except Exception as e:
                     self.storage_utils.create_storage(storage)
-                    self.storage_utils.save_tasks(task_dicts, task_descs, "tasks")
+                    self.storage_utils.save_tasks(task_dicts, task_list, "tasks")
 
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
@@ -111,3 +112,11 @@ class StorageInterface:
             self.storage_utils.delete_collection(name)
         else:
             raise ValueError(f"Unsupported Storage API library: {storage_api}")
+
+    def clear_collection(self, collection_name):
+        try:
+            self.sel_collection(collection_name)
+            self.storage_utils.collection.delete()
+        except Exception as e:
+            # print("Error clearing table:", e)
+            pass

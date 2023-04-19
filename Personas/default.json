@@ -45,7 +45,7 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "You are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_descs}",
+      "SystemPrompt": "You are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_list}",
       "ContextPrompt": "Consider the ultimate objective of your team: {objective}. Do not remove any tasks. ",
       "InstructionPrompt": "Return the result as a numbered list in the following format:\n#. First task\n#. Second task\nStart the task list with number {next_task_order}\nReturn ONLY the updated task list as an array, avoid any notes or unnecessary comments!"
     },
