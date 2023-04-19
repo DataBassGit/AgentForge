@@ -1,0 +1,1 @@
+# Make this into a template for new agents
