@@ -82,12 +82,14 @@ class Functions:
         # Save the result to a log.txt file in the /Logs/ folder
         log_folder = "Logs"
         log_file = "log.txt"
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Create the Logs folder if it doesn't exist
         if not os.path.exists(log_folder):
             os.makedirs(log_folder)
 
         # Save the result to the log file
-        with open(os.path.join(log_folder, log_file), "a") as f:
+        self.write_file(log_folder, log_file, result)
+    def write_file(self, folder, file, result):
+        with open(os.path.join(folder, file), "a") as f:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")

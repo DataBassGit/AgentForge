@@ -75,14 +75,6 @@ class StorageInterface:
 
         return result
 
-    def get_results(self, task):
-        result = self.storage_utils.get_collection().query(
-            query_texts=[task["task_desc"]],
-            n_results=1
-        )
-
-        return result
-
     def save_tasks(self, tasks, results, collection_name):
         if storage_api == 'chroma':
             self.storage_utils.save_tasks(tasks, results, collection_name)

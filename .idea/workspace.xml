@@ -5,23 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e06f8e6f-21fc-47a9-abca-cc70fee4eaa8" name="Changes" comment="Another refactor to convert the agents and some utilities to classes for ease of use">
-      <change afterPath="$PROJECT_DIR$/Agents/Func/agent_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Config/api_keys.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/APIs/openai_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/APIs/openai_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agents/Func/initialize_agent.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agents/Func/initialize_config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agents/execution_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/execution_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agents/prioritization_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/prioritization_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agents/prioritization_agent.py.bak" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agents/task_creation_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agents/task_creation_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/api_keys.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/api_keys.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Logs/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Logs/log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Personas/default.json" beforeDir="false" afterPath="$PROJECT_DIR$/Personas/default.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Personas/load_persona_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/Personas/load_persona_data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/function_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/function_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Utilities/storage_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/storage_interface.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
