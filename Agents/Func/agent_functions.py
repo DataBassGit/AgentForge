@@ -58,6 +58,10 @@ class AgentFunctions:
 
         self.agent_data['generate_text'] = generate_text
 
+    def run_llm(self, prompt):
+        result = self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
+        return result
+
     def print_task_list(self, ordered_results):
         self.functions.print_task_list(ordered_results)
 

@@ -76,7 +76,7 @@ class Functions:
 
     def print_result(self, result):
         # Print the task result
-        print("\033[92m\033[1m" + "\n*****TASK RESULT*****\n" + "\033[0m\033[0m")
+        print("\033[92m\033[1m" + "\n*****RESULT*****\n" + "\033[0m\033[0m")
         print(result)
 
         # Save the result to a log.txt file in the /Logs/ folder
@@ -89,6 +89,7 @@ class Functions:
 
         # Save the result to the log file
         self.write_file(log_folder, log_file, result)
+
     def write_file(self, folder, file, result):
         with open(os.path.join(folder, file), "a") as f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

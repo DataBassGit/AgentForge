@@ -1,6 +1,5 @@
 from Agents.Func.agent_functions import AgentFunctions
 
-
 class TaskCreationAgent:
     agent_data = None
     agent_funcs = None
