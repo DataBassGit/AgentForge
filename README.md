@@ -1,14 +1,14 @@
-# BabyBoogaAGI
-BabyBoogaAGI is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, BabyBoogaAGI aims to deliver efficient and reliable task management solutions.
+# BigBoogaAGI
+BigBoogaAGI is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, BabyBoogaAGI aims to deliver efficient and reliable task management solutions.
 
-The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures. Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve. By fostering a collaborative and accessible environment, BabyBoogaAGI seeks to contribute to the advancement of AI research and development across various domains.
+The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures. Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve. By fostering a collaborative and accessible environment, BigBoogaAGI seeks to contribute to the advancement of AI research and development across various domains.
 
 ## Installation
 1. Clone the repository:
 
 ```
-git clone https://github.com/your_github_username/BabyBoogaAGI.git
-cd BabyBoogaAGI
+git clone https://github.com/your_github_username/BigBoogaAGI.git
+cd BigBoogaAGI
 ```
 
 2. Install the required libraries:
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 4. Modify the default.json file in the Personas directory with your objective and tasks. You can also adjust parameters and update the agent prompts here.
 
 ## Usage
-1. Run the main.py script to start BabyBoogaAGI:
+1. Run the main.py script to start BigBoogaAGI:
 
 ```
 python main.py
