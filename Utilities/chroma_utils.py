@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 import chromadb
 from chromadb.config import Settings
+from chromadb.utils import embedding_functions
 
 # Read configuration file
 config = configparser.ConfigParser()
@@ -10,6 +11,13 @@ config.read('Config/config.ini')
 
 db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
 chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
+
+config.read('Config/api_keys.ini')
+openai_api_key = config.get('OpenAI', 'api_key')
+openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+                api_key=openai_api_key,
+                model_name="text-embedding-ada-002"
+            )
 
 
 class ChromaUtils:
@@ -42,14 +50,14 @@ class ChromaUtils:
 
     def select_collection(self, collection_name):
         try:
-            self.collection = self.client.get_collection(collection_name)
+            self.collection = self.client.get_collection(collection_name, embedding_function = openai_ef)
         except Exception as e:
             raise ValueError(f"Collection {collection_name} not found. Error: {e}")
 
     def create_storage(self, collection_name):
         try:
             # print("\nCreating collection: ", collection_name)
-            self.client.create_collection(collection_name)
+            self.client.create_collection(collection_name, embedding_function = openai_ef)
         except Exception as e:
             print("\n\nError creating collection: ", e)
 

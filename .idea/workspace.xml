@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="e06f8e6f-21fc-47a9-abca-cc70fee4eaa8" name="Changes" comment="Another refactor to convert the agents and some utilities to classes for ease of use">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/api_keys.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/api_keys.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Logs/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Logs/log.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utilities/function_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/function_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Utilities/storage_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/storage_interface.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utilities/chroma_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utilities/chroma_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
