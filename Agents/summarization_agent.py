@@ -27,7 +27,6 @@ class SummarizationAgent:
         return result
 
     def generate_prompt(self, prompt_formats):
-        # Generate the prompt using prompt_formats and return it.
         # Load Prompts
         system_prompt = self.agent_data['prompts']['SystemPrompt']
         instruction_prompt = self.agent_data['prompts']['InstructionPrompt']
