@@ -43,8 +43,16 @@ class PrioritizationAgent:
     # Additional functions
     def load_data_from_storage(self):
         collection_name = "tasks"
-        task_list = self.storage.load_collection(collection_name, "documents")
-        this_task_order = self.storage.load_collection(collection_name, "ids")[0]
+
+        task_list = self.storage.load_collection({
+            'collection_name': collection_name,
+            'collection_property': "documents"
+        })
+
+        this_task_order = self.storage.load_collection({
+            'collection_name': collection_name,
+            'collection_property': "ids"
+        })[0]
 
         data = {
             'task_list': task_list,
@@ -100,4 +108,9 @@ class PrioritizationAgent:
     def save_tasks(self, ordered_results, task_desc_list):
         collection_name = "tasks"
         self.storage.clear_collection(collection_name)
-        self.storage.save_tasks(ordered_results, task_desc_list, collection_name)
+
+        self.storage.save_tasks({
+            'tasks': ordered_results,
+            'results': task_desc_list,
+            'collection_name': collection_name
+        })

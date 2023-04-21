@@ -21,7 +21,11 @@ class ExecutionAgent:
         self.agent_funcs.print_result(result)
 
     def load_data_from_storage(self):
-        task_list = self.storage.load_collection("tasks", "documents")
+        task_list = self.storage.load_collection({
+            'collection_name': "tasks",
+            'collection_property': "documents"
+        })
+
         task = task_list[0]
 
         return {'context': task_list, 'task': task}
@@ -60,4 +64,5 @@ class ExecutionAgent:
         return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
 
     def save_results(self, result):
-        self.storage.save_results(result, "results")
+        self.storage.save_results({'result': result, 'collection_name': "results"})
+
