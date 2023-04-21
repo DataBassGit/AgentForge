@@ -3,3 +3,4 @@ Config/api_keys.ini
 .idea/
 __pycache__/
 Logs/
+*.pyc
