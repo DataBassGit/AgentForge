@@ -22,7 +22,6 @@ openai_ef = embedding_functions.OpenAIEmbeddingFunction(
 
 class ChromaUtils:
     _instance = None
-
     client = None
     collection = None
 
@@ -31,6 +30,8 @@ class ChromaUtils:
             print("\nCreating chroma utils")
             cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
             cls._instance.init_storage()
+
+
         return cls._instance
 
     def __init__(self):
@@ -54,7 +55,7 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"Collection {collection_name} not found. Error: {e}")
 
-    def create_storage(self, collection_name):
+    def create_collection(self, collection_name):
         try:
             # print("\nCreating collection: ", collection_name)
             self.client.create_collection(collection_name, embedding_function = openai_ef)
@@ -67,6 +68,13 @@ class ChromaUtils:
         except Exception as e:
             print("\n\nError deleting collection: ", e)
 
+    def clear_collection(self, collection_name):
+        try:
+            self.select_collection(collection_name)
+            self.collection.delete()
+        except Exception as e:
+            print("Error clearing table:", e)
+            pass
     def get_collection(self):
         return self.collection
 

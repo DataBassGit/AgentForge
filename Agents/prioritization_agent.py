@@ -29,9 +29,9 @@ class PrioritizationAgent:
 
     # Additional functions
     def load_data_from_storage(self):
-        self.agent_data['storage'].sel_collection("tasks")
-        task_list = self.agent_data['storage'].get_storage().get()['documents']
-        this_task_order = self.agent_data['storage'].get_storage().get()['ids'][0]
+        self.agent_data['storage'].storage_utils.select_collection("tasks")
+        task_list = self.agent_data['storage'].storage_utils.get_collection().get()['documents']
+        this_task_order = self.agent_data['storage'].storage_utils.get_collection().get()['ids'][0]
 
         data = {
             'task_list': task_list,
@@ -98,9 +98,9 @@ class PrioritizationAgent:
     def save_tasks(self, ordered_results, task_desc_list):
         col_name = "tasks"
         try:
-            self.agent_data['storage'].delete_col(col_name)
-            self.agent_data['storage'].create_col(col_name)
+            self.agent_data['storage'].storage_utils.delete_collection(col_name)
+            self.agent_data['storage'].storage_utils.create_collection(col_name)
         except Exception as e:
             print("Error deleting table:", e)
 
-        self.agent_data['storage'].save_tasks(ordered_results, task_desc_list, col_name)
+        self.agent_data['storage'].storage_utils.save_tasks(ordered_results, task_desc_list, col_name)

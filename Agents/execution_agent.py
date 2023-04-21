@@ -4,7 +4,7 @@ from Agents.Func.agent_functions import AgentFunctions
 class ExecutionAgent:
     agent_data = None
     agent_funcs = None
-
+    storage = None
     def __init__(self):
         self.agent_funcs = AgentFunctions('ExecutionAgent')
         self.agent_data = self.agent_funcs.agent_data
@@ -22,16 +22,16 @@ class ExecutionAgent:
         self.agent_funcs.print_result(result)
 
     def load_data_from_storage(self):
-        self.agent_data['storage'].sel_collection("tasks")
+        self.agent_data['storage'].storage_utils.select_collection("tasks")
 
         try:
-            context = self.agent_data['storage'].get_storage().get()['documents']
+            context = self.agent_data['storage'].storage_utils.get_collection().get()['documents']
         except Exception as e:
             print(f"Error loading data: {e}")
             context = []
 
         try:
-            task = self.agent_data['storage'].get_storage().get()['documents'][0]
+            task = self.agent_data['storage'].storage_utils.get_collection().get()['documents'][0]
         except Exception as e:
             print("failed to get task:", e)
             task = self.agent_data['objective']
@@ -74,9 +74,9 @@ class ExecutionAgent:
     def save_results(self, result):
         col_name = "results"
         try:
-            self.agent_data['storage'].sel_collection(col_name)
-            self.agent_data['storage'].save_results(result, col_name)
+            self.agent_data['storage'].storage_utils.select_collection(col_name)
+            self.agent_data['storage'].storage_utils.save_results(result, col_name)
         except Exception as e:
             print(f"Error saving results: {e}")
-            self.agent_data['storage'].create_col(col_name)
-            self.agent_data['storage'].save_results(result, col_name)
+            self.agent_data['storage'].storage_utils.create_collection(col_name)
+            self.agent_data['storage'].storage_utils.save_results(result, col_name)

@@ -24,16 +24,16 @@ class TaskCreationAgent:
 
     def load_data_from_storage(self):
         try:
-            self.agent_data['storage'].sel_collection("results")
-            result = self.agent_data['storage'].get_storage().get()['documents'][0]
+            self.agent_data['storage'].storage_utils.select_collection("results")
+            result = self.agent_data['storage'].storage_utils.get_collection().get()['documents'][0]
         except Exception as e:
             # print(f"Error loading results data: {e}")
             result = ["No results found"]
 
         try:
-            self.agent_data['storage'].sel_collection("tasks")
-            task = self.agent_data['storage'].get_storage().get()['documents'][0]
-            task_list = self.agent_data['storage'].get_storage().get()['documents']
+            self.agent_data['storage'].storage_utils.select_collection("tasks")
+            task = self.agent_data['storage'].storage_utils.get_collection().get()['documents'][0]
+            task_list = self.agent_data['storage'].storage_utils.get_collection().get()['documents']
         except Exception as e:
             # print(f"Error loading tasks data: {e}")
             task = None
@@ -92,5 +92,5 @@ class TaskCreationAgent:
     def save_tasks(self, ordered_results, task_desc_list):
         # Note: this change seems to work, but it doesn't really stop the debug message
         col_name = "tasks"
-        self.agent_data['storage'].clear_collection(col_name)
-        self.agent_data['storage'].save_tasks(ordered_results, task_desc_list, col_name)
+        self.agent_data['storage'].storage_utils.clear_collection(col_name)
+        self.agent_data['storage'].storage_utils.save_tasks(ordered_results, task_desc_list, col_name)
