@@ -12,16 +12,25 @@ class ExecutionAgent:
         self.storage = self.agent_data['storage'].storage_utils
 
     def run_execution_agent(self, feedback):
+        self.agent_funcs.start_thinking()
+
         data = self.load_data_from_storage()
         prompt_formats = self.get_prompt_formats(data)
         prompt = self.generate_prompt(prompt_formats, feedback)
         result = self.execute_task(prompt)
 
         self.save_results(result)
+
+        self.agent_funcs.stop_thinking()
+
         self.agent_funcs.print_result(result)
 
     def load_data_from_storage(self):
-        task_list = self.storage.load_collection("tasks", "documents")
+        task_list = self.storage.load_collection({
+            'collection_name': "tasks",
+            'collection_property': "documents"
+        })
+
         task = task_list[0]
 
         return {'context': task_list, 'task': task}
@@ -60,4 +69,5 @@ class ExecutionAgent:
         return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
 
     def save_results(self, result):
-        self.storage.save_results(result, "results")
+        self.storage.save_results({'result': result, 'collection_name': "results"})
+

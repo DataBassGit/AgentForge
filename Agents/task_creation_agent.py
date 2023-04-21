@@ -5,6 +5,7 @@ class TaskCreationAgent:
     agent_data = None
     agent_funcs = None
     storage = None
+    spinner_thread = None
 
     def __init__(self):
         self.agent_funcs = AgentFunctions('TaskCreationAgent')
@@ -12,6 +13,8 @@ class TaskCreationAgent:
         self.storage = self.agent_data['storage'].storage_utils
 
     def run_task_creation_agent(self):
+        self.agent_funcs.start_thinking()
+
         data = self.load_data_from_storage()
         prompt_formats = self.get_prompt_formats(data)
         prompt = self.generate_prompt(prompt_formats)
@@ -19,13 +22,23 @@ class TaskCreationAgent:
         task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
         self.save_tasks(ordered_tasks, task_desc_list)
+
+        self.agent_funcs.stop_thinking()
+
         # self.agent_funcs.print_task_list(ordered_results)
 
     def load_data_from_storage(self):
-        result_collection = self.storage.load_collection("results", "documents")
+        result_collection = self.storage.load_collection({
+            'collection_name': "results",
+            'collection_property': "documents"
+        })
         result = result_collection[0] if result_collection else ["No results found"]
 
-        task_collection = self.storage.load_collection("tasks", "documents")
+        task_collection = self.storage.load_collection({
+            'collection_name': "tasks",
+            'collection_property': "documents"
+        })
+
         task_list = task_collection if task_collection else []
         task = task_list[0] if task_collection else None
 
@@ -80,4 +93,9 @@ class TaskCreationAgent:
     def save_tasks(self, ordered_results, task_desc_list):
         collection_name = "tasks"
         self.storage.clear_collection(collection_name)
-        self.storage.save_tasks(ordered_results, task_desc_list, collection_name)
+
+        self.storage.save_tasks({
+            'tasks': ordered_results,
+            'results': task_desc_list,
+            'collection_name': collection_name
+        })

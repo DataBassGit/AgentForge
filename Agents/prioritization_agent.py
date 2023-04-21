@@ -29,6 +29,8 @@ class PrioritizationAgent:
         self.storage = self.agent_data['storage'].storage_utils
 
     def run_prioritization_agent(self):
+        self.agent_funcs.start_thinking()
+
         data = self.load_data_from_storage()
         next_task_order = calculate_next_task_order(data['this_task_order'])
         prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
@@ -38,13 +40,24 @@ class PrioritizationAgent:
         task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
         self.save_tasks(ordered_tasks, task_desc_list)
+
+        self.agent_funcs.stop_thinking()
+
         self.agent_funcs.print_task_list(ordered_tasks)
 
     # Additional functions
     def load_data_from_storage(self):
         collection_name = "tasks"
-        task_list = self.storage.load_collection(collection_name, "documents")
-        this_task_order = self.storage.load_collection(collection_name, "ids")[0]
+
+        task_list = self.storage.load_collection({
+            'collection_name': collection_name,
+            'collection_property': "documents"
+        })
+
+        this_task_order = self.storage.load_collection({
+            'collection_name': collection_name,
+            'collection_property': "ids"
+        })[0]
 
         data = {
             'task_list': task_list,
@@ -100,4 +113,9 @@ class PrioritizationAgent:
     def save_tasks(self, ordered_results, task_desc_list):
         collection_name = "tasks"
         self.storage.clear_collection(collection_name)
-        self.storage.save_tasks(ordered_results, task_desc_list, collection_name)
+
+        self.storage.save_tasks({
+            'tasks': ordered_results,
+            'results': task_desc_list,
+            'collection_name': collection_name
+        })

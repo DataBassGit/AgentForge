@@ -68,11 +68,11 @@ class ChromaUtils:
         except Exception as e:
             print("Error clearing table:", e)
 
-    # def get_collection(self):
-    #     return self.collection
-
-    def load_collection(self, collection_name, collection_property):
+    def load_collection(self, params):
         try:
+            collection_name = params.get('collection_name', 'default_collection_name')
+            collection_property = params.get('collection_property', None)
+
             self.select_collection(collection_name)
             data = self.collection.get()[collection_property]
         except Exception as e:
@@ -81,7 +81,11 @@ class ChromaUtils:
 
         return data
 
-    def save_tasks(self, tasks, results, collection_name):
+    def save_tasks(self, params):
+        tasks = params.get('tasks', [])
+        results = params.get('results', [])
+        collection_name = params.get('collection_name', 'default_collection_name')
+
         try:
             task_orders = [task["task_order"] for task in tasks]
             self.select_collection(collection_name)
@@ -97,8 +101,10 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"Error saving tasks. Error: {e}")
 
-    def save_results(self, result, collection_name):
+    def save_results(self, params):
         try:
+            result = params.get('result', None)
+            collection_name = params.get('collection_name', 'default_collection_name')
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             self.select_collection(collection_name)
@@ -109,3 +115,4 @@ class ChromaUtils:
             )
         except Exception as e:
             raise ValueError(f"Error saving results. Error: {e}")
+

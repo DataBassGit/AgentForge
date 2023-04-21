@@ -24,9 +24,6 @@ class StorageInterface:
         if not cls._instance:
             cls._instance = super(StorageInterface, cls).__new__(cls, *args, **kwargs)
             cls._instance.initialize_storage()
-            cls._instance.storage_utils.client.create_collection("results")
-            cls._instance.storage_utils.client.create_collection("tasks")
-            cls._instance.storage_utils.save_tasks(task_dicts, task_list, "tasks")
         return cls._instance
 
     def __init__(self):
@@ -44,3 +41,7 @@ class StorageInterface:
         from Utilities.chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
+        self.storage_utils.client.create_collection("results")
+        self.storage_utils.client.create_collection("tasks")
+        self.storage_utils.save_tasks({'tasks': task_dicts, 'results': task_list, 'collection_name': "tasks"})
+

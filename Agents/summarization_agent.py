@@ -12,16 +12,22 @@ class SummarizationAgent:
     def run_summarization_agent(self, text):
         # This function will be the main entry point for your agent.
 
-        # 1. Get prompt formats
+        # 1. Start Console Feedback
+        self.agent_funcs.start_thinking()
+
+        # 2. Get prompt formats
         prompt_formats = {'InstructionPrompt': {'text': text}}
 
-        # 2. Generate prompt
+        # 3. Generate prompt
         prompt = self.generate_prompt(prompt_formats)
 
-        # 3. Execute the main task of the agent
+        # 4. Execute the main task of the agent
         result = self.agent_funcs.run_llm(prompt)
 
-        # 4. Print the result or any other relevant information
+        # 5. Stop Console Feedback
+        self.agent_funcs.stop_thinking()
+
+        # 6. Print the result or any other relevant information
         self.agent_funcs.print_result(result)
 
         return result
