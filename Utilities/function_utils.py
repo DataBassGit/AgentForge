@@ -1,7 +1,6 @@
 import os
 import keyboard
 import threading
-import time
 from datetime import datetime
 
 
@@ -25,22 +24,21 @@ class Functions:
                     keyboard.read_event(suppress=True)  # Clear the event buffer
 
     def set_auto_mode(self):
-        print("\nEnter Auto or Manual Mode? (a/m)")
+        # print("\nEnter Auto or Manual Mode? (a/m)")
         while True:
-            event = keyboard.read_event()
-            if event.event_type == 'down':
-                if event.name.lower() == 'a':
-                    self.mode = 'auto'
-                    print(f"\nEntering Auto Mode - Press 'Esc' to return to Manual Mode!\n")
-                    break
-                elif event.name.lower() == 'm':
-                    self.mode = 'manual'
-                    break
-                elif event.name.lower() == 'esc':
-                    self.mode = 'manual'
-                    break
+            user_input = input("\nEnter Auto or Manual Mode? (a/m):")
+            if user_input.lower() == 'a':
+                self.mode = 'auto'
+                print(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!\n")
+                break
 
-        # print(self.mode)
+            elif user_input.lower() == 'm':
+                print(f"\nManual Mode Set.\n")
+                self.mode = 'manual'
+                break
+
+            else:
+                print("\nPlease select a valid option!\n")
 
     def check_auto_mode(self):
         context = None
@@ -56,8 +54,8 @@ class Functions:
                     quit()
                 elif user_input.lower() == 'auto':
                     self.mode = 'auto'
-                    print(f"\nEntering Auto Mode - Press 'Esc' to return to Manual Mode!\n")
-                    time.sleep(1)
+                    print(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!\n")
+                    keyboard.read_event(suppress=True)  # Clear the event buffer
                 else:
                     context = user_input
 

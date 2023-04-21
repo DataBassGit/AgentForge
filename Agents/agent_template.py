@@ -12,22 +12,28 @@ class AgentTemplate:
     def run_agent(self, feedback=None):
         # This function will be the main entry point for your agent.
 
-        # 1. Load data from storage
+        # 1. Start Console Feedback
+        self.agent_funcs.start_thinking()
+
+        # 2. Load data from storage
         data = self.load_data_from_storage()
 
-        # 2. Get prompt formats
+        # 3. Get prompt formats
         prompt_formats = self.get_prompt_formats(data)
 
-        # 3. Generate prompt
+        # 4. Generate prompt
         prompt = self.generate_prompt(prompt_formats, feedback)
 
-        # 4. Execute the main task of the agent
+        # 5. Execute the main task of the agent
         result = self.execute_task(prompt)
 
-        # 5. Save the results
+        # 6. Save the results
         self.save_results(result)
 
-        # 6. Print the result or any other relevant information
+        # 7. Stop Console Feedback
+        self.agent_funcs.stop_thinking()
+
+        # 8. Print the result or any other relevant information
         self.agent_funcs.print_result(result)
 
     def load_data_from_storage(self):
