@@ -8,10 +8,12 @@ storage_api = config.get('StorageAPI', 'library')
 persona_data = load_persona_data()
 task_list = persona_data['Tasks']
 task_dicts = [{"task_order": i + 1, "task_desc": task} for i, task in enumerate(task_list)]
-for task_dict in task_dicts:
-    print("Task: ", task_dict["task_desc"])
 task_list = [task_dict["task_desc"] for task_dict in task_dicts]
-print("\nTasks: ", task_list)
+
+# for task_dict in task_dicts:
+    # print("Task: ", task_dict["task_desc"])
+
+# print("\nTasks: ", task_list)
 
 
 class StorageInterface:

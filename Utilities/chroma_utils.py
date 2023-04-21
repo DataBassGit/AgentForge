@@ -30,13 +30,10 @@ class ChromaUtils:
             print("\nCreating chroma utils")
             cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
             cls._instance.init_storage()
-
-
         return cls._instance
 
     def __init__(self):
         # Add your initialization code here
-        # self.init_storage()
         pass
 
     def init_storage(self):
@@ -46,21 +43,17 @@ class ChromaUtils:
                 settings.persist_directory = db_path
             self.client = chromadb.Client(settings)
 
-    def unload_storage(self):
-        self.client = None
-
     def select_collection(self, collection_name):
         try:
-            self.collection = self.client.get_collection(collection_name, embedding_function = openai_ef)
+            self.collection = self.client.get_or_create_collection(collection_name, embedding_function=openai_ef)
         except Exception as e:
-            raise ValueError(f"Collection {collection_name} not found. Error: {e}")
+            raise ValueError(f"Error getting or creating collection. Error: {e}")
 
     def create_collection(self, collection_name):
         try:
-            # print("\nCreating collection: ", collection_name)
-            self.client.create_collection(collection_name, embedding_function = openai_ef)
+            self.client.create_collection(collection_name, embedding_function=openai_ef)
         except Exception as e:
-            print("\n\nError creating collection: ", e)
+            raise ValueError(f"Error creating collection. Error: {e}")
 
     def delete_collection(self, collection_name):
         try:
@@ -74,32 +67,45 @@ class ChromaUtils:
             self.collection.delete()
         except Exception as e:
             print("Error clearing table:", e)
-            pass
-    def get_collection(self):
-        return self.collection
+
+    # def get_collection(self):
+    #     return self.collection
+
+    def load_collection(self, collection_name, collection_property):
+        try:
+            self.select_collection(collection_name)
+            data = self.collection.get()[collection_property]
+        except Exception as e:
+            print(f"Error loading data: {e}")
+            data = []
+
+        return data
 
     def save_tasks(self, tasks, results, collection_name):
-        task_orders = [task["task_order"] for task in tasks]
-        self.select_collection(collection_name)
-        metadatas = [
-            {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
+        try:
+            task_orders = [task["task_order"] for task in tasks]
+            self.select_collection(collection_name)
+            metadatas = [
+                {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
 
-        self.collection.add(
+            self.collection.add(
 
-            metadatas=metadatas,
-            documents=results,
-            ids = [str(order) for order in task_orders]
-        )
+                metadatas=metadatas,
+                documents=results,
+                ids=[str(order) for order in task_orders]
+            )
+        except Exception as e:
+            raise ValueError(f"Error saving tasks. Error: {e}")
 
     def save_results(self, result, collection_name):
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        try:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        self.select_collection(collection_name)
-        self.collection.add(
-            documents=[result],
-            metadatas=[{"timestamp": timestamp}],
-            ids=[str(uuid.uuid4())],
-        )
-
-    def list_collections(self):
-        return self.client.list_collections()
+            self.select_collection(collection_name)
+            self.collection.add(
+                documents=[result],
+                metadatas=[{"timestamp": timestamp}],
+                ids=[str(uuid.uuid4())],
+            )
+        except Exception as e:
+            raise ValueError(f"Error saving results. Error: {e}")

@@ -5,38 +5,26 @@ class ExecutionAgent:
     agent_data = None
     agent_funcs = None
     storage = None
+
     def __init__(self):
         self.agent_funcs = AgentFunctions('ExecutionAgent')
         self.agent_data = self.agent_funcs.agent_data
+        self.storage = self.agent_data['storage'].storage_utils
 
     def run_execution_agent(self, feedback):
         data = self.load_data_from_storage()
-
         prompt_formats = self.get_prompt_formats(data)
-
         prompt = self.generate_prompt(prompt_formats, feedback)
-
         result = self.execute_task(prompt)
 
         self.save_results(result)
         self.agent_funcs.print_result(result)
 
     def load_data_from_storage(self):
-        self.agent_data['storage'].storage_utils.select_collection("tasks")
+        task_list = self.storage.load_collection("tasks", "documents")
+        task = task_list[0]
 
-        try:
-            context = self.agent_data['storage'].storage_utils.get_collection().get()['documents']
-        except Exception as e:
-            print(f"Error loading data: {e}")
-            context = []
-
-        try:
-            task = self.agent_data['storage'].storage_utils.get_collection().get()['documents'][0]
-        except Exception as e:
-            print("failed to get task:", e)
-            task = self.agent_data['objective']
-
-        return {'context': context, 'task': task}
+        return {'context': task_list, 'task': task}
 
     def get_prompt_formats(self, data):
         prompt_formats = {
@@ -44,6 +32,7 @@ class ExecutionAgent:
             'ContextPrompt': {'context': data['context']},
             'InstructionPrompt': {'task': data['task']}
         }
+
         return prompt_formats
 
     def generate_prompt(self, prompt_formats, feedback=""):
@@ -68,15 +57,7 @@ class ExecutionAgent:
         return prompt
 
     def execute_task(self, prompt):
-        result = self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
-        return result
+        return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
 
     def save_results(self, result):
-        col_name = "results"
-        try:
-            self.agent_data['storage'].storage_utils.select_collection(col_name)
-            self.agent_data['storage'].storage_utils.save_results(result, col_name)
-        except Exception as e:
-            print(f"Error saving results: {e}")
-            self.agent_data['storage'].storage_utils.create_collection(col_name)
-            self.agent_data['storage'].storage_utils.save_results(result, col_name)
+        self.storage.save_results(result, "results")

@@ -1,27 +1,40 @@
 from Agents.Func.agent_functions import AgentFunctions
 
 
+def calculate_next_task_order(this_task_order):
+    next_task_order = int(this_task_order)
+    next_task_order += 1
+
+    return next_task_order
+
+
+def order_tasks(task_list):
+    filtered_results = [task for task in task_list if task['task_order'].isdigit()]
+
+    ordered_results = [
+        {'task_order': int(task['task_order']), 'task_desc': task['task_desc']}
+        for task in filtered_results]
+
+    return ordered_results
+
+
 class PrioritizationAgent:
     agent_data = None
     agent_funcs = None
+    storage = None
 
     def __init__(self):
         self.agent_funcs = AgentFunctions('PrioritizationAgent')
         self.agent_data = self.agent_funcs.agent_data
+        self.storage = self.agent_data['storage'].storage_utils
 
     def run_prioritization_agent(self):
         data = self.load_data_from_storage()
-
-        next_task_order = self.calculate_next_task_order(data['this_task_order'])
-
+        next_task_order = calculate_next_task_order(data['this_task_order'])
         prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
-
         prompt = self.generate_prompt(prompt_formats)
-
         task_list = self.process_new_tasks(prompt)
-
-        ordered_tasks = self.order_tasks(task_list)
-
+        ordered_tasks = order_tasks(task_list)
         task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
         self.save_tasks(ordered_tasks, task_desc_list)
@@ -29,9 +42,9 @@ class PrioritizationAgent:
 
     # Additional functions
     def load_data_from_storage(self):
-        self.agent_data['storage'].storage_utils.select_collection("tasks")
-        task_list = self.agent_data['storage'].storage_utils.get_collection().get()['documents']
-        this_task_order = self.agent_data['storage'].storage_utils.get_collection().get()['ids'][0]
+        collection_name = "tasks"
+        task_list = self.storage.load_collection(collection_name, "documents")
+        this_task_order = self.storage.load_collection(collection_name, "ids")[0]
 
         data = {
             'task_list': task_list,
@@ -40,17 +53,13 @@ class PrioritizationAgent:
 
         return data
 
-    def calculate_next_task_order(self, this_task_order):
-        next_task_order = int(this_task_order)
-        next_task_order += 1
-        return next_task_order
-
     def get_prompt_formats(self, task_list, next_task_order):
         prompt_formats = {
             'SystemPrompt': {'task_list': task_list},
             'ContextPrompt': {'objective': self.agent_data['objective']},
             'InstructionPrompt': {'next_task_order': next_task_order}
         }
+
         return prompt_formats
 
     def generate_prompt(self, prompt_formats, feedback=""):
@@ -85,22 +94,10 @@ class PrioritizationAgent:
                 task_order = task_parts[0].strip()
                 task_desc = task_parts[1].strip()
                 task_list.append({"task_order": task_order, "task_desc": task_desc})
+
         return task_list
 
-    def order_tasks(self, task_list):
-        filtered_results = [task for task in task_list if task['task_order'].isdigit()]
-
-        ordered_results = [
-            {'task_order': int(task['task_order']), 'task_desc': task['task_desc']}
-            for task in filtered_results]
-        return ordered_results
-
     def save_tasks(self, ordered_results, task_desc_list):
-        col_name = "tasks"
-        try:
-            self.agent_data['storage'].storage_utils.delete_collection(col_name)
-            self.agent_data['storage'].storage_utils.create_collection(col_name)
-        except Exception as e:
-            print("Error deleting table:", e)
-
-        self.agent_data['storage'].storage_utils.save_tasks(ordered_results, task_desc_list, col_name)
+        collection_name = "tasks"
+        self.storage.clear_collection(collection_name)
+        self.storage.save_tasks(ordered_results, task_desc_list, collection_name)
