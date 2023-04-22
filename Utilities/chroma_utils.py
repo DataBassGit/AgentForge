@@ -11,13 +11,23 @@ config.read('Config/config.ini')
 
 db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
 chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
+embedding_config = config.get('ChromaDB', 'embedding_func')
 
-config.read('Config/api_keys.ini')
-openai_api_key = config.get('OpenAI', 'api_key')
-openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+if embedding_config == 'openai':
+    embed_ef = embedding_functions.OpenAIEmbeddingFunction(
                 api_key=openai_api_key,
                 model_name="text-embedding-ada-002"
             )
+elif embedding_config == 'sentence_trans':
+    embed_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name="all-MiniLM-L6-v2"
+            )
+else:
+    pass
+
+config.read('Config/api_keys.ini')
+openai_api_key = config.get('OpenAI', 'api_key')
+
 
 
 class ChromaUtils:
@@ -45,7 +55,7 @@ class ChromaUtils:
 
     def select_collection(self, collection_name):
         try:
-            self.collection = self.client.get_or_create_collection(collection_name, embedding_function=openai_ef)
+            self.collection = self.client.get_or_create_collection(collection_name, embedding_function=embed_ef)
         except Exception as e:
             raise ValueError(f"Error getting or creating collection. Error: {e}")
 
