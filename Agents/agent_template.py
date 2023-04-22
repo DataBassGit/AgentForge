@@ -13,28 +13,28 @@ class AgentTemplate:
         # This function will be the main entry point for your agent.
 
         # 1. Start Console Feedback
-        self.agent_funcs.start_thinking()
+        with self.agent_funcs.thinking():
 
-        # 2. Load data from storage
-        data = self.load_data_from_storage()
+            # 2. Load data from storage
+            data = self.load_data_from_storage()
 
-        # 3. Get prompt formats
-        prompt_formats = self.get_prompt_formats(data)
+            # 3. Get prompt formats
+            prompt_formats = self.get_prompt_formats(data)
 
-        # 4. Generate prompt
-        prompt = self.generate_prompt(prompt_formats, feedback)
+            # 4. Generate prompt
+            prompt = self.generate_prompt(prompt_formats, feedback)
 
-        # 5. Execute the main task of the agent
-        result = self.execute_task(prompt)
+            # 5. Execute the main task of the agent
+            result = self.execute_task(prompt)
 
-        # 6. Save the results
-        self.save_results(result)
+            # 6. Save the results
+            self.save_results(result)
 
-        # 7. Stop Console Feedback
-        self.agent_funcs.stop_thinking()
+            # 7. Stop Console Feedback
+            self.agent_funcs.stop_thinking()
 
-        # 8. Print the result or any other relevant information
-        self.agent_funcs.print_result(result)
+            # 8. Print the result or any other relevant information
+            self.agent_funcs.print_result(result)
 
     def load_data_from_storage(self):
         # Load necessary data from storage and return it as a dictionary
@@ -42,14 +42,13 @@ class AgentTemplate:
 
     def get_prompt_formats(self, data):
         # Create a dictionary of prompt formats based on the loaded data
-        def get_prompt_formats(self, data):
-            prompt_formats = {
-                'SystemPrompt': {'objective': self.agent_data['objective']},
-                'ContextPrompt': {'context': data['context']},
-                'InstructionPrompt': {'task': data['task']}
-            }
-            return prompt_formats
-        pass
+        prompt_formats = {
+            'SystemPrompt': {'objective': self.agent_data['objective']},
+            'ContextPrompt': {'context': data['context']},
+            'InstructionPrompt': {'task': data['task']}
+        }
+        return prompt_formats
+    pass
 
     def generate_prompt(self, prompt_formats, feedback=None):
         # Generate the prompt using prompt_formats and return it.

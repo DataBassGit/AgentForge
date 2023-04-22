@@ -29,21 +29,20 @@ class PrioritizationAgent:
         self.storage = self.agent_data['storage'].storage_utils
 
     def run_prioritization_agent(self):
-        self.agent_funcs.start_thinking()
+        with self.agent_funcs.thinking():
+            data = self.load_data_from_storage()
+            next_task_order = calculate_next_task_order(data['this_task_order'])
+            prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
+            prompt = self.generate_prompt(prompt_formats)
+            task_list = self.process_new_tasks(prompt)
+            ordered_tasks = order_tasks(task_list)
+            task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
-        data = self.load_data_from_storage()
-        next_task_order = calculate_next_task_order(data['this_task_order'])
-        prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
-        prompt = self.generate_prompt(prompt_formats)
-        task_list = self.process_new_tasks(prompt)
-        ordered_tasks = order_tasks(task_list)
-        task_desc_list = [task['task_desc'] for task in ordered_tasks]
+            self.save_tasks(ordered_tasks, task_desc_list)
 
-        self.save_tasks(ordered_tasks, task_desc_list)
+            self.agent_funcs.stop_thinking()
 
-        self.agent_funcs.stop_thinking()
-
-        self.agent_funcs.print_task_list(ordered_tasks)
+            self.agent_funcs.print_task_list(ordered_tasks)
 
     # Additional functions
     def load_data_from_storage(self):

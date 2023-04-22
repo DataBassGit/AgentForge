@@ -10,10 +10,10 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "You are an AI who performs one task based on the following objective: {objective}\n",
-      "ContextPrompt": "Take into account the list of tasks: {context}\n",
-      "InstructionPrompt": "Your current task: {task}\nResponse:\n",
-      "FeedbackPrompt" : "Take into consideration the following feedback from the user: {feedback}"
+      "SystemPrompt": "\nYou are an AI who performs one task based on the following objective: {objective}",
+      "ContextPrompt": "\nTake into account the list of tasks: {context}",
+      "InstructionPrompt": "\nYour current task: {task}\nResponse:",
+      "FeedbackPrompt" : "\nTake into consideration the following feedback from the user: {feedback}"
     },
     "Params": {
       "max_new_tokens": 200,
@@ -46,9 +46,9 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "You are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_list}",
-      "ContextPrompt": "Consider the ultimate objective of your team: {objective}. Do not remove any tasks. ",
-      "InstructionPrompt": "Return the result as a numbered list in the following format:\n#. First task\n#. Second task\nStart the task list with number {next_task_order}\nReturn ONLY the updated task list as an array, avoid any notes or unnecessary comments!"
+      "SystemPrompt": "\nYou are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_list}",
+      "ContextPrompt": "\nConsider the ultimate objective of your team: {objective}. Do not remove any tasks.",
+      "InstructionPrompt": "\nReturn the result as a numbered list in the following format:\n#. First task\n#. Second task\nStart the task list with number {next_task_order}\nReturn ONLY the updated task list as an array, avoid any notes or unnecessary comments!"
     },
     "Params": {
       "max_new_tokens": 200,
@@ -81,8 +81,8 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "You are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:\n    1. Highlight the main points and key findings of the text.\n    2. Maintain the original context and intention of the text.\n    3. Be written in a clear and coherent manner.\n\nAdditionally, please follow these guidelines while summarizing the text:\n\n    1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.\n    2. Ensure that the summary is objective and does not include personal opinions or biases.\n    3. Use proper citation or attribution, if applicable.\n",
-      "InstructionPrompt": "Text to abstract: {text}"
+      "SystemPrompt": "\nYou are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:\n    1. Highlight the main points and key findings of the text.\n    2. Maintain the original context and intention of the text.\n    3. Be written in a clear and coherent manner.\n\nAdditionally, please follow these guidelines while summarizing the text:\n\n    1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.\n    2. Ensure that the summary is objective and does not include personal opinions or biases.\n    3. Use proper citation or attribution, if applicable.\n",
+      "InstructionPrompt": "\nText to abstract: {text}"
     },
     "Params": {
       "max_new_tokens": 200,
@@ -115,9 +115,9 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}",
-      "ContextPrompt": "The last completed task has the result: {result}\nThis result was based on this task description: {task}\nThis is the current task list: {task_list}",
-      "InstructionPrompt": "Based on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
+      "SystemPrompt": "\nYou are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}",
+      "ContextPrompt": "\nThe last completed task has the result: {result}\nThis result was based on this task description: {task}\nThis is the current task list: {task_list}",
+      "InstructionPrompt": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
     },
     "Params": {
       "max_new_tokens": 200,

@@ -1,6 +1,7 @@
 import sys
 import time
 import threading
+from contextlib import contextmanager
 from typing import Dict, Any
 from Utilities.function_utils import Functions
 from Utilities.storage_interface import StorageInterface
@@ -102,3 +103,11 @@ class AgentFunctions:
         # Write "Done." message and flush stdout
         sys.stdout.write(msg + "- Done.\n")
         sys.stdout.flush()
+
+    @contextmanager
+    def thinking(self):
+        try:
+            self.start_thinking()
+            yield
+        finally:
+            self.stop_thinking()
