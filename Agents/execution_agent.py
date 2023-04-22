@@ -1,4 +1,5 @@
 from Agents.Func.agent_functions import AgentFunctions
+# from Tools import google_search as google
 
 
 class ExecutionAgent:
@@ -12,18 +13,17 @@ class ExecutionAgent:
         self.storage = self.agent_data['storage'].storage_utils
 
     def run_execution_agent(self, feedback):
-        self.agent_funcs.start_thinking()
+        with self.agent_funcs.thinking():
+            data = self.load_data_from_storage()
+            prompt_formats = self.get_prompt_formats(data)
+            prompt = self.generate_prompt(prompt_formats, feedback)
+            result = self.execute_task(prompt)
 
-        data = self.load_data_from_storage()
-        prompt_formats = self.get_prompt_formats(data)
-        prompt = self.generate_prompt(prompt_formats, feedback)
-        result = self.execute_task(prompt)
+            self.save_results(result)
 
-        self.save_results(result)
+            self.agent_funcs.stop_thinking()
 
-        self.agent_funcs.stop_thinking()
-
-        self.agent_funcs.print_result(result)
+            self.agent_funcs.print_result(result)
 
     def load_data_from_storage(self):
         task_list = self.storage.load_collection({

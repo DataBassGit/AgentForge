@@ -13,19 +13,18 @@ class TaskCreationAgent:
         self.storage = self.agent_data['storage'].storage_utils
 
     def run_task_creation_agent(self):
-        self.agent_funcs.start_thinking()
+        with self.agent_funcs.thinking():
+            data = self.load_data_from_storage()
+            prompt_formats = self.get_prompt_formats(data)
+            prompt = self.generate_prompt(prompt_formats)
+            ordered_tasks = self.order_tasks(prompt)
+            task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
-        data = self.load_data_from_storage()
-        prompt_formats = self.get_prompt_formats(data)
-        prompt = self.generate_prompt(prompt_formats)
-        ordered_tasks = self.order_tasks(prompt)
-        task_desc_list = [task['task_desc'] for task in ordered_tasks]
+            self.save_tasks(ordered_tasks, task_desc_list)
 
-        self.save_tasks(ordered_tasks, task_desc_list)
+            self.agent_funcs.stop_thinking()
 
-        self.agent_funcs.stop_thinking()
-
-        # self.agent_funcs.print_task_list(ordered_results)
+            # self.agent_funcs.print_task_list(ordered_results)
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
