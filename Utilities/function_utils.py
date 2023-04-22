@@ -92,3 +92,8 @@ class Functions:
         with open(os.path.join(folder, file), "a") as f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
+            
+    def read_file(file_path):
+        with open(file_path, 'r') as file:
+            text = file.read()
+        return text
