@@ -184,9 +184,44 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}",
-      "ContextPrompt": "\nThe last completed task has the result: {result}\nThis result was based on this task description: {task}\nThis is the current task list: {task_list}",
-      "InstructionPrompt": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
+      "SystemPrompt": "",
+      "ContextPrompt": "",
+      "InstructionPrompt": ""
+    },
+    "Params": {
+      "max_new_tokens": 200,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "StatusAgent": {
+    "API": "openai_api",
+    "Model": "fast_model",
+    "Prompts": {
+      "SystemPrompt": "You are an expert project manager who is incharge of coordinating task execution agents to achieve the following mail goal: {objective}\n\nYou're job is to analyze the current task and determine if the task has been completed or not and provide feedback to the user as to the status of the task.",
+      "ContextPrompt": "Here is a summary with context of what has been previously done: {context}\n\nAn agent has been given the following task: {current_task}.\n\nThis task is part of a list of task to achieve the mail goal. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}.",
+      "InstructionPrompt": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. To respond follow this format: \n\nStatus: {completed or not_completed}\nReason: {reason for conclusion reached}"
     },
     "Params": {
       "max_new_tokens": 200,

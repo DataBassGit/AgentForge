@@ -2,6 +2,7 @@ from Agents.execution_agent import ExecutionAgent
 from Agents.task_creation_agent import TaskCreationAgent
 from Agents.prioritization_agent import PrioritizationAgent
 from Agents.salience_agent import SalienceAgent
+from Agents.status_agent import StatusAgent
 from Utilities.function_utils import Functions
 from Utilities.storage_interface import StorageInterface
 
@@ -11,6 +12,7 @@ taskCreationAgent = TaskCreationAgent()
 prioritizationAgent = PrioritizationAgent()
 executionAgent = ExecutionAgent()
 salienceAgent = SalienceAgent()
+statusAgent = StatusAgent()
 
 # Add a variable to set the mode
 functions = Functions()
@@ -18,6 +20,8 @@ functions.set_auto_mode()
 
 # Salience loop
 while True:
+
+
 
     # collection_list = storage.storage_utils.collection_list()
     # print(f"\nList: {collection_list}")
@@ -30,22 +34,26 @@ while True:
     #
     # text = "As an AI tasked with developing"
     # res = storage.storage_utils.query_db("results", text)['documents']
+    # print(f"\nres:{res}")
 
+    # # Create task list
+    # taskCreationAgent.run_task_creation_agent()
+    #
+    # # Prioritize task list
+    # prioritizationAgent.run_prioritization_agent()
 
-    # Create task list
-    taskCreationAgent.run_task_creation_agent()
+    collection_list = storage.storage_utils.collection_list()
 
-    # Prioritize task list
-    prioritizationAgent.run_prioritization_agent()
+    print(f"\nList: {collection_list}")
+    # quit()
 
     # Allow for feedback if auto mode is disabled
     feedback = functions.check_auto_mode()
 
-    salienceAgent.run_salience_agent()
+    data = salienceAgent.run_salience_agent()
 
-    # print(f"\nres:{res}")
-    quit()
+    statusAgent.run_status_agent(data)
+    # quit()
 
-    pass
 
 

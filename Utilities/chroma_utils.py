@@ -100,7 +100,7 @@ class ChromaUtils:
             task_orders = [task["task_order"] for task in tasks]
             self.select_collection(collection_name)
             metadatas = [
-                {"task_status": "replace_with_task_status", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
+                {"task_status": "not completed", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
 
             self.collection.add(
 
@@ -128,10 +128,18 @@ class ChromaUtils:
 
     def query_db(self, collection_name, text, num_results=1):
         self.select_collection(collection_name)
-        result = self.collection.query(
-            query_texts=[text],
-            n_results=num_results,
-        )
+
+        max_result_count = self.collection.count()
+
+        num_results = min(num_results, max_result_count)
+
+        if num_results > 0:
+            result = self.collection.query(
+                query_texts=[text],
+                n_results=num_results,
+            )
+        else:
+            result = {'documents': "No Results!"}
 
         return result
 
