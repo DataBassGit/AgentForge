@@ -16,9 +16,12 @@ cd BigBoogaAGI
 ```
 pip install -r requirements.txt
 ```
-3. Update the config.ini file in the Config directory with the API keys, and evironment variables if you are using locally hosted API services.
+3. Update the 'config.ini' file in the Config directory to indicate the DB, Language Model API, and evironment variables if you are using locally hosted API services.
 
-4. Modify the default.json file in the Personas directory with your objective and tasks. You can also adjust parameters and update the agent prompts here.
+4. Create a copy of '.env.example' in the Config folder named '.env' and add your API keys there.
+
+5. Modify the 'default.json' file in the Personas directory with your objective and tasks. You can also adjust parameters and update the agent prompts here.
+
 
 ## Usage
 1. Run the main.py script to start BigBoogaAGI:
