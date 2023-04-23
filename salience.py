@@ -19,19 +19,31 @@ functions.set_auto_mode()
 # Salience loop
 while True:
 
-    collection_list = storage.storage_utils.collection_list()
-    print(f"\nList: {collection_list}")
+    # collection_list = storage.storage_utils.collection_list()
+    # print(f"\nList: {collection_list}")
+    #
+    # peek = storage.storage_utils.peek("results")['documents']
+    # print(f"\nPeak Results: {peek}")
+    #
+    # peek = storage.storage_utils.peek("tasks")['documents']
+    # print(f"\nPeak Tasks: {peek}")
+    #
+    # text = "As an AI tasked with developing"
+    # res = storage.storage_utils.query_db("results", text)['documents']
 
-    peek = storage.storage_utils.peek("results")['documents']
-    print(f"\nPeak Results: {peek}")
 
-    peek = storage.storage_utils.peek("tasks")['documents']
-    print(f"\nPeak Tasks: {peek}")
+    # Create task list
+    taskCreationAgent.run_task_creation_agent()
 
-    text = "As an AI tasked with developing"
-    res = storage.storage_utils.query_db("results", text)['documents']
+    # Prioritize task list
+    prioritizationAgent.run_prioritization_agent()
 
-    print(f"\nres:{res}")
+    # Allow for feedback if auto mode is disabled
+    feedback = functions.check_auto_mode()
+
+    salienceAgent.run_salience_agent()
+
+    # print(f"\nres:{res}")
     quit()
 
     pass

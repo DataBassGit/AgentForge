@@ -43,6 +43,7 @@ class PrioritizationAgent:
             self.agent_funcs.stop_thinking()
 
             self.agent_funcs.print_task_list(ordered_tasks)
+            return ordered_tasks
 
     # Additional functions
     def load_data_from_storage(self):

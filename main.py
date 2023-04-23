@@ -20,12 +20,12 @@ while True:
     taskCreationAgent.run_task_creation_agent()
 
     # Prioritize task list
-    prioritizationAgent.run_prioritization_agent()
+    tasklist = prioritizationAgent.run_prioritization_agent()
 
     # Allow for feedback if auto mode is disabled
     feedback = functions.check_auto_mode()
 
     # Run Execution Agent
-    executionAgent.run_execution_agent(feedback)
+    executionAgent.run_execution_agent(context = tasklist ,feedback = feedback)
 
 

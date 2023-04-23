@@ -11,7 +11,7 @@
     "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": "\nYou are an AI who performs one task based on the following objective: {objective}",
-      "ContextPrompt": "\nTake into account the list of tasks: {context}",
+      "ContextPrompt": "\nTake into account this summary of your previous actions: {context}",
       "InstructionPrompt": "\nYour current task: {task}\nResponse:",
       "FeedbackPrompt" : "\nTake into consideration the following feedback from the user: {feedback}"
     },

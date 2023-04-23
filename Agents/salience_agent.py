@@ -1,5 +1,6 @@
 from Agents.Func.agent_functions import AgentFunctions
-
+from Agents.summarization_agent import SummarizationAgent
+from Agents.execution_agent import ExecutionAgent
 
 class SalienceAgent:
     agent_data = None
@@ -16,11 +17,19 @@ class SalienceAgent:
         # 1. Start Console Feedback
         with self.agent_funcs.thinking():
             # Load Last Results and Current Task as Data
-            data = self.storage.load_data_from_storage()
+            data = self.load_data_from_storage()
+            print(f"Current Task: {data['task']}")
 
             # Feed Data to the Search Utility
-
+            search_results = self.storage.query_db("results", data['task'], 5)['documents']
+            # print(search_results)
+            # quit()
             # Summarize the Search Results
+            summarizationAgent = SummarizationAgent()
+            summarized_results = summarizationAgent.run_summarization_agent(search_results)
+            # print(f"\nSummary of Results: {summarized_results}")
+            exec_agent = ExecutionAgent()
+            exec_results = exec_agent.run_execution_agent(context=summarized_results, feedback=None)
 
             # Feed the Summarized Results and the Current Task to the Job Agent
 
@@ -31,7 +40,7 @@ class SalienceAgent:
             # Depending on Frustration Results feed the Tasks and Execution Results to the Analysis Agent to determine the status of the Current Task
 
             # Save the Status of the task to the Tasks DB
-            pass
+            return exec_results
 
         # # 2. Load data from storage
         # data = self.load_data_from_storage()
