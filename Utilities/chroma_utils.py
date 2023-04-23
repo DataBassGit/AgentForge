@@ -1,9 +1,15 @@
+import os
 import configparser
 import uuid
 from datetime import datetime
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
+
+from dotenv import load_dotenv
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', 'Config', '.env')
+load_dotenv(dotenv_path)
+
 
 # Read configuration file
 config = configparser.ConfigParser()
@@ -12,12 +18,22 @@ config.read('Config/config.ini')
 db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
 chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
 
-config.read('Config/api_keys.ini')
-openai_api_key = config.get('OpenAI', 'api_key')
+# config.read('Config/api_keys.ini')
+# openai_api_key = config.get('OpenAI', 'api_key')
+# openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+#                 api_key=openai_api_key,
+#                 model_name="text-embedding-ada-002"
+#             )
+
+# Get API keys from environment variables
+openai_api_key = os.getenv('OPENAI_API_KEY')
+# print(f"OpenAI Key: {openai_api_key}")
+# quit()
+
 openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-                api_key=openai_api_key,
-                model_name="text-embedding-ada-002"
-            )
+    api_key=openai_api_key,
+    model_name="text-embedding-ada-002"
+)
 
 
 class ChromaUtils:

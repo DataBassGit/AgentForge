@@ -1,11 +1,16 @@
-import configparser
+import os
 import openai
-import json
+
+
+from dotenv import load_dotenv
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', 'Config', '.env')
+load_dotenv(dotenv_path)
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Read configuration file
-config = configparser.ConfigParser()
-config.read('Config/api_keys.ini')
-openai.api_key = config.get('OpenAI', 'api_key')
+# config = configparser.ConfigParser()
+# config.read('Config/api_keys.ini')
+# openai.api_key = config.get('OpenAI', 'api_key')
 
 
 def generate_text(prompt, model, params):
