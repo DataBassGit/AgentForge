@@ -4,7 +4,7 @@ from Agents.prioritization_agent import PrioritizationAgent
 from Utilities.function_utils import Functions
 from Utilities.storage_interface import StorageInterface
 
-# Load Agents
+# Load Relevant Agents
 storage = StorageInterface()
 taskCreationAgent = TaskCreationAgent()
 prioritizationAgent = PrioritizationAgent()

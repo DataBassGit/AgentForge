@@ -1,5 +1,6 @@
 /venv/
 Config/api_keys.ini
+Config/.env
 .idea/
 __pycache__/
 Logs/
