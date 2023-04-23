@@ -41,7 +41,14 @@ class StorageInterface:
         from Utilities.chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
-        self.storage_utils.client.create_collection("results")
-        self.storage_utils.client.create_collection("tasks")
-        self.storage_utils.save_tasks({'tasks': task_dicts, 'results': task_list, 'collection_name': "tasks"})
+        self.storage_utils.select_collection("results")
+        self.storage_utils.select_collection("tasks")
+
+        inject = input("Restore previous state? (y/n):")
+
+        if inject == 'n':
+            self.storage_utils.client.reset()
+            self.storage_utils.select_collection("results")
+            self.storage_utils.select_collection("tasks")
+            self.storage_utils.save_tasks({'tasks': task_dicts, 'results': task_list, 'collection_name': "tasks"})
 

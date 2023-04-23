@@ -179,5 +179,40 @@
       "bad_words_ids": null,
       "seed": -1
     }
+  },
+  "SalienceAgent": {
+    "API": "openai_api",
+    "Model": "fast_model",
+    "Prompts": {
+      "SystemPrompt": "\nYou are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}",
+      "ContextPrompt": "\nThe last completed task has the result: {result}\nThis result was based on this task description: {task}\nThis is the current task list: {task_list}",
+      "InstructionPrompt": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
+    },
+    "Params": {
+      "max_new_tokens": 200,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
   }
 }
