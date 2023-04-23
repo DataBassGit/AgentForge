@@ -9,5 +9,5 @@ uuid~=1.30
 keyboard~=0.13.5
 browse~=1.0.1
 
-bs4
+ 
 google-api-python-client

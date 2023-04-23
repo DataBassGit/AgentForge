@@ -38,7 +38,7 @@ class ChromaUtils:
 
     def init_storage(self):
         if self.client is None:
-            settings = Settings(chroma_db_impl)
+            settings = Settings(chroma_db_impl=chroma_db_impl, persist_directory=db_path)
             if db_path:
                 settings.persist_directory = db_path
             self.client = chromadb.Client(settings)
@@ -48,12 +48,6 @@ class ChromaUtils:
             self.collection = self.client.get_or_create_collection(collection_name, embedding_function=openai_ef)
         except Exception as e:
             raise ValueError(f"Error getting or creating collection. Error: {e}")
-
-    def create_collection(self, collection_name):
-        try:
-            self.client.create_collection(collection_name, embedding_function=openai_ef)
-        except Exception as e:
-            raise ValueError(f"Error creating collection. Error: {e}")
 
     def delete_collection(self, collection_name):
         try:
@@ -115,3 +109,19 @@ class ChromaUtils:
             )
         except Exception as e:
             raise ValueError(f"Error saving results. Error: {e}")
+
+    def query_db(self, collection_name, text, num_results=1):
+        self.select_collection(collection_name)
+        result = self.collection.query(
+            query_texts=[text],
+            n_results=num_results,
+        )
+
+        return result
+
+    def collection_list(self):
+        return self.client.list_collections()
+
+    def peek(self, collection_name):
+        self.select_collection(collection_name)
+        return self.collection.peek()

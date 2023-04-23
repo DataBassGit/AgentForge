@@ -24,7 +24,7 @@ class TaskCreationAgent:
 
             self.agent_funcs.stop_thinking()
 
-            # self.agent_funcs.print_task_list(ordered_results)
+            self.agent_funcs.print_task_list(ordered_tasks)
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
