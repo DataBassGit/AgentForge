@@ -31,7 +31,8 @@ class StatusAgent:
 
         # 1. Start Console Feedback
         with self.agent_funcs.thinking():
-
+            task_id = data['current_task'][1]
+            task_text = data['current_task'][0]
             # 3. Get prompt formats
             prompt_formats = self.get_prompt_formats(data)
 
@@ -41,16 +42,22 @@ class StatusAgent:
 
             result = self.execute_task(prompt)
 
-            status = result.split("Status: ")[1].split("\n")[0]
+            status = result.split("Status: ")[1].split("\n")[0].lower()
             reason = result.split("Reason: ")[1].rstrip()
 
             print(f"\n\nParsed Status: {status}")
             print(f"\n\nParsed Reason: {reason}")
 
+            print(f"\nTask ID!!!!: {task_id}")
+            # quit()
+
+            print(f"\ntask_text: {task_text}, task_id: {task_id}, status: {status}")
             if status != 'completed':
+                self.save_status(status, task_id, task_text)
                 return reason
             else:
                 #self.update_task_status(task, status)
+                self.save_status(status, task_id, task_text)
                 pass
 
 
@@ -117,3 +124,6 @@ class StatusAgent:
         self.storage.save_tasks({'result': result, 'collection_name': "results"})
         pass
 
+    def save_status(self, status, id, text):
+        print(f"\nSave Status: {status}\nSave ID: {id}")
+        self.storage.save_status(status, id, text)

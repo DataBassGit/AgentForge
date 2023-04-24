@@ -8,6 +8,7 @@ class SummarizationAgent:
     def __init__(self):
         self.agent_funcs = AgentFunctions('SummarizationAgent')
         self.agent_data = self.agent_funcs.agent_data
+        self.storage = self.agent_data['storage'].storage_utils
 
     def run_summarization_agent(self, text):
         # This function will be the main entry point for your agent.

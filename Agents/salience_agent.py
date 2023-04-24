@@ -24,10 +24,10 @@ class SalienceAgent:
         with self.agent_funcs.thinking():
             # Load Last Results and Current Task as Data
             data = self.load_data_from_storage()
-            print(f"Current Task: {data['task']}")
+            print(f"Current Task: {data['task'][0]}")
 
             # Feed Data to the Search Utility
-            search_results = self.storage.query_db("results", data['task'], 5)['documents']
+            search_results = self.storage.query_db("results", data['task'][0], 5)['documents']
             # print(f"Search Results: {search_results}")
             # quit()
 
@@ -58,17 +58,18 @@ class SalienceAgent:
         })
         result = result_collection[0] if result_collection else ["No results found"]
 
-        task_collection = self.storage.load_collection({
+        task_collection = self.storage.load_salient({
             'collection_name': "tasks",
-            'collection_property': "documents"
+            'collection_property': "documents",
+            'ids': "ids"
         })
+        # print(f"\n\nSalience Agent - Tasks: {task_collection}")
+        task_list = task_collection["documents"] if task_collection else []
+        task_ids = task_collection["ids"] if task_collection else []  # Added this line to get the task IDs
+        task = (task_list[0], task_ids[0]) if task_list and task_ids else (None, None)  # Modified to include task ID
+        print(f"\n Task List: {task_list}, Task IDs: {task_ids}, Task: {task}")
 
-        task_list = task_collection if task_collection else []
-        task = task_list[0] if task_collection else None
-
-        print(f"\n\nSalience Agent - Task: {task_collection}")
-
-        return {'result': result, 'task': task, 'task_list': task_list}
+        return {'result': result, 'task': task, 'task_list': task_list, 'task_ids': task_ids}  # Modified to include task_ids
 
     def get_prompt_formats(self, data):
         # Create a dictionary of prompt formats based on the loaded data
