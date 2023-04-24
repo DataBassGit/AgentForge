@@ -7,11 +7,17 @@ class SalienceAgent:
     agent_funcs = None
     storage = None
     spinner_thread = None
+    summarization_agent = None
+    exec_agent = None
 
     def __init__(self):
         self.agent_funcs = AgentFunctions('SalienceAgent')
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
+
+        # Summarize the Search Results
+        self.summarization_agent = SummarizationAgent()
+        self.exec_agent = ExecutionAgent()
 
     def run_salience_agent(self, feedback=None):
         # 1. Start Console Feedback
@@ -22,14 +28,17 @@ class SalienceAgent:
 
             # Feed Data to the Search Utility
             search_results = self.storage.query_db("results", data['task'], 5)['documents']
-            # print(search_results)
+            # print(f"Search Results: {search_results}")
             # quit()
+
             # Summarize the Search Results
-            summarizationAgent = SummarizationAgent()
-            summarized_results = summarizationAgent.run_summarization_agent(search_results)
-            # print(f"\nSummary of Results: {summarized_results}")
-            exec_agent = ExecutionAgent()
-            exec_results = exec_agent.run_execution_agent(context=summarized_results, feedback=None)
+            if search_results == 'No Results!':
+                context = "No previous actions have been taken."
+            else:
+                context = self.summarization_agent.run_summarization_agent(search_results)
+                # print(f"\nSummary of Results: {context}")
+
+            task_result = self.exec_agent.run_execution_agent(context=context, feedback=None)
 
             # Feed the Summarized Results and the Current Task to the Job Agent
 
@@ -38,30 +47,9 @@ class SalienceAgent:
             # Return Execution Results to the Job Agent to determine Frustration
 
             # Depending on Frustration Results feed the Tasks and Execution Results to the Analysis Agent to determine the status of the Current Task
-
+            #Anaglist Agent
             # Save the Status of the task to the Tasks DB
-            return exec_results
-
-        # # 2. Load data from storage
-        # data = self.load_data_from_storage()
-        #
-        # # 3. Get prompt formats
-        # prompt_formats = self.get_prompt_formats(data)
-        #
-        # # 4. Generate prompt
-        # prompt = self.generate_prompt(prompt_formats, feedback)
-        #
-        # # 5. Execute the main task of the agent
-        # result = self.execute_task(prompt)
-        #
-        # # 6. Save the results
-        # self.save_results(result)
-        #
-        # # 7. Stop Console Feedback
-        # self.agent_funcs.stop_thinking()
-        #
-        # # 8. Print the result or any other relevant information
-        # self.agent_funcs.print_result(result)
+            return {"task_result": task_result, "current_task": data['task'], "context": context}
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
@@ -78,8 +66,9 @@ class SalienceAgent:
         task_list = task_collection if task_collection else []
         task = task_list[0] if task_collection else None
 
+        print(f"\n\nSalience Agent - Task: {task_collection}")
+
         return {'result': result, 'task': task, 'task_list': task_list}
-        pass
 
     def get_prompt_formats(self, data):
         # Create a dictionary of prompt formats based on the loaded data
@@ -89,7 +78,6 @@ class SalienceAgent:
             'InstructionPrompt': {'task': data['task']}
         }
         return prompt_formats
-    pass
 
     def generate_prompt(self, prompt_formats, feedback=None):
         # Generate the prompt using prompt_formats and return it.
@@ -112,7 +100,6 @@ class SalienceAgent:
 
         # print(f"\nPrompt: {prompt}")
         return prompt
-        pass
 
     def execute_task(self, prompt):
         # Execute the main task of the agent and return the result

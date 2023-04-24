@@ -13,8 +13,15 @@ class ExecutionAgent:
         self.storage = self.agent_data['storage'].storage_utils
 
     def run_execution_agent(self, context, feedback):
+
+        print(f"\nContext: {context}")
+
         with self.agent_funcs.thinking():
-            data = self.load_data_from_storage()
+            task = self.load_data_from_storage()
+            data = {'task': task, 'context': context}
+
+            print(f"\nData: {data}")
+            # quit()
             prompt_formats = self.get_prompt_formats(data)
             prompt = self.generate_prompt(prompt_formats, feedback, context)
             result = self.execute_task(prompt)
@@ -39,7 +46,7 @@ class ExecutionAgent:
     def get_prompt_formats(self, data):
         prompt_formats = {
             'SystemPrompt': {'objective': self.agent_data['objective']},
-            # 'ContextPrompt': {'context': data['context']},
+            'ContextPrompt': {'context': data['context']},
             'InstructionPrompt': {'task': data['task']}
         }
 

@@ -51,4 +51,3 @@ class StorageInterface:
             self.storage_utils.select_collection("results")
             self.storage_utils.select_collection("tasks")
             self.storage_utils.save_tasks({'tasks': task_dicts, 'results': task_list, 'collection_name': "tasks"})
-
