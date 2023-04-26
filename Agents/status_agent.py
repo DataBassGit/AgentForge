@@ -33,6 +33,7 @@ class StatusAgent:
         with self.agent_funcs.thinking():
             task_id = data['current_task'][1]
             task_text = data['current_task'][0]
+            task_order = data['task_order']
             # 3. Get prompt formats
             prompt_formats = self.get_prompt_formats(data)
 
@@ -53,11 +54,11 @@ class StatusAgent:
 
             print(f"\ntask_text: {task_text}, task_id: {task_id}, status: {status}")
             if status != 'completed':
-                self.save_status(status, task_id, task_text)
+                self.save_status(status, task_id, task_text, task_order)
                 return reason
             else:
                 #self.update_task_status(task, status)
-                self.save_status(status, task_id, task_text)
+                self.save_status(status, task_id, task_text, task_order)
                 pass
 
 
@@ -124,6 +125,6 @@ class StatusAgent:
         self.storage.save_tasks({'result': result, 'collection_name': "results"})
         pass
 
-    def save_status(self, status, id, text):
+    def save_status(self, status, id, text, task_order):
         print(f"\nSave Status: {status}\nSave ID: {id}")
-        self.storage.save_status(status, id, text)
+        self.storage.save_status(status, id, text, task_order)

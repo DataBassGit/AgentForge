@@ -49,7 +49,12 @@ class SalienceAgent:
             # Depending on Frustration Results feed the Tasks and Execution Results to the Analysis Agent to determine the status of the Current Task
             #Anaglist Agent
             # Save the Status of the task to the Tasks DB
-            return {"task_result": task_result, "current_task": data['task'], "context": context}
+            return {
+                "task_result": task_result,
+                "current_task": data['task'],
+                "context": context,
+                "task_order": data['task_order']
+            }
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
@@ -60,16 +65,59 @@ class SalienceAgent:
 
         task_collection = self.storage.load_salient({
             'collection_name': "tasks",
-            'collection_property': "documents",
+            'collection_property': ["documents", "metadatas"],
             'ids': "ids"
         })
         # print(f"\n\nSalience Agent - Tasks: {task_collection}")
-        task_list = task_collection["documents"] if task_collection else []
-        task_ids = task_collection["ids"] if task_collection else []  # Added this line to get the task IDs
-        task = (task_list[0], task_ids[0]) if task_list and task_ids else (None, None)  # Modified to include task ID
-        print(f"\n Task List: {task_list}, Task IDs: {task_ids}, Task: {task}")
 
-        return {'result': result, 'task': task, 'task_list': task_list, 'task_ids': task_ids}  # Modified to include task_ids
+
+        # ... (previous code)
+        task_collection = self.storage.load_salient({
+            'collection_name': "tasks",
+            'collection_property': ["documents", "metadatas"],
+            'ids': "ids"
+        })
+
+        print(f"\n\nSalience Agent - Tasks ybefore ordering:\n\n {task_collection}\n\n")
+
+        if task_collection:
+            merged_task_list = [
+                {"document": doc, "metadata": metadata}
+                for doc, metadata in zip(task_collection["documents"], task_collection["metadatas"])
+            ]
+            task_list = sorted(
+                merged_task_list,
+                key=lambda x: x["metadata"]["task_order"]
+            )
+        else:
+            task_list = []
+        task_ids = task_collection["ids"] if task_collection else []  # Added this line to get the task IDs
+        task = (task_list[0]["document"], task_ids[0]) if task_list and task_ids else (
+        None, None)  # Modified to include task ID
+        print(f"\n Task List: {task_list}, Task IDs: {task_ids}, Task: {task}")
+        ordered_results = {'result': result, 'task': task, 'task_list': task_list, 'task_ids': task_ids, 'task_order': task_list[0]["metadata"]["task_order"]}
+
+        return ordered_results
+
+        # if task_collection:
+        #     print("\n\nSalience Agent - Tasks Debug:\n\n")
+        #     print(task_collection["documents"])
+        #
+        #     for document in task_collection["documents"]:
+        #         print(document["metadatas"])
+        #
+        #     task_list = sorted(
+        #         task_collection["documents"],
+        #         key=lambda x: [metadata["task_order"] for metadata in x["metadatas"]]
+        #     )
+        # else:
+        #     task_list = []
+        # task_ids = task_collection["ids"] if task_collection else []  # Added this line to get the task IDs
+        # task = (task_list[0], task_ids[0]) if task_list and task_ids else (None, None)  # Modified to include task ID
+        # print(f"\n Task List: {task_list}, Task IDs: {task_ids}, Task: {task}")
+        # ordered_results = {'result': result, 'task': task, 'task_list': task_list, 'task_ids': task_ids}
+        #
+        # return ordered_results
 
     def get_prompt_formats(self, data):
         # Create a dictionary of prompt formats based on the loaded data

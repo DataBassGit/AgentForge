@@ -117,7 +117,7 @@ class ChromaUtils:
             task_orders = [task["task_order"] for task in tasks]
             self.select_collection(collection_name)
             metadatas = [
-                {"task_status": "not completed", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4())} for task in tasks]
+                {"task_status": "not completed", "task_desc": task["task_desc"], "list_id": str(uuid.uuid4()), "task_order": task["task_order"]} for task in tasks]
 
             self.collection.add(
 
@@ -167,7 +167,7 @@ class ChromaUtils:
         self.select_collection(collection_name)
         return self.collection.peek()
 
-    def save_status(self,status,id,task):
+    def save_status(self,status,id,task,task_order):
         print(f"\n\nSaving status: {status}\nSaving id: {id}\n\n")
         self.select_collection("tasks")
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -175,7 +175,7 @@ class ChromaUtils:
             self.collection.update(
                 ids=[id],
                 documents=[task],
-                metadatas=[{"timestamp": timestamp, "task_status": status, "task_desc": task}],
+                metadatas=[{"timestamp": timestamp, "task_status": status, "task_desc": task, "task_order": task_order}],
             )
         except Exception as e:
             raise ValueError(f"Error saving status. Error: {e}")
