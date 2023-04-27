@@ -82,25 +82,26 @@ class ChromaUtils:
         try:
             collection_name = params.get('collection_name', 'default_collection_name')
             collection_property = params.get('collection_property', None)
-            collection_ids = params.get('ids', {})
+            # collection_ids = params.get('ids', {})
 
             self.select_collection(collection_name)
 
             data = self.collection.get()[collection_property]
-            print(f"\nData from collection: {data}")
+            # print(f"\nCollection: {collection_name}\nProperty: {collection_property}\nData: {data}")
         except Exception as e:
             print(f"Error loading data: {e}")
             data = []
 
         return data
+
     def load_salient(self, params):
         try:
             collection_name = params.get('collection_name', 'default_collection_name')
-            collection_property = params.get('collection_property', None)
-            collection_ids = params.get('ids', {})
+            # collection_property = params.get('collection_property', None)
+            # collection_ids = params.get('ids', {})
 
             self.select_collection(collection_name)
-            print(f"Salient All: {self.collection.get()}")
+            # print(f"Salient All: {self.collection.get()}")
 
             data = self.collection.get()
         except Exception as e:
@@ -108,6 +109,7 @@ class ChromaUtils:
             data = []
 
         return data
+
     def save_tasks(self, params):
         tasks = params.get('tasks', [])
         results = params.get('results', [])
@@ -143,20 +145,25 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"Error saving results. Error: {e}")
 
-    def query_db(self, collection_name, text, num_results=1):
+    def query_db(self, collection_name, task_desc, num_results=1):
         self.select_collection(collection_name)
 
         max_result_count = self.collection.count()
 
         num_results = min(num_results, max_result_count)
-        print(f"\n\nAsking for num results: {num_results}\n\nText Query: {text}")
+        print(
+            f"\n\nDB Query - Num Results: {num_results}"
+            f"\n\nDB Query - Text Query: {task_desc}"
+        )
         if num_results > 0:
             result = self.collection.query(
-                query_texts=[text],
+                query_texts=[task_desc],
                 n_results=num_results,
             )
         else:
             result = {'documents': "No Results!"}
+
+        print(f"\n\nDB Query - Results: {result}")
 
         return result
 
@@ -167,15 +174,25 @@ class ChromaUtils:
         self.select_collection(collection_name)
         return self.collection.peek()
 
-    def save_status(self,status,id,task,task_order):
-        print(f"\n\nSaving status: {status}\nSaving id: {id}\n\n")
+    def save_status(self, status, task_id, task_desc, task_order):
+        print(
+            f"\n\nUpdating Task: {task_desc})"
+            f"\nTask ID: {task_id}"
+            f"\nTask Status: {status}"
+            f"\nTask Order: {task_order}"
+        )
         self.select_collection("tasks")
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
             self.collection.update(
-                ids=[id],
-                documents=[task],
-                metadatas=[{"timestamp": timestamp, "task_status": status, "task_desc": task, "task_order": task_order}],
+                ids=[task_id],
+                documents=[task_desc],
+                metadatas=[{
+                    "timestamp": timestamp,
+                    "task_status": status,
+                    "task_desc": task_desc,
+                    "task_order": task_order
+                }]
             )
         except Exception as e:
             raise ValueError(f"Error saving status. Error: {e}")

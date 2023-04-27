@@ -1,5 +1,5 @@
 # HiAGI
-HiAGI is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, BabyBoogaAGI aims to deliver efficient and reliable task management solutions.
+HiAGI is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, HiAGI aims to deliver efficient and reliable task management solutions.
 
 The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures. Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve. By fostering a collaborative and accessible environment, HiAGI seeks to contribute to the advancement of AI research and development across various domains.
 
