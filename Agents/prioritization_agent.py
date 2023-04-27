@@ -1,4 +1,7 @@
 from Agents.Func.agent_functions import AgentFunctions
+from Logs.logger_config import Logger
+
+logger = Logger(name="Prioritization Agent")
 
 
 def calculate_next_task_order(this_task_order):
@@ -27,23 +30,30 @@ class PrioritizationAgent:
         self.agent_funcs = AgentFunctions('PrioritizationAgent')
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
+        logger.set_level('debug')
 
     def run_prioritization_agent(self):
+        logger.log(f"Running Agent...", 'info')
+
+        data = self.load_data_from_storage()
+        next_task_order = calculate_next_task_order(data['this_task_order'])
+        prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
+        prompt = self.generate_prompt(prompt_formats)
+
         with self.agent_funcs.thinking():
-            data = self.load_data_from_storage()
-            next_task_order = calculate_next_task_order(data['this_task_order'])
-            prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
-            prompt = self.generate_prompt(prompt_formats)
             task_list = self.process_new_tasks(prompt)
-            ordered_tasks = order_tasks(task_list)
-            task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
-            self.save_tasks(ordered_tasks, task_desc_list)
+        ordered_tasks = order_tasks(task_list)
+        task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
-            self.agent_funcs.stop_thinking()
+        self.save_tasks(ordered_tasks, task_desc_list)
 
-            self.agent_funcs.print_task_list(ordered_tasks)
-            return ordered_tasks
+        self.agent_funcs.stop_thinking()
+
+        self.agent_funcs.print_task_list(ordered_tasks)
+
+        logger.log(f"Agent Done!", 'info')
+        return ordered_tasks
 
     # Additional functions
     def load_data_from_storage(self):
@@ -91,7 +101,7 @@ class PrioritizationAgent:
             {"role": "user", "content": f"{context_prompt}{instruction_prompt}"}
         ]
 
-        # print(f"\nPrompt: {prompt}")
+        logger.log(f"Prompt:\n{prompt}")
         return prompt
 
     def process_new_tasks(self, prompt):

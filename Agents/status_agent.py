@@ -1,20 +1,7 @@
 from Agents.Func.agent_functions import AgentFunctions
+from Logs.logger_config import Logger
 
-
-# def parse_results(text):
-#     lines = text.split('\n')
-#     result_dict = {}
-#
-#     for line in lines:
-#         if line.startswith("Status:"):
-#             result_dict["status"] = line.split("Status:")[1].strip().lower()
-#         elif line.startswith("Reason:"):
-#             result_dict["reason"] = line.split("Reason:")[1].strip()
-#
-#     return result_dict
-
-
-
+logger = Logger(name="Status Agent")
 
 class StatusAgent:
     agent_data = None
@@ -25,38 +12,44 @@ class StatusAgent:
         self.agent_funcs = AgentFunctions('StatusAgent')
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
+        logger.set_level('info')
 
     def run_status_agent(self, data):
         # This function will be the main entry point for your agent.
-
+        logger.log(f"Running Agent...", 'info')
         # 1. Start Console Feedback
+
+        task_id = data['current_task']['id']
+        task_desc = data['current_task']['metadata']['task_desc']
+        task_order = data['current_task']['metadata']['task_order']
+
+        # 3. Get prompt formats
+        prompt_formats = self.get_prompt_formats(data)
+
+        # 4. Generate prompt
+        prompt = self.generate_prompt(prompt_formats)
+        logger.log(f"Prompt:\n{prompt}", 'debug')
+
         with self.agent_funcs.thinking():
-            task_id = data['current_task']['id']
-            task_desc = data['current_task']['metadata']['task_desc']
-            task_order = data['current_task']['metadata']['task_order']
-
-            # 3. Get prompt formats
-            prompt_formats = self.get_prompt_formats(data)
-
-            # 4. Generate prompt
-            prompt = self.generate_prompt(prompt_formats)
-            print(f"\n\nStatus Agent - Prompt: {prompt}\n\n")
-
             result = self.execute_task(prompt)
 
-            status = result.split("Status: ")[1].split("\n")[0].lower()
-            reason = result.split("Reason: ")[1].rstrip()
+        status = result.split("Status: ")[1].split("\n")[0].lower()
+        reason = result.split("Reason: ")[1].rstrip()
 
-            print(f"\n\nStatus Agent - Current Task ID: {task_id}")
-            print(f"\nStatus Agent - Task Description: {task_desc}")
-            print(f"\nStatus Agent - Parsed Status: {status}")
-            print(f"\nStatus Agent - Parsed Reason: {reason}")
+        print("\n")
+        logger.log(
+            f"\nCurrent Task: {task_desc}"
+            f"\nCurrent Task ID: {task_id}"
+            f"\nParsed Status: {status}"
+            f"\nParsed Reason: {reason}",
+            'info'
+        )
 
-            if status != 'completed':
-                self.save_status(status, task_id, task_desc, task_order)
-                return reason
-            else:
-                self.save_status(status, task_id, task_desc, task_order)
+        # For now, we always save the status | We need to add a Try -Exception in Chroma Utils
+        self.save_status(status, task_id, task_desc, task_order)
+
+        logger.log(f"Agent Done!", 'info')
+        return reason
 
     def load_data_from_storage(self):
         # Load necessary data from storage and return it as a dictionary
@@ -119,6 +112,12 @@ class StatusAgent:
         self.storage.save_tasks({'result': result, 'collection_name': "results"})
         pass
 
-    def save_status(self, status, id, text, task_order):
-        print(f"\nSave Status: {status}\nSave ID: {id}")
-        self.storage.save_status(status, id, text, task_order)
+    def save_status(self, status, task_id, text, task_order):
+        logger.log(
+            f"\nSave Task: {text}"
+            f"\nSave ID: {task_id}"
+            f"\nSave Order: {task_order}"
+            f"\nSave Status: {status}",
+            'debug'
+        )
+        self.storage.save_status(status, task_id, text, task_order)

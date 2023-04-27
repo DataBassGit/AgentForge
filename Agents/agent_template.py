@@ -1,5 +1,7 @@
 from Agents.Func.agent_functions import AgentFunctions
+from Logs.logger_config import Logger
 
+logger = Logger(name="Execution Agent")
 
 class AgentTemplate:
     agent_data = None
@@ -8,33 +10,35 @@ class AgentTemplate:
     def __init__(self):
         self.agent_funcs = AgentFunctions('AgentTemplate')
         self.agent_data = self.agent_funcs.agent_data
+        logger.set_level('info')
 
     def run_agent(self, feedback=None):
         # This function will be the main entry point for your agent.
+        logger.log(f"Running Agent...", 'info')
 
-        # 1. Start Console Feedback
+        # 2. Load data from storage
+        data = self.load_data_from_storage()
+
+        # 3. Get prompt formats
+        prompt_formats = self.get_prompt_formats(data)
+
+        # 4. Generate prompt
+        prompt = self.generate_prompt(prompt_formats, feedback)
+
+        # 5. Execute the main task of the agent
         with self.agent_funcs.thinking():
-
-            # 2. Load data from storage
-            data = self.load_data_from_storage()
-
-            # 3. Get prompt formats
-            prompt_formats = self.get_prompt_formats(data)
-
-            # 4. Generate prompt
-            prompt = self.generate_prompt(prompt_formats, feedback)
-
-            # 5. Execute the main task of the agent
             result = self.execute_task(prompt)
 
-            # 6. Save the results
-            self.save_results(result)
+        # 6. Save the results
+        self.save_results(result)
 
-            # 7. Stop Console Feedback
-            self.agent_funcs.stop_thinking()
+        # 7. Stop Console Feedback
+        self.agent_funcs.stop_thinking()
 
-            # 8. Print the result or any other relevant information
-            self.agent_funcs.print_result(result)
+        # 8. Print the result or any other relevant information
+        self.agent_funcs.print_result(result)
+
+        logger.log(f"Agent Done!", 'info')
 
     def load_data_from_storage(self):
         # Load necessary data from storage and return it as a dictionary

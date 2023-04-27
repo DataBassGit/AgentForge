@@ -16,6 +16,9 @@ class AgentFunctions:
     spinner_thread = None
 
     def __init__(self, agent_name):
+        self.spinners = []
+        self.stdout_lock = threading.Lock()  # add this line
+
         # Initialize functions
         self.functions = Functions()
 
@@ -79,12 +82,14 @@ class AgentFunctions:
         self.functions.print_result(result)
 
     def _spinner_loop(self):
-        msg = f"{self.agent_data['name']}: Thinking "
+        # msg = f"{self.agent_data['name']}: Thinking "
         while self.spinner_running:
             for char in "|/-\\":
-                sys.stdout.write(msg + char)
+                # sys.stdout.write(msg + char)
+                sys.stdout.write(char)
                 sys.stdout.flush()
-                sys.stdout.write("\b" * (len(msg) + 1))
+                # sys.stdout.write("\b" * (len(msg) + 1))
+                sys.stdout.write("\b" * 1)
                 time.sleep(0.1)
 
     def start_thinking(self):
@@ -97,12 +102,15 @@ class AgentFunctions:
         self.spinner_thread.join()
 
         # Clear spinner characters
-        msg = f"{self.agent_data['name']}: Thinking "
-        sys.stdout.write("\b" * len(msg + "\\"))
+        # msg = f"{self.agent_data['name']}: Thinking "
+        # sys.stdout.write("\b" * len(msg + "\\"))
+        sys.stdout.write("\b" * 1)
 
         # Write "Done." message and flush stdout
-        sys.stdout.write(msg + "- Done.\n")
+        # sys.stdout.write("\n" + msg + "- Done.\n")
+        sys.stdout.write("\n")
         sys.stdout.flush()
+
 
     @contextmanager
     def thinking(self):
