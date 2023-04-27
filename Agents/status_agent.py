@@ -31,38 +31,32 @@ class StatusAgent:
 
         # 1. Start Console Feedback
         with self.agent_funcs.thinking():
-            task_id = data['current_task'][1]
-            task_text = data['current_task'][0]
-            task_order = data['task_order']
+            task_id = data['current_task']['id']
+            task_desc = data['current_task']['metadata']['task_desc']
+            task_order = data['current_task']['metadata']['task_order']
+
             # 3. Get prompt formats
             prompt_formats = self.get_prompt_formats(data)
 
             # 4. Generate prompt
             prompt = self.generate_prompt(prompt_formats)
-            print(f"\n\nStatus Prompt: {prompt}\n\n")
+            print(f"\n\nStatus Agent - Prompt: {prompt}\n\n")
 
             result = self.execute_task(prompt)
 
             status = result.split("Status: ")[1].split("\n")[0].lower()
             reason = result.split("Reason: ")[1].rstrip()
 
-            print(f"\n\nParsed Status: {status}")
-            print(f"\n\nParsed Reason: {reason}")
+            print(f"\n\nStatus Agent - Current Task ID: {task_id}")
+            print(f"\nStatus Agent - Task Description: {task_desc}")
+            print(f"\nStatus Agent - Parsed Status: {status}")
+            print(f"\nStatus Agent - Parsed Reason: {reason}")
 
-            print(f"\nTask ID!!!!: {task_id}")
-            # quit()
-
-            print(f"\ntask_text: {task_text}, task_id: {task_id}, status: {status}")
             if status != 'completed':
-                self.save_status(status, task_id, task_text, task_order)
+                self.save_status(status, task_id, task_desc, task_order)
                 return reason
             else:
-                #self.update_task_status(task, status)
-                self.save_status(status, task_id, task_text, task_order)
-                pass
-
-
-            # quit()
+                self.save_status(status, task_id, task_desc, task_order)
 
     def load_data_from_storage(self):
         # Load necessary data from storage and return it as a dictionary
@@ -88,7 +82,7 @@ class StatusAgent:
         prompt_formats = {
             'SystemPrompt': {'objective': self.agent_data['objective']},
             'ContextPrompt': {
-                'current_task': data['current_task'],
+                'current_task': data['current_task']['metadata']['task_desc'],
                 'task_result': data['task_result'],
                 'context': data['context']
             }
