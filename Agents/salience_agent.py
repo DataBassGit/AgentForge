@@ -1,6 +1,9 @@
 from Agents.Func.agent_functions import AgentFunctions
 from Agents.summarization_agent import SummarizationAgent
 from Agents.execution_agent import ExecutionAgent
+from Logs.logger_config import Logger
+
+logger = Logger(name="Salience Agent")
 
 
 class SalienceAgent:
@@ -20,45 +23,48 @@ class SalienceAgent:
         self.summarization_agent = SummarizationAgent()
         self.exec_agent = ExecutionAgent()
 
+        logger.set_level('info')
+
     def run_salience_agent(self, feedback=None):
-        # 1. Start Console Feedback
-        with self.agent_funcs.thinking():
-            # Load Last Results and Current Task as Data
-            data = self.load_data_from_storage()
-            print(f"\n\nCurrent Task: {data['current_task']}")
 
-            # Feed Data to the Search Utility
-            search_results = self.storage.query_db("results", data['current_task']['document'], 5)['documents']
-            print(f"\n\nSearch Results: {search_results}")
-            # quit()
+        logger.log(f"Running Agent...", 'info')
 
-            # Summarize the Search Results
-            if search_results == 'No Results!':
-                context = "No previous actions have been taken."
-            else:
-                context = self.summarization_agent.run_summarization_agent(search_results)
+        # Load Last Results and Current Task as Data
+        data = self.load_data_from_storage()
 
-            print(f"\n\nSummary of Results: {context}")
+        # Feed Data to the Search Utility
+        search_results = self.storage.query_db("results", data['current_task']['document'], 5)['documents']
 
-            task_result = self.exec_agent.run_execution_agent(context=context, feedback=None)
+        logger.log(f"Search Results: {search_results}", 'info')
 
-            # Return Execution Results to the Job Agent to determine Frustration
+        # Summarize the Search Results
+        if search_results == 'No Results!':
+            context = "No previous actions have been taken."
+        else:
+            context = self.summarization_agent.run_summarization_agent(search_results)
 
-            # Depending on Frustration Results feed the Tasks and Execution Results to the Analysis Agent
-            # to determine the status of the Current Task
+        logger.log(f"Summary of Results: {context}", 'info')
 
-            # Save the Status of the task to the Tasks DB
+        task_result = self.exec_agent.run_execution_agent(context=context, feedback=None)
 
-            execution_results = {
-                "task_result": task_result,
-                "current_task": data['current_task'],
-                "context": context,
-                "task_order": data['task_order']
-            }
+        # Return Execution Results to the Job Agent to determine Frustration
 
-            print(f"\n\nSalience - Execution Results: {execution_results}")
+        # Depending on Frustration Results feed the Tasks and Execution Results to the Analysis Agent
+        # to determine the status of the Current Task
 
-            return execution_results
+        # Save the Status of the task to the Tasks DB
+
+        execution_results = {
+            "task_result": task_result,
+            "current_task": data['current_task'],
+            "context": context,
+            "task_order": data['task_order']
+        }
+
+        logger.log(f"Execution Results: {execution_results}", 'debug')
+
+        logger.log(f"Agent Done!", 'info')
+        return execution_results
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
@@ -67,8 +73,7 @@ class SalienceAgent:
         })
         result = result_collection[0] if result_collection else ["No results found"]
 
-        # print(f"\nSalience Load Data Results: {result}")
-        # quit()
+        logger.log(f"Load Data Results:\n{result}", 'debug')
 
         task_collection = self.storage.load_salient({
             'collection_name': "tasks",
@@ -76,7 +81,7 @@ class SalienceAgent:
             'ids': "ids"
         })
 
-        print(f"\n\nSalience Agent - Tasks before ordering:\n{task_collection}")
+        logger.log(f"Tasks Before Ordering:\n{task_collection}", 'debug')
         # quit()
 
         # first, pair up 'ids', 'documents' and 'metadatas' for sorting
@@ -96,15 +101,15 @@ class SalienceAgent:
             'metadatas': list(sorted_metadatas),
         }
 
-        print(f"\n\nSalience Agent - Tasks Ordered list:\n{ordered_list}")
+        logger.log(f"Tasks Ordered list:\n{ordered_list}", 'debug')
 
-        print(f"\n\nSalience Agent - Tasks IDs:\n{sorted_ids}\n")
+        logger.log(f"Tasks IDs:\n{sorted_ids}", 'debug')
 
         current_task = None
         # iterate over sorted_metadatas
         for i, metadata in enumerate(sorted_metadatas):
             # check if the task_status is not completed
-            print(f"\nSalience Agent - Sorted Metadatas:\n{metadata}")
+            logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
             if metadata['task_status'] == 'not completed':
                 current_task = {
                     'id': sorted_ids[i],
@@ -113,10 +118,12 @@ class SalienceAgent:
                 }
                 break  # break the loop as soon as we find the first not_completed task
 
-        print(f"\n\nSalience Agent - Current Task:\n{current_task}")
+        if current_task is None:
+            logger.log("Task list has been completed!!!", 'info')
+            quit()
 
-        if current_task == None:
-            print("\n\nTask list has been completed!!!")
+        logger.log(f"Current Task:{current_task['document']}", 'info')
+        logger.log(f"Current Task:\n{current_task}", 'debug')
 
         ordered_results = {
             'result': result,

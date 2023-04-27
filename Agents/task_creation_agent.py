@@ -1,4 +1,7 @@
 from Agents.Func.agent_functions import AgentFunctions
+from Logs.logger_config import Logger
+
+logger = Logger(name="Task Creation Agent")
 
 
 class TaskCreationAgent:
@@ -11,20 +14,27 @@ class TaskCreationAgent:
         self.agent_funcs = AgentFunctions('TaskCreationAgent')
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
+        logger.set_level('info')
 
     def run_task_creation_agent(self):
+        logger.log(f"Running Agent...", 'info')
+
+        data = self.load_data_from_storage()
+        prompt_formats = self.get_prompt_formats(data)
+        prompt = self.generate_prompt(prompt_formats)
+
         with self.agent_funcs.thinking():
-            data = self.load_data_from_storage()
-            prompt_formats = self.get_prompt_formats(data)
-            prompt = self.generate_prompt(prompt_formats)
             ordered_tasks = self.order_tasks(prompt)
-            task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
-            self.save_tasks(ordered_tasks, task_desc_list)
+        task_desc_list = [task['task_desc'] for task in ordered_tasks]
 
-            self.agent_funcs.stop_thinking()
+        self.save_tasks(ordered_tasks, task_desc_list)
 
-            self.agent_funcs.print_task_list(ordered_tasks)
+        self.agent_funcs.stop_thinking()
+
+        self.agent_funcs.print_task_list(ordered_tasks)
+
+        logger.log(f"Agent Done!", 'info')
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
@@ -79,13 +89,12 @@ class TaskCreationAgent:
         filtered_results = [task for task in result if task['task_desc'] and task['task_desc'][0].isdigit()]
 
         try:
-            order_tasks = [
-                {'task_order': int(task['task_desc'].split('. ', 1)[0]),
-                 'task_desc': task['task_desc'].split('. ', 1)[1]}
-                for task in filtered_results]
+            order_tasks = [{
+                'task_order': int(task['task_desc'].split('. ', 1)[0]),
+                'task_desc': task['task_desc'].split('. ', 1)[1]
+            } for task in filtered_results]
         except Exception as e:
-            print(f"Error: {e}")
-            order_tasks = []
+            raise ValueError(f"\n\nError ordering tasks. Error: {e}")
 
         return order_tasks
 

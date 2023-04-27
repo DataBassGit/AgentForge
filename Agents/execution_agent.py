@@ -1,5 +1,8 @@
 from Agents.Func.agent_functions import AgentFunctions
 # from Tools import google_search as google
+from Logs.logger_config import Logger
+
+logger = Logger(name="Execution Agent")
 
 
 class ExecutionAgent:
@@ -11,27 +14,31 @@ class ExecutionAgent:
         self.agent_funcs = AgentFunctions('ExecutionAgent')
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
+        logger.set_level('info')
 
     def run_execution_agent(self, context, feedback):
+        logger.log(f"Running Agent...", 'info')
 
-        print(f"\nContext: {context}")
+        logger.log(f"Context:{context}", 'info')
 
+        task = self.load_data_from_storage()
+        data = {'task': task, 'context': context}
+
+        logger.log(f"Data:\n{data}", 'debug')
+
+        prompt_formats = self.get_prompt_formats(data)
+        prompt = self.generate_prompt(prompt_formats, feedback, context)
         with self.agent_funcs.thinking():
-            task = self.load_data_from_storage()
-            data = {'task': task, 'context': context}
-
-            print(f"\nData: {data}")
-            # quit()
-            prompt_formats = self.get_prompt_formats(data)
-            prompt = self.generate_prompt(prompt_formats, feedback, context)
             result = self.execute_task(prompt)
 
-            self.save_results(result)
+        self.save_results(result)
 
-            self.agent_funcs.stop_thinking()
+        self.agent_funcs.stop_thinking()
 
-            self.agent_funcs.print_result(result)
-            return result
+        self.agent_funcs.print_result(result)
+
+        logger.log(f"Agent Done!", 'info')
+        return result
 
     def load_data_from_storage(self):
         task_list = self.storage.load_collection({
@@ -70,7 +77,7 @@ class ExecutionAgent:
             {"role": "user", "content": f"{context_prompt}{instruction_prompt}{feedback_prompt}"}
         ]
 
-        # print(f"\nPrompt: {prompt}")
+        logger.log(f"Prompt:\n{prompt}", 'debug')
         return prompt
 
     def execute_task(self, prompt):
