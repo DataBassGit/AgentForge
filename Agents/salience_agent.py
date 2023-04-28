@@ -43,7 +43,7 @@ class SalienceAgent:
         else:
             context = self.summarization_agent.run_summarization_agent(search_results)
 
-        logger.log(f"Summary of Results: {context}", 'info')
+        # logger.log(f"Summary of Results: {context}", 'info')
 
         task_result = self.exec_agent.run_execution_agent(context=context, feedback=None)
 
@@ -173,3 +173,6 @@ class SalienceAgent:
         # Save the results to storage
         pass
 
+    # def show_tasks(self, agent):
+    #     print("")
+    #     logger.log(f"Agent {agent}", 'info')

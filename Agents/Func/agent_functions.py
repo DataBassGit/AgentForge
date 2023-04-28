@@ -79,7 +79,7 @@ class AgentFunctions:
         self.functions.print_task_list(ordered_results)
 
     def print_result(self, result):
-        self.functions.print_result(result)
+        self.functions.print_result(result, self.agent_data['name'])
 
     def _spinner_loop(self):
         # msg = f"{self.agent_data['name']}: Thinking "

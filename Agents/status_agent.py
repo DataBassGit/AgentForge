@@ -108,10 +108,6 @@ class StatusAgent:
     def execute_task(self, prompt):
         return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
 
-    def update_task_status(self, status):
-        self.storage.save_tasks({'result': result, 'collection_name': "results"})
-        pass
-
     def save_status(self, status, task_id, text, task_order):
         logger.log(
             f"\nSave Task: {text}"

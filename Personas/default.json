@@ -2,9 +2,9 @@
   "Name": "EMF",
   "Objective": "Write a program for an AI to use to search the internet.",
   "Tasks": [
-    "1. Develop a task list",
-    "2. Reflect on the task list",
-    "3. Act out the task list"
+    "Develop a task list",
+    "Reflect on the task list",
+    "Act out the task list"
   ],
   "ExecutionAgent": {
     "API": "openai_api",
