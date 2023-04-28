@@ -2,14 +2,23 @@ import os
 import keyboard
 import threading
 from datetime import datetime
+from Utilities.storage_interface import StorageInterface
+from termcolor import colored
 
+from Logs.logger_config import Logger
+
+logger = Logger(name="Function Utils")
 
 class Functions:
     mode = None
+    storage = None
+
+    # def __new__(cls):
+        # cls.storage = StorageInterface()
 
     def __init__(self):
         self.mode = None
-
+        self.storage = StorageInterface()
         # Start a separate thread to listen for 'Esc' key press
         self.listen_for_esc_lock = threading.Lock()
         self.listen_for_esc_thread = threading.Thread(target=self.listen_for_esc, daemon=True)
@@ -61,22 +70,27 @@ class Functions:
 
         return context
 
+    def get_auto_mode(self):
+        return self.mode
+
+    #Replace with show_tasks after hackathon
     def print_task_list(self, task_list):
         # Print the task list
         print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
         for t in task_list:
             print(str(t["task_order"]) + ": " + t["task_desc"])
 
-    def print_next_task(self, task):
-        # Print the next task
-        print("\033[92m\033[1m" + "\n*****NEXT TASK*****\n" + "\033[0m\033[0m")
-        print(str(task["task_order"]) + ": " + task["task_desc"])
+    # def print_next_task(self, task):
+    #     # Print the next task
+    #     print("\033[92m\033[1m" + "\n*****NEXT TASK*****\n" + "\033[0m\033[0m")
+    #     print(str(task["task_order"]) + ": " + task["task_desc"])
 
-    def print_result(self, result):
+    def print_result(self, result, desc):
         # Print the task result
-        print("\033[92m\033[1m" + "\n*****RESULT*****\n" + "\033[0m\033[0m")
+        # print("\033[92m\033[1m" + "\n*****RESULT*****\n" + "\033[0m\033[0m")
+        print(colored(f"\n\n***** {desc} - RESULT *****\n", 'green', attrs=['bold']))
         print(result)
-
+        print(colored(f"\n*****\n", 'green', attrs=['bold']))
         # Save the result to a log.txt file in the /Logs/ folder
         log_folder = "Logs"
         log_file = "log.txt"
@@ -87,6 +101,32 @@ class Functions:
 
         # Save the result to the log file
         self.write_file(log_folder, log_file, result)
+
+    def show_tasks(self, desc):
+        self.storage.storage_utils.select_collection("tasks")
+
+        task_collection = self.storage.storage_utils.collection.get()
+        task_list = task_collection["metadatas"]
+
+        # Sort the task list by task order
+        task_list.sort(key=lambda x: x["task_order"])
+
+        print(colored(f"\n\n***** {desc} - TASK LIST *****\n", 'magenta', attrs=['bold']))
+
+        for task in task_list:
+            task_order = task["task_order"]
+            task_desc = task["task_desc"]
+            task_status = task["task_status"]
+
+            if task_status == "completed":
+                status_text = colored("completed", 'green')
+            else:
+                status_text = colored("not completed", 'red')
+
+            print(f"{task_order}: {task_desc} - {status_text}")
+
+        print(colored(f"\n*****\n", 'magenta', attrs=['bold']))
+
 
     def write_file(self, folder, file, result):
         with open(os.path.join(folder, file), "a") as f:

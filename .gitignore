@@ -3,5 +3,6 @@ Config/api_keys.ini
 Config/.env
 .idea/
 __pycache__/
-Logs/
+Logs/log.txt
 *.pyc
+/hiAGI-Dev.log

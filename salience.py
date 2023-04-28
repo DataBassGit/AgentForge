@@ -27,13 +27,14 @@ while True:
     collection_list = storage.storage_utils.collection_list()
     logger.log(f"Collection List: {collection_list}", 'debug')
 
+    functions.show_tasks('Salience')
+    # quit()
     # Allow for feedback if auto mode is disabled
     feedback = functions.check_auto_mode()
 
     data = salienceAgent.run_salience_agent()
 
     logger.log(f"Data: {data}", 'debug')
-    # quit()
 
     statusAgent.run_status_agent(data)
     # quit()
