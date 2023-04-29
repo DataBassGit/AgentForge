@@ -15,7 +15,7 @@ def intelligent_chunk(text, chunk_size):
     nlp.max_length = 3000000
     
     # Tokenize the text into sentences using spacy
-    doc = nlp(text)
+    doc = nlp(str(text))
     sentences = [sent.text for sent in doc.sents]
     
     # Determine the number of sentences per chunk based on the input chunk_size
@@ -28,7 +28,7 @@ def intelligent_chunk(text, chunk_size):
         chunk = ' '.join(sentences[i:i + num_sentences])
         chunks.append(chunk)
         i += num_sentences - 2  # Move the index forward by (num_sentences - 2) to create the overlap
-    
+
     return chunks
 
 

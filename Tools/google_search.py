@@ -4,7 +4,7 @@ from googleapiclient.errors import HttpError
 import json
 
 config = configparser.ConfigParser()
-config.read('Config/api_keys.ini')
+config.read('Config/config.ini')
 
 # Get the Google API key and Custom Search Engine ID from the config file
 google_api_key = config.get('Google', 'api_key')
