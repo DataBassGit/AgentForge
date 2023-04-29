@@ -28,7 +28,6 @@ class SalienceAgent:
     def run_salience_agent(self, feedback=None):
 
         logger.log(f"Running Agent...", 'info')
-
         # Load Last Results and Current Task as Data
         data = self.load_data_from_storage()
 
@@ -45,7 +44,7 @@ class SalienceAgent:
 
         # logger.log(f"Summary of Results: {context}", 'info')
 
-        task_result = self.exec_agent.run_execution_agent(context=context, feedback=None)
+        task_result = self.exec_agent.run_execution_agent(context=context, feedback=feedback)
 
         # Return Execution Results to the Job Agent to determine Frustration
 

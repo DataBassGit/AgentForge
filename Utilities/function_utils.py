@@ -49,7 +49,7 @@ class Functions:
             else:
                 print("\nPlease select a valid option!\n")
 
-    def check_auto_mode(self):
+    def check_auto_mode(self, feedback_from_status=None):
         context = None
 
         # Acquire the lock while this function is running
@@ -58,6 +58,7 @@ class Functions:
             if self.mode == 'manual':
                 user_input = input("\nAllow AI to continue? (y/n/auto) or provide feedback: ")
                 if user_input.lower() == 'y':
+                    context = feedback_from_status
                     pass
                 elif user_input.lower() == 'n':
                     quit()
@@ -70,6 +71,14 @@ class Functions:
 
         return context
 
+    def check_status(self,status):
+        if status is not None:
+            user_input = input(f"\nSend this feedback to the execution agent? (y/n): {status}\n")
+            if user_input.lower() == 'y':
+                result = status
+            else:
+                result = None
+            return result
     def get_auto_mode(self):
         return self.mode
 

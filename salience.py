@@ -21,6 +21,7 @@ statusAgent = StatusAgent()
 # Add a variable to set the mode
 functions = Functions()
 functions.set_auto_mode()
+status = None
 
 # Salience loop
 while True:
@@ -30,13 +31,17 @@ while True:
     functions.show_tasks('Salience')
     # quit()
     # Allow for feedback if auto mode is disabled
-    feedback = functions.check_auto_mode()
+    status_result = functions.check_status(status)
+    if status_result is not None:
+        feedback = functions.check_auto_mode(status_result)
+    else:
+        feedback = functions.check_auto_mode()
 
-    data = salienceAgent.run_salience_agent()
+    data = salienceAgent.run_salience_agent(feedback=feedback)
 
     logger.log(f"Data: {data}", 'debug')
 
-    statusAgent.run_status_agent(data)
+    status = statusAgent.run_status_agent(data)
     # quit()
 
 
