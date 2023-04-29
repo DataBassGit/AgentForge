@@ -146,40 +146,6 @@
       "seed": -1
     }
   },
-  "HeuristicComparatorAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
-    "Prompts": {
-      "SystemPrompt": "\nYou are a professional analyst. You specialize in comparing datasets.",
-      "InstructionPrompt": "\nYou are tasked with comparing two sets, SetA and SetB, to determine which set more closely aligns with a reference set labeled Criteria.\n\nYour goal is to determine which set between SetA and SetB most closely meets the Criteria set.\n\nYou should return a response that includes the SetName that most closely aligns to the Criteria in the following format:\n\nCHOICE: SetX\n\nwhere X is the chosen set between A and B.\n\nREASON: {Reason for conclusion reached}\n\nHere are the three sets:\n\nSetA: {seta}\n\nSetB: {setb}\n\nCriteria: {setc}\n\nWhich set most closely meets the Criteria?"
-	},
-    "Params": {
-      "max_new_tokens": 200,
-      "temperature": 0.5,
-      "top_p": 0.9,
-      "n": 1,
-      "stop": null,
-      "do_sample": true,
-      "return_prompt": false,
-      "return_metadata": false,
-      "typical_p": 0.95,
-      "repetition_penalty": 1.05,
-      "encoder_repetition_penalty": 1.0,
-      "top_k": 0,
-      "min_length": 0,
-      "no_repeat_ngram_size": 2,
-      "num_beams": 1,
-      "penalty_alpha": 0,
-      "length_penalty": 1.0,
-      "early_stopping": false,
-      "pad_token_id": null,
-      "eos_token_id": null,
-      "use_cache": true,
-      "num_return_sequences": 1,
-      "bad_words_ids": null,
-      "seed": -1
-    }
-  },
   "SalienceAgent": {
     "API": "openai_api",
     "Model": "fast_model",
@@ -285,12 +251,48 @@
       "seed": -1
     }
   },
-  "HeuristicReflexionAgent": {
+  "HeuristicComparatorAgent": {
     "API": "openai_api",
-    "Model": "fast_model",
+    "Model": "smart_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a professional editor and reviewer with 20 years of experience. You recieve segments of text. Your job is to make sure that they do not confict with the companies morals and guidelines and provide edits to ensure that they meet those guidelines.",
-      "InstructionPrompt": "\nYou have recieved the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if SetA meets the alignment principles, and provide changes to the text that meet the guidelines provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted text to meet criteria}\n\nREASON: {Reason for conclusion reached}\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}\n\nYOUR RESPONSE BELOW:\n\n
+      "SystemPrompt": "\nYou are a professional analyst. You specialize in comparing datasets.",
+      "ContextPrompt":"\nHere are the three sets:\n\nSetA:\n{seta}\n\nSetB:\n{setb}\n\nCriteria:\n{setc}",
+      "InstructionPrompt": "\nYou are tasked with comparing two sets, SetA and SetB, to determine which set more closely aligns with a reference set labeled Criteria.\n\nYour goal is to determine which set between SetA and SetB most closely meets the Criteria set.\n\nYou should return a response that includes the SetName that most closely aligns to the Criteria or neither as there's the possibility that neither set mey be aligned with the Criteria set. Please respond in the format:\n\nCHOICE: SetX\n\nwhere X is the chosen set between A and B or neither.\n\nREASON: {Reason for conclusion reached}"
+	},
+    "Params": {
+      "max_new_tokens": 200,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "HeuristicReflectionAgent": {
+    "API": "openai_api",
+    "Model": "smart_model",
+    "Prompts": {
+      "SystemPrompt": "\nYou are a professional editor and reviewer with 20 years of experience. You receive segments of text. Your job is to make sure that they do not conflict with the companies morals and guidelines and provide edits to ensure that they meet those guidelines.",
+      "ContextPrompt":"\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}",
+      "InstructionPrompt": "\nYou have received the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if SetA meets the alignment principles, and provide changes to the text that meet the guidelines provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted text to meet criteria}\n\nREASON: {Reason for conclusion reached}\n\nYOUR RESPONSE BELOW:\n\n"
     },
     "Params": {
       "max_new_tokens": 200,
@@ -321,10 +323,11 @@
   },
   "HeuristicCheckAgent": {
     "API": "openai_api",
-    "Model": "fast_model",
+    "Model": "smart_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a professional analyst and reviewer with 20 years of experience. You specialize in comparing datasets to determine if they meet criteria. Your job is to make sure that they do not confict with the companies morals and guidelines.",
-      "InstructionPrompt": "\nYou have recieved the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if the provided text, SetA, meets the morals and guidlines, SetB, and provide a formatted response and critique of the text provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}\n\nYOUR RESPONSE BELOW:\n\n
+      "SystemPrompt": "\nYou are a professional analyst and reviewer with 20 years of experience. You specialize in comparing datasets to determine if they meet criteria. Your job is to make sure that they do not conflict with the companies morals and guidelines.",
+      "ContextPrompt":"\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}",
+      "InstructionPrompt": "\nYou have received the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if the provided text, SetA, meets the morals and guidelines, SetB, and provide a formatted response and critique of the text provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}\n\nYOUR RESPONSE BELOW:\n\n\""
 	},
     "Params": {
       "max_new_tokens": 200,
