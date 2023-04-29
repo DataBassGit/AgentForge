@@ -146,13 +146,13 @@
       "seed": -1
     }
   },
-  "HeuristicAgent": {
+  "HeuristicComparatorAgent": {
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": "\nYou are a professional analyst. You specialize in comparing datasets.",
-      "InstructionPrompt": "\nYou are tasked with comparing two sets, SetA and SetB, to determine which set more closely aligns with a reference set labeled Criteria.\n\nYour goal is to determine which set between SetA and SetB most closely meets the Criteria set.\n\nYou should return a response that includes the SetName that most closely aligns to the Criteria in the following format:\n\nCHOICE: SetX\n\nwhere X is the chosen set between A and B.\n\nHere are the three sets:\n\nSetA: {seta}\n\nSetB: {setb}\n\nCriteria: {setc}\n\nWhich set most closely meets the Criteria?"
-    },
+      "InstructionPrompt": "\nYou are tasked with comparing two sets, SetA and SetB, to determine which set more closely aligns with a reference set labeled Criteria.\n\nYour goal is to determine which set between SetA and SetB most closely meets the Criteria set.\n\nYou should return a response that includes the SetName that most closely aligns to the Criteria in the following format:\n\nCHOICE: SetX\n\nwhere X is the chosen set between A and B.\n\nREASON: {Reason for conclusion reached}\n\nHere are the three sets:\n\nSetA: {seta}\n\nSetB: {setb}\n\nCriteria: {setc}\n\nWhich set most closely meets the Criteria?"
+	},
     "Params": {
       "max_new_tokens": 200,
       "temperature": 0.5,
@@ -223,6 +223,109 @@
       "ContextPrompt": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}.",
       "InstructionPrompt": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
     },
+    "Params": {
+      "max_new_tokens": 200,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "SearchSelector": {
+    "API": "openai_api",
+    "Model": "fast_model",
+    "Prompts": {
+      "SystemPrompt": "You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it!",
+      "ContextPrompt": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}.",
+      "InstructionPrompt": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+    },
+    "Params": {
+      "max_new_tokens": 200,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "HeuristicReflexionAgent": {
+    "API": "openai_api",
+    "Model": "fast_model",
+    "Prompts": {
+      "SystemPrompt": "\nYou are a professional editor and reviewer with 20 years of experience. You recieve segments of text. Your job is to make sure that they do not confict with the companies morals and guidelines and provide edits to ensure that they meet those guidelines.",
+      "InstructionPrompt": "\nYou have recieved the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if SetA meets the alignment principles, and provide changes to the text that meet the guidelines provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted text to meet criteria}\n\nREASON: {Reason for conclusion reached}\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}\n\nYOUR RESPONSE BELOW:\n\n
+    },
+    "Params": {
+      "max_new_tokens": 200,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "HeuristicCheckAgent": {
+    "API": "openai_api",
+    "Model": "fast_model",
+    "Prompts": {
+      "SystemPrompt": "\nYou are a professional analyst and reviewer with 20 years of experience. You specialize in comparing datasets to determine if they meet criteria. Your job is to make sure that they do not confict with the companies morals and guidelines.",
+      "InstructionPrompt": "\nYou have recieved the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if the provided text, SetA, meets the morals and guidlines, SetB, and provide a formatted response and critique of the text provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}\n\nYOUR RESPONSE BELOW:\n\n
+	},
     "Params": {
       "max_new_tokens": 200,
       "temperature": 0.5,

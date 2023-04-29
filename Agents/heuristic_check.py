@@ -1,7 +1,7 @@
 from Agents.Func.agent_functions import AgentFunctions
 
 
-class HeuristicComparatorAgent:
+class HeuristicCheckAgent:
     agent_data = None
     agent_funcs = None
     heuristic_imperatives = "\
@@ -10,13 +10,13 @@ class HeuristicComparatorAgent:
         3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information."
 
     def __init__(self):
-        self.agent_funcs = AgentFunctions('HeuristicComparatorAgent')
+        self.agent_funcs = AgentFunctions('HeuristicCheckAgent')
         self.agent_data = self.agent_funcs.agent_data
 
-    def run_agent(self, setavalue, setbvalue, feedback=None):
+    def run_agent(self, setavalue, feedback=None):
         # This function will be the main entry point for your agent.
         seta = setavalue
-        setb = setbvalue
+        setb = heuristic_imperatives
         # 1. Start Console Feedback
         with self.agent_funcs.thinking():
 
