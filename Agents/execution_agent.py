@@ -1,5 +1,4 @@
 from Agents.Func.agent_functions import AgentFunctions
-# from Tools import google_search as google
 from Logs.logger_config import Logger
 
 logger = Logger(name="Execution Agent")

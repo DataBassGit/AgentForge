@@ -1,10 +1,17 @@
 import Tools.google_search as google
-from Tools.webscrape import WebScraper as ws
-import Tools.intelligent_chunk as ic
+from Tools.webscrape import WebScraper
+import Tools.intelligent_chunk as smart_chunk
 from bs4 import BeautifulSoup
 
-var = google.google_search("spaceships",5)
-print(var[2][0])
-# var2 = ws.get_plain_text(var[2][0])
-var2 = ws.get_plain_text("https://www.space.com/coolest-spaceships-in-sci-fi")
-print(f"\n\n{var2}")
+web_scrape = WebScraper()
+
+search_results = google.google_search("spaceships", 5)
+url = search_results[2][0]
+scrapped = web_scrape.get_plain_text(url)
+chunks = smart_chunk.intelligent_chunk(scrapped, chunk_size=0)
+
+print(f"\nURL: {url}")
+print(f"\nURL: {url}")
+print(f"\n\nChunks:\n{chunks}")
+
+

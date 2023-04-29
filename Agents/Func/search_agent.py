@@ -1,21 +1,21 @@
 from Agents.Func.agent_functions import AgentFunctions
 from Logs.logger_config import Logger
 
-logger = Logger(name="Agent Template")
+logger = Logger(name="Search Agent")
 
 
-class AgentTemplate:
+class SearchAgent:
     agent_data = None
     agent_funcs = None
     storage = None
 
     def __init__(self):
-        self.agent_funcs = AgentFunctions('AgentTemplate')
+        self.agent_funcs = AgentFunctions('SearchAgent')
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
-        logger.set_level('info')
+        logger.set_level('debug')
 
-    def run_agent(self, feedback=None):
+    def run_agent(self, text, feedback=None):
         # This function will be the main entry point for your agent.
         logger.log(f"Running Agent...", 'info')
 

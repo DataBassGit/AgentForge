@@ -1,5 +1,6 @@
 import spacy
 
+
 def intelligent_chunk(text, chunk_size):
     # Define the number of sentences per chunk based on the chunk_size
     sentences_per_chunk = {
@@ -34,5 +35,5 @@ def intelligent_chunk(text, chunk_size):
 
 # # Example usage
 # text = "This is the first sentence. This is the second sentence. This is the third sentence. This is the fourth sentence. This is the fifth sentence. This is the sixth sentence. This is the seventh sentence."
-# chunks = chunk_text(text, chunk_size=0)
+# chunks = intelligent_chunk(text, chunk_size=0)
 # print(chunks)
