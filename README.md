@@ -24,9 +24,9 @@ pip install -r requirements.txt
 
 6. For web scraping, you will have installed Spacy, but you also need to install a model. By default it uses the following model:
 
-'''
+```
 python -m spacy download en_core_web_sm 
-'''
+```
 
 ## Usage
 1. Run the main.py script to start HiAGI:
