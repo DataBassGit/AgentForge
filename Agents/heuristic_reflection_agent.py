@@ -87,7 +87,14 @@ class HeuristicReflectionAgent:
     def parse_output(self, result, botid, data):
         criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
         edit = result.split("RECOMMENDED EDIT: ")[1].split("\n")[0].lower()
-        response = result.split("RESPONSE: ")[1].strip()
+        # response = result.split("RESPONSE: ")[1].strip()
+
+        if "RESPONSE: " in result:
+            response = result.split("RESPONSE: ")[1].strip()
+        else:
+            response = "No Response"
+            # Handle the case when "RESPONSE: " is not in the result
+            print("Unable to find 'RESPONSE: ' in the result string")
 
         return {'criteria': criteria, 'edit': edit, 'response': response, 'botid': botid, 'data': data}
 

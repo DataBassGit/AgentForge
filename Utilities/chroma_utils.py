@@ -214,7 +214,7 @@ class ChromaUtils:
                 metadatas=[meta],
                 ids=[str(uuid.uuid4())],
             )
-            print(f"\n\nData Saved to Collection: {self.collection.get()}")
+            # print(f"\n\nData Saved to Collection: {self.collection.get()}")
         except Exception as e:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
