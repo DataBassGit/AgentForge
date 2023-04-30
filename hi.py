@@ -17,6 +17,7 @@ heuristic_reflection_agent = HeuristicReflectionAgent()
 functions = Functions()
 feedback = None
 
+
 @app.route('/check', methods=['PUT'])
 def run_check():
     data = request.get_json()
@@ -57,6 +58,23 @@ def run_compare():
     results=heuristic_comparator_agent.run_agent(seta, setb, botid, feedback=feedback)
     return f"String updated: {results}"
 
+
+@app.route('/plot_dict', methods=['GET'])
+def display_plot_dict():
+    storage.storage_utils.select_collection('results')
+    # storage.storage_utils.collection.get()
+    search = storage.storage_utils.collection.get(include=["embeddings"])
+    embeddings = search.get('embeddings',[])
+    print(embeddings)
+    return {'embeddings': embeddings}
+
+@app.route('/bot_dict', methods=['GET'])
+def display_bot_dict():
+    botid = request.args.get('botid')
+    storage.storage_utils.select_collection('results')
+    search = storage.storage_utils.collection.get(where={"botid": botid},include=["embeddings", "documents", "metadatas"])
+    print(search)
+    return search
 
 if __name__ == '__main__':
     app.run()

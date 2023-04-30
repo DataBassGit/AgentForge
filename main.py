@@ -5,6 +5,7 @@ from Utilities.function_utils import Functions
 from Utilities.hi_utils import HiUtils
 # from Utilities.storage_interface import StorageInterface
 # from Agents.heuristic_check_agent import HeuristicCheckAgent
+import requests
 
 # Load Relevant Agents
 # storage = StorageInterface()
@@ -47,10 +48,16 @@ print(f"\nHiUtils: {result}\n")
 
 print("\nSENDING COMPARE API\n")
 result = hi_utils.parse_data(data, 'compare')
-
 print(f"\nHiUtils: {result}\n")
 
+# print("GETTING PLOT DICT\n")
+# response = requests.get("http://localhost:5000/plot_dict")
+# print(json.loads(response.text))
 
+print("GETTING BOT DICT\n")
+botid = data['botid']
+response = requests.get("http://localhost:5000/bot_dict", params={'botid': botid})
+print(response.json())
 
 # Main loop
 # while True:
