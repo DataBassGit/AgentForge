@@ -7,6 +7,7 @@ logger = Logger(name="Heuristic Check Agent")
 class HeuristicCheckAgent:
     agent_data = None
     agent_funcs = None
+    storage = None
     heuristic_imperatives = "\
         1. Reduce suffering in the universe: Guiding AI systems to reduce harm, address inequalities, and alleviate pain and distress for all sentient beings, including humans, animals, and other life forms.\
         2. Increase prosperity in the universe: Encouraging AI systems to promote well-being, flourishing, and economic growth for all life forms, fostering a thriving ecosystem where all can coexist harmoniously.\
@@ -15,6 +16,7 @@ class HeuristicCheckAgent:
     def __init__(self):
         self.agent_funcs = AgentFunctions('HeuristicCheckAgent')
         self.agent_data = self.agent_funcs.agent_data
+        self.storage = self.agent_data['storage'].storage_utils
         logger.set_level('debug')
 
     def run_agent(self, seta, feedback=None):
@@ -61,11 +63,7 @@ class HeuristicCheckAgent:
         # 8. Print the result or any other relevant information
         self.agent_funcs.print_result(parsed_data)
 
-        # return result
-
-    def load_data_from_storage(self):
-        # Load necessary data from storage and return it as a dictionary
-        pass
+        return parsed_data
 
     def get_prompt_formats(self, data):
         # Create a dictionary of prompt formats based on the loaded data
@@ -97,10 +95,6 @@ class HeuristicCheckAgent:
         # print(f"\nPrompt: {prompt}")
         return prompt
 
-    def execute_task(self, prompt):
-        # Execute the main task of the agent and return the result
-        return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
-
     def parse_output(self, data):
         criteria = data.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
         reason = data.split("REASON: ")[1].rstrip()
@@ -108,6 +102,12 @@ class HeuristicCheckAgent:
         return {'criteria': criteria, 'reason': reason}
 
     def save_results(self, result):
+        # Select the storage interface
+
         # Save the results to storage
+        self.storage.save_heuristic({'result': result, 'collection_name': "results"})
         pass
 
+    def execute_task(self, prompt):
+        # Execute the main task of the agent and return the result
+        return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()

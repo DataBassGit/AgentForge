@@ -202,5 +202,18 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError saving status. Error: {e}")
 
+    def save_heuristic(self, params):
+        try:
+            result = params.get('result', None)
+            collection_name = params.get('collection_name', 'default_collection_name')
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+            self.select_collection(collection_name)
+            self.collection.add(
+                documents=[result],
+                metadatas=[{"timestamp": timestamp}],
+                ids=[str(uuid.uuid4())],
+            )
+        except Exception as e:
+            raise ValueError(f"\n\nError saving results. Error: {e}")
 
