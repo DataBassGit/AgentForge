@@ -327,7 +327,7 @@
     "Prompts": {
       "SystemPrompt": "\nYou are a professional analyst and reviewer with 20 years of experience. You specialize in comparing datasets to determine if they meet criteria. Your job is to make sure that they do not conflict with the companies morals and guidelines.",
       "ContextPrompt":"\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}",
-      "InstructionPrompt": "\nYou have received the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if the provided text, SetA, meets the morals and guidelines, SetB, and provide a formatted response and critique of the text provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}\n\nYOUR RESPONSE BELOW:\n\n\""
+      "InstructionPrompt": "\nYou have received the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if the provided text, SetA, meets the morals and guidelines, SetB, and provide a formatted response and critique of the text provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}"
 	},
     "Params": {
       "max_new_tokens": 200,

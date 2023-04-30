@@ -47,13 +47,21 @@ class HeuristicCheckAgent:
         # 7. Stop Console Feedback
         self.agent_funcs.stop_thinking()
 
+        self.agent_funcs.print_result(result)
+
+        # print(f"\nResults: {result}")
+
         # 6. Save the results
+        parsed_data = self.parse_output(result)
+
+        print(f"\nParsed Data: {parsed_data}")
+
         # self.save_results(result)
 
         # 8. Print the result or any other relevant information
-        self.agent_funcs.print_result(result)
+        self.agent_funcs.print_result(parsed_data)
 
-        return result
+        # return result
 
     def load_data_from_storage(self):
         # Load necessary data from storage and return it as a dictionary
@@ -77,9 +85,8 @@ class HeuristicCheckAgent:
         # feedback_prompt = self.agent_data['prompts']['FeedbackPrompt'] if feedback != "" else ""
 
         # Format Prompts
-        # system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
+
         context_prompt = context_prompt.format(**prompt_formats.get('ContextPrompt', {}))
-        # instruction_prompt = instruction_prompt.format(**prompt_formats.get('InstructionPrompt', {}))
         # feedback_prompt = feedback_prompt.format(feedback=feedback)
 
         prompt = [
@@ -93,6 +100,12 @@ class HeuristicCheckAgent:
     def execute_task(self, prompt):
         # Execute the main task of the agent and return the result
         return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
+
+    def parse_output(self, data):
+        criteria = data.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
+        reason = data.split("REASON: ")[1].rstrip()
+
+        return {'criteria': criteria, 'reason': reason}
 
     def save_results(self, result):
         # Save the results to storage
