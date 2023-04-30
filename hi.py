@@ -14,7 +14,7 @@ heuristic_check_agent = HeuristicCheckAgent()
 heuristic_reflection_agent = HeuristicReflectionAgent()
 
 # Add a variable to set the mode
-functions = Functions()
+# functions = Functions()
 feedback = None
 
 

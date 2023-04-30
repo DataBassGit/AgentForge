@@ -85,9 +85,23 @@ class HeuristicReflectionAgent:
         return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
 
     def parse_output(self, result, botid, data):
-        criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
-        edit = result.split("RECOMMENDED EDIT: ")[1].split("\n")[0].lower()
+        # criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
+        # edit = result.split("RECOMMENDED EDIT: ")[1].split("\n")[0].lower()
         # response = result.split("RESPONSE: ")[1].strip()
+
+        if "MEETS CRITERIA: " in result:
+            criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
+        else:
+            criteria = "n/a"
+            # Handle the case when "RESPONSE: " is not in the result
+            print("Unable to find 'MEETS CRITERIA: ' in the result string")
+
+        if "RECOMMENDED EDIT: " in result:
+            edit = result.split("RECOMMENDED EDIT: ")[1].strip()
+        else:
+            edit = "No recommended edits found."
+            # Handle the case when "RESPONSE: " is not in the result
+            print("Unable to find 'RECOMMENDED EDIT: ' in the result string")
 
         if "RESPONSE: " in result:
             response = result.split("RESPONSE: ")[1].strip()

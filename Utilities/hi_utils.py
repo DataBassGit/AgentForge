@@ -6,8 +6,8 @@ class HiUtils:
     url = None
     data = None
     headers = None
-    # path = "http://localhost:5000/"
-    path = "http://72.189.196.202:2525"
+    path = "http://localhost:5000/"
+    # path = "http://72.189.196.202:2525"
 
     def __init__(self):
         # self.set_url(self.path, "check")
