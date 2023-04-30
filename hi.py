@@ -17,6 +17,7 @@ heuristic_reflection_agent = HeuristicReflectionAgent()
 functions = Functions()
 feedback = None
 
+
 @app.route('/check', methods=['PUT'])
 def run_check():
     data = request.get_json()
@@ -28,7 +29,6 @@ def run_check():
         botid = "undefined"
     # do something with the new string
     results=heuristic_check_agent.run_agent(seta, botid, feedback=feedback)
-    # return f"String updated: {results}"
     return results
 
 @app.route('/reflect', methods=['PUT'])
@@ -42,7 +42,6 @@ def run_reflect():
         botid = "undefined"
     # do something with the new string
     results=heuristic_reflection_agent.run_agent(seta, botid, feedback=feedback)
-    # return f"String updated: {results}"
     return results
 
 @app.route('/compare', methods=['PUT'])
@@ -57,9 +56,25 @@ def run_compare():
         botid = "undefined"
     # do something with the new string
     results=heuristic_comparator_agent.run_agent(seta, setb, botid, feedback=feedback)
-    # return f"String updated: {results}"
     return results
 
+
+@app.route('/plot_dict', methods=['GET'])
+def display_plot_dict():
+    storage.storage_utils.select_collection('results')
+    # storage.storage_utils.collection.get()
+    search = storage.storage_utils.collection.get(include=["embeddings"])
+    embeddings = search.get('embeddings',[])
+    print(embeddings)
+    return {'embeddings': embeddings}
+
+@app.route('/bot_dict', methods=['GET'])
+def display_bot_dict():
+    botid = request.args.get('botid')
+    storage.storage_utils.select_collection('results')
+    search = storage.storage_utils.collection.get(where={"botid": botid},include=["embeddings", "documents", "metadatas"])
+    print(search)
+    return search
 
 if __name__ == '__main__':
     app.run()
