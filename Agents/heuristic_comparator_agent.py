@@ -46,7 +46,7 @@ class HeuristicComparatorAgent:
 
         self.agent_funcs.print_result(result)
 
-        return result
+        return parsed_data
 
     def parse_output(self, data):
         choice = data.split("CHOICE: ")[1].split("\n")[0].lower()
