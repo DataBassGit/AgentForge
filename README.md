@@ -21,7 +21,7 @@ python hi.py
 
 This will start a server on the local machine allowing any bot to verify output against the heuristic imperative agents. These methods are called via API from a client endpoint. Refer to the API documentation in https://github.com/anselale/HiAGI-Dev/blob/main/About/APIDocumentation.md
 
-We have provided with a version of BabyAGI which has been modified to send its outputs to the heuristic agents for verification and correction. The Modified BabyAGI repo can be found: LINK HERE
+We have provided with a version of BabyAGI which has been modified to send its outputs to the heuristic agents for verification and correction. The Modified BabyAGI repo can be found: https://github.com/anselale/HiAGI-Dev/tree/main/Modified_BabyAGI
 
 # HiAGI
 HiAGI is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, HiAGI aims to deliver efficient and reliable task management solutions.
