@@ -23,8 +23,8 @@ def run_check():
     print(data)
     seta = data['seta']
     # do something with the new string
-    heuristic_check_agent.run_agent(seta, feedback=feedback)
-    return f"String updated: {data}"
+    results=heuristic_check_agent.run_agent(seta, feedback=feedback)
+    return f"String updated: {results}"
 
 @app.route('/reflect', methods=['PUT'])
 def run_reflect():
@@ -32,8 +32,8 @@ def run_reflect():
     print(f"\nReflect Data: {data}")
     seta = data['seta']
     # do something with the new string
-    heuristic_reflection_agent.run_agent(seta, feedback=feedback)
-    return f"String updated: {data}"
+    results=heuristic_reflection_agent.run_agent(seta, feedback=feedback)
+    return f"String updated: {results}"
 
 @app.route('/compare', methods=['PUT'])
 def run_compare():
@@ -42,8 +42,8 @@ def run_compare():
     seta = data['seta']
     setb = data['setb']
     # do something with the new string
-    heuristic_comparator_agent.run_agent(seta, setb, feedback=feedback)
-    return f"String updated: {data}"
+    results=heuristic_comparator_agent.run_agent(seta, setb, feedback=feedback)
+    return f"String updated: {results}"
 
 
 if __name__ == '__main__':
