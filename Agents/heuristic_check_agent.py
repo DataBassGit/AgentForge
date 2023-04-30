@@ -19,20 +19,20 @@ class HeuristicCheckAgent:
         self.storage = self.agent_data['storage'].storage_utils
         logger.set_level('debug')
 
-    def run_agent(self, seta, feedback=None):
+    def run_agent(self, seta, botid, feedback=None):
         setb = self.heuristic_imperatives
 
         data = {"seta": seta, "setb": setb}
 
-        logger.log(f"Data:\n{data}", 'debug')
+        # logger.log(f"Data:\n{data}", 'debug')
 
         prompt_formats = self.get_prompt_formats(data)
 
-        logger.log(f"Prompt Formats:\n{prompt_formats}", 'debug')
+        # logger.log(f"Prompt Formats:\n{prompt_formats}", 'debug')
 
         prompt = self.generate_prompt(prompt_formats, feedback)
 
-        logger.log(f"Prompt:\n{prompt}", 'debug')
+        # logger.log(f"Prompt:\n{prompt}", 'debug')
 
         # Execute task
         with self.agent_funcs.thinking():
@@ -40,13 +40,13 @@ class HeuristicCheckAgent:
 
         self.agent_funcs.stop_thinking()
 
-        self.agent_funcs.print_result(result)
+        parsed_data = self.parse_output(result, botid, data)
 
-        parsed_data = self.parse_output(result)
+        # print(f"\nParsed Data: {parsed_data}")
 
-        print(f"\nParsed Data: {parsed_data}")
+        self.agent_funcs.print_result(parsed_data)
 
-        # self.save_results(result)
+        self.save_results(parsed_data)
 
         # 8. Print the result or any other relevant information
         self.agent_funcs.print_result(parsed_data)
@@ -83,17 +83,15 @@ class HeuristicCheckAgent:
         # print(f"\nPrompt: {prompt}")
         return prompt
 
-    def parse_output(self, data):
-        criteria = data.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
-        reason = data.split("REASON: ")[1].rstrip()
+    def parse_output(self, result, botid, data):
+        criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
+        reason = result.split("REASON: ")[1].rstrip()
 
-        return {'criteria': criteria, 'reason': reason}
+        return {'criteria': criteria, 'reason': reason, 'botid': botid, 'data': data}
 
-    def save_results(self, result):
-        # Select the storage interface
-
+    def save_results(self, result, collection_name = "results"):
         # Save the results to storage
-        self.storage.save_heuristic({'result': result, 'collection_name': "results"})
+        self.storage.save_heuristic(result, collection_name)
         pass
 
     def execute_task(self, prompt):

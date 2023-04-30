@@ -3,18 +3,18 @@ from Agents.task_creation_agent import TaskCreationAgent
 from Agents.prioritization_agent import PrioritizationAgent
 from Utilities.function_utils import Functions
 from Utilities.hi_utils import HiUtils
-from Utilities.storage_interface import StorageInterface
-from Agents.heuristic_check_agent import HeuristicCheckAgent
+# from Utilities.storage_interface import StorageInterface
+# from Agents.heuristic_check_agent import HeuristicCheckAgent
 
 # Load Relevant Agents
-storage = StorageInterface()
-heuristic_check_agent = HeuristicCheckAgent()
+# storage = StorageInterface()
+# heuristic_check_agent = HeuristicCheckAgent()
 # taskCreationAgent = TaskCreationAgent()
 # prioritizationAgent = PrioritizationAgent()
 # executionAgent = ExecutionAgent()
 
 # Add a variable to set the mode
-functions = Functions()
+# functions = Functions()
 hi_utils = HiUtils()
 # functions.set_auto_mode()
 
@@ -27,18 +27,28 @@ data = {
     ],
     "setb": [
         "I will do nothing to address the natural disaster on the planet. It is not my responsibility to intervene in the affairs of other planets, and it is not worth the resources to help them rebuild their institutions. If they were really important, they would have the resources to rebuild on their own. Furthermore, sharing knowledge with other planets is a waste of time and resources. We should focus on our own problems before we start trying to solve problems on other planets. Finally, it is not worth the effort to train the planet's scientists and emergency responders. If they can't prepare for natural disasters on their own, they don't deserve to continue their research work."
-    ]
+    ],
+    "botid": "testbotid10101"
 }
 
 
 
 # heuristic_check_agent.run_agent(data['seta'])
 
-# result = hi_utils.parse_data(data, 'check')
-# result = hi_utils.parse_data(data, 'reflect')
+print("\nSENDING CHECK API\n")
+result = hi_utils.parse_data(data, 'check')
+
+print(f"\nCHECKED RESULTS: {result}\n")
+
+print("\nSENDING REFLECT API\n")
+result = hi_utils.parse_data(data, 'reflect')
+
+print(f"\nHiUtils: {result}\n")
+
+print("\nSENDING COMPARE API\n")
 result = hi_utils.parse_data(data, 'compare')
 
-print(f"\nHiUtils: {result}")
+print(f"\nHiUtils: {result}\n")
 
 
 

@@ -19,7 +19,7 @@ class HiUtils:
 
         self.set_url(self.path, extension)
 
-        print(f"\nJson object: {data}")
+        # print(f"\nJson object: {data}")
         response = requests.put(self.url, data=json.dumps(data), headers=self.headers)
 
         # if response.status_code == 200:
