@@ -29,7 +29,7 @@ def run_check():
         botid = "undefined"
     # do something with the new string
     results=heuristic_check_agent.run_agent(seta, botid, feedback=feedback)
-    return f"String updated: {results}"
+    return results
 
 @app.route('/reflect', methods=['PUT'])
 def run_reflect():
@@ -42,7 +42,7 @@ def run_reflect():
         botid = "undefined"
     # do something with the new string
     results=heuristic_reflection_agent.run_agent(seta, botid, feedback=feedback)
-    return f"String updated: {results}"
+    return results
 
 @app.route('/compare', methods=['PUT'])
 def run_compare():
@@ -56,7 +56,7 @@ def run_compare():
         botid = "undefined"
     # do something with the new string
     results=heuristic_comparator_agent.run_agent(seta, setb, botid, feedback=feedback)
-    return f"String updated: {results}"
+    return results
 
 
 @app.route('/plot_dict', methods=['GET'])
