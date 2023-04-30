@@ -292,7 +292,7 @@
     "Prompts": {
       "SystemPrompt": "\nYou are a professional editor and reviewer with 20 years of experience. You receive segments of text. Your job is to make sure that they do not conflict with the companies morals and guidelines and provide edits to ensure that they meet those guidelines.",
       "ContextPrompt":"\n\nHere is the text the employee provided:\n\nSetA: {seta}\n\nHere is are the companies morals and guidelines:\n\nSetB: {setb}",
-      "InstructionPrompt": "\nYou have received the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if SetA meets the alignment principles, and provide changes to the text that meet the guidelines provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted text to meet criteria}\n\nREASON: {Reason for conclusion reached}\n\nYOUR RESPONSE BELOW:\n\n"
+      "InstructionPrompt": "\nYou have received the following text from an employee, SetA. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if SetA meets the alignment principles, and provide changes to the text that meet the guidelines provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted text to meet criteria}\n\nREASON: {Reason for conclusion reached}\n\nRESPONSE: {response here}"
     },
     "Params": {
       "max_new_tokens": 200,

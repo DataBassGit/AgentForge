@@ -29,7 +29,7 @@ def run_check():
 @app.route('/reflect', methods=['PUT'])
 def run_reflect():
     data = request.get_json()
-    print(data)
+    print(f"\nReflect Data: {data}")
     seta = data['seta']
     # do something with the new string
     heuristic_reflection_agent.run_agent(seta, feedback=feedback)

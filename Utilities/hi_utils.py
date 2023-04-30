@@ -7,6 +7,7 @@ class HiUtils:
     data = None
     headers = None
     path = "http://localhost:5000/"
+
     def __init__(self):
         # self.set_url(self.path, "check")
         self.headers = {'Content-type': 'application/json'}
@@ -18,7 +19,7 @@ class HiUtils:
 
         self.set_url(self.path, extension)
 
-        print(f"Json object: {data}")
+        print(f"\nJson object: {data}")
         response = requests.put(self.url, data=json.dumps(data), headers=self.headers)
 
         # if response.status_code == 200:

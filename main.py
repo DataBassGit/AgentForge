@@ -34,9 +34,11 @@ data = {
 
 # heuristic_check_agent.run_agent(data['seta'])
 
-result = hi_utils.parse_data(data, 'check')
+# result = hi_utils.parse_data(data, 'check')
+# result = hi_utils.parse_data(data, 'reflect')
+result = hi_utils.parse_data(data, 'compare')
 
-print(f"HiUtils: {result}")
+print(f"\nHiUtils: {result}")
 
 
 

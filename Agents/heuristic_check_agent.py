@@ -18,40 +18,28 @@ class HeuristicCheckAgent:
         logger.set_level('debug')
 
     def run_agent(self, seta, feedback=None):
-        # This function will be the main entry point for your agent.
         setb = self.heuristic_imperatives
 
-        # 2. Load data from storage
         data = {"seta": seta, "setb": setb}
 
         logger.log(f"Data:\n{data}", 'debug')
-        # quit()
 
-        # 3. Get prompt formats
         prompt_formats = self.get_prompt_formats(data)
 
         logger.log(f"Prompt Formats:\n{prompt_formats}", 'debug')
-        # quit()
 
-        # 4. Generate prompt
         prompt = self.generate_prompt(prompt_formats, feedback)
 
         logger.log(f"Prompt:\n{prompt}", 'debug')
-        # quit()
 
-        # 1. Start Console Feedback
+        # Execute task
         with self.agent_funcs.thinking():
-            # 5. Execute the main task of the agent
             result = self.execute_task(prompt)
 
-        # 7. Stop Console Feedback
         self.agent_funcs.stop_thinking()
 
         self.agent_funcs.print_result(result)
 
-        # print(f"\nResults: {result}")
-
-        # 6. Save the results
         parsed_data = self.parse_output(result)
 
         print(f"\nParsed Data: {parsed_data}")
