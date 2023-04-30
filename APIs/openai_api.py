@@ -17,7 +17,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def generate_text(prompt, model, params):
     reply = None
-    num_retries = 2  # currently hardcoded but should be made configurable
+    num_retries = 5  # currently hardcoded but should be made configurable
 
     # will retry to get chat if a rate limit or bad gateway error is received from the chat, up to limit of num_retries
     for attempt in range(num_retries):
