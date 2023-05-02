@@ -35,6 +35,7 @@ def generate_text(prompt, model, params):
                 stop=params["stop"],
             )
             reply = response.choices[0].message.content
+            break
 
         except RateLimitError:
             print("\n\nError: Reached API rate limit, retrying in 20 seconds...")
