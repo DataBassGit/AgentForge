@@ -218,3 +218,78 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
+# THIS IS THE DB REFACTOR.
+
+    def save_memory(self, collection_name, params):
+        try:
+            result = params.pop('data', None)
+            meta = params
+
+            self.select_collection(collection_name)
+            self.collection.add(
+                documents=[str(result)],
+                # metadatas=[{"timestamp": timestamp}],
+                metadatas=[meta],
+                ids=[str(uuid.uuid4())],
+            )
+            # print(f"\n\nData Saved to Collection: {self.collection.get()}")
+        except Exception as e:
+            raise ValueError(f"\n\nError saving results. Error: {e}")
+
+    def query_memory(self, collection_name, params, num_results=1):
+        self.select_collection(collection_name)
+
+        max_result_count = self.collection.count()
+
+        num_results = min(num_results, max_result_count)
+
+        query = params.pop('query', None)
+        filter = params.pop('filter', None)
+        logger.log(
+            f"\nDB Query - Num Results: {num_results}"
+            f"\n\nDB Query - Text Query: {task_desc}",
+            'debug'
+        )
+
+        if num_results > 0:
+            result = self.collection.query(
+                query_texts=[query],
+                n_results=num_results,
+                where=filter
+            )
+        else:
+            result = {'documents': "No Results!"}
+
+        logger.log(f"DB Query - Results: {result}", 'debug')
+
+        return result
+
+    def load_memory(self, params):
+        try:
+            collection_name = params.get('collection_name', 'default_collection_name')
+            collection_property = params.get('collection_property', None)
+
+            self.select_collection(collection_name)
+
+            data = self.collection.get()[collection_property]
+            logger.log(
+                f"\nCollection: {collection_name}"
+                f"\nProperty: {collection_property}"
+                f"\nData: {data}",
+                'debug'
+            )
+        except Exception as e:
+            print(f"\n\nError loading data: {e}")
+            data = []
+
+        return data
+
+    def clear_memory(self, collection_name):
+        try:
+            self.select_collection(collection_name)
+            self.collection.delete()
+        except Exception as e:
+            print("\n\nError clearing table:", e)
+
+    def list_memory(self):
+        return self.client.list_collections()
