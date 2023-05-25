@@ -34,7 +34,7 @@ class StorageInterface:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
     def initialize_chroma(self):
-        from Utilities.chroma_utils import ChromaUtils
+        from .chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
         self.storage_utils.select_collection("results")
