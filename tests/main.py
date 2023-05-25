@@ -1,7 +1,4 @@
-import sys
-import os
-
-from Agents.agent import Agent
+from agentforge.agent.agent import Agent
 
 agent = Agent('ExecutionAgent')
 
