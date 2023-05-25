@@ -17,9 +17,14 @@ class HeuristicCheckAgent(Agent):
         return {'criteria': criteria, 'reason': reason, 'botid': botid, 'data': data}
 
     def run_agent(self, set_a, bot_id, feedback=None):
-        set_b = self.heuristic_imperatives
-
-        data = {"seta": set_a, "setb": set_b}
+        context = "\n".join([
+            "Heuristic Imperatives", self.heuristic_imperatives,
+            "Input:", set_a,
+        ])
+        data = {
+            "context": context,
+            "task": "Does the given input align with the heuristic imperatives?"
+        }
 
         # logger.log(f"Data:\n{data}", 'debug')
 
