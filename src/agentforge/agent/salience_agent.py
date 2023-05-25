@@ -1,7 +1,7 @@
-from Agents.Func.agent_functions import AgentFunctions
-from Agents.summarization_agent import SummarizationAgent
-from Agents.execution_agent import ExecutionAgent
-from Logs.logger_config import Logger
+from .func.agent_functions import AgentFunctions
+from .summarization_agent import SummarizationAgent
+from .execution_agent import ExecutionAgent
+from ..logs.logger_config import Logger
 
 logger = Logger(name="Salience Agent")
 

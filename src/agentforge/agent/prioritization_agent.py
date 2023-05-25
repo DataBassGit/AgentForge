@@ -1,5 +1,5 @@
-from Agents.Func.agent_functions import AgentFunctions
-from Logs.logger_config import Logger
+from .func.agent_functions import AgentFunctions
+from ..logs.logger_config import Logger
 
 logger = Logger(name="Prioritization Agent")
 
