@@ -1,11 +1,12 @@
 import sys
-import time
 import threading
+import time
 from contextlib import contextmanager
 from typing import Dict, Any
-from Utilities.function_utils import Functions
-from Utilities.storage_interface import StorageInterface
-from Personas.load_persona_data import load_persona_data
+
+from ...persona.load_persona_data import load_persona_data
+from ...utils.function_utils import Functions
+from ...utils.storage_interface import StorageInterface
 
 
 class AgentFunctions:
