@@ -1,7 +1,4 @@
 from .agent import Agent
-from ..logs.logger_config import Logger
-
-logger = Logger(name="Prioritization Agent")
 
 
 def calculate_next_task_order(this_task_order):
@@ -26,11 +23,11 @@ class PrioritizationAgent(Agent):
         super().__init__("PrioritizationAgent", log_level="info")
 
     def run_prioritization_agent(self):
-        logger.log(f"Running Agent...", 'info')
+        self.logger.log(f"Running Agent...", 'info')
 
         data = self.load_data_from_storage()
-        next_task_order = calculate_next_task_order(data['this_task_order'])
-        prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
+        data['next_task_order'] = calculate_next_task_order(data['this_task_order'])
+        prompt_formats = self.get_prompt_formats(data)
         prompt = self.generate_prompt(prompt_formats)
 
         with self.agent_funcs.thinking():
@@ -45,7 +42,7 @@ class PrioritizationAgent(Agent):
 
         self.agent_funcs.print_task_list(ordered_tasks)
 
-        logger.log(f"Agent Done!", 'info')
+        self.logger.log(f"Agent Done!", 'info')
         return ordered_tasks
 
     # Additional functions
