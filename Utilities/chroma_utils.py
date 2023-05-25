@@ -158,7 +158,6 @@ class ChromaUtils:
             'debug'
         )
 
-
         if num_results > 0:
             result = self.collection.query(
                 query_texts=[task_desc],
@@ -220,23 +219,30 @@ class ChromaUtils:
 
 # THIS IS THE DB REFACTOR.
 
-    def save_memory(self, collection_name, params):
+    def save_memory(self, params):
         try:
+            collection_name = params.pop('collection_name', None)
             result = params.pop('data', None)
+            ids = params.pop('ids', None)
+
+            if ids is None:
+                ids = [str(uuid.uuid4())]
+
             meta = params
+            meta['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             self.select_collection(collection_name)
             self.collection.add(
                 documents=[str(result)],
-                # metadatas=[{"timestamp": timestamp}],
                 metadatas=[meta],
-                ids=[str(uuid.uuid4())],
+                ids=ids
             )
-            # print(f"\n\nData Saved to Collection: {self.collection.get()}")
+
         except Exception as e:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
-    def query_memory(self, collection_name, params, num_results=1):
+    def query_memory(self, params, num_results=1):
+        collection_name = params.pop('collection_name', None)
         self.select_collection(collection_name)
 
         max_result_count = self.collection.count()
@@ -245,6 +251,8 @@ class ChromaUtils:
 
         query = params.pop('query', None)
         filter = params.pop('filter', None)
+        task_desc = params.pop('task_description', None)
+
         logger.log(
             f"\nDB Query - Num Results: {num_results}"
             f"\n\nDB Query - Text Query: {task_desc}",
@@ -267,14 +275,21 @@ class ChromaUtils:
     def load_memory(self, params):
         try:
             collection_name = params.get('collection_name', 'default_collection_name')
-            collection_property = params.get('collection_property', None)
-
             self.select_collection(collection_name)
 
-            data = self.collection.get()[collection_property]
+            ids = params.pop('ids', None)
+            if isinstance(ids, str):
+                ids = [ids]
+
+            where = params.pop('filter', {})
+
+            data = self.collection.get(
+                ids=ids,
+                where=where,
+            )
+
             logger.log(
                 f"\nCollection: {collection_name}"
-                f"\nProperty: {collection_property}"
                 f"\nData: {data}",
                 'debug'
             )

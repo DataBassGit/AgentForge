@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 class Logger:
     _logger = None
     name = None
