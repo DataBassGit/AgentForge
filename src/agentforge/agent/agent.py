@@ -126,7 +126,7 @@ class Agent:
         return self.agent_data['generate_text'](
             prompt,
             self.agent_data['model'],
-            self.agent_data['params']
+            self.agent_data['params'],
         ).strip()
 
     def save_results(self, result):
