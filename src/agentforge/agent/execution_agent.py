@@ -1,19 +1,14 @@
+from .agent import Agent
 from .func.agent_functions import AgentFunctions
 from ..logs.logger_config import Logger
 
 logger = Logger(name="Execution Agent")
 
 
-class ExecutionAgent:
-    agent_data = None
-    agent_funcs = None
-    storage = None
+class ExecutionAgent(Agent):
 
     def __init__(self):
-        self.agent_funcs = AgentFunctions('ExecutionAgent')
-        self.agent_data = self.agent_funcs.agent_data
-        self.storage = self.agent_data['storage'].storage_utils
-        logger.set_level('info')
+        super().__init__('ExecutionAgent', log_level='info')
 
     def run_execution_agent(self, context, feedback):
         logger.log(f"Running Agent...", 'info')

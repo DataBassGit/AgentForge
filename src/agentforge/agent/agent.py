@@ -8,12 +8,12 @@ class Agent:
     storage = None
     logger = None
 
-    def __init__(self, agent_name):
+    def __init__(self, agent_name, log_level="debug"):
         self.agent_funcs = AgentFunctions(agent_name)
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
         self.logger = Logger(name=agent_name)
-        self.logger.set_level('debug')
+        self.logger.set_level(log_level)
 
     def order_tasks(self, task_collection):
         # Pair up 'ids', 'documents' and 'metadatas' for sorting
