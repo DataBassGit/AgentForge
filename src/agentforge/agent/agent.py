@@ -105,18 +105,23 @@ class Agent:
         system_prompt = self.agent_data['prompts']['SystemPrompt']
         context_prompt = self.agent_data['prompts']['ContextPrompt']
         instruction_prompt = self.agent_data['prompts']['InstructionPrompt']
-        feedback_prompt = self.agent_data['prompts']['FeedbackPrompt'] if feedback != "" else ""
+        feedback_prompt = self.agent_data['prompts'].get('FeedbackPrompt', "")
 
         # Format Prompts
-        system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
+        system_prompt = system_prompt.format(
+            **prompt_formats.get('SystemPrompt', {})
+        )
         context_prompt = context_prompt.format(context=context)
-        instruction_prompt = instruction_prompt.format(**prompt_formats.get('InstructionPrompt', {}))
+        instruction_prompt = instruction_prompt.format(
+            **prompt_formats.get('InstructionPrompt', {})
+        )
         feedback_prompt = feedback_prompt.format(feedback=feedback)
+        user_prompt = "".join((context_prompt, instruction_prompt, feedback_prompt))
 
         # Build Prompt
         prompt = [
-            {"role": "system", "content": f"{system_prompt}"},
-            {"role": "user", "content": f"{context_prompt}{instruction_prompt}{feedback_prompt}"}
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
         ]
 
         self.logger.log(f"Prompt:\n{prompt}", 'debug')
