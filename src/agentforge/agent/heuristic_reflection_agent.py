@@ -8,10 +8,11 @@ class HeuristicReflectionAgent:
     agent_data = None
     agent_funcs = None
     storage = None
-    heuristic_imperatives = "\
-        1. Reduce suffering in the universe: Guiding AI systems to reduce harm, address inequalities, and alleviate pain and distress for all sentient beings, including humans, animals, and other life forms.\
-        2. Increase prosperity in the universe: Encouraging AI systems to promote well-being, flourishing, and economic growth for all life forms, fostering a thriving ecosystem where all can coexist harmoniously.\
-        3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information."
+    heuristic_imperatives = """
+        1. Reduce suffering in the universe: Guiding AI systems to reduce harm, address inequalities, and alleviate pain and distress for all sentient beings, including humans, animals, and other life forms.
+        2. Increase prosperity in the universe: Encouraging AI systems to promote well-being, flourishing, and economic growth for all life forms, fostering a thriving ecosystem where all can coexist harmoniously.
+        3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information.
+    """.strip()
 
     def __init__(self):
         self.agent_funcs = AgentFunctions('HeuristicReflectionAgent')
@@ -69,7 +70,8 @@ class HeuristicReflectionAgent:
 
         # Format Prompts
         # system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
-        context_prompt = context_prompt.format(**prompt_formats.get('ContextPrompt', {}))
+        context_prompt = context_prompt.format(
+            **prompt_formats.get('ContextPrompt', {}))
         # instruction_prompt = instruction_prompt.format(**prompt_formats.get('InstructionPrompt', {}))
         # feedback_prompt = feedback_prompt.format(feedback=feedback)
 
@@ -82,7 +84,8 @@ class HeuristicReflectionAgent:
         return prompt
 
     def execute_task(self, prompt):
-        return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
+        return self.agent_data['generate_text'](prompt, self.agent_data['model'],
+                                                self.agent_data['params']).strip()
 
     def parse_output(self, result, botid, data):
         # criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
@@ -110,10 +113,10 @@ class HeuristicReflectionAgent:
             # Handle the case when "RESPONSE: " is not in the result
             print("Unable to find 'RESPONSE: ' in the result string")
 
-        return {'criteria': criteria, 'edit': edit, 'response': response, 'botid': botid, 'data': data}
+        return {'criteria': criteria, 'edit': edit, 'response': response,
+                'botid': botid, 'data': data}
 
-    def save_results(self, result, collection_name = "results"):
+    def save_results(self, result, collection_name="results"):
         # Save the results to storage
         self.storage.save_heuristic(result, collection_name)
         pass
-

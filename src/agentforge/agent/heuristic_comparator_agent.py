@@ -65,7 +65,6 @@ class HeuristicComparatorAgent:
             'ContextPrompt': {'seta': data['seta'], 'setb': data['setb'], 'setc': data['setc']}
         }
         return prompt_formats
-    pass
 
     def generate_prompt(self, prompt_formats, feedback=None):
         # Generate the prompt using prompt_formats and return it.

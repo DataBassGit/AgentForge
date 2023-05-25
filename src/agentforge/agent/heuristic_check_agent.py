@@ -60,7 +60,6 @@ class HeuristicCheckAgent:
             'ContextPrompt': {'seta': data['seta'], 'setb': data['setb']}
         }
         return prompt_formats
-    pass
 
     def generate_prompt(self, prompt_formats, feedback=None):
         # Generate the prompt using prompt_formats and return it.

@@ -3,6 +3,7 @@ from ..logs.logger_config import Logger
 
 logger = Logger(name="Status Agent")
 
+
 class StatusAgent:
     agent_data = None
     agent_funcs = None
@@ -45,7 +46,8 @@ class StatusAgent:
             'info'
         )
 
-        # For now, we always save the status | We need to add a Try -Exception in Chroma Utils
+        # For now, we always save the status
+        # | We need to add a Try -Exception in Chroma Utils
         self.save_status(status, task_id, task_desc, task_order)
 
         logger.log(f"Agent Done!", 'info')
@@ -80,7 +82,6 @@ class StatusAgent:
             }
         }
         return prompt_formats
-    pass
 
     def generate_prompt(self, prompt_formats):
         # Generate the prompt using prompt_formats and return it.
@@ -92,7 +93,8 @@ class StatusAgent:
 
         # Format Prompts
         system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
-        context_prompt = context_prompt.format(**prompt_formats.get('ContextPrompt', {}))
+        context_prompt = context_prompt.format(
+            **prompt_formats.get('ContextPrompt', {}))
         # feedback_prompt = feedback_prompt.format(feedback=feedback)
 
         prompt = [
@@ -105,7 +107,8 @@ class StatusAgent:
         pass
 
     def execute_task(self, prompt):
-        return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
+        return self.agent_data['generate_text'](prompt, self.agent_data['model'],
+                                                self.agent_data['params']).strip()
 
     def save_status(self, status, task_id, text, task_order):
         logger.log(

@@ -85,4 +85,3 @@ class ExecutionAgent:
 
     def save_results(self, result):
         self.storage.save_results({'result': result, 'collection_name': "results"})
-

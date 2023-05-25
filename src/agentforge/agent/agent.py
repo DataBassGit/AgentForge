@@ -38,46 +38,45 @@ class Agent:
         return ordered_list, sorted_ids, sorted_documents, sorted_metadatas
 
     # def load_task_data(self):
-    #     # task_collection = self.storage.load_salient({
-    #     #     'collection_name': "tasks",
-    #     #     'collection_property': ["documents", "metadatas"],
-    #     #     'ids': "ids"
-    #     # })
-    #     #
-    #     # ordered_list, sorted_ids, sorted_documents, sorted_metadatas = self.order_tasks(task_collection)
-    #     #
-    #     # current_task = None
-    #     # # iterate over sorted_metadatas
-    #     # for i, metadata in enumerate(sorted_metadatas):
-    #     #     # check if the task_status is not completed
-    #     #     self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
-    #     #     if metadata['task_status'] == 'not completed':
-    #     #         current_task = {
-    #     #             'id': sorted_ids[i],
-    #     #             'document': sorted_documents[i],
-    #     #             'metadata': metadata
-    #     #         }
-    #     #         break  # break the loop as soon as we find the first not_completed task
-    #     #
-    #     # if current_task is None:
-    #     #     self.logger.log("Task list has been completed!!!", 'info')
-    #     #     quit()
-    #     #
-    #     # self.logger.log(f"Current Task:{current_task['document']}", 'info')
-    #     # self.logger.log(f"Current Task:\n{current_task}", 'debug')
-    #     #
-    #     # ordered_results = {
-    #     #     'result': result,
-    #     #     'current_task': current_task,
-    #     #     'task_list': ordered_list,
-    #     #     'task_ids': sorted_ids,
-    #     #     'task_order': current_task["metadata"]["task_order"]
-    #     # }
-    #     #
-    #     # return ordered_results
-    # pass
-
-
+    #     task_collection = self.storage.load_salient({
+    #         'collection_name': "tasks",
+    #         'collection_property': ["documents", "metadatas"],
+    #         'ids': "ids"
+    #     })
+    #
+    #     ordered_list, sorted_ids, sorted_documents, sorted_metadatas = self.order_tasks(task_collection)
+    #
+    #     current_task = None
+    #     # iterate over sorted_metadatas
+    #     for i, metadata in enumerate(sorted_metadatas):
+    #         # check if the task_status is not completed
+    #         self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
+    #         if metadata['task_status'] == 'not completed':
+    #             current_task = {
+    #                 'id': sorted_ids[i],
+    #                 'document': sorted_documents[i],
+    #                 'metadata': metadata
+    #             }
+    #             break  # break the loop as soon as we find the first not_completed task
+    #
+    #     if current_task is None:
+    #         self.logger.log("Task list has been completed!!!", 'info')
+    #         quit()
+    #
+    #     self.logger.log(f"Current Task:{current_task['document']}", 'info')
+    #     self.logger.log(f"Current Task:\n{current_task}", 'debug')
+    #
+    #     result = None
+    #
+    #     ordered_results = {
+    #         'result': result,
+    #         'current_task': current_task,
+    #         'task_list': ordered_list,
+    #         'task_ids': sorted_ids,
+    #         'task_order': current_task["metadata"]["task_order"]
+    #     }
+    #
+    #     return ordered_results
 
     def load_result_data(self):
         result_collection = self.storage.load_collection({
@@ -124,7 +123,11 @@ class Agent:
         return prompt
 
     def execute_task(self, prompt):
-        return self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
+        return self.agent_data['generate_text'](
+            prompt,
+            self.agent_data['model'],
+            self.agent_data['params']
+        ).strip()
 
     def save_results(self, result):
         self.storage.save_results({'result': result, 'collection_name': "results"})
