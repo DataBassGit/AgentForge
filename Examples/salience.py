@@ -1,3 +1,8 @@
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from Agents.execution_agent import ExecutionAgent
 from Agents.task_creation_agent import TaskCreationAgent
 from Agents.prioritization_agent import PrioritizationAgent

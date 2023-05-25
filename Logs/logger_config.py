@@ -1,11 +1,12 @@
 import logging
 import os
 
+
 class Logger:
     _logger = None
     name = None
 
-    def __init__(self, name='hiAGI-Dev', log_file='hiAGI-Dev.log'):
+    def __init__(self, name='AgentForge', log_file='./Logs/AgentForge.log'):
         self._logger = logging.getLogger(name)
 
         if not self._logger.handlers:
@@ -70,7 +71,7 @@ class Logger:
         return level
 
 # EXAMPLES:
-# logger = Logger(name="main.py")
+# logger = Logger(name="ethos_tester.py")
 # logger.set_level('debug')
 
 # current_level = logger.get_current_level()

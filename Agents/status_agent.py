@@ -68,7 +68,6 @@ class StatusAgent:
         task = task_list[0] if task_collection else None
 
         return {'result': result, 'task': task, 'task_list': task_list}
-        pass
 
     def get_prompt_formats(self, data):
         # Create a dictionary of prompt formats based on the loaded data

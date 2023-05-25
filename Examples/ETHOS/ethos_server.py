@@ -1,4 +1,3 @@
-from Utilities.function_utils import Functions
 from Utilities.storage_interface import StorageInterface
 from Agents.heuristic_comparator_agent import HeuristicComparatorAgent
 from Agents.heuristic_check_agent import HeuristicCheckAgent
@@ -14,7 +13,6 @@ heuristic_check_agent = HeuristicCheckAgent()
 heuristic_reflection_agent = HeuristicReflectionAgent()
 
 # Add a variable to set the mode
-# functions = Functions()
 feedback = None
 
 
