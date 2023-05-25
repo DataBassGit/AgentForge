@@ -8,7 +8,7 @@ class HeuristicCheckAgent(Agent):
         3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information."
 
     def __init__(self):
-        super().__init__("HeuristicCheckAgent", "info")
+        super().__init__("HeuristicCheckAgent", log_level="info")
 
     def parse_output(self, result, botid, data):
         criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()

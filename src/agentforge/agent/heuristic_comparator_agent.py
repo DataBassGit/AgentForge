@@ -11,7 +11,7 @@ class HeuristicComparatorAgent(Agent):
         3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information."
 
     def __init__(self):
-        super().__init__("HeuristicComparatorAgent", "info")
+        super().__init__("HeuristicComparatorAgent", log_level="info")
 
     def parse_output(self, result, botid, data):
         choice = result.split("CHOICE: ")[1].split("\n")[0].lower()
