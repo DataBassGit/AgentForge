@@ -1,10 +1,13 @@
-import os
 import json
+import os
+
+import matplotlib.pyplot as plt
 import numpy as np
 import umap
-from sentence_transformers import SentenceTransformer
-import matplotlib.pyplot as plt
 import yaml
+from sentence_transformers import SentenceTransformer
+
+
 # import random
 
 

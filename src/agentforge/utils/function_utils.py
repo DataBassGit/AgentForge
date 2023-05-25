@@ -2,26 +2,28 @@ import os
 import keyboard
 import threading
 from datetime import datetime
-from Utilities.storage_interface import StorageInterface
 from termcolor import colored
 
-from Logs.logger_config import Logger
+from .storage_interface import StorageInterface
+from ..logs.logger_config import Logger
 
 logger = Logger(name="Function Utils")
+
 
 class Functions:
     mode = None
     storage = None
 
     # def __new__(cls):
-        # cls.storage = StorageInterface()
+    # cls.storage = StorageInterface()
 
     def __init__(self):
         self.mode = None
         self.storage = StorageInterface()
         # Start a separate thread to listen for 'Esc' key press
         self.listen_for_esc_lock = threading.Lock()
-        self.listen_for_esc_thread = threading.Thread(target=self.listen_for_esc, daemon=True)
+        self.listen_for_esc_thread = threading.Thread(target=self.listen_for_esc,
+                                                      daemon=True)
         self.listen_for_esc_thread.start()
 
     def listen_for_esc(self):
@@ -56,7 +58,8 @@ class Functions:
         with self.listen_for_esc_lock:
             # Check if the mode is manual
             if self.mode == 'manual':
-                user_input = input("\nAllow AI to continue? (y/n/auto) or provide feedback: ")
+                user_input = input(
+                    "\nAllow AI to continue? (y/n/auto) or provide feedback: ")
                 if user_input.lower() == 'y':
                     context = feedback_from_status
                     pass
@@ -71,18 +74,20 @@ class Functions:
 
         return context
 
-    def check_status(self,status):
+    def check_status(self, status):
         if status is not None:
-            user_input = input(f"\nSend this feedback to the execution agent? (y/n): {status}\n")
+            user_input = input(
+                f"\nSend this feedback to the execution agent? (y/n): {status}\n")
             if user_input.lower() == 'y':
                 result = status
             else:
                 result = None
             return result
+
     def get_auto_mode(self):
         return self.mode
 
-    #Replace with show_tasks after hackathon
+    # Replace with show_tasks after hackathon
     def print_task_list(self, task_list):
         # Print the task list
         print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
@@ -120,7 +125,8 @@ class Functions:
         # Sort the task list by task order
         task_list.sort(key=lambda x: x["task_order"])
 
-        print(colored(f"\n\n***** {desc} - TASK LIST *****\n", 'magenta', attrs=['bold']))
+        print(
+            colored(f"\n\n***** {desc} - TASK LIST *****\n", 'magenta', attrs=['bold']))
 
         for task in task_list:
             task_order = task["task_order"]
@@ -136,12 +142,11 @@ class Functions:
 
         print(colored(f"\n*****\n", 'magenta', attrs=['bold']))
 
-
     def write_file(self, folder, file, result):
         with open(os.path.join(folder, file), "a") as f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
-            
+
     def read_file(file_path):
         with open(file_path, 'r') as file:
             text = file.read()

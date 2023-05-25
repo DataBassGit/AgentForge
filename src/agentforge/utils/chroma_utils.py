@@ -1,12 +1,14 @@
-import os
 import configparser
+import os
 import uuid
 from datetime import datetime
+
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
-from Logs.logger_config import Logger
+
+from ..logs.logger_config import Logger
 
 logger = Logger(name="Chroma Utils")
 logger.set_level('info')

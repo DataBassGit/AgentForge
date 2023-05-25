@@ -18,9 +18,12 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "requests~=2.28.2",
+        "keyboard~=0.13.5",
         "python-dotenv~=1.0.0",
-        # "PyYAML~=6.0",
+        "PyYAML~=6.0",
+        "requests~=2.28.2",
+        "spacy~=3.5.2",
+        "termcolor~=2.3.0",
     ],
     extras_require={
         "pinecone": [
@@ -30,23 +33,21 @@ setup(
             "chromadb~=0.3.21",
         ],
         "search": [
+            "google-api-python-client",
             "browse~=1.0.1",
             "beautifulsoup4~=4.12.2",
         ],
         "openai": [
             "openai~=0.27.4",
         ],
-        "googele": [
-            "google-api-python-client",
-        ],
         "other": [
+            "Flask~=2.3.1",
+            "matplotlib~=3.7.1",
+            "numpy~=1.24.3",
             "sentence_transformers==2.2.2",
             "torch==2.0.0",
             "termcolor~=2.3.0",
-            "spacy~=3.5.2",
-            "Flask~=2.3.1",
-            "numpy~=1.24.3",
-            "matplotlib~=3.7.1",
+            "umap~=0.1.1",
         ],
     },
     license=LICENSE,
