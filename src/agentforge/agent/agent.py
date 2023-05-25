@@ -106,11 +106,15 @@ class Agent:
         system_prompt = system_prompt.format(
             **prompt_formats.get('SystemPrompt', {})
         )
-        context_prompt = context_prompt.format(context=context)
+        context_prompt = context_prompt.format(
+            **prompt_formats.get('ContextPrompt', {"context": context})
+        )
         instruction_prompt = instruction_prompt.format(
             **prompt_formats.get('InstructionPrompt', {})
         )
-        feedback_prompt = feedback_prompt.format(feedback=feedback)
+        feedback_prompt = feedback_prompt.format(
+            **prompt_formats.get('FeedbackPrompt', {"feedback": feedback})
+        )
         user_prompt = "".join((context_prompt, instruction_prompt, feedback_prompt))
 
         # Build Prompt

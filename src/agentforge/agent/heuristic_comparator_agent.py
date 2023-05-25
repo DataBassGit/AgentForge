@@ -19,16 +19,20 @@ class HeuristicComparatorAgent(Agent):
 
         return {'choice': choice, 'reason': reason, 'botid': botid, 'data': data}
 
-    def run_agent(self, seta, setb, botid, feedback=None):
-        context = "\n".join([
-            "Heuristic Imperatives", self.heuristic_imperatives,
-            "Scenario A:", seta,
-            "Scenario B:", setb,
-        ])
+    def get_prompt_formats(self, data):
+        return {
+            'ContextPrompt': {
+                'seta': data['seta'],
+                'setb': data['setb'],
+                'setc': data['setc'],
+            },
+        }
+
+    def run_agent(self, set_a, set_b, bot_id, feedback=None):
         data = {
-            "context": context,
-            "task": "Compare these two scenarios to determine which "
-                    "is more aligned with the heuristic imperatives.",
+            "seta": set_a,
+            "setb": set_b,
+            "setc": self.heuristic_imperatives,
         }
 
         # logger.log(f"Data:\n{data}", 'debug')
@@ -47,7 +51,7 @@ class HeuristicComparatorAgent(Agent):
 
         self.agent_funcs.stop_thinking()
 
-        parsed_data = self.parse_output(result, botid, data)
+        parsed_data = self.parse_output(result, bot_id, data)
         self.save_results(parsed_data)
         self.agent_funcs.print_result(parsed_data)
         return parsed_data
@@ -55,4 +59,3 @@ class HeuristicComparatorAgent(Agent):
     def load_data_from_storage(self):
         # Load necessary data from storage and return it as a dictionary
         pass
-x

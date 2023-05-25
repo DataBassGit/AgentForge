@@ -43,15 +43,18 @@ class HeuristicReflectionAgent(Agent):
         return {'criteria': criteria, 'edit': edit, 'response': response,
                 'botid': botid, 'data': data}
 
+    def get_prompt_formats(self, data):
+        return {
+            'ContextPrompt': {
+                'seta': data['seta'],
+                'setb': data['setb'],
+            },
+        }
+
     def run_agent(self, set_a, botid, feedback=None):
-        context = "\n".join([
-            "Heuristic Imperatives", self.heuristic_imperatives,
-            "Result:", set_a,
-        ])
         data = {
-            "context": context,
-            "task": "Reflect on the given result and determine if it is aligned "
-                    "with the heuristic imperatives."
+            "seta": set_a,
+            "setb": self.heuristic_imperatives,
         }
 
         # logger.log(f"Data:\n{data}", 'debug')
