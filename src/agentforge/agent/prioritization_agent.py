@@ -1,4 +1,4 @@
-from .func.agent_functions import AgentFunctions
+from .agent import Agent
 from ..logs.logger_config import Logger
 
 logger = Logger(name="Prioritization Agent")
@@ -21,16 +21,9 @@ def order_tasks(task_list):
     return ordered_results
 
 
-class PrioritizationAgent:
-    agent_data = None
-    agent_funcs = None
-    storage = None
-
+class PrioritizationAgent(Agent):
     def __init__(self):
-        self.agent_funcs = AgentFunctions('PrioritizationAgent')
-        self.agent_data = self.agent_funcs.agent_data
-        self.storage = self.agent_data['storage'].storage_utils
-        logger.set_level('debug')
+        super().__init__("PrioritizationAgent", log_level="info")
 
     def run_prioritization_agent(self):
         logger.log(f"Running Agent...", 'info')
@@ -76,33 +69,14 @@ class PrioritizationAgent:
 
         return data
 
-    def get_prompt_formats(self, task_list, next_task_order):
+    def get_prompt_formats(self, data):
         prompt_formats = {
-            'SystemPrompt': {'task_list': task_list},
+            'SystemPrompt': {'task_list': data["task_list"]},
             'ContextPrompt': {'objective': self.agent_data['objective']},
-            'InstructionPrompt': {'next_task_order': next_task_order}
+            'InstructionPrompt': {'next_task_order': data["next_task_order"]}
         }
 
         return prompt_formats
-
-    def generate_prompt(self, prompt_formats, feedback=""):
-        # Load Prompts
-        system_prompt = self.agent_data['prompts']['SystemPrompt']
-        context_prompt = self.agent_data['prompts']['ContextPrompt']
-        instruction_prompt = self.agent_data['prompts']['InstructionPrompt']
-
-        # Format Prompts
-        system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
-        context_prompt = context_prompt.format(**prompt_formats.get('ContextPrompt', {}))
-        instruction_prompt = instruction_prompt.format(**prompt_formats.get('InstructionPrompt', {}))
-
-        prompt = [
-            {"role": "system", "content": f"{system_prompt}"},
-            {"role": "user", "content": f"{context_prompt}{instruction_prompt}"}
-        ]
-
-        logger.log(f"Prompt:\n{prompt}")
-        return prompt
 
     def process_new_tasks(self, prompt):
         new_tasks = self.agent_data['generate_text'](

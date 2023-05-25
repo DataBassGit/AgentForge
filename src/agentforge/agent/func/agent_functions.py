@@ -68,12 +68,17 @@ class AgentFunctions:
         elif language_model_api == 'openai_api':
             from ...llm.openai_api import generate_text
         else:
-            raise ValueError(f"Unsupported Language Model API library: {language_model_api}")
+            raise ValueError(
+                f"Unsupported Language Model API library: {language_model_api}")
 
         self.agent_data['generate_text'] = generate_text
 
     def run_llm(self, prompt):
-        result = self.agent_data['generate_text'](prompt, self.agent_data['model'], self.agent_data['params']).strip()
+        result = self.agent_data['generate_text'](
+            prompt,
+            self.agent_data['model'],
+            self.agent_data['params'],
+        ).strip()
         return result
 
     def print_task_list(self, ordered_results):
@@ -111,7 +116,6 @@ class AgentFunctions:
         # sys.stdout.write("\n" + msg + "- Done.\n")
         sys.stdout.write("\n")
         sys.stdout.flush()
-
 
     @contextmanager
     def thinking(self):
