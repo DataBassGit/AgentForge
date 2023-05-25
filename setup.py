@@ -20,7 +20,7 @@ setup(
     install_requires=[
         "requests~=2.28.2",
         "python-dotenv~=1.0.0",
-        "PyYAML~=6.0",
+        # "PyYAML~=6.0",
     ],
     extras_require={
         "pinecone": [

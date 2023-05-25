@@ -6,12 +6,12 @@ server = "127.0.0.1:5000"
 # HOST = 'localhost:5000'
 URI = f'http://{server}/api/v1/generate'
 
-def generate_text(prompt, params):
 
+def generate_text(prompt, params):
     reply = None
 
     print("prompt:" + prompt)
-    #print("\nparams:" + str(params + "\n"))
+    # print("\nparams:" + str(params + "\n"))
 
     request = {
         'prompt': prompt,
@@ -63,13 +63,13 @@ def generate_text(prompt, params):
     #             params['seed']
     #         ]
     #     }).json()
-        
+
     #     #debug
     #     print(response)
 
     #     reply = response["data"][0]
-    
+
     # Close the session
-    #session.close()
-    
+    # session.close()
+
     return reply

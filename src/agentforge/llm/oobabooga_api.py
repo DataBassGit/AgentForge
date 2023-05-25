@@ -3,10 +3,10 @@ import requests
 # Server address
 server = "127.0.0.1"
 
-def generate_text(prompt, params):
 
+def generate_text(prompt, params):
     print("prompt:" + prompt)
-    #print("\nparams:" + str(params + "\n"))
+    # print("\nparams:" + str(params + "\n"))
 
     with requests.Session() as session:
         response = session.post(f"http://{server}:7860/run/textgen", json={
@@ -29,13 +29,13 @@ def generate_text(prompt, params):
                 params['seed']
             ]
         }).json()
-        
-        #debug
+
+        # debug
         print(response)
 
         reply = response["data"][0]
-    
+
     # Close the session
-    #session.close()
-    
+    # session.close()
+
     return reply
