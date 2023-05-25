@@ -1,8 +1,9 @@
-from Utilities.storage_interface import StorageInterface
-from Agents.heuristic_comparator_agent import HeuristicComparatorAgent
-from Agents.heuristic_check_agent import HeuristicCheckAgent
-from Agents.heuristic_reflection_agent import HeuristicReflectionAgent
 from flask import Flask, request
+
+from agentforge.agent.heuristic_check_agent import HeuristicCheckAgent
+from agentforge.agent.heuristic_comparator_agent import HeuristicComparatorAgent
+from agentforge.agent.heuristic_reflection_agent import HeuristicReflectionAgent
+from agentforge.utils.storage_interface import StorageInterface
 
 app = Flask(__name__)
 

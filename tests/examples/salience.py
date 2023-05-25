@@ -1,16 +1,11 @@
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from Agents.execution_agent import ExecutionAgent
-from Agents.task_creation_agent import TaskCreationAgent
-from Agents.prioritization_agent import PrioritizationAgent
-from Agents.salience_agent import SalienceAgent
-from Agents.status_agent import StatusAgent
-from Utilities.function_utils import Functions
-from Utilities.storage_interface import StorageInterface
-from Logs.logger_config import Logger
+from agentforge.agent.execution_agent import ExecutionAgent
+from agentforge.agent.prioritization_agent import PrioritizationAgent
+from agentforge.agent.salience_agent import SalienceAgent
+from agentforge.agent.status_agent import StatusAgent
+from agentforge.agent.task_creation_agent import TaskCreationAgent
+from agentforge.logs.logger_config import Logger
+from agentforge.utils.function_utils import Functions
+from agentforge.utils.storage_interface import StorageInterface
 
 logger = Logger(name="Salience")
 logger.set_level('info')

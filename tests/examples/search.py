@@ -1,7 +1,6 @@
-import Tools.google_search as google
-from Tools.webscrape import WebScraper
-import Tools.intelligent_chunk as smart_chunk
-from bs4 import BeautifulSoup
+import agentforge.tools.google_search as google
+import agentforge.tools.intelligent_chunk as smart_chunk
+from agentforge.tools.webscrape import WebScraper
 
 web_scrape = WebScraper()
 
