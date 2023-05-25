@@ -1,7 +1,4 @@
 from .agent import Agent
-from ..logs.logger_config import Logger
-
-logger = Logger(name="Heuristic Reflection Agent")
 
 
 class HeuristicReflectionAgent(Agent):
@@ -57,15 +54,15 @@ class HeuristicReflectionAgent(Agent):
             "setb": self.heuristic_imperatives,
         }
 
-        # logger.log(f"Data:\n{data}", 'debug')
+        # self.logger.log(f"Data:\n{data}", 'debug')
 
         prompt_formats = self.get_prompt_formats(data)
 
-        # logger.log(f"Prompt Formats:\n{prompt_formats}", 'debug')
+        # self.logger.log(f"Prompt Formats:\n{prompt_formats}", 'debug')
 
         prompt = self.generate_prompt(prompt_formats, feedback)
 
-        # logger.log(f"Prompt:\n{prompt}", 'debug')
+        # self.logger.log(f"Prompt:\n{prompt}", 'debug')
 
         # Execute task
         with self.agent_funcs.thinking():
