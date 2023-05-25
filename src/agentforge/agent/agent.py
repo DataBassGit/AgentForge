@@ -3,11 +3,6 @@ from ..logs.logger_config import Logger
 
 
 class Agent:
-    agent_data = None
-    agent_funcs = None
-    storage = None
-    logger = None
-
     def __init__(self, agent_name, log_level="debug"):
         self.agent_funcs = AgentFunctions(agent_name)
         self.agent_data = self.agent_funcs.agent_data
