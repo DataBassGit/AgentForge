@@ -16,7 +16,7 @@ class ExecutionAgent(Agent):
 
         prompt_formats = self.get_prompt_formats(data)
         self.logger.log(f"Execution Agent Prompt: {prompt_formats}\n"
-                   f"Feedback: {feedback}", "debug")
+                        f"Feedback: {feedback}", "debug")
         prompt = self.generate_prompt(prompt_formats, feedback, context)
         with self.agent_funcs.thinking():
             result = self.execute_task(prompt)
