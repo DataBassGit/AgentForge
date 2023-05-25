@@ -134,5 +134,8 @@ class Agent:
             self.agent_data['params'],
         ).strip()
 
-    def save_results(self, result):
-        self.storage.save_results({'result': result, 'collection_name': "results"})
+    def save_results(self, result, collection_name="results"):
+        self.storage.save_results({
+            'result': result,
+            'collection_name': collection_name,
+        })
