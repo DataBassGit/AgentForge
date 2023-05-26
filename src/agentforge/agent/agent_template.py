@@ -55,7 +55,6 @@ class AgentTemplate:
             'InstructionPrompt': {'task': data['task']}
         }
         return prompt_formats
-    pass
 
     def generate_prompt(self, prompt_formats, feedback=None):
         # Generate the prompt using prompt_formats and return it.

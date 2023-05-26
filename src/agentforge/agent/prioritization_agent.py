@@ -1,7 +1,4 @@
-from .func.agent_functions import AgentFunctions
-from ..logs.logger_config import Logger
-
-logger = Logger(name="Prioritization Agent")
+from .agent import Agent
 
 
 def calculate_next_task_order(this_task_order):
@@ -21,23 +18,16 @@ def order_tasks(task_list):
     return ordered_results
 
 
-class PrioritizationAgent:
-    agent_data = None
-    agent_funcs = None
-    storage = None
-
+class PrioritizationAgent(Agent):
     def __init__(self):
-        self.agent_funcs = AgentFunctions('PrioritizationAgent')
-        self.agent_data = self.agent_funcs.agent_data
-        self.storage = self.agent_data['storage'].storage_utils
-        logger.set_level('debug')
+        super().__init__("PrioritizationAgent", log_level="info")
 
     def run_prioritization_agent(self):
-        logger.log(f"Running Agent...", 'info')
+        self.logger.log(f"Running Agent...", 'info')
 
         data = self.load_data_from_storage()
-        next_task_order = calculate_next_task_order(data['this_task_order'])
-        prompt_formats = self.get_prompt_formats(data['task_list'], next_task_order)
+        data['next_task_order'] = calculate_next_task_order(data['this_task_order'])
+        prompt_formats = self.get_prompt_formats(data)
         prompt = self.generate_prompt(prompt_formats)
 
         with self.agent_funcs.thinking():
@@ -52,7 +42,7 @@ class PrioritizationAgent:
 
         self.agent_funcs.print_task_list(ordered_tasks)
 
-        logger.log(f"Agent Done!", 'info')
+        self.logger.log(f"Agent Done!", 'info')
         return ordered_tasks
 
     # Additional functions
@@ -76,33 +66,14 @@ class PrioritizationAgent:
 
         return data
 
-    def get_prompt_formats(self, task_list, next_task_order):
+    def get_prompt_formats(self, data):
         prompt_formats = {
-            'SystemPrompt': {'task_list': task_list},
+            'SystemPrompt': {'task_list': data["task_list"]},
             'ContextPrompt': {'objective': self.agent_data['objective']},
-            'InstructionPrompt': {'next_task_order': next_task_order}
+            'InstructionPrompt': {'next_task_order': data["next_task_order"]}
         }
 
         return prompt_formats
-
-    def generate_prompt(self, prompt_formats, feedback=""):
-        # Load Prompts
-        system_prompt = self.agent_data['prompts']['SystemPrompt']
-        context_prompt = self.agent_data['prompts']['ContextPrompt']
-        instruction_prompt = self.agent_data['prompts']['InstructionPrompt']
-
-        # Format Prompts
-        system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
-        context_prompt = context_prompt.format(**prompt_formats.get('ContextPrompt', {}))
-        instruction_prompt = instruction_prompt.format(**prompt_formats.get('InstructionPrompt', {}))
-
-        prompt = [
-            {"role": "system", "content": f"{system_prompt}"},
-            {"role": "user", "content": f"{context_prompt}{instruction_prompt}"}
-        ]
-
-        logger.log(f"Prompt:\n{prompt}")
-        return prompt
 
     def process_new_tasks(self, prompt):
         new_tasks = self.agent_data['generate_text'](

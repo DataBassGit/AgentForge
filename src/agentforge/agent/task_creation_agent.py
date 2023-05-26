@@ -1,23 +1,12 @@
-from .func.agent_functions import AgentFunctions
-from ..logs.logger_config import Logger
-
-logger = Logger(name="Task Creation Agent")
+from .agent import Agent
 
 
-class TaskCreationAgent:
-    agent_data = None
-    agent_funcs = None
-    storage = None
-    spinner_thread = None
-
-    def __init__(self):
-        self.agent_funcs = AgentFunctions('TaskCreationAgent')
-        self.agent_data = self.agent_funcs.agent_data
-        self.storage = self.agent_data['storage'].storage_utils
-        logger.set_level('info')
+class TaskCreationAgent(Agent):
+    def __init__(self, agent_name):
+        super().__init__('TaskCreationAgent', log_level="info")
 
     def run_task_creation_agent(self):
-        logger.log(f"Running Agent...", 'info')
+        self.logger.log(f"Running Agent...", 'info')
 
         data = self.load_data_from_storage()
         prompt_formats = self.get_prompt_formats(data)
@@ -34,7 +23,7 @@ class TaskCreationAgent:
 
         self.agent_funcs.print_task_list(ordered_tasks)
 
-        logger.log(f"Agent Done!", 'info')
+        self.logger.log(f"Agent Done!", 'info')
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
@@ -56,28 +45,13 @@ class TaskCreationAgent:
     def get_prompt_formats(self, data):
         prompt_formats = {
             'SystemPrompt': {'objective': self.agent_data['objective']},
-            'ContextPrompt': {'result': data['result'], 'task': data['task'], 'task_list': ', '.join(data['task_list'])}
+            'ContextPrompt': {
+                'result': data['result'],
+                'task': data['task'],
+                'task_list': ', '.join(data['task_list']),
+            }
         }
         return prompt_formats
-
-    def generate_prompt(self, prompt_formats):
-        # Load Prompts
-        system_prompt = self.agent_data['prompts']['SystemPrompt']
-        context_prompt = self.agent_data['prompts']['ContextPrompt']
-        instruction_prompt = self.agent_data['prompts']['InstructionPrompt']
-
-        # Format Prompts
-        system_prompt = system_prompt.format(**prompt_formats.get('SystemPrompt', {}))
-        context_prompt = context_prompt.format(**prompt_formats.get('ContextPrompt', {}))
-        instruction_prompt = instruction_prompt.format(**prompt_formats.get('InstructionPrompt', {}))
-
-        prompt = [
-            {"role": "system", "content": f"{system_prompt}"},
-            {"role": "user", "content": f"{context_prompt}{instruction_prompt}"}
-        ]
-
-        # print(f"\nPrompt: {prompt}")
-        return prompt
 
     def order_tasks(self, prompt):
         new_tasks = self.agent_data['generate_text'](
