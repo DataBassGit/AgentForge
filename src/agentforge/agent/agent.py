@@ -50,7 +50,7 @@ class Agent:
 
         # Execute the main task of the agent
         with self.agent_funcs.thinking():
-            result = self.execute_task(prompt)
+            result = self.run_llm(prompt)
 
         parsed_data = self.parse_output(result, bot_id, data)
 
@@ -141,7 +141,7 @@ class Agent:
         self.logger.log(f"Prompt:\n{prompt}", 'debug')
         return prompt
 
-    def execute_task(self, prompt):
+    def run_llm(self, prompt):
         return self.agent_data['generate_text'](
             prompt,
             self.agent_data['model'],
