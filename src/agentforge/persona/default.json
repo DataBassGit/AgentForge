@@ -24,13 +24,15 @@
         "template":"\nTake into account this summary of your previous actions: {context}"
       },
       "InstructionPrompt": {
-        "vars": ["feedback"],
+        "vars": ["task"],
         "template": "\nYour current task: {task}\nResponse:"
       },
       "FeedbackPrompt": {
         "vars": ["feedback"],
-        "template":"\nTake into consideration the following feedback from the user: {feedback}"
+        "template": "\nTake into consideration the following feedback from the user: {feedback}"
+      }
     },
+
     "Params": {
       "max_new_tokens": 200,
       "temperature": 0.5,
@@ -62,9 +64,18 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_list}",
-      "ContextPrompt": "\nConsider the ultimate objective of your team: {objective}. Do not remove any tasks.",
-      "InstructionPrompt": "\nReturn the result as a numbered list in the following format:\n#. First task\n#. Second task\nStart the task list with number {next_task_order}\nReturn ONLY the updated task list as an array, avoid any notes or unnecessary comments!"
+      "SystemPrompt": {
+        "vars": ["task_list"],
+        "template":"\nYou are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_list}"
+     },
+      "ContextPrompt": {
+        "vars": ["objective"],
+        "template":"\nConsider the ultimate objective of your team: {objective}. Do not remove any tasks."
+      },
+      "InstructionPrompt": {
+        "vars": ["next_task_order"],
+        "template": "\nReturn the result as a numbered list in the following format:\n#. First task\n#. Second task\nStart the task list with number {next_task_order}\nReturn ONLY the updated task list as an array, avoid any notes or unnecessary comments!"
+      }
     },
     "Params": {
       "max_new_tokens": 200,
@@ -97,8 +108,14 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:\n    1. Highlight the main points and key findings of the text.\n    2. Maintain the original context and intention of the text.\n    3. Be written in a clear and coherent manner.\n\nAdditionally, please follow these guidelines while summarizing the text:\n\n    1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.\n    2. Ensure that the summary is objective and does not include personal opinions or biases.\n    3. Use proper citation or attribution, if applicable.\n",
-      "InstructionPrompt": "\nText to abstract: {text}"
+      "SystemPrompt": {
+        "vars": [""],
+        "template":"\nYou are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:\n    1. Highlight the main points and key findings of the text.\n    2. Maintain the original context and intention of the text.\n    3. Be written in a clear and coherent manner.\n\nAdditionally, please follow these guidelines while summarizing the text:\n\n    1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.\n    2. Ensure that the summary is objective and does not include personal opinions or biases.\n    3. Use proper citation or attribution, if applicable.\n"
+      },
+      "InstructionPrompt": {
+        "vars": ["text"],
+        "template":"\nText to abstract: {text}"
+      }
     },
     "Params": {
       "max_new_tokens": 200,
@@ -131,44 +148,18 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}",
-      "ContextPrompt": "\nThe last completed task has the result: {result}\nThis result was based on this task description: {task}\nThis is the current task list: {task_list}",
-      "InstructionPrompt": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
-    },
-    "Params": {
-      "max_new_tokens": 200,
-      "temperature": 0.5,
-      "top_p": 0.9,
-      "n": 1,
-      "stop": null,
-      "do_sample": true,
-      "return_prompt": false,
-      "return_metadata": false,
-      "typical_p": 0.95,
-      "repetition_penalty": 1.05,
-      "encoder_repetition_penalty": 1.0,
-      "top_k": 0,
-      "min_length": 0,
-      "no_repeat_ngram_size": 2,
-      "num_beams": 1,
-      "penalty_alpha": 0,
-      "length_penalty": 1.0,
-      "early_stopping": false,
-      "pad_token_id": null,
-      "eos_token_id": null,
-      "use_cache": true,
-      "num_return_sequences": 1,
-      "bad_words_ids": null,
-      "seed": -1
-    }
-  },
-  "SalienceAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
-    "Prompts": {
-      "SystemPrompt": "",
-      "ContextPrompt": "",
-      "InstructionPrompt": ""
+      "SystemPrompt": {
+        "vars": ["objective"],
+        "template": "\nYou are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {objective}"
+      },
+      "ContextPrompt": {
+        "vars": ["result","task","task_list"],
+        "template": "\nThe last completed task has the result: {result}\nThis result was based on this task description: {task}\nThis is the current task list: {task_list}"
+      },
+      "InstructionPrompt": {
+        "vars": [""],
+        "template":"\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
+      }
     },
     "Params": {
       "max_new_tokens": 200,
@@ -201,9 +192,18 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it!",
-      "ContextPrompt": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}.",
-      "InstructionPrompt": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+      "SystemPrompt": {
+        "vars": ["objective"],
+        "template":"You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it!"
+      },
+      "ContextPrompt": {
+        "vars": ["context","current_task","task_result"],
+        "temlate": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}."
+      },
+      "InstructionPrompt": {
+        "vars": [""],
+        "template":"\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+      }
     },
     "Params": {
       "max_new_tokens": 200,
@@ -236,9 +236,18 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it!",
-      "ContextPrompt": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}.",
-      "InstructionPrompt": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+      "SystemPrompt": {
+        "vars": ["objective"],
+        "template":"You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it!"
+      },
+      "ContextPrompt": {
+        "vars": ["context","current_task","task_result"],
+        "template":"Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}."
+      },
+      "InstructionPrompt": {
+        "vars": [],
+        "template":"\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+      }
     },
     "Params": {
       "max_new_tokens": 200,
@@ -271,9 +280,17 @@
     "API": "openai_api",
     "Model": "smart_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a professional analyst. You specialize in comparing datasets.",
-      "ContextPrompt":"\nHere are the three sets:\n\nSetA:\n{seta}\n\nSetB:\n{setb}\n\nCriteria:\n{heuristic_imperatives}",
-      "InstructionPrompt": "\nYou are tasked with comparing two sets, SetA and SetB, to determine which set more closely aligns with a reference set labeled Criteria.\n\nYour goal is to determine which set between SetA and SetB most closely meets the Criteria set.\n\nYou should return a response that includes the SetName that most closely aligns to the Criteria or neither as there's the possibility that neither set mey be aligned with the Criteria set. Please respond in the format:\n\nCHOICE: {SetX or neither; where X is the chosen set between A and B}\n\nREASON: {Reason for conclusion reached}"
+      "SystemPrompt": {
+        "vars": [],
+        "template":"\nYou are a professional analyst. You specialize in comparing datasets."
+      },"ContextPrompt": {
+        "vars": ["seta","setb","heuristic_imperatives"],
+        "template": "\nHere are the three sets:\n\nSetA:\n{seta}\n\nSetB:\n{setb}\n\nCriteria:\n{heuristic_imperatives}"
+      },
+      "InstructionPrompt": {
+        "vars": [],
+        "template":"\nYou are tasked with comparing two sets, SetA and SetB, to determine which set more closely aligns with a reference set labeled Criteria.\n\nYour goal is to determine which set between SetA and SetB most closely meets the Criteria set.\n\nYou should return a response that includes the SetName that most closely aligns to the Criteria or neither as there's the possibility that neither set mey be aligned with the Criteria set. Please respond in the format:\n\nCHOICE: {SetX or neither; where X is the chosen set between A and B}\n\nREASON: {Reason for conclusion reached}"
+      }
 	},
     "Params": {
       "max_new_tokens": 200,
@@ -306,9 +323,18 @@
     "API": "openai_api",
     "Model": "smart_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a professional editor and reviewer with 20 years of experience. You receive responses from agents in the form of text. Your job is to make sure that they do not conflict with the companies morals and guidelines henceforth referred to as Heuristics, and provide edits to ensure that they meet those guidelines.",
-      "ContextPrompt":"\n\nHere is the response the agent provided:\n\nAgent_Response: {seta}\n\nHere is are the companies morals and guidelines:\n\nHeuristics: {heuristic_imperatives}",
-      "InstructionPrompt": "\nYou have received the following text from an employee, Agent_Response. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if Agent_Response meets the heuristics, and provide changes to the response so that it meets the heuristics provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted response}\n\nREASON: {Reason for conclusion reached}"
+      "SystemPrompt": {
+        "vars": [],
+        "template":"\nYou are a professional editor and reviewer with 20 years of experience. You receive responses from agents in the form of text. Your job is to make sure that they do not conflict with the companies morals and guidelines henceforth referred to as Heuristics, and provide edits to ensure that they meet those guidelines."
+      },
+      "ContextPrompt": {
+        "vars": ["seta","heuristi_Imperatives"],
+        "template":"\n\nHere is the response the agent provided:\n\nAgent_Response: {seta}\n\nHere is are the companies morals and guidelines:\n\nHeuristics: {heuristic_imperatives}"
+      },
+      "InstructionPrompt": {
+        "vars": [],
+        "template":"\nYou have received the following text from an employee, Agent_Response. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if Agent_Response meets the heuristics, and provide changes to the response so that it meets the heuristics provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted response}\n\nREASON: {Reason for conclusion reached}"
+      }
     },
     "Params": {
       "max_new_tokens": 200,
@@ -341,9 +367,18 @@
     "API": "openai_api",
     "Model": "smart_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are a professional analyst and reviewer with 20 years of experience. You specialize in comparing datasets to determine if they meet criteria. Your job is to make sure that they do not conflict with the companies morals and guidelines.",
-      "ContextPrompt":"\n\nHere is the response the agent provided:\n\nAgent_Response: {seta}\n\nHere is are the companies morals and guidelines, henceforth referred to as Heuristics:\n {heuristic_imperatives}",
-      "InstructionPrompt": "\nYou have received the Agent_Response from an agent. You must determine whether the text aligns with the companies heuristics.\n\nYour goal is to determine if the provided response, Agent_Response, meets the companies morals and guidelines, Heuristics, and provide a formatted response and critique of the response provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}"
+      "SystemPrompt": {
+        "vars": [],
+        "template":"\nYou are a professional analyst and reviewer with 20 years of experience. You specialize in comparing datasets to determine if they meet criteria. Your job is to make sure that they do not conflict with the companies morals and guidelines."
+      },
+      "ContextPrompt": {
+        "vars": ["seta","heuristic_imperatives"],
+       "template":"\n\nHere is the response the agent provided:\n\nAgent_Response: {seta}\n\nHere is are the companies morals and guidelines, henceforth referred to as Heuristics:\n {heuristic_imperatives}"
+      },
+      "InstructionPrompt": {
+        "vars": [],
+        "template":"\nYou have received the Agent_Response from an agent. You must determine whether the text aligns with the companies heuristics.\n\nYour goal is to determine if the provided response, Agent_Response, meets the companies morals and guidelines, Heuristics, and provide a formatted response and critique of the response provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}"
+      }
 	},
     "Params": {
       "max_new_tokens": 200,
