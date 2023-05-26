@@ -8,17 +8,14 @@ class StatusAgent(Agent):
     def run(self, data):
         # This function will be the main entry point for your agent.
         self.logger.log(f"Running Agent...", 'info')
-        # 1. Start Console Feedback
+        # Start Console Feedback
 
         task_id = data['current_task']['id']
         task_desc = data['current_task']['metadata']['task_desc']
         task_order = data['current_task']['metadata']['task_order']
 
-        # 3. Get prompt formats
-        prompt_formats = self.get_prompt_formats(data)
-
-        # 4. Generate prompt
-        prompt = self.generate_prompt(prompt_formats)
+        # Generate prompt
+        prompt = self.generate_prompt(**data)
         self.logger.log(f"Prompt:\n{prompt}", 'debug')
 
         with self.agent_funcs.thinking():

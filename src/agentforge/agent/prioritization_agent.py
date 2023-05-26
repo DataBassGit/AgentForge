@@ -27,8 +27,7 @@ class PrioritizationAgent(Agent):
 
         data = self.load_data_from_storage()
         data['next_task_order'] = calculate_next_task_order(data['this_task_order'])
-        prompt_formats = self.get_prompt_formats(data)
-        prompt = self.generate_prompt(prompt_formats)
+        prompt = self.generate_prompt(**data)
 
         with self.agent_funcs.thinking():
             task_list = self.process_new_tasks(prompt)

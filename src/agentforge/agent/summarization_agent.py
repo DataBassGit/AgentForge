@@ -10,10 +10,10 @@ class SummarizationAgent(Agent):
         self.logger.log(f"Running Agent...", 'info')
 
         # 2. Get prompt formats
-        prompt_formats = {'InstructionPrompt': {'text': text}}
+        data = {'text': text}
 
         # 3. Generate prompt
-        prompt = self.generate_prompt(prompt_formats)
+        prompt = self.generate_prompt(**data)
 
         # 4. Execute the main task of the agent
         with self.agent_funcs.thinking():

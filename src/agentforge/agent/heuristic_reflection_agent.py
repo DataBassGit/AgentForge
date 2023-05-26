@@ -56,11 +56,7 @@ class HeuristicReflectionAgent(Agent):
 
         # self.logger.log(f"Data:\n{data}", 'debug')
 
-        prompt_formats = self.get_prompt_formats(data)
-
-        # self.logger.log(f"Prompt Formats:\n{prompt_formats}", 'debug')
-
-        prompt = self.generate_prompt(prompt_formats, feedback)
+        prompt = self.generate_prompt(**data)
 
         # self.logger.log(f"Prompt:\n{prompt}", 'debug')
 

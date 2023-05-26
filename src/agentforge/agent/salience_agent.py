@@ -26,11 +26,11 @@ class SalienceAgent(Agent):
         if search_results == 'No Results!':
             context = "No previous actions have been taken."
         else:
-            context = self.summarization_agent.run_summarization_agent(search_results)
+            context = self.summarization_agent.run(search_results)
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        task_result = self.exec_agent.run_execution_agent(context=context, feedback=feedback)
+        task_result = self.exec_agent.run(context=context, feedback=feedback)
 
         # Return Execution Results to the Job Agent to determine Frustration
 

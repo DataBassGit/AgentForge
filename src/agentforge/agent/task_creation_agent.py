@@ -9,8 +9,7 @@ class TaskCreationAgent(Agent):
         self.logger.log(f"Running Agent...", 'info')
 
         data = self.load_data_from_storage()
-        prompt_formats = self.get_prompt_formats(data)
-        prompt = self.generate_prompt(prompt_formats)
+        prompt = self.generate_prompt(**data)
 
         with self.agent_funcs.thinking():
             ordered_tasks = self.order_tasks(prompt)
