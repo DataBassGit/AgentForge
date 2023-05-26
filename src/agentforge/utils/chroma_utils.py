@@ -74,6 +74,7 @@ class ChromaUtils:
         except Exception as e:
             print("\n\nError clearing table:", e)
 
+    #load_memory
     def load_collection(self, params):
         try:
             collection_name = params.get('collection_name', 'default_collection_name')
@@ -94,6 +95,7 @@ class ChromaUtils:
 
         return data
 
+    #load_memory
     def load_salient(self, params):
         try:
             collection_name = params.get('collection_name', 'default_collection_name')
@@ -108,6 +110,7 @@ class ChromaUtils:
 
         return data
 
+    #save_memory
     def save_tasks(self, params):
         tasks = params.get('tasks', [])
         results = params.get('results', [])
@@ -132,6 +135,7 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"Error saving tasks. Error: {e}")
 
+    #save_memory
     def save_results(self, params):
         try:
             result = params.get('result', None)
@@ -147,6 +151,7 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
+    #query_memory
     def query_db(self, collection_name, task_desc, num_results=1):
         self.select_collection(collection_name)
 
@@ -172,6 +177,7 @@ class ChromaUtils:
 
         return result
 
+    #list_memory
     def collection_list(self):
         return self.client.list_collections()
 
@@ -179,6 +185,7 @@ class ChromaUtils:
         self.select_collection(collection_name)
         return self.collection.peek()
 
+    # save_memory
     def save_status(self, status, task_id, task_desc, task_order):
         logger.log(
             f"\nUpdating Task: {task_desc})"
@@ -203,6 +210,7 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError saving status. Error: {e}")
 
+    # save_memory
     def save_heuristic(self, params, collection_name):
         try:
             result = params.pop('data', None)
@@ -300,13 +308,3 @@ class ChromaUtils:
             data = []
 
         return data
-
-    def clear_memory(self, collection_name):
-        try:
-            self.select_collection(collection_name)
-            self.collection.delete()
-        except Exception as e:
-            print("\n\nError clearing table:", e)
-
-    def list_memory(self):
-        return self.client.list_collections()
