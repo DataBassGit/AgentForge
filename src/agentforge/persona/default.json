@@ -10,10 +10,21 @@
     "API": "openai_api",
     "Model": "fast_model",
     "Prompts": {
-      "SystemPrompt": "\nYou are an AI who performs one task based on the following objective: {objective}",
-      "ContextPrompt": "\nTake into account this summary of your previous actions: {context}",
-      "InstructionPrompt": "\nYour current task: {task}\nResponse:",
-      "FeedbackPrompt" : "\nTake into consideration the following feedback from the user: {feedback}"
+      "SystemPrompt": {
+        "vars": ["objective"],
+        "template":"\nYou are an AI who performs one task based on the following objective: {objective}"
+      },
+      "ContextPrompt": {
+        "vars": ["context"] ,
+        "template":"\nTake into account this summary of your previous actions: {context}"
+      },
+      "InstructionPrompt": {
+        "vars": ["feedback"],
+        "template": "\nYour current task: {task}\nResponse:"
+      },
+      "FeedbackPrompt": {
+        "vars": ["feedback"],
+        "template":"\nTake into consideration the following feedback from the user: {feedback}"
     },
     "Params": {
       "max_new_tokens": 200,
