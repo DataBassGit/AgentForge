@@ -23,10 +23,10 @@ class Agent:
         data.update(kwargs)
 
         # 3. Get prompt formats
-        prompt_formats = self.get_prompt_formats(data)
+        # prompt_formats = self.get_prompt_formats(data)
 
         # 4. Generate prompt
-        prompt = self.generate_prompt(prompt_formats)
+        prompt = self.generate_prompt(**data)
 
         # 5. Execute the main task of the agent
         with self.agent_funcs.thinking():
@@ -45,7 +45,8 @@ class Agent:
 
     def order_tasks(self, task_collection):
         # Pair up 'ids', 'documents' and 'metadatas' for sorting
-        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
+        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'],
+                                   task_collection['metadatas']))
 
         # Sort the paired up tasks by 'task_order' in 'metadatas'
         sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['task_order'])
@@ -56,7 +57,8 @@ class Agent:
         # Create the ordered results dictionary
         ordered_list = {
             'ids': list(sorted_ids),
-            'embeddings': task_collection['embeddings'],  # this remains the same as it was not sorted
+            'embeddings': task_collection['embeddings'],
+            # this remains the same as it was not sorted
             'documents': list(sorted_documents),
             'metadatas': list(sorted_metadatas),
         }
@@ -119,36 +121,40 @@ class Agent:
     def load_data_from_memory(self):
         raise NotImplementedError
 
-    def get_prompt_formats(self, data):
-        prompt_formats = {
-            'SystemPrompt': {'objective': self.agent_data['objective']},
-            'ContextPrompt': {'context': data['context']},
-            'InstructionPrompt': {'task': data['task']}
-        }
+    def render_template(self, template, variables, data):
+        return template.format(
+            **{k: v for k, v in data.items() if k in variables}
+        )
 
-        return prompt_formats
-
-    def generate_prompt(self, prompt_formats, feedback="", context=""):
+    def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
-        system_prompt = self.agent_data['prompts']['SystemPrompt']
-        context_prompt = self.agent_data['prompts']['ContextPrompt']
-        instruction_prompt = self.agent_data['prompts']['InstructionPrompt']
-        feedback_prompt = self.agent_data['prompts'].get('FeedbackPrompt', "")
+        prompts = self.agent_data['prompts']
+        system_prompt = prompts['SystemPrompt']
+        context_prompt = prompts['ContextPrompt']
+        feedback_prompt = prompts['InstructionPrompt']
+        instruction_prompt = prompts.get('FeedbackPrompt', {})
+
+        system_prompt_template = system_prompt["template"]
+        context_prompt_template = context_prompt["template"]
+        instruction_prompt_template = instruction_prompt["template"]
+        feedback_prompt_template = feedback_prompt["template"]
+
+        system_prompt_vars = prompts['SystemPrompt']["vars"]
+        context_prompt_vars = prompts['ContextPrompt']["vars"]
+        instruction_prompt_vars = prompts['InstructionPrompt']["vars"]
+        feedback_prompt_vars = prompts.get('FeedbackPrompt', {})["vars"]
 
         # Format Prompts
-        system_prompt = system_prompt.format(
-            **prompt_formats.get('SystemPrompt', {})
+        templates = [
+            (system_prompt_template, system_prompt_vars),
+            (context_prompt_template, context_prompt_vars),
+            (instruction_prompt_template, instruction_prompt_vars),
+            (feedback_prompt_template, feedback_prompt_vars),
+        ]
+        user_prompt = "".join([
+            self.render_template(template, variables, data=kwargs)
+            for template, variables in templates]
         )
-        context_prompt = context_prompt.format(
-            **prompt_formats.get('ContextPrompt', {"context": context})
-        )
-        instruction_prompt = instruction_prompt.format(
-            **prompt_formats.get('InstructionPrompt', {})
-        )
-        feedback_prompt = feedback_prompt.format(
-            **prompt_formats.get('FeedbackPrompt', {"feedback": feedback})
-        )
-        user_prompt = "".join((context_prompt, instruction_prompt, feedback_prompt))
 
         # Build Prompt
         prompt = [
