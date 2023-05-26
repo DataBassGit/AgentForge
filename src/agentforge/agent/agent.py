@@ -14,7 +14,7 @@ class Agent:
         # This function will be the main entry point for your agent.
         self.logger.log(f"Running Agent...", 'info')
 
-        # 2. Load data
+        # Load data
         data = {}
         if "database" in self.agent_data:
             db_data = self.load_data_from_memory()
@@ -22,23 +22,20 @@ class Agent:
         data.update(self.agent_data)
         data.update(kwargs)
 
-        # 3. Get prompt formats
-        # prompt_formats = self.get_prompt_formats(data)
-
-        # 4. Generate prompt
+        # Generate prompt
         prompt = self.generate_prompt(**data)
 
-        # 5. Execute the main task of the agent
+        # Execute the main task of the agent
         with self.agent_funcs.thinking():
             result = self.execute_task(prompt)
 
-        # 6. Save the results
+        # Save the results
         self.save_results(result)
 
-        # 7. Stop Console Feedback
+        # Stop Console Feedback
         self.agent_funcs.stop_thinking()
 
-        # 8. Print the result or any other relevant information
+        # Print the result or any other relevant information
         self.agent_funcs.print_result(result)
 
         self.logger.log(f"Agent Done!", 'info')
