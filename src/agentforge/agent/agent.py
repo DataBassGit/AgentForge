@@ -2,6 +2,20 @@ from .func.agent_functions import AgentFunctions
 from ..logs.logger_config import Logger
 
 
+def calculate_next_task_order(this_task_order):
+    return int(this_task_order) + 1
+
+
+def order_tasks(task_list):
+    filtered_results = [task for task in task_list if task['task_order'].isdigit()]
+
+    ordered_results = [
+        {'task_order': int(task['task_order']), 'task_desc': task['task_desc']}
+        for task in filtered_results]
+
+    return ordered_results
+
+
 class Agent:
     def __init__(self, agent_name=None, log_level="info"):
         if agent_name is None:
@@ -13,7 +27,7 @@ class Agent:
         self.logger.set_level(log_level)
 
     def parse_output(self, result, bot_id, data):
-        return result
+        return {"result": result}
 
     def run(self, bot_id=None, **kwargs):
         # This function will be the main entry point for your agent.
@@ -27,6 +41,10 @@ class Agent:
         data.update(self.agent_data)
         data.update(kwargs)
 
+        task_order = data.get('this_task_order')
+        if task_order is not None:
+            data['next_task_order'] = calculate_next_task_order(task_order)
+
         # Generate prompt
         prompt = self.generate_prompt(**data)
 
@@ -36,81 +54,26 @@ class Agent:
 
         parsed_data = self.parse_output(result, bot_id, data)
 
-        # Save the results
-        self.save_results(parsed_data)
-
         # Stop Console Feedback
         self.agent_funcs.stop_thinking()
 
-        # Print the result or any other relevant information
-        self.agent_funcs.print_result(parsed_data)
+        output = None
+
+        # Save and print the results
+        if "result" in parsed_data:
+            self.save_results(parsed_data)
+            self.agent_funcs.print_result(parsed_data)
+            output = parsed_data
+
+        if "tasks" in parsed_data:
+            ordered_tasks = order_tasks(parsed_data["tasks"])
+            output = ordered_tasks
+            task_desc_list = [task['task_desc'] for task in ordered_tasks]
+            self.save_tasks(ordered_tasks, task_desc_list)
+            self.agent_funcs.print_task_list(ordered_tasks)
 
         self.logger.log(f"Agent Done!", 'info')
-
-    def order_tasks(self, task_collection):
-        # Pair up 'ids', 'documents' and 'metadatas' for sorting
-        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'],
-                                   task_collection['metadatas']))
-
-        # Sort the paired up tasks by 'task_order' in 'metadatas'
-        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['task_order'])
-
-        # Split the sorted tasks back into separate lists
-        sorted_ids, sorted_documents, sorted_metadatas = zip(*sorted_tasks)
-
-        # Create the ordered results dictionary
-        ordered_list = {
-            'ids': list(sorted_ids),
-            'embeddings': task_collection['embeddings'],
-            # this remains the same as it was not sorted
-            'documents': list(sorted_documents),
-            'metadatas': list(sorted_metadatas),
-        }
-
-        self.logger.log(f"Tasks Ordered list:\n{ordered_list}", 'debug')
-
-        return ordered_list, sorted_ids, sorted_documents, sorted_metadatas
-
-    # def load_task_data(self):
-    #     task_collection = self.storage.load_salient({
-    #         'collection_name': "tasks",
-    #         'collection_property': ["documents", "metadatas"],
-    #         'ids': "ids"
-    #     })
-    #
-    #     ordered_list, sorted_ids, sorted_documents, sorted_metadatas = self.order_tasks(task_collection)
-    #
-    #     current_task = None
-    #     # iterate over sorted_metadatas
-    #     for i, metadata in enumerate(sorted_metadatas):
-    #         # check if the task_status is not completed
-    #         self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
-    #         if metadata['task_status'] == 'not completed':
-    #             current_task = {
-    #                 'id': sorted_ids[i],
-    #                 'document': sorted_documents[i],
-    #                 'metadata': metadata
-    #             }
-    #             break  # break the loop as soon as we find the first not_completed task
-    #
-    #     if current_task is None:
-    #         self.logger.log("Task list has been completed!!!", 'info')
-    #         quit()
-    #
-    #     self.logger.log(f"Current Task:{current_task['document']}", 'info')
-    #     self.logger.log(f"Current Task:\n{current_task}", 'debug')
-    #
-    #     result = None
-    #
-    #     ordered_results = {
-    #         'result': result,
-    #         'current_task': current_task,
-    #         'task_list': ordered_list,
-    #         'task_ids': sorted_ids,
-    #         'task_order': current_task["metadata"]["task_order"]
-    #     }
-    #
-    #     return ordered_results
+        return output
 
     def load_result_data(self):
         result_collection = self.storage.load_collection({
@@ -180,4 +143,14 @@ class Agent:
         self.storage.save_results({
             'result': result,
             'collection_name': collection_name,
+        })
+
+    def save_tasks(self, ordered_results, task_desc_list):
+        collection_name = "tasks"
+        self.storage.clear_collection(collection_name)
+
+        self.storage.save_tasks({
+            'tasks': ordered_results,
+            'results': task_desc_list,
+            'collection_name': collection_name
         })
