@@ -72,6 +72,15 @@ class Agent:
             self.save_tasks(ordered_tasks, task_desc_list)
             self.agent_funcs.print_task_list(ordered_tasks)
 
+        if "status" in parsed_data:
+            task_id = parsed_data["task"]["task_id"]
+            description = parsed_data["task"]["description"]
+            order = parsed_data["task"]["order"]
+            status = parsed_data["status"]
+            reason = parsed_data["reason"]
+            output = reason
+            self.save_status(status, task_id, description, order)
+
         self.logger.log(f"Agent Done!", 'info')
         return output
 
@@ -154,3 +163,14 @@ class Agent:
             'results': task_desc_list,
             'collection_name': collection_name
         })
+
+    def save_status(self, status, task_id, text, task_order):
+        self.logger.log(
+            f"\nSave Task: {text}"
+            f"\nSave ID: {task_id}"
+            f"\nSave Order: {task_order}"
+            f"\nSave Status: {status}",
+            'debug'
+        )
+        self.storage.save_status(status, task_id, text, task_order)
+
