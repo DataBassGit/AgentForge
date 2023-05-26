@@ -46,19 +46,17 @@ class AgentFunctions:
         config = configparser.ConfigParser()
         config.read('Config/config.ini')
 
-        # Load Storage Interface
-        self.agent_data['storage'] = StorageInterface()
-
         # Load persona data
         self.persona_data = load_persona_data()
         self.agent_data.update(
+            storage=StorageInterface(),
             objective=self.persona_data['Objective'],
             params=self.persona_data[agent_name]['Params'],
             prompts=self.persona_data[agent_name]['Prompts'],
         )
         db = self.persona_data[agent_name].get('Database')
         if db:
-            self.agent_data['database'] = db
+            self.agent_data.update(database=db)
 
         # Load API and Model
         language_model_api = self.persona_data[agent_name]['API']
