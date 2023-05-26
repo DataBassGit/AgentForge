@@ -25,7 +25,7 @@ class HeuristicComparatorAgent(Agent):
             },
         }
 
-    def run_agent(self, set_a, set_b, bot_id, feedback=None):
+    def run(self, set_a, set_b, bot_id, feedback=None):
         data = {
             "seta": set_a,
             "setb": set_b,

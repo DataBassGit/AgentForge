@@ -5,7 +5,7 @@ class TaskCreationAgent(Agent):
     def __init__(self, agent_name):
         super().__init__('TaskCreationAgent', log_level="info")
 
-    def run_task_creation_agent(self):
+    def run(self):
         self.logger.log(f"Running Agent...", 'info')
 
         data = self.load_data_from_storage()

@@ -5,7 +5,7 @@ class SummarizationAgent(Agent):
     def __init__(self, agent_name):
         super().__init__('SummarizationAgent', log_level="info")
 
-    def run_summarization_agent(self, text):
+    def run(self, text):
         # This function will be the main entry point for your agent.
         self.logger.log(f"Running Agent...", 'info')
 

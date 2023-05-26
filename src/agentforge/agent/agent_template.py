@@ -15,7 +15,7 @@ class AgentTemplate:
         self.storage = self.agent_data['storage'].storage_utils
         logger.set_level('info')
 
-    def run_agent(self, feedback=None):
+    def run(self, feedback=None):
         # This function will be the main entry point for your agent.
         logger.log(f"Running Agent...", 'info')
 

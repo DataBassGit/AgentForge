@@ -6,7 +6,7 @@ class ExecutionAgent(Agent):
     def __init__(self):
         super().__init__('ExecutionAgent', log_level='info')
 
-    def run_execution_agent(self, context, feedback):
+    def run(self, context, feedback):
         self.logger.log(f"Running Agent...", 'info')
         self.logger.log(f"Context:{context}", 'info')
 

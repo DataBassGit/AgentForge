@@ -22,7 +22,7 @@ class PrioritizationAgent(Agent):
     def __init__(self):
         super().__init__("PrioritizationAgent", log_level="info")
 
-    def run_prioritization_agent(self):
+    def run(self):
         self.logger.log(f"Running Agent...", 'info')
 
         data = self.load_data_from_storage()

@@ -24,7 +24,7 @@ class HeuristicCheckAgent(Agent):
             },
         }
 
-    def run_agent(self, set_a, bot_id, feedback=None):
+    def run(self, set_a, bot_id, feedback=None):
         data = {
             "seta": set_a,
             "setb": self.heuristic_imperatives,

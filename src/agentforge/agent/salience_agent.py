@@ -11,7 +11,7 @@ class SalienceAgent(Agent):
         self.summarization_agent = SummarizationAgent()
         self.exec_agent = ExecutionAgent()
 
-    def run_salience_agent(self, feedback=None):
+    def run(self, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
         # Load Last Results and Current Task as Data

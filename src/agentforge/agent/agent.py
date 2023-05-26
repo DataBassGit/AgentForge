@@ -10,6 +10,9 @@ class Agent:
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 
+    def run(self, *args, **kwargs):
+        pass
+
     def order_tasks(self, task_collection):
         # Pair up 'ids', 'documents' and 'metadatas' for sorting
         paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))

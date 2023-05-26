@@ -48,7 +48,7 @@ class HeuristicReflectionAgent(Agent):
             },
         }
 
-    def run_agent(self, set_a, botid, feedback=None):
+    def run(self, set_a, botid, feedback=None):
         data = {
             "seta": set_a,
             "setb": self.heuristic_imperatives,
