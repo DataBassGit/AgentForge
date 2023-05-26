@@ -6,10 +6,6 @@ class HeuristicReflectionAgent(Agent):
         super().__init__("HeuristicReflectionAgent", log_level="info")
 
     def parse_output(self, result, botid, data):
-        # criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
-        # edit = result.split("RECOMMENDED EDIT: ")[1].split("\n")[0].lower()
-        # response = result.split("RESPONSE: ")[1].strip()
-
         if "MEETS CRITERIA: " in result:
             criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()
         else:
