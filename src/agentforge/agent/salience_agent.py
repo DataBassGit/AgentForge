@@ -5,7 +5,7 @@ from .summarization_agent import SummarizationAgent
 
 class SalienceAgent(Agent):
     def __init__(self):
-        super().__init__('SalienceAgent', log_level="info")
+        super().__init__()
 
         # Summarize the Search Results
         self.summarization_agent = SummarizationAgent()

@@ -2,9 +2,6 @@ from .agent import Agent
 
 
 class HeuristicReflectionAgent(Agent):
-    def __init__(self):
-        super().__init__("HeuristicReflectionAgent", log_level="info")
-
     def parse_output(self, result, botid, data):
         if "MEETS CRITERIA: " in result:
             criteria = result.split("MEETS CRITERIA: ")[1].split("\n")[0].lower()

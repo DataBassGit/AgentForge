@@ -3,7 +3,9 @@ from ..logs.logger_config import Logger
 
 
 class Agent:
-    def __init__(self, agent_name, log_level="debug"):
+    def __init__(self, agent_name=None, log_level="info"):
+        if agent_name is None:
+            agent_name = self.__class__.__name__
         self.agent_funcs = AgentFunctions(agent_name)
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils

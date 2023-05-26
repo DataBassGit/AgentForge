@@ -2,9 +2,6 @@ from .agent import Agent
 
 
 class StatusAgent(Agent):
-    def __init__(self):
-        super().__init__('StatusAgent', log_level="info")
-
     def run(self, data):
         # This function will be the main entry point for your agent.
         self.logger.log(f"Running Agent...", 'info')

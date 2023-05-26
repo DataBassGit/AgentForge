@@ -19,10 +19,7 @@ def order_tasks(task_list):
 
 
 class PrioritizationAgent(Agent):
-    def __init__(self):
-        super().__init__("PrioritizationAgent", log_level="info")
-
-    def run(self):
+    def run(self, **kwargs):
         self.logger.log(f"Running Agent...", 'info')
 
         data = self.load_data_from_storage()
