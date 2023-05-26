@@ -10,7 +10,10 @@ class Agent:
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 
-    def run(self, **kwargs):
+    def parse_output(self, result, bot_id, data):
+        return result
+
+    def run(self, bot_id=None, **kwargs):
         # This function will be the main entry point for your agent.
         self.logger.log(f"Running Agent...", 'info')
 
@@ -29,14 +32,16 @@ class Agent:
         with self.agent_funcs.thinking():
             result = self.execute_task(prompt)
 
+        parsed_data = self.parse_output(result, bot_id, data)
+
         # Save the results
-        self.save_results(result)
+        self.save_results(parsed_data)
 
         # Stop Console Feedback
         self.agent_funcs.stop_thinking()
 
         # Print the result or any other relevant information
-        self.agent_funcs.print_result(result)
+        self.agent_funcs.print_result(parsed_data)
 
         self.logger.log(f"Agent Done!", 'info')
 

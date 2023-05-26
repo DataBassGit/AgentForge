@@ -48,6 +48,10 @@ class AgentFunctions:
 
         # Load persona data
         self.persona_data = load_persona_data()
+        if "HeuristicImperatives" in self.persona_data:
+            self.agent_data.update(
+                heuristic_imperatives=self.persona_data["HeuristicImperatives"],
+            )
         self.agent_data.update(
             storage=StorageInterface(),
             objective=self.persona_data['Objective'],
