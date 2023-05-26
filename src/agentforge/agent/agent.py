@@ -10,8 +10,38 @@ class Agent:
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 
-    def run(self, *args, **kwargs):
-        pass
+    def run(self, **kwargs):
+        # This function will be the main entry point for your agent.
+        self.logger.log(f"Running Agent...", 'info')
+
+        # 2. Load data
+        data = {}
+        if "database" in self.agent_data:
+            db_data = self.load_data_from_memory()
+            data.update(db_data)
+        data.update(self.agent_data)
+        data.update(kwargs)
+
+        # 3. Get prompt formats
+        prompt_formats = self.get_prompt_formats(data)
+
+        # 4. Generate prompt
+        prompt = self.generate_prompt(prompt_formats)
+
+        # 5. Execute the main task of the agent
+        with self.agent_funcs.thinking():
+            result = self.execute_task(prompt)
+
+        # 6. Save the results
+        self.save_results(result)
+
+        # 7. Stop Console Feedback
+        self.agent_funcs.stop_thinking()
+
+        # 8. Print the result or any other relevant information
+        self.agent_funcs.print_result(result)
+
+        self.logger.log(f"Agent Done!", 'info')
 
     def order_tasks(self, task_collection):
         # Pair up 'ids', 'documents' and 'metadatas' for sorting

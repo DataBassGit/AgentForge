@@ -51,9 +51,14 @@ class AgentFunctions:
 
         # Load persona data
         self.persona_data = load_persona_data()
-        self.agent_data['objective'] = self.persona_data['Objective']
-        self.agent_data['params'] = self.persona_data[agent_name]['Params']
-        self.agent_data['prompts'] = self.persona_data[agent_name]['Prompts']
+        self.agent_data.update(
+            objective=self.persona_data['Objective'],
+            params=self.persona_data[agent_name]['Params'],
+            prompts=self.persona_data[agent_name]['Prompts'],
+        )
+        db = self.persona_data[agent_name].get('Database')
+        if db:
+            self.agent_data['database'] = db
 
         # Load API and Model
         language_model_api = self.persona_data[agent_name]['API']
