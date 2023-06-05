@@ -6,3 +6,13 @@ __pycache__/
 Logs/log.txt
 *.pyc
 /hiAGI-Dev.log
+
+src/agentforge/config/
+
+src/agentforge.egg-info/
+
+src/agentforge/persona/chatbot.json
+
+src/agentforge/salience.py
+
+src/DB/

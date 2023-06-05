@@ -5,7 +5,7 @@ import configparser
 def load_persona_data() -> dict:
     # Read configuration file
     config = configparser.ConfigParser()
-    config.read('Config/config.ini')
+    config.read('config/config.ini')
 
     persona_file_path = config.get('Persona', 'persona')
 

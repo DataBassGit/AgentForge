@@ -1,10 +1,11 @@
 import configparser
+import os
 
 from ..persona.load_persona_data import load_persona_data
 
 # Read configuration file
 config = configparser.ConfigParser()
-config.read('Config/config.ini')
+config.read('config/config.ini')
 storage_api = config.get('StorageAPI', 'library')
 persona_data = load_persona_data()
 task_list = persona_data['Tasks']
