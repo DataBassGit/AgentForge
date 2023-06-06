@@ -1,12 +1,14 @@
 import logging
 import os
+import pathlib
 
 
 class Logger:
     _logger = None
     name = None
 
-    def __init__(self, name='AgentForge', log_file='./Logs/AgentForge.log'):
+    def __init__(self, name='AgentForge',
+                 log_file=pathlib.Path(__file__).parent / 'Logs/AgentForge.log'):
         self._logger = logging.getLogger(name)
 
         if not self._logger.handlers:
