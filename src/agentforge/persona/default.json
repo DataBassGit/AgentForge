@@ -235,7 +235,7 @@
         "vars": [
           ""
         ],
-        "template": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+        "template": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {{completed or not completed}}\nReason: {{reason for conclusion reached}}"
       }
     },
     "Params": {
