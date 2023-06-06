@@ -107,8 +107,8 @@ class Agent:
         prompts = self.agent_data['prompts']
         system_prompt = prompts['SystemPrompt']
         context_prompt = prompts['ContextPrompt']
-        feedback_prompt = prompts['InstructionPrompt']
-        instruction_prompt = prompts.get('FeedbackPrompt', {})
+        instruction_prompt = prompts['InstructionPrompt']
+        feedback_prompt = prompts.get('FeedbackPrompt', {})
 
         system_prompt_template = system_prompt["template"]
         context_prompt_template = context_prompt["template"]
