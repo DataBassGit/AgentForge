@@ -1,5 +1,4 @@
 import configparser
-import os
 
 from ..persona.load_persona_data import load_persona_data
 
