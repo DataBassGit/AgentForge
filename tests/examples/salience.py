@@ -39,7 +39,7 @@ def main():
         else:
             feedback = functions.check_auto_mode()
 
-        data = salienceAgent.run_salience_agent(feedback=feedback)
+        data = salienceAgent.run(feedback=feedback)
 
         logger.log(f"Data: {data}", 'debug')
 
