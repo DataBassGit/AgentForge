@@ -229,7 +229,7 @@
           "current_task",
           "task_result"
         ],
-        "temlate": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}."
+        "template": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}."
       },
       "InstructionPrompt": {
         "vars": [
