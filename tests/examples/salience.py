@@ -43,7 +43,7 @@ def main():
 
         logger.log(f"Data: {data}", 'debug')
 
-        status = statusAgent.run_status_agent(data)
+        status = statusAgent.run(data)
         # quit()
 
 
