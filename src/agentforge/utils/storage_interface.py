@@ -1,6 +1,6 @@
 import configparser
 
-from ..persona.load_persona_data import load_persona_data
+from ..config.loader import load_persona_data
 
 # Read configuration file
 config = configparser.ConfigParser()

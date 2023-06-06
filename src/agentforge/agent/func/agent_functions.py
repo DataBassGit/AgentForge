@@ -4,7 +4,7 @@ import time
 from contextlib import contextmanager
 from typing import Dict, Any
 
-from ...persona.load_persona_data import load_persona_data
+from ...config.loader import load_persona_data
 from ...utils.function_utils import Functions
 from ...utils.storage_interface import StorageInterface
 
