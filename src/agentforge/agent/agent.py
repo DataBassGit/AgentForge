@@ -127,15 +127,15 @@ class Agent:
             (instruction_prompt_template, instruction_prompt_vars),
             (feedback_prompt_template, feedback_prompt_vars),
         ]
-        user_prompt = "".join([
+        rendered_templates = [
             self.render_template(template, variables, data=kwargs)
-            for template, variables in templates]
-        )
+            for template, variables in templates
+        ]
 
         # Build Prompt
         prompt = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "system", "content": rendered_templates[0]},
+            {"role": "user", "content": "".join(rendered_templates[1:])}
         ]
 
         self.logger.log(f"Prompt:\n{prompt}", 'debug')
