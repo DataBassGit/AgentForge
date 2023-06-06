@@ -113,20 +113,25 @@ class Agent:
         system_prompt_template = system_prompt["template"]
         context_prompt_template = context_prompt["template"]
         instruction_prompt_template = instruction_prompt["template"]
-        feedback_prompt_template = feedback_prompt["template"]
 
-        system_prompt_vars = prompts['SystemPrompt']["vars"]
-        context_prompt_vars = prompts['ContextPrompt']["vars"]
-        instruction_prompt_vars = prompts['InstructionPrompt']["vars"]
-        feedback_prompt_vars = prompts.get('FeedbackPrompt', {})["vars"]
+        system_prompt_vars = system_prompt["vars"]
+        context_prompt_vars = context_prompt["vars"]
+        instruction_prompt_vars = instruction_prompt["vars"]
 
         # Format Prompts
         templates = [
             (system_prompt_template, system_prompt_vars),
             (context_prompt_template, context_prompt_vars),
             (instruction_prompt_template, instruction_prompt_vars),
-            (feedback_prompt_template, feedback_prompt_vars),
         ]
+
+        if feedback_prompt:
+            feedback_prompt_template = feedback_prompt["template"]
+            feedback_prompt_vars = feedback_prompt["vars"]
+            templates.append(
+                (feedback_prompt_template, feedback_prompt_vars)
+            )
+
         rendered_templates = [
             self.render_template(template, variables, data=kwargs)
             for template, variables in templates
