@@ -1,14 +1,11 @@
-import configparser
-
-from ..persona.load_persona_data import load_persona_data
+from ..config import loader
 
 # Read configuration file
-config = configparser.ConfigParser()
-config.read('config/config.ini')
-storage_api = config.get('StorageAPI', 'library')
-persona_data = load_persona_data()
-task_list = persona_data['Tasks']
-task_dicts = [{"task_order": i + 1, "task_desc": task} for i, task in enumerate(task_list)]
+config = loader.Config()
+storage_api = config.storage_api()
+persona_data = config.persona()
+task_dicts = [{"task_order": i + 1, "task_desc": task}
+              for i, task in enumerate(persona_data['Tasks'])]
 task_list = [task_dict["task_desc"] for task_dict in task_dicts]
 
 
@@ -46,4 +43,5 @@ class StorageInterface:
             self.storage_utils.client.reset()
             self.storage_utils.select_collection("results")
             self.storage_utils.select_collection("tasks")
-            self.storage_utils.save_tasks({'tasks': task_dicts, 'results': task_list, 'collection_name': "tasks"})
+            self.storage_utils.save_tasks(
+                {'tasks': task_dicts, 'results': task_list, 'collection_name': "tasks"})
