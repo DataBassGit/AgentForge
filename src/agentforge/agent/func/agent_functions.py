@@ -42,10 +42,10 @@ class AgentFunctions:
         self.spinner_thread = threading.Thread(target=self._spinner_loop)
 
     def initialize_agent(self, agent_name):
-        config = loader.load_config()
+        config = loader.Config()
 
         # Load persona data
-        self.persona_data = loader.load_persona_data()
+        self.persona_data = config.persona()
         if "HeuristicImperatives" in self.persona_data:
             self.agent_data.update(
                 heuristic_imperatives=self.persona_data["HeuristicImperatives"],
@@ -65,7 +65,7 @@ class AgentFunctions:
         self.set_model_api(language_model_api)
 
         model = self.persona_data[agent_name]['Model']
-        self.agent_data['model'] = config.get('ModelLibrary', model)
+        self.agent_data['model'] = config.model_library(model)
 
     def set_model_api(self, language_model_api):
         if language_model_api == 'oobabooga_api':
