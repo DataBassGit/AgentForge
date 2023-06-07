@@ -1,19 +1,20 @@
 import logging
-import os
+import pathlib
 
 
 class Logger:
     _logger = None
     name = None
 
-    def __init__(self, name='AgentForge', log_file='./Logs/AgentForge.log'):
+    def __init__(self, name='AgentForge',
+                 log_file=pathlib.Path(__file__).parent / 'AgentForge.log'):
         self._logger = logging.getLogger(name)
 
         if not self._logger.handlers:
             self._logger.setLevel(logging.DEBUG)  # or whatever level you want
 
             # create file handler which logs messages
-            fh = logging.FileHandler(os.path.join(log_file))
+            fh = logging.FileHandler(log_file)
             fh.setLevel(logging.DEBUG)  # or whatever level you want
 
             # create console handler with a higher log level

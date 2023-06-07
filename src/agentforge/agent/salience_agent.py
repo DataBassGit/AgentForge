@@ -11,14 +11,16 @@ class SalienceAgent(Agent):
         self.summarization_agent = SummarizationAgent()
         self.exec_agent = ExecutionAgent()
 
-    def run(self, feedback=None):
+    def run(self, feedback=None, **kwargs):
 
         self.logger.log(f"Running Agent...", 'info')
         # Load Last Results and Current Task as Data
         data = self.load_data_from_storage()
 
         # Feed Data to the Search Utility
-        search_results = self.storage.query_db("results", data['current_task']['document'], 5)['documents']
+        search_results = \
+        self.storage.query_db("results", data['current_task']['document'], 5)[
+            'documents']
 
         self.logger.log(f"Search Results: {search_results}", 'info')
 
@@ -30,12 +32,16 @@ class SalienceAgent(Agent):
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        task_result = self.exec_agent.run(context=context, feedback=feedback)
+        task_result = self.exec_agent.run(
+            task=data['current_task'],
+            context=context,
+            feedback=feedback,
+        )
 
         # Return Execution Results to the Job Agent to determine Frustration
 
-        # Depending on Frustration Results feed the Tasks and Execution Results to the Analysis Agent
-        # to determine the status of the Current Task
+        # Depending on Frustration Results feed the Tasks and Execution Results
+        # to the Analysis Agent to determine the status of the Current Task
 
         # Save the Status of the task to the Tasks DB
 
@@ -70,7 +76,8 @@ class SalienceAgent(Agent):
         # quit()
 
         # first, pair up 'ids', 'documents' and 'metadatas' for sorting
-        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
+        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'],
+                                   task_collection['metadatas']))
 
         # sort the paired up tasks by 'task_order' in 'metadatas'
         sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['task_order'])
@@ -81,7 +88,8 @@ class SalienceAgent(Agent):
         # create the ordered results dictionary
         ordered_list = {
             'ids': list(sorted_ids),
-            'embeddings': task_collection['embeddings'],  # this remains the same as it was not sorted
+            'embeddings': task_collection['embeddings'],
+            # this remains the same as it was not sorted
             'documents': list(sorted_documents),
             'metadatas': list(sorted_metadatas),
         }

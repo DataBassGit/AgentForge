@@ -137,12 +137,14 @@ class ChromaUtils:
 
     #save_memory
     def save_results(self, params):
+        result = params.get('result', None)
+        collection_name = params.get('collection_name', 'default_collection_name')
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
-            result = params.get('result', None)
-            collection_name = params.get('collection_name', 'default_collection_name')
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
             self.select_collection(collection_name)
+        except Exception as e:
+            raise ValueError(f"Error selecting collection.") from e
+        try:
             self.collection.add(
                 documents=[result],
                 metadatas=[{"timestamp": timestamp}],

@@ -24,21 +24,17 @@ setup(
         "requests~=2.28.2",
         "spacy~=3.5.2",
         "termcolor~=2.3.0",
+        "openai~=0.27.4",
+        "chromadb~=0.3.21",
     ],
     extras_require={
         "pinecone": [
             "pinecone-client==2.2.1",
         ],
-        "chromadb": [
-            "chromadb~=0.3.21",
-        ],
         "search": [
             "google-api-python-client",
             "browse~=1.0.1",
             "beautifulsoup4~=4.12.2",
-        ],
-        "openai": [
-            "openai~=0.27.4",
         ],
         "other": [
             "Flask~=2.3.1",

@@ -229,13 +229,13 @@
           "current_task",
           "task_result"
         ],
-        "temlate": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}."
+        "template": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}."
       },
       "InstructionPrompt": {
         "vars": [
           ""
         ],
-        "template": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+        "template": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {{completed or not completed}}\nReason: {{reason for conclusion reached}}"
       }
     },
     "Params": {
