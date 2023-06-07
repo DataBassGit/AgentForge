@@ -11,7 +11,7 @@ class TaskCreationAgent(Agent):
 
         task_collection = self.storage.load_collection({
             'collection_name': "tasks",
-            'collection_property': "documents"
+            'include': ["documents"],
         })
 
         task_list = task_collection if task_collection else []

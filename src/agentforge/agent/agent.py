@@ -87,7 +87,7 @@ class Agent:
     def load_result_data(self):
         result_collection = self.storage.load_collection({
             'collection_name': "results",
-            'collection_property': "documents"
+            'include': ["documents"],
         })
         result = result_collection[0] if result_collection else ["No results found"]
         self.logger.log(f"Result Data Loaded:\n{result}", 'debug')

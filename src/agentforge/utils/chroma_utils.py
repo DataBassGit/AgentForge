@@ -68,42 +68,6 @@ class ChromaUtils:
         except Exception as e:
             print("\n\nError clearing table:", e)
 
-    #load_memory
-    def load_collection(self, params):
-        try:
-            collection_name = params.get('collection_name', 'default_collection_name')
-            collection_property = params.get('collection_property', None)
-
-            self.select_collection(collection_name)
-
-            data = self.collection.get()[collection_property]
-            logger.log(
-                f"\nCollection: {collection_name}"
-                f"\nProperty: {collection_property}"
-                f"\nData: {data}",
-                'debug'
-            )
-        except Exception as e:
-            print(f"\n\nError loading data: {e}")
-            data = []
-
-        return data
-
-    #load_memory
-    def load_salient(self, params):
-        try:
-            collection_name = params.get('collection_name', 'default_collection_name')
-
-            self.select_collection(collection_name)
-            logger.log(f"Load Salient Collection: {self.collection.get()}", 'debug')
-
-            data = self.collection.get()
-        except Exception as e:
-            print(f"\n\nError loading data: {e}")
-            data = []
-
-        return data
-
     #save_memory
     def save_tasks(self, params):
         tasks = params.get('tasks', [])
