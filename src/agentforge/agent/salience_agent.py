@@ -18,8 +18,11 @@ class SalienceAgent(Agent):
         data = self.load_data_from_storage()
 
         # Feed Data to the Search Utility
-        search_results = self.storage.query_db("results", data['current_task']['document'], 5)[
-            'documents']
+        search_results = self.storage.query_db(
+            "results",
+            data['current_task']['document'],
+            5,
+        )['documents']
 
         self.logger.log(f"Search Results: {search_results}", 'info')
 
