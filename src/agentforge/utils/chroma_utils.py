@@ -193,7 +193,7 @@ class ChromaUtils:
     #storageutils.load_collection(include=xx)
     def load_collection(self, params):
         try:
-            collection_name = params.get('collection_name', 'default_collection_name')
+            collection_name = params.pop('collection_name', 'default_collection_name')
 
             self.select_collection(collection_name)
 
@@ -201,7 +201,7 @@ class ChromaUtils:
             data = self.collection.get(**params, where=where)
 
             logger.log(
-                f"\nCollection: {collection_name}",
+                f"\nCollection: {collection_name}"
                 f"\nData: {data}",
                 'debug'
             )
