@@ -1,7 +1,8 @@
 import os
-import keyboard
 import threading
 from datetime import datetime
+
+from pynput import keyboard
 from termcolor import colored
 
 from .storage_interface import StorageInterface
@@ -26,13 +27,18 @@ class Functions:
                                                       daemon=True)
         self.listen_for_esc_thread.start()
 
+    def on_press(self, key):
+        try:
+            # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
+            if key == keyboard.Key.esc and self.mode == 'auto':
+                print("\nSwitching to Manual Mode...")
+                self.mode = 'manual'
+        except AttributeError:
+            pass  # Handle a special key that we don't care about
+
     def listen_for_esc(self):
-        while True:
-            with self.listen_for_esc_lock:
-                if keyboard.is_pressed('esc') and self.mode == 'auto':
-                    print("\nSwitching to Manual Mode...")
-                    self.mode = 'manual'
-                    keyboard.read_event(suppress=True)  # Clear the event buffer
+        with keyboard.Listener(on_press=self.on_press) as listener:
+            listener.join()
 
     def set_auto_mode(self):
         # print("\nEnter Auto or Manual Mode? (a/m)")
@@ -68,7 +74,6 @@ class Functions:
                 elif user_input.lower() == 'auto':
                     self.mode = 'auto'
                     print(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!\n")
-                    keyboard.read_event(suppress=True)  # Clear the event buffer
                 else:
                     context = user_input
 
