@@ -6,21 +6,15 @@ from datetime import datetime
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
-from dotenv import load_dotenv
 
+from ..config import loader
 from ..logs.logger_config import Logger
 
 logger = Logger(name="Chroma Utils")
 logger.set_level('info')
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', 'Config', '.env')
-load_dotenv(dotenv_path)
-
 # Read configuration file
-config = configparser.ConfigParser()
-config.read('Config/config.ini')
-db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
-chroma_db_impl = config.get('ChromaDB', 'chroma_db_impl')
+db_path, chroma_db_impl = loader.load_chromadb()
 
 # Get API keys from environment variables
 openai_api_key = os.getenv('OPENAI_API_KEY')
