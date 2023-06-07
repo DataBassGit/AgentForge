@@ -5,7 +5,7 @@ class TaskCreationAgent(Agent):
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
             'collection_name': "results",
-            'collection_property': "documents"
+            'include': ["documents"]
         })
         result = result_collection[0] if result_collection else ["No results found"]
 

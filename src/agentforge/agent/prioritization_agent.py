@@ -22,12 +22,12 @@ class PrioritizationAgent(Agent):
 
         task_list = self.storage.load_collection({
             'collection_name': collection_name,
-            'collection_property': "documents"
+            'include': ["documents"]
         })
 
         this_task_order = self.storage.load_collection({
             'collection_name': collection_name,
-            'collection_property': "ids"
+            'include': ["ids"]
         })[0]
 
         data = {

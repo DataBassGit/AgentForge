@@ -60,16 +60,15 @@ class SalienceAgent(Agent):
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
             'collection_name': "results",
-            'collection_property': "documents"
+            'include': ["documents"]
         })
         result = result_collection[0] if result_collection else ["No results found"]
 
         self.logger.log(f"Load Data Results:\n{result}", 'debug')
 
-        task_collection = self.storage.load_salient({
+        task_collection = self.storage.load_collection({
             'collection_name': "tasks",
-            'collection_property': ["documents", "metadatas"],
-            'ids': "ids"
+            'include': ["ids", "documents", "metadatas"]
         })
 
         self.logger.log(f"Tasks Before Ordering:\n{task_collection}", 'debug')

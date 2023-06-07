@@ -21,13 +21,13 @@ class StatusAgent(Agent):
         # Load necessary data from storage and return it as a dictionary
         result_collection = self.storage.load_collection({
             'collection_name': "results",
-            'collection_property': "documents"
+            'include': ["documents"],
         })
         result = result_collection[0] if result_collection else ["No results found"]
 
         task_collection = self.storage.load_collection({
             'collection_name': "tasks",
-            'collection_property': "documents"
+            'include': ["documents"],
         })
 
         task_list = task_collection if task_collection else []

@@ -223,7 +223,31 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
-# THIS IS THE DB REFACTOR.
+
+    # THIS IS THE DB REFACTOR.
+    # load_memory
+    #storageutils.load_collection(include=xx)
+    def load_collection(self, params):
+        try:
+            collection_name = params.get('collection_name', 'default_collection_name')
+
+            self.select_collection(collection_name)
+
+            where = params.pop('filter', {})
+            data = self.collection.get(**params, where=where)
+
+            logger.log(
+                f"\nCollection: {collection_name}",
+                f"\nData: {data}",
+                'debug'
+            )
+        except Exception as e:
+            print(f"\n\nError loading data: {e}")
+            data = []
+
+        return data
+
+
 
     def save_memory(self, params):
         try:
@@ -277,30 +301,3 @@ class ChromaUtils:
         logger.log(f"DB Query - Results: {result}", 'debug')
 
         return result
-
-    def load_memory(self, params):
-        try:
-            collection_name = params.get('collection_name', 'default_collection_name')
-            self.select_collection(collection_name)
-
-            ids = params.pop('ids', None)
-            if isinstance(ids, str):
-                ids = [ids]
-
-            where = params.pop('filter', {})
-
-            data = self.collection.get(
-                ids=ids,
-                where=where,
-            )
-
-            logger.log(
-                f"\nCollection: {collection_name}"
-                f"\nData: {data}",
-                'debug'
-            )
-        except Exception as e:
-            print(f"\n\nError loading data: {e}")
-            data = []
-
-        return data
