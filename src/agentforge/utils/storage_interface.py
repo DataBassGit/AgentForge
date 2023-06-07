@@ -1,7 +1,7 @@
 from ..config import loader
 
 # Read configuration file
-storage_api = loader.load_storage_interface()
+storage_api = loader.load_config().get('StorageAPI', 'library')
 persona_data = loader.load_persona_data()
 task_dicts = [{"task_order": i + 1, "task_desc": task}
               for i, task in enumerate(persona_data['Tasks'])]

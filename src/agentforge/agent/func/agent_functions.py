@@ -4,7 +4,7 @@ import time
 from contextlib import contextmanager
 from typing import Dict, Any
 
-from ...config.loader import load_persona_data
+from ...config import loader
 from ...utils.function_utils import Functions
 from ...utils.storage_interface import StorageInterface
 
@@ -42,12 +42,10 @@ class AgentFunctions:
         self.spinner_thread = threading.Thread(target=self._spinner_loop)
 
     def initialize_agent(self, agent_name):
-        import configparser
-        config = configparser.ConfigParser()
-        config.read('Config/config.ini')
+        config = loader.load_config()
 
         # Load persona data
-        self.persona_data = load_persona_data()
+        self.persona_data = loader.load_persona_data()
         if "HeuristicImperatives" in self.persona_data:
             self.agent_data.update(
                 heuristic_imperatives=self.persona_data["HeuristicImperatives"],

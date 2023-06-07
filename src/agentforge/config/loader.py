@@ -29,11 +29,6 @@ def load_persona_data() -> dict:
     return data
 
 
-def load_storage_interface():
-    config = load_config()
-    return config.get('StorageAPI', 'library')
-
-
 def load_chromadb():
     config = load_config()
     db_path = config.get('ChromaDB', 'persist_directory', fallback=None)
