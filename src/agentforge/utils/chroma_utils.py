@@ -191,7 +191,7 @@ class ChromaUtils:
             collection_name = params.pop('collection_name', None)
             ids = params.pop('ids', None)
             documents = params.pop('data', None)
-            meta = params.pop('metadata', None)
+            meta = params.pop('metadata', [{} for _ in documents])
 
             if ids is None:
                 ids = [str(uuid.uuid4()) for _ in documents]

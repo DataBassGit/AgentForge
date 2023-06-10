@@ -152,8 +152,8 @@ class Agent:
         ).strip()
 
     def save_results(self, result, collection_name="results"):
-        self.storage.save_results({
-            'result': result,
+        self.storage.save_memory({
+            'data': result,
             'collection_name': collection_name,
         })
 
