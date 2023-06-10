@@ -187,4 +187,14 @@ class Agent:
             f"\nSave Status: {status}",
             'debug'
         )
-        self.storage.save_status(status, task_id, text, task_order)
+        params = {
+            'collection_name': "tasks",
+            'ids': [task_id],
+            'documents': [text],
+            'metadata': [{
+                "task_status": status,
+                "task_desc": text,
+                "task_order": task_order,
+            }]
+        }
+        self.storage.update_memeory(params)

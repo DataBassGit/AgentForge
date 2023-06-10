@@ -74,9 +74,6 @@ class ChromaUtils:
         self.select_collection(collection_name)
         return self.collection.peek()
 
-    # THIS IS THE DB REFACTOR.
-    # load_memory
-    #storageutils.load_collection(include=xx)
     def load_collection(self, params):
         try:
             collection_name = params.pop('collection_name', 'default_collection_name')
@@ -114,6 +111,30 @@ class ChromaUtils:
 
             self.select_collection(collection_name)
             self.collection.add(
+                documents=documents,
+                metadatas=meta,
+                ids=ids
+            )
+
+        except Exception as e:
+            raise ValueError(f"\n\nError saving results. Error: {e}")
+
+    def update_memory(self, params):
+        try:
+            collection_name = params.pop('collection_name', None)
+            ids = params.pop('ids', None)
+            documents = params.pop('data', None)
+            meta = params.pop('metadata', [{} for _ in documents])
+
+            if ids is None:
+                ids = [str(uuid.uuid4()) for _ in documents]
+
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            for m in meta:
+                m['timestamp'] = timestamp
+
+            self.select_collection(collection_name)
+            self.collection.update(
                 documents=documents,
                 metadatas=meta,
                 ids=ids
