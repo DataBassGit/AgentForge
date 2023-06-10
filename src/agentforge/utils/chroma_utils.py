@@ -202,8 +202,8 @@ class ChromaUtils:
 
             self.select_collection(collection_name)
             self.collection.add(
-                documents=[str(documents)],
-                metadatas=[meta],
+                documents=documents,
+                metadatas=meta,
                 ids=ids
             )
 

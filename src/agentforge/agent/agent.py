@@ -153,7 +153,7 @@ class Agent:
 
     def save_results(self, result, collection_name="results"):
         self.storage.save_memory({
-            'data': result,
+            'result': result,
             'collection_name': collection_name,
         })
 
@@ -171,9 +171,9 @@ class Agent:
         task_orders = [task["task_order"] for task in ordered_results]
 
         params = {
-            'collection_name': collection_name,
-            'ids': [str(order) for order in task_orders],
-            'data': task_desc_list,
+            "collection_name": collection_name,
+            "ids": [str(order) for order in task_orders],
+            "data": task_desc_list,
             "metadata": metadatas,
         }
 
