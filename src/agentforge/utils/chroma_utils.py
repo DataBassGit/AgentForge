@@ -111,33 +111,7 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
-    #query_memory
-    def query_db(self, collection_name, task_desc, num_results=1):
-        self.select_collection(collection_name)
 
-        max_result_count = self.collection.count()
-
-        num_results = min(num_results, max_result_count)
-
-        logger.log(
-            f"\nDB Query - Num Results: {num_results}"
-            f"\n\nDB Query - Text Query: {task_desc}",
-            'debug'
-        )
-
-        if num_results > 0:
-            result = self.collection.query(
-                query_texts=[task_desc],
-                n_results=num_results,
-            )
-        else:
-            result = {'documents': "No Results!"}
-
-        logger.log(f"DB Query - Results: {result}", 'debug')
-
-        return result
-
-    #list_memory
     def collection_list(self):
         return self.client.list_collections()
 
@@ -199,6 +173,7 @@ class ChromaUtils:
 
             where = params.pop('filter', {})
             data = self.collection.get(**params, where=where)
+            #data = self.collection.get(**params)
 
             logger.log(
                 f"\nCollection: {collection_name}"
@@ -210,8 +185,6 @@ class ChromaUtils:
             data = []
 
         return data
-
-
 
     def save_memory(self, params):
         try:

@@ -18,10 +18,11 @@ class SalienceAgent(Agent):
         data = self.load_data_from_storage()
 
         # Feed Data to the Search Utility
-        search_results = self.storage.query_db(
-            "results",
-            data['current_task']['document'],
-            5,
+        print('\nQUERYING MEMORY\n')
+        search_results = self.storage.query_memory(
+            {'collection_name':"results",
+            'query':data['current_task']['document']},
+            5
         )['documents']
 
         self.logger.log(f"Search Results: {search_results}", 'info')
@@ -64,13 +65,13 @@ class SalienceAgent(Agent):
             'collection_name': "results",
             'include': ["documents"]
         })
-        result = result_collection[0] if result_collection else ["No results found"]
+        result = result_collection['documents'][0] if result_collection else ["No results found"]
 
         self.logger.log(f"Load Data Results:\n{result}", 'debug')
 
         task_collection = self.storage.load_collection({
             'collection_name': "tasks",
-            'include': ["ids", "documents", "metadatas"]
+            'include': ["documents", "metadatas"]
         })
 
         self.logger.log(f"Tasks Before Ordering:\n{task_collection}", 'debug')
