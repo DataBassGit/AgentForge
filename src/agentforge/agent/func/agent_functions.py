@@ -5,21 +5,17 @@ from contextlib import contextmanager
 from typing import Dict, Any
 
 from ...config import loader
-from ...utils.function_utils import Functions
 from ...utils.storage_interface import StorageInterface
 
 
 class AgentFunctions:
     agent_data: Dict[str, Any]
 
-    functions = None
     persona_data = None
     spinner_thread = None
+    spinner_running = False
 
     def __init__(self, agent_name):
-
-        # Initialize functions
-        self.functions = Functions()
 
         # Initialize agent data
         self.agent_data = {
@@ -72,25 +68,26 @@ class AgentFunctions:
 
         self.agent_data['generate_text'] = generate_text
 
-    def run_llm(self, prompt):
-        result = self.agent_data['generate_text'](
-            prompt,
-            self.agent_data['model'],
-            self.agent_data['params'],
-        ).strip()
-        return result
-
-    def print_task_list(self, ordered_results):
-        self.functions.print_task_list(ordered_results)
-
-    def print_result(self, result):
-        self.functions.print_result(result, self.agent_data['name'])
+    def _spinner(self):
+        while self.spinner_running:
+            for char in '|/-\\':
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                sys.stdout.write('\b')
+                time.sleep(0.1)
 
     def start_thinking(self):
-        print("Thinking...")
+        self.spinner_running = True
+        self.spinner_thread = threading.Thread(target=self._spinner)
+        self.spinner_thread.start()
 
     def stop_thinking(self):
-        print("Done.\n")
+        self.spinner_running = False
+        if self.spinner_thread is not None:
+            self.spinner_thread.join()  # wait for the spinner thread to finish
+        sys.stdout.write(' ')  # overwrite the last spinner character
+        sys.stdout.write('\b')  # move the cursor back one space
+        sys.stdout.flush()
 
     @contextmanager
     def thinking(self):
