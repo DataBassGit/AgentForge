@@ -19,11 +19,11 @@ class SalienceAgent(Agent):
 
         # Feed Data to the Search Utility
         print('\nQUERYING MEMORY\n')
-        search_results = self.storage.query_memory(
-            {'collection_name':"results",
-            'query':data['current_task']['document']},
-            5
-        )['documents']
+        params = {
+            'collection_name': "results",
+            'query': data['current_task']['document'],
+        }
+        search_results = self.storage.query_memory(params, 5)['documents']
 
         self.logger.log(f"Search Results: {search_results}", 'info')
 
@@ -65,7 +65,8 @@ class SalienceAgent(Agent):
             'collection_name': "results",
             'include': ["documents"]
         })
-        result = result_collection['documents'][0] if result_collection else ["No results found"]
+        result = result_collection['documents'][0] if result_collection else [
+            "No results found"]
 
         self.logger.log(f"Load Data Results:\n{result}", 'debug')
 
