@@ -59,7 +59,6 @@ class Agent:
         # Save and print the results
         if "result" in parsed_data:
             self.save_results(parsed_data["result"])
-            self.agent_funcs.print_result(parsed_data)
             output = parsed_data
 
         if "tasks" in parsed_data:

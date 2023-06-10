@@ -38,9 +38,6 @@ class SearchAgent:
         # 7. Stop Console Feedback
         self.agent_funcs.stop_thinking()
 
-        # 8. Print the result or any other relevant information
-        self.agent_funcs.print_result(result)
-
         logger.log(f"Agent Done!", 'info')
 
     def load_data_from_storage(self):
