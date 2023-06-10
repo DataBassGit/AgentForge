@@ -18,7 +18,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "keyboard~=0.13.5",
+        "pynput~=1.7.6",
         "python-dotenv~=1.0.0",
         "PyYAML~=6.0",
         "requests~=2.28.2",

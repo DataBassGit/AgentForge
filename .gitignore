@@ -15,4 +15,4 @@ src/agentforge/persona/chatbot.json
 
 src/agentforge/salience.py
 
-src/DB/
+tests/DB/

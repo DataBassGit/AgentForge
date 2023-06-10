@@ -54,9 +54,6 @@ class Agent:
 
         parsed_data = self.parse_output(result, bot_id, data)
 
-        # Stop Console Feedback
-        self.agent_funcs.stop_thinking()
-
         output = None
 
         # Save and print the results
@@ -178,4 +175,3 @@ class Agent:
             'debug'
         )
         self.storage.save_status(status, task_id, text, task_order)
-
