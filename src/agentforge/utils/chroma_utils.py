@@ -1,4 +1,3 @@
-import configparser
 import os
 import uuid
 from datetime import datetime
@@ -68,99 +67,12 @@ class ChromaUtils:
         except Exception as e:
             print("\n\nError clearing table:", e)
 
-    #save_memory
-    def save_tasks(self, params):
-        tasks = params.get('tasks', [])
-        results = params.get('results', [])
-        collection_name = params.get('collection_name', 'default_collection_name')
-
-        try:
-            task_orders = [task["task_order"] for task in tasks]
-            self.select_collection(collection_name)
-            metadatas = [{
-                "task_status": "not completed",
-                "task_desc": task["task_desc"],
-                "list_id": str(uuid.uuid4()),
-                "task_order": task["task_order"]
-            } for task in tasks]
-
-            self.collection.add(
-
-                metadatas=metadatas,
-                documents=results,
-                ids=[str(order) for order in task_orders]
-            )
-        except Exception as e:
-            raise ValueError(f"Error saving tasks. Error: {e}")
-
-    #save_memory
-    def save_results(self, params):
-        result = params.get('result', None)
-        collection_name = params.get('collection_name', 'default_collection_name')
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        try:
-            self.select_collection(collection_name)
-        except Exception as e:
-            raise ValueError(f"Error selecting collection.") from e
-        try:
-            self.collection.add(
-                documents=[result],
-                metadatas=[{"timestamp": timestamp}],
-                ids=[str(uuid.uuid4())],
-            )
-        except Exception as e:
-            raise ValueError(f"\n\nError saving results. Error: {e}")
-
-
     def collection_list(self):
         return self.client.list_collections()
 
     def peek(self, collection_name):
         self.select_collection(collection_name)
         return self.collection.peek()
-
-    # save_memory
-    def save_status(self, status, task_id, task_desc, task_order):
-        logger.log(
-            f"\nUpdating Task: {task_desc})"
-            f"\nTask ID: {task_id}"
-            f"\nTask Status: {status}"
-            f"\nTask Order: {task_order}",
-            'debug'
-        )
-        self.select_collection("tasks")
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        try:
-            self.collection.update(
-                ids=[task_id],
-                documents=[task_desc],
-                metadatas=[{
-                    "timestamp": timestamp,
-                    "task_status": status,
-                    "task_desc": task_desc,
-                    "task_order": task_order
-                }]
-            )
-        except Exception as e:
-            raise ValueError(f"\n\nError saving status. Error: {e}")
-
-    # save_memory
-    def save_heuristic(self, params, collection_name):
-        try:
-            result = params.pop('data', None)
-            meta = params
-
-            self.select_collection(collection_name)
-            self.collection.add(
-                documents=[str(result)],
-                # metadatas=[{"timestamp": timestamp}],
-                metadatas=[meta],
-                ids=[str(uuid.uuid4())],
-            )
-            # print(f"\n\nData Saved to Collection: {self.collection.get()}")
-        except Exception as e:
-            raise ValueError(f"\n\nError saving results. Error: {e}")
-
 
     # THIS IS THE DB REFACTOR.
     # load_memory
