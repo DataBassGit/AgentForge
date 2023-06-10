@@ -1,3 +1,5 @@
+import uuid
+
 from .func.agent_functions import AgentFunctions
 from ..logs.logger_config import Logger
 
@@ -159,11 +161,23 @@ class Agent:
         collection_name = "tasks"
         self.storage.clear_collection(collection_name)
 
-        self.storage.save_tasks({
-            'tasks': ordered_results,
-            'results': task_desc_list,
-            'collection_name': collection_name
-        })
+        metadatas = [{
+            "task_status": "not completed",
+            "task_desc": task["task_desc"],
+            "list_id": str(uuid.uuid4()),
+            "task_order": task["task_order"]
+        } for task in ordered_results]
+
+        task_orders = [task["task_order"] for task in ordered_results]
+
+        params = {
+            'collection_name': collection_name,
+            'ids': [str(order) for order in task_orders],
+            'data': task_desc_list,
+            "metadata": metadatas,
+        }
+
+        self.storage.save_memory(params)
 
     def save_status(self, status, task_id, text, task_order):
         self.logger.log(

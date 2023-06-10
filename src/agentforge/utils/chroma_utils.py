@@ -189,18 +189,20 @@ class ChromaUtils:
     def save_memory(self, params):
         try:
             collection_name = params.pop('collection_name', None)
-            result = params.pop('data', None)
             ids = params.pop('ids', None)
+            documents = params.pop('data', None)
+            meta = params.pop('metadata', None)
 
             if ids is None:
-                ids = [str(uuid.uuid4())]
+                ids = [str(uuid.uuid4()) for _ in documents]
 
-            meta = params
-            meta['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            for m in meta:
+                m['timestamp'] = timestamp
 
             self.select_collection(collection_name)
             self.collection.add(
-                documents=[str(result)],
+                documents=[str(documents)],
                 metadatas=[meta],
                 ids=ids
             )
