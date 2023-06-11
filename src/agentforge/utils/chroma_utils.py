@@ -43,14 +43,16 @@ class ChromaUtils:
 
     def init_storage(self):
         if self.client is None:
-            settings = Settings(chroma_db_impl=chroma_db_impl, persist_directory=db_path)
+            settings = Settings(chroma_db_impl=chroma_db_impl,
+                                persist_directory=db_path)
             if db_path:
                 settings.persist_directory = db_path
             self.client = chromadb.Client(settings)
 
     def select_collection(self, collection_name):
         try:
-            self.collection = self.client.get_or_create_collection(collection_name, embedding_function=openai_ef)
+            self.collection = self.client.get_or_create_collection(collection_name,
+                                                                   embedding_function=openai_ef)
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
@@ -82,7 +84,7 @@ class ChromaUtils:
 
             where = params.pop('filter', {})
             data = self.collection.get(**params, where=where)
-            #data = self.collection.get(**params)
+            # data = self.collection.get(**params)
 
             logger.log(
                 f"\nCollection: {collection_name}"

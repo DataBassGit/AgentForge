@@ -153,7 +153,7 @@ class Agent:
 
     def save_results(self, result, collection_name="results"):
         self.storage.save_memory({
-            'result': result,
+            'data': result,
             'collection_name': collection_name,
         })
 
@@ -190,11 +190,11 @@ class Agent:
         params = {
             'collection_name': "tasks",
             'ids': [task_id],
-            'documents': [text],
+            'data': [text],
             'metadata': [{
                 "task_status": status,
                 "task_desc": text,
                 "task_order": task_order,
             }]
         }
-        self.storage.update_memeory(params)
+        self.storage.update_memory(params)
