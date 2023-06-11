@@ -30,6 +30,20 @@ def _load():
         _persona = json.load(json_file)
 
 
+def _set_model_api(language_model_api):
+    if language_model_api == 'oobabooga_api':
+        from .llm.oobabooga_api import generate_text
+    elif language_model_api == 'openai_api':
+        from .llm.openai_api import generate_text
+    elif language_model_api == 'claude_api':
+        from .llm.claude_api import generate_text
+    else:
+        raise ValueError(
+            f"Unsupported Language Model API library: {language_model_api}")
+
+    return generate_text
+
+
 def get(section, key, **kwargs):
     if not _parser:
         _load()

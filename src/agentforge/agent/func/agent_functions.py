@@ -4,22 +4,7 @@ from ... import config
 from ...utils.storage_interface import StorageInterface
 
 
-def _set_model_api(language_model_api):
-    if language_model_api == 'oobabooga_api':
-        from ...llm.oobabooga_api import generate_text
-    elif language_model_api == 'openai_api':
-        from ...llm.openai_api import generate_text
-    elif language_model_api == 'claude_api':
-        from ...llm.claude_api import generate_text
-    else:
-        raise ValueError(
-            f"Unsupported Language Model API library: {language_model_api}")
-
-    return generate_text
-
-
 class AgentFunctions:
-    agent_data: Dict[str, Any]
 
     def __init__(self, agent_name):
         # Load persona data
@@ -27,11 +12,11 @@ class AgentFunctions:
 
         # Load API and Model
         language_model_api = self.persona_data[agent_name]['API']
-        generate_text = _set_model_api(language_model_api)
+        generate_text = config._set_model_api(language_model_api)
         model = self.persona_data[agent_name]['Model']
 
         # Initialize agent data
-        self.agent_data = dict(
+        self.agent_data: Dict[str, Any] = dict(
             name=agent_name,
             generate_text=generate_text,
             storage=StorageInterface(),
