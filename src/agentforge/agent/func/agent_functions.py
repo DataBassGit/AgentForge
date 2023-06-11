@@ -69,20 +69,6 @@ class AgentFunctions:
 
         self.agent_data['generate_text'] = generate_text
 
-    def run_llm(self, prompt):
-        result = self.agent_data['generate_text'](
-            prompt,
-            self.agent_data['model'],
-            self.agent_data['params'],
-        ).strip()
-        return result
-
-    def print_task_list(self, task_list):
-        # Print the task list
-        print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
-        for t in task_list:
-            print(str(t["task_order"]) + ": " + t["task_desc"])
-
     def _spinner(self):
         while self.spinner_running:
             for char in '|/-\\':

@@ -18,6 +18,13 @@ def order_tasks(task_list):
     return ordered_results
 
 
+def print_task_list(task_list):
+    # Print the task list
+    print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
+    for t in task_list:
+        print(str(t["task_order"]) + ": " + t["task_desc"])
+
+
 class Agent:
     def __init__(self, agent_name=None, log_level="info"):
         if agent_name is None:
@@ -68,7 +75,7 @@ class Agent:
             output = ordered_tasks
             task_desc_list = [task['task_desc'] for task in ordered_tasks]
             self.save_tasks(ordered_tasks, task_desc_list)
-            self.agent_funcs.print_task_list(ordered_tasks)
+            print_task_list(ordered_tasks)
 
         if "status" in parsed_data:
             task_id = parsed_data["task"]["task_id"]

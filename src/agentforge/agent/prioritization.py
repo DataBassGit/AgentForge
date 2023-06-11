@@ -1,20 +1,6 @@
 from .agent import Agent
 
 
-def calculate_next_task_order(this_task_order):
-    return int(this_task_order) + 1
-
-
-def order_tasks(task_list):
-    filtered_results = [task for task in task_list if task['task_order'].isdigit()]
-
-    ordered_results = [
-        {'task_order': int(task['task_order']), 'task_desc': task['task_desc']}
-        for task in filtered_results]
-
-    return ordered_results
-
-
 class PrioritizationAgent(Agent):
     # Additional functions
     def load_data_from_storage(self):
