@@ -31,7 +31,7 @@ class SalienceAgent(Agent):
         if search_results == 'No Results!':
             context = "No previous actions have been taken."
         else:
-            context = self.summarization_agent.run(search_results)
+            context = self.summarization_agent.run(text="\n".join(search_results[0]))
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
