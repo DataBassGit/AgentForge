@@ -15,7 +15,7 @@ git clone https://github.com/DataBassGit/AgentForge.git
 Install the required dependencies:
 
 ```
-pip install -r requirements.txt
+pip install -e .
 ```
 
 Navigate to /tests/examples/.agentforge, and use the .env.example to create a .env file that contains your api keys.
