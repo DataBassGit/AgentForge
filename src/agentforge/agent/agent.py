@@ -66,7 +66,7 @@ class Agent:
             agent_name = self.__class__.__name__
         self._spinner = Spinner()
         self.agent_data = config.get_agent_data(agent_name)
-        self.storage = self.agent_data['storage'].storage_utils
+        self.storage = self.agent_data['storage']
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 

@@ -58,7 +58,7 @@ def get_agent_data(agent_name):
         model=get('ModelLibrary', persona_data[agent_name]['Model']),
         prompts=persona_data[agent_name]['Prompts'],
         params=persona_data[agent_name]['Params'],
-        storage=StorageInterface(),
+        storage=StorageInterface().storage_utils,
     )
 
     if "HeuristicImperatives" in persona_data:
