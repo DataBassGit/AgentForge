@@ -4,7 +4,7 @@ import time
 from contextlib import contextmanager
 from typing import Dict, Any
 
-from ...config import loader
+from ... import config
 from ...utils.storage_interface import StorageInterface
 
 
@@ -32,7 +32,6 @@ class AgentFunctions:
         self.initialize_agent(agent_name)
 
     def initialize_agent(self, agent_name):
-        config = loader.Config()
 
         # Load persona data
         self.persona_data = config.persona()

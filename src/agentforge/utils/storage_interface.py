@@ -1,9 +1,8 @@
 import uuid
 
-from ..config import loader
+from .. import config
 
 # Read configuration file
-config = loader.Config()
 storage_api = config.storage_api()
 persona_data = config.persona()
 task_dicts = [{"task_order": i + 1, "task_desc": task}
