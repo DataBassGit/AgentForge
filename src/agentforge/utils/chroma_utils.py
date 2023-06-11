@@ -83,8 +83,9 @@ class ChromaUtils:
             self.select_collection(collection_name)
 
             where = params.pop('filter', {})
-            data = self.collection.get(**params, where=where)
-            # data = self.collection.get(**params)
+            if where:
+                params.update(where=where)
+            data = self.collection.get(**params)
 
             logger.log(
                 f"\nCollection: {collection_name}"
