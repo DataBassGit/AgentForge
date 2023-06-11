@@ -1,6 +1,9 @@
+import sys
+import threading
+import time
 import uuid
 
-from .func.agent_functions import AgentFunctions, Spinner
+from .func.agent_functions import AgentFunctions
 from ..logs.logger_config import Logger
 
 
@@ -29,6 +32,32 @@ def _render_template(template, variables, data):
     return template.format(
         **{k: v for k, v in data.items() if k in variables}
     )
+
+
+class Spinner:
+    spinner_thread = None
+    spinner_running = False
+
+    def _spin(self):
+        while self.spinner_running:
+            for char in '|/-\\':
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                sys.stdout.write('\b')
+                time.sleep(0.1)
+
+    def __enter__(self):
+        self.spinner_running = True
+        self.spinner_thread = threading.Thread(target=self._spin)
+        self.spinner_thread.start()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.spinner_running = False
+        if self.spinner_thread is not None:
+            self.spinner_thread.join()  # wait for the spinner thread to finish
+        sys.stdout.write(' ')  # overwrite the last spinner character
+        sys.stdout.write('\b')  # move the cursor back one space
+        sys.stdout.flush()
 
 
 class Agent:
