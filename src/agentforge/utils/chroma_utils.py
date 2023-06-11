@@ -6,14 +6,14 @@ import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
-from ..config import loader
+from .. import config
 from ..logs.logger_config import Logger
 
 logger = Logger(name="Chroma Utils")
 logger.set_level('info')
 
 # Read configuration file
-db_path, chroma_db_impl = loader.Config().chromadb()
+db_path, chroma_db_impl = config.chromadb()
 
 # Get API keys from environment variables
 openai_api_key = os.getenv('OPENAI_API_KEY')

@@ -1,14 +1,17 @@
+import sys
+import threading
+import time
 import uuid
 
-from .func.agent_functions import AgentFunctions
 from ..logs.logger_config import Logger
+from .. import config
 
 
-def calculate_next_task_order(this_task_order):
+def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
 
 
-def order_tasks(task_list):
+def _order_tasks(task_list):
     filtered_results = [task for task in task_list if task['task_order'].isdigit()]
 
     ordered_results = [
@@ -18,13 +21,52 @@ def order_tasks(task_list):
     return ordered_results
 
 
+def _print_task_list(task_list):
+    # Print the task list
+    print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
+    for t in task_list:
+        print(str(t["task_order"]) + ": " + t["task_desc"])
+
+
+def _render_template(template, variables, data):
+    return template.format(
+        **{k: v for k, v in data.items() if k in variables}
+    )
+
+
+class Spinner:
+    spinner_thread = None
+    spinner_running = False
+
+    def _spin(self):
+        while self.spinner_running:
+            for char in '|/-\\':
+                sys.stdout.write(char)
+                sys.stdout.flush()
+                sys.stdout.write('\b')
+                time.sleep(0.1)
+
+    def __enter__(self):
+        self.spinner_running = True
+        self.spinner_thread = threading.Thread(target=self._spin)
+        self.spinner_thread.start()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.spinner_running = False
+        if self.spinner_thread is not None:
+            self.spinner_thread.join()  # wait for the spinner thread to finish
+        sys.stdout.write(' ')  # overwrite the last spinner character
+        sys.stdout.write('\b')  # move the cursor back one space
+        sys.stdout.flush()
+
+
 class Agent:
     def __init__(self, agent_name=None, log_level="info"):
         if agent_name is None:
             agent_name = self.__class__.__name__
-        self.agent_funcs = AgentFunctions(agent_name)
-        self.agent_data = self.agent_funcs.agent_data
-        self.storage = self.agent_data['storage'].storage_utils
+        self._spinner = Spinner()
+        self.agent_data = config.get_agent_data(agent_name)
+        self.storage = self.agent_data['storage']
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 
@@ -45,13 +87,13 @@ class Agent:
 
         task_order = data.get('this_task_order')
         if task_order is not None:
-            data['next_task_order'] = calculate_next_task_order(task_order)
+            data['next_task_order'] = _calculate_next_task_order(task_order)
 
         # Generate prompt
         prompt = self.generate_prompt(**data)
 
         # Execute the main task of the agent
-        with self.agent_funcs.thinking():
+        with self._spinner:
             result = self.run_llm(prompt)
 
         parsed_data = self.parse_output(result, bot_id, data)
@@ -64,11 +106,11 @@ class Agent:
             output = parsed_data
 
         if "tasks" in parsed_data:
-            ordered_tasks = order_tasks(parsed_data["tasks"])
+            ordered_tasks = _order_tasks(parsed_data["tasks"])
             output = ordered_tasks
             task_desc_list = [task['task_desc'] for task in ordered_tasks]
             self.save_tasks(ordered_tasks, task_desc_list)
-            self.agent_funcs.print_task_list(ordered_tasks)
+            _print_task_list(ordered_tasks)
 
         if "status" in parsed_data:
             task_id = parsed_data["task"]["task_id"]
@@ -94,11 +136,6 @@ class Agent:
 
     def load_data_from_memory(self):
         raise NotImplementedError
-
-    def render_template(self, template, variables, data):
-        return template.format(
-            **{k: v for k, v in data.items() if k in variables}
-        )
 
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
@@ -139,7 +176,7 @@ class Agent:
             )
 
         rendered_templates = [
-            self.render_template(template, variables, data=kwargs)
+            _render_template(template, variables, data=kwargs)
             for template, variables in templates
         ]
 
