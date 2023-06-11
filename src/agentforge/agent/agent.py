@@ -1,6 +1,6 @@
 import uuid
 
-from .func.agent_functions import AgentFunctions
+from .func.agent_functions import AgentFunctions, Spinner
 from ..logs.logger_config import Logger
 
 
@@ -25,10 +25,17 @@ def _print_task_list(task_list):
         print(str(t["task_order"]) + ": " + t["task_desc"])
 
 
+def _render_template(template, variables, data):
+    return template.format(
+        **{k: v for k, v in data.items() if k in variables}
+    )
+
+
 class Agent:
     def __init__(self, agent_name=None, log_level="info"):
         if agent_name is None:
             agent_name = self.__class__.__name__
+        self._spinner = Spinner()
         self.agent_funcs = AgentFunctions(agent_name)
         self.agent_data = self.agent_funcs.agent_data
         self.storage = self.agent_data['storage'].storage_utils
@@ -58,7 +65,7 @@ class Agent:
         prompt = self.generate_prompt(**data)
 
         # Execute the main task of the agent
-        with self.agent_funcs.thinking():
+        with self._spinner:
             result = self.run_llm(prompt)
 
         parsed_data = self.parse_output(result, bot_id, data)
@@ -102,11 +109,6 @@ class Agent:
     def load_data_from_memory(self):
         raise NotImplementedError
 
-    def render_template(self, template, variables, data):
-        return template.format(
-            **{k: v for k, v in data.items() if k in variables}
-        )
-
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
         prompts = self.agent_data['prompts']
@@ -146,7 +148,7 @@ class Agent:
             )
 
         rendered_templates = [
-            self.render_template(template, variables, data=kwargs)
+            _render_template(template, variables, data=kwargs)
             for template, variables in templates
         ]
 

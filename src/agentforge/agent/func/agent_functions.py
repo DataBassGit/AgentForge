@@ -1,7 +1,6 @@
 import sys
 import threading
 import time
-from contextlib import contextmanager
 from typing import Dict, Any
 
 from ... import config
@@ -24,9 +23,6 @@ def _set_model_api(language_model_api):
 
 class AgentFunctions:
     agent_data: Dict[str, Any]
-
-    spinner_thread = None
-    spinner_running = False
 
     def __init__(self, agent_name):
         # Load persona data
@@ -52,7 +48,12 @@ class AgentFunctions:
             imperatives = self.persona_data["HeuristicImperatives"]
             self.agent_data.update(heuristic_imperatives=imperatives)
 
-    def _spinner(self):
+
+class Spinner:
+    spinner_thread = None
+    spinner_running = False
+
+    def _spin(self):
         while self.spinner_running:
             for char in '|/-\\':
                 sys.stdout.write(char)
@@ -60,23 +61,15 @@ class AgentFunctions:
                 sys.stdout.write('\b')
                 time.sleep(0.1)
 
-    def _start_thinking(self):
+    def __enter__(self):
         self.spinner_running = True
-        self.spinner_thread = threading.Thread(target=self._spinner)
+        self.spinner_thread = threading.Thread(target=self._spin)
         self.spinner_thread.start()
 
-    def _stop_thinking(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.spinner_running = False
         if self.spinner_thread is not None:
             self.spinner_thread.join()  # wait for the spinner thread to finish
         sys.stdout.write(' ')  # overwrite the last spinner character
         sys.stdout.write('\b')  # move the cursor back one space
         sys.stdout.flush()
-
-    @contextmanager
-    def thinking(self):
-        try:
-            self._start_thinking()
-            yield
-        finally:
-            self._stop_thinking()
