@@ -2,11 +2,12 @@ import configparser
 import json
 import os
 import pathlib
+from typing import Dict
 
 from dotenv import load_dotenv
 
 _parser: configparser.ConfigParser | None = None
-_persona: dict | None = None
+_persona: Dict | None = None
 
 
 def _load():
