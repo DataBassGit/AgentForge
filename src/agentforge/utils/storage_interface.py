@@ -2,13 +2,6 @@ import uuid
 
 from .. import config
 
-# Read configuration file
-storage_api = config.storage_api()
-persona_data = config.persona()
-task_dicts = [{"task_order": i + 1, "task_desc": task}
-              for i, task in enumerate(persona_data['Tasks'])]
-task_list = [task_dict["task_desc"] for task_dict in task_dicts]
-
 
 class StorageInterface:
     _instance = None
@@ -26,6 +19,7 @@ class StorageInterface:
 
     def initialize_storage(self):
         if self.storage_utils is None:
+            storage_api = config.storage_api()
             if storage_api == 'chroma':
                 self.initialize_chroma()
             else:
@@ -41,6 +35,11 @@ class StorageInterface:
         if config.get('ChromaDB', 'DBFreshStart') == 'True':
             collection_name = "tasks"
             self.storage_utils.clear_collection(collection_name)
+
+            persona_data = config.persona()
+            task_dicts = [{"task_order": i + 1, "task_desc": task}
+                          for i, task in enumerate(persona_data['Tasks'])]
+            task_list = [task_dict["task_desc"] for task_dict in task_dicts]
 
             metadatas = [{
                 "task_status": "not completed",
