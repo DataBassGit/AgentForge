@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 
+
 from dotenv import load_dotenv
 
 CONFIG_PATH = pathlib.Path(os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge"))
@@ -16,6 +17,9 @@ class Config:
         self._path = path
         self._parser = configparser.ConfigParser()
         self._parser.read(CONFIG_PATH / 'config.ini')
+
+    def get(self, section, key):
+        return self._parser.get(section, key)
 
     def persona(self):
         persona = self._parser.get('Persona', 'persona')

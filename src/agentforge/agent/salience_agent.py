@@ -65,8 +65,11 @@ class SalienceAgent(Agent):
             'collection_name': "results",
             'include': ["documents"]
         })
-        result = result_collection['documents'][0] if result_collection else [
-            "No results found"]
+
+        if result_collection['documents']:
+            result = result_collection['documents'][0]
+        else:
+            result = "No results found"
 
         self.logger.log(f"Load Data Results:\n{result}", 'debug')
 

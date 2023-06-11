@@ -1,3 +1,5 @@
+import uuid
+
 from ..config import loader
 
 # Read configuration file
@@ -36,3 +38,22 @@ class StorageInterface:
         self.storage_utils.init_storage()
         self.storage_utils.select_collection("results")
         self.storage_utils.select_collection("tasks")
+
+        if config.get('ChromaDB', 'DBFreshStart') == 'True':
+            collection_name = "tasks"
+            self.storage_utils.clear_collection(collection_name)
+
+            metadatas = [{
+                "task_status": "not completed",
+                "task_desc": task["task_desc"],
+                "list_id": str(uuid.uuid4()),
+                "task_order": task["task_order"]
+            } for task in task_dicts]
+
+            params = {
+                "collection_name": collection_name,
+                "ids": [str(order["task_order"]) for order in task_dicts],
+                "data": task_list,
+                "metadata": metadatas,
+            }
+            self.storage_utils.save_memory(params)
