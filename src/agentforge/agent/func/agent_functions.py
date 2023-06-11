@@ -61,8 +61,8 @@ class AgentFunctions:
             from ...llm.oobabooga_api import generate_text
         elif language_model_api == 'openai_api':
             from ...llm.openai_api import generate_text
-        elif language_model_api == 'claudia_api':
-            from ...llm.claudia_api import generate_text
+        elif language_model_api == 'claude_api':
+            from ...llm.claude_api import generate_text
         else:
             raise ValueError(
                 f"Unsupported Language Model API library: {language_model_api}")

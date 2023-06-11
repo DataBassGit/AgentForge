@@ -1,5 +1,5 @@
 from agentforge.utils import storage_interface
-from agentforge.agent.summarization_agent import SummarizationAgent
+from agentforge.agent.summarization import SummarizationAgent
 
 
 def main():
