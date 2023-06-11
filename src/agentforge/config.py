@@ -5,19 +5,28 @@ import pathlib
 
 from dotenv import load_dotenv
 
-# load app configuration from file
-_config_path = pathlib.Path(os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge"))
 _parser: configparser.ConfigParser | None = None
 _persona: dict | None = None
 
 
 def _load():
     global _parser
+    global _persona
+
+    _config_path = pathlib.Path(
+        os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
+    )
+
+    load_dotenv(_config_path / '.env')
 
     _parser = configparser.ConfigParser()
     _parser.read(_config_path / 'config.ini')
 
-    load_dotenv(_config_path / '.env')
+    persona_name = _parser.get('Persona', 'persona')
+    persona_path = _config_path / f"{persona_name}.json"
+
+    with open(persona_path, 'r') as json_file:
+        _persona = json.load(json_file)
 
 
 def get(section, key, **kwargs):
@@ -31,14 +40,8 @@ def get(section, key, **kwargs):
 
 
 def persona():
-    global _persona
-
     if not _persona:
-        persona_name = get('Persona', 'persona')
-        persona_path = _config_path / f"{persona_name}.json"
-
-        with open(persona_path, 'r') as json_file:
-            _persona = json.load(json_file)
+        _load()
 
     return _persona
 
