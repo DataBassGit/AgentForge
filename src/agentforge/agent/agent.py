@@ -4,11 +4,11 @@ from .func.agent_functions import AgentFunctions
 from ..logs.logger_config import Logger
 
 
-def calculate_next_task_order(this_task_order):
+def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
 
 
-def order_tasks(task_list):
+def _order_tasks(task_list):
     filtered_results = [task for task in task_list if task['task_order'].isdigit()]
 
     ordered_results = [
@@ -18,7 +18,7 @@ def order_tasks(task_list):
     return ordered_results
 
 
-def print_task_list(task_list):
+def _print_task_list(task_list):
     # Print the task list
     print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
     for t in task_list:
@@ -52,7 +52,7 @@ class Agent:
 
         task_order = data.get('this_task_order')
         if task_order is not None:
-            data['next_task_order'] = calculate_next_task_order(task_order)
+            data['next_task_order'] = _calculate_next_task_order(task_order)
 
         # Generate prompt
         prompt = self.generate_prompt(**data)
@@ -71,11 +71,11 @@ class Agent:
             output = parsed_data
 
         if "tasks" in parsed_data:
-            ordered_tasks = order_tasks(parsed_data["tasks"])
+            ordered_tasks = _order_tasks(parsed_data["tasks"])
             output = ordered_tasks
             task_desc_list = [task['task_desc'] for task in ordered_tasks]
             self.save_tasks(ordered_tasks, task_desc_list)
-            print_task_list(ordered_tasks)
+            _print_task_list(ordered_tasks)
 
         if "status" in parsed_data:
             task_id = parsed_data["task"]["task_id"]
