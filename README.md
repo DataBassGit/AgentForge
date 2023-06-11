@@ -3,6 +3,8 @@ AgentForge - is an advanced AI-driven task automation system designed for genera
 
 The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures. Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve. By fostering a collaborative and accessible environment, AgentForge seeks to contribute to the advancement of AI research and development across various domains.
 
+![Salience.py](/docs/SalienceVisualization.png)
+
 ## Installation
 To install AgentForge, follow these steps:
 
