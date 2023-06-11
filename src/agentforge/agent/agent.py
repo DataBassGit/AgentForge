@@ -104,24 +104,32 @@ class Agent:
         # Load Prompts from Persona Data
         prompts = self.agent_data['prompts']
         system_prompt = prompts['SystemPrompt']
-        context_prompt = prompts['ContextPrompt']
-        instruction_prompt = prompts['InstructionPrompt']
+        instruction_prompt = prompts.get('InstructionPrompt', {})
+        context_prompt = prompts.get('ContextPrompt', {})
         feedback_prompt = prompts.get('FeedbackPrompt', {})
 
         system_prompt_template = system_prompt["template"]
-        context_prompt_template = context_prompt["template"]
-        instruction_prompt_template = instruction_prompt["template"]
 
         system_prompt_vars = system_prompt["vars"]
-        context_prompt_vars = context_prompt["vars"]
-        instruction_prompt_vars = instruction_prompt["vars"]
 
         # Format Prompts
         templates = [
             (system_prompt_template, system_prompt_vars),
-            (context_prompt_template, context_prompt_vars),
-            (instruction_prompt_template, instruction_prompt_vars),
         ]
+
+        if instruction_prompt:
+            instruction_prompt_template = instruction_prompt["template"]
+            instruction_prompt_vars = instruction_prompt["vars"]
+            templates.append(
+                (instruction_prompt_template, instruction_prompt_vars),
+            )
+
+        if context_prompt:
+            context_prompt_template = context_prompt["template"]
+            context_prompt_vars = context_prompt["vars"]
+            templates.append(
+                (context_prompt_template, context_prompt_vars),
+            )
 
         if feedback_prompt:
             feedback_prompt_template = feedback_prompt["template"]
