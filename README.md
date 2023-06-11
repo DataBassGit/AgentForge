@@ -1,47 +1,35 @@
-# HiAGI
-HiAGI is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, HiAGI aims to deliver efficient and reliable task management solutions.
+# AgentForge
+AgentForge - is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective. Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, AgentForge aims to deliver efficient and reliable task management solutions.
 
-The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures. Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve. By fostering a collaborative and accessible environment, HiAGI seeks to contribute to the advancement of AI research and development across various domains.
+The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures. Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve. By fostering a collaborative and accessible environment, AgentForge seeks to contribute to the advancement of AI research and development across various domains.
 
 ## Installation
-1. Clone the repository:
+To install AgentForge, follow these steps:
+
+Clone the GitHub repository:
 
 ```
-git clone https://github.com/your_github_username/HiAGI.git
-cd HiAGI
+git clone https://github.com/DataBassGit/HiAGI.git
 ```
 
-2. Install the required libraries:
+Install the required dependencies:
 
 ```
 pip install -r requirements.txt
 ```
-3. Update the 'config.ini' file in the Config directory to indicate the DB, Language Model API, and evironment variables if you are using locally hosted API services.
 
-4. Create a copy of '.env.example' in the Config folder named '.env' and add your API keys there.
-
-5. Modify the 'default.json' file in the Personas directory with your objective and tasks. You can also adjust parameters and update the agent prompts here.
-
-6. For web scraping, you will have installed Spacy, but you also need to install a model. By default it uses the following model:
-
-```
-python -m spacy download en_core_web_sm 
-```
+Navigate to /tests/examples/.agentforge, and use the .env.example to create a .env file that contains your api keys.
 
 ## Usage
-1. Run the main.py script to start HiAGI:
 
-```
-python main.py
-```
-This script will initialize the AI system, generate tasks, prioritize them, and execute the tasks based on the given objective.
+Modify the agent prompts in /tests/examples/.agentforgedefault.json. At the top of the file you will edit the name, objective, and tasks. This should be enough to start.
 
-2. Select whether you want to use auto or manual mode. Automode will run continuously. This is dangerous if you are using a paid LLM API. If you select manual mode, you will be able to add additional context or instructions to the prompt sent ot the Execution Agent.
+Navigate to /tests/examples/ in your console and run python salience.py
 
-3. Monitor the output to see the tasks being generated and executed.
+You will be asked if you would like to run in manual mode or automode. Choose manual mode for now. Before each round of execution, you will be asked to continue. The agent will automatically provide feedback after each execution. This will add the feedback to the execution prompt. You can also type whatever feedback you would like to provide to the bot manually.
 
 ## Contributing
 Feel free to open issues or submit pull requests with improvements or bug fixes. Your contributions are welcome!
 
 ## License
-This project is licensed under the MIT License. See LICENSE for more details.
+This project is licensed under the GNU General Public License. See /docs/LICENSE for more details.
