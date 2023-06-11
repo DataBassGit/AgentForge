@@ -2,9 +2,11 @@ import configparser
 import json
 import os
 import pathlib
-from typing import Dict
+from typing import Dict, Any
 
 from dotenv import load_dotenv
+
+from .utils.storage_interface import StorageInterface
 
 _parser: configparser.ConfigParser | None = None
 _persona: Dict | None = None
@@ -30,7 +32,7 @@ def _load():
         _persona = json.load(json_file)
 
 
-def _set_model_api(language_model_api):
+def _get_llm(language_model_api):
     if language_model_api == 'oobabooga_api':
         from .llm.oobabooga_api import generate_text
     elif language_model_api == 'openai_api':
@@ -42,6 +44,28 @@ def _set_model_api(language_model_api):
             f"Unsupported Language Model API library: {language_model_api}")
 
     return generate_text
+
+
+def get_agent_data(agent_name):
+    # Load persona data
+    persona_data = persona()
+
+    # Initialize agent data
+    agent_data: Dict[str, Any] = dict(
+        name=agent_name,
+        generate_text=_get_llm(persona_data[agent_name]['API']),
+        objective=persona_data['Objective'],
+        model=get('ModelLibrary', persona_data[agent_name]['Model']),
+        prompts=persona_data[agent_name]['Prompts'],
+        params=persona_data[agent_name]['Params'],
+        storage=StorageInterface(),
+    )
+
+    if "HeuristicImperatives" in persona_data:
+        imperatives = persona_data["HeuristicImperatives"]
+        agent_data.update(heuristic_imperatives=imperatives)
+
+    return agent_data
 
 
 def get(section, key, **kwargs):
@@ -63,10 +87,6 @@ def persona():
 
 def storage_api():
     return get('StorageAPI', 'library')
-
-
-def model_library(model):
-    return get('ModelLibrary', model)
 
 
 def chromadb():

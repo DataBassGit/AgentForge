@@ -3,8 +3,8 @@ import threading
 import time
 import uuid
 
-from .func.agent_functions import AgentFunctions
 from ..logs.logger_config import Logger
+from .. import config
 
 
 def _calculate_next_task_order(this_task_order):
@@ -65,8 +65,7 @@ class Agent:
         if agent_name is None:
             agent_name = self.__class__.__name__
         self._spinner = Spinner()
-        self.agent_funcs = AgentFunctions(agent_name)
-        self.agent_data = self.agent_funcs.agent_data
+        self.agent_data = config.get_agent_data(agent_name)
         self.storage = self.agent_data['storage'].storage_utils
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
