@@ -1,18 +1,20 @@
-from ..utils import storage_interface
+from .agent import Agent
 
-storage = storage_interface.StorageInterface()
 
-action = storage.storage_utils.load_collection(
-    collection_name='actions',
-    limit=1,
-)
-tools_used = action["metadatas"][0]['tools_used']
+class ToolSelectionAgent(Agent):
 
-tools = storage.storage_utils.query_memory(
-    collection_name='tools',
-    where={'tools_used': tools_used},
-    include=['metadatas'],
-)
+    def run(self, **params):
+        action = self.storage.storage_utils.load_collection(
+            collection_name='actions',
+            limit=1,
+        )
+        tools_used = action["metadatas"][0]['tools_used']
 
-for tool in tools['metadatas']:
-    print(tool)
+        tools = self.storage.storage_utils.query_memory(
+            collection_name='tools',
+            where={'tools_used': tools_used},
+            include=['metadatas'],
+        )
+
+        for tool in tools['metadatas']:
+            print(tool)
