@@ -9,7 +9,7 @@ To install AgentForge, follow these steps:
 Clone the GitHub repository:
 
 ```
-git clone https://github.com/DataBassGit/HiAGI.git
+git clone https://github.com/DataBassGit/AgentForge.git
 ```
 
 Install the required dependencies:
