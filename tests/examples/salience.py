@@ -11,8 +11,9 @@ class Salience:
         # Summarize the Search Results
         self.summarization_agent = SummarizationAgent()
         self.exec_agent = ExecutionAgent()
+        self.status_agent = StatusAgent()
         self.storage = StorageInterface().storage_utils
-        self.logger = Logger(name="salience")
+        self.logger = Logger(name="Salience")
 
     def run(self, feedback=None):
 
@@ -137,40 +138,30 @@ class Salience:
 
         return ordered_results
 
+    def loop(self):
+        # Add a variable to set the mode
+        functions = Functions()
+        functions.set_auto_mode()
+        status = None
 
-def main():
-    logger = Logger(name="Salience")
-    logger.set_level('info')
+        while True:
+            collection_list = self.storage.collection_list()
+            self.logger.log(f"Collection List: {collection_list}", 'debug')
 
-    # Load Agents
-    storage = StorageInterface()
-    salienceAgent = Salience()
-    statusAgent = StatusAgent()
+            functions.show_tasks('Salience')
 
-    # Add a variable to set the mode
-    functions = Functions()
-    functions.set_auto_mode()
-    status = None
+            # Allow for feedback if auto mode is disabled
+            status_result = functions.check_status(status)
+            if status_result is not None:
+                feedback = functions.check_auto_mode(status_result)
+            else:
+                feedback = functions.check_auto_mode()
 
-    # Salience loop
-    while True:
-        collection_list = storage.storage_utils.collection_list()
-        logger.log(f"Collection List: {collection_list}", 'debug')
+            data = self.run(feedback=feedback)
+            self.logger.log(f"Data: {data}", 'debug')
 
-        functions.show_tasks('Salience')
-
-        # Allow for feedback if auto mode is disabled
-        status_result = functions.check_status(status)
-        if status_result is not None:
-            feedback = functions.check_auto_mode(status_result)
-        else:
-            feedback = functions.check_auto_mode()
-
-        data = salienceAgent.run(feedback=feedback)
-        logger.log(f"Data: {data}", 'debug')
-
-        status = statusAgent.run(**data)
+            status = self.status_agent.run(**data)
 
 
 if __name__ == '__main__':
-    main()
+    Salience().loop()
