@@ -32,18 +32,23 @@ def _load():
         _persona = json.load(json_file)
 
 
-def _get_llm(language_model_api):
+def _get_llm(language_model_api, agent_name):
+    model = _parser.get('ModelLibrary', _persona[agent_name]['Model'])
     if language_model_api == 'oobabooga_api':
-        from .llm.oobabooga import generate_text
+        from .llm.oobabooga import Oobabooga
+        return Oobabooga()
+    elif language_model_api == 'oobabooga_v2_api':
+        from .llm.oobabooga import OobaboogaV2
+        return OobaboogaV2()
     elif language_model_api == 'openai_api':
-        from .llm.openai import generate_text
+        from .llm.openai import GPT
+        return GPT(model)
     elif language_model_api == 'claude_api':
-        from .llm.anthropic import generate_text
+        from .llm.anthropic import Claude
+        return Claude(model)
     else:
         raise ValueError(
             f"Unsupported Language Model API library: {language_model_api}")
-
-    return generate_text
 
 
 def get_agent_data(agent_name):
@@ -53,9 +58,8 @@ def get_agent_data(agent_name):
     # Initialize agent data
     agent_data: Dict[str, Any] = dict(
         name=agent_name,
-        generate_text=_get_llm(persona_data[agent_name]['API']),
+        llm=_get_llm(persona_data[agent_name]['API'], agent_name),
         objective=persona_data['Objective'],
-        model=get('ModelLibrary', persona_data[agent_name]['Model']),
         prompts=persona_data[agent_name]['Prompts'],
         params=persona_data[agent_name]['Params'],
         storage=StorageInterface().storage_utils,

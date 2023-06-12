@@ -6,7 +6,7 @@ import openai
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 
-class OpenAi:
+class GPT:
     num_retries = 5
 
     def __init__(self, model):

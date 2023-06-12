@@ -190,11 +190,9 @@ class Agent:
         return prompt
 
     def run_llm(self, prompt):
-        return self.agent_data['generate_text'](
-            prompt,
-            self.agent_data['model'],
-            self.agent_data['params'],
-        ).strip()
+        model = self.agent_data['llm']
+        params = self.agent_data.get("params", {})
+        return model(prompt, **params,).strip()
 
     def save_results(self, result, collection_name="results"):
         self.storage.save_memory({
