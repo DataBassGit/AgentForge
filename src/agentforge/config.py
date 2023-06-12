@@ -1,4 +1,5 @@
 import configparser
+import importlib
 import json
 import os
 import pathlib
@@ -32,23 +33,39 @@ def _load():
         _persona = json.load(json_file)
 
 
-def _get_llm(language_model_api, agent_name):
-    model = _parser.get('ModelLibrary', _persona[agent_name]['Model'])
-    if language_model_api == 'oobabooga_api':
-        from .llm.oobabooga import Oobabooga
-        return Oobabooga()
-    elif language_model_api == 'oobabooga_v2_api':
-        from .llm.oobabooga import OobaboogaV2
-        return OobaboogaV2()
-    elif language_model_api == 'openai_api':
-        from .llm.openai import GPT
-        return GPT(model)
-    elif language_model_api == 'claude_api':
-        from .llm.anthropic import Claude
-        return Claude(model)
-    else:
-        raise ValueError(
-            f"Unsupported Language Model API library: {language_model_api}")
+def _get_llm(api, agent_name):
+    model_name = _parser.get('ModelLibrary', _persona[agent_name]['Model'])
+    models = {
+        "claude_api": {
+            "module": "anthropic",
+            "class": "Claude",
+            "args": [model_name],
+        },
+        "oobabooga_api": {
+            "module": "oobabooga",
+            "class": "Oobabooga",
+        },
+        "oobabooga_v2_api": {
+            "module": "oobabooga",
+            "class": "OobaboogaV2",
+        },
+        "openai_api": {
+            "module": "openai",
+            "class": "GPT",
+            "args": [model_name],
+        },
+    }
+
+    model = models.get(api)
+    if not model:
+        raise ValueError(f"Unsupported Language Model API library: {api}")
+
+    module_name = model["module"]
+    module = importlib.import_module(f".llm.{module_name}", package=__package__)
+    class_name = model["class"]
+    model_class = getattr(module, class_name)
+    args = model.get("args", [])
+    return model_class(*args)
 
 
 def get_agent_data(agent_name):
