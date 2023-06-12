@@ -11,7 +11,10 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 class OpenAi(LLM):
     num_retries = 5
 
-    def generate_text(self, prompt, model, params):
+    def __init__(self, model):
+        self._model = model
+
+    def generate_text(self, prompt, **params):
         reply = None
 
         # will retry to get chat if a rate limit or bad gateway error is received
@@ -21,7 +24,7 @@ class OpenAi(LLM):
             try:
 
                 response = openai.ChatCompletion.create(
-                    model=model,
+                    model=self._model,
                     messages=prompt,
                     max_tokens=params["max_new_tokens"],
                     n=params["n"],
@@ -41,7 +44,7 @@ class OpenAi(LLM):
                     print(f"\n\nError: Bad gateway, retrying in {backoff} seconds...")
                     time.sleep(backoff)
                 else:
-                    raise
+                    raise from e
 
         # reply will be none if we have failed above
         if reply is None:
