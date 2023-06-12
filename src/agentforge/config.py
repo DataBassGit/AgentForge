@@ -38,7 +38,7 @@ def _get_llm(language_model_api):
     elif language_model_api == 'openai_api':
         from .llm.openai import generate_text
     elif language_model_api == 'claude_api':
-        from .llm.claude import generate_text
+        from .llm.anthropic import generate_text
     else:
         raise ValueError(
             f"Unsupported Language Model API library: {language_model_api}")
