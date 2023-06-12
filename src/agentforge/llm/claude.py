@@ -7,7 +7,7 @@ API_KEY = os.environ.get('ANTHROPIC_API_KEY')
 client = anthropic.Client(API_KEY)
 
 
-def generate_text(prompt, model, params):
+def generate_text(prompt, model, **params):
     reply = None
     num_retries = 5
 

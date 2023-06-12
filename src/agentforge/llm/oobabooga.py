@@ -4,7 +4,7 @@ import requests
 server = "127.0.0.1"
 
 
-def generate_text(prompt, params):
+def generate_text(prompt, model, params):
     print("prompt:" + prompt)
     # print("\nparams:" + str(params + "\n"))
 

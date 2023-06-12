@@ -7,7 +7,7 @@ server = "127.0.0.1:5000"
 URI = f'http://{server}/api/v1/generate'
 
 
-def generate_text(prompt, params):
+def generate_text(prompt, model, params):
     reply = None
 
     print("prompt:" + prompt)
