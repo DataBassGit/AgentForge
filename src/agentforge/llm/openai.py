@@ -42,7 +42,7 @@ class GPT:
                     print(f"\n\nError: Bad gateway, retrying in {backoff} seconds...")
                     time.sleep(backoff)
                 else:
-                    raise from e
+                    raise
 
         # reply will be none if we have failed above
         if reply is None:
