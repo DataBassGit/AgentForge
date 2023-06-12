@@ -3,6 +3,7 @@ import threading
 import time
 import uuid
 
+from ..llm import LLM
 from ..logs.logger_config import Logger
 from .. import config
 
@@ -190,9 +191,9 @@ class Agent:
         return prompt
 
     def run_llm(self, prompt):
-        model = self.agent_data['llm']
+        model: LLM = self.agent_data['llm']
         params = self.agent_data.get("params", {})
-        return model(prompt, **params,).strip()
+        return model.generate_text(prompt, **params,).strip()
 
     def save_results(self, result, collection_name="results"):
         self.storage.save_memory({
