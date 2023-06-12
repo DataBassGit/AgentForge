@@ -3,12 +3,10 @@ import time
 
 import openai
 
-from agentforge.llm import LLM
-
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 
-class OpenAi(LLM):
+class OpenAi:
     num_retries = 5
 
     def __init__(self, model):
