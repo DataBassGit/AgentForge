@@ -20,7 +20,7 @@ class Claude:
             backoff = 2 ** (attempt + 2)
             try:
                 response = client.completion(
-                    prompt=prompt,
+                    prompt=f"{anthropic.HUMAN_PROMPT}{prompt}{anthropic.AI_PROMPT}",
                     stop_sequences=[anthropic.HUMAN_PROMPT],
                     model=self._model,
                     max_tokens_to_sample=params["max_new_tokens"],

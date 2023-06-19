@@ -159,7 +159,7 @@ class Salience:
 
             data = self.run(feedback=feedback)
             self.logger.log(f"Data: {data}", 'debug')
-
+            functions.print_result(data['task_result']['result'], "Execution Results")
             status = self.status_agent.run(**data)
 
 
