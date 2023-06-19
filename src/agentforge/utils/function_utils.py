@@ -70,7 +70,7 @@ class Functions:
     def check_status(self, status):
         if status is not None:
             user_input = input(
-                f"\nSend this feedback to the execution agent? (y/n): {status}\n")
+                f"Feedback:{status}\n\nSend this feedback to the execution agent? (y/n): ")
             if user_input.lower() == 'y':
                 result = status
             else:
