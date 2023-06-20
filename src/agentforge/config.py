@@ -112,5 +112,6 @@ def storage_api():
 
 def chromadb():
     db_path = get('ChromaDB', 'persist_directory', fallback=None)
+    db_embed = get('ChromaDB', 'embedding', fallback=None)
     chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
-    return db_path, chroma_db_impl
+    return db_path, db_embed, chroma_db_impl

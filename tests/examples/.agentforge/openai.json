@@ -25,8 +25,8 @@
     "3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information."
   ],
   "ExecutionAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -54,7 +54,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -81,8 +81,8 @@
     }
   },
   "PrioritizationAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -104,7 +104,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -131,8 +131,8 @@
     }
   },
   "SummarizationAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -148,7 +148,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -175,8 +175,8 @@
     }
   },
   "TaskCreationAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -200,7 +200,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -227,8 +227,8 @@
     }
   },
   "StatusAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -252,7 +252,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -279,8 +279,8 @@
     }
   },
   "SearchSelector": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "fast_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -302,7 +302,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -329,8 +329,8 @@
     }
   },
   "HeuristicComparatorAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "smart_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [],
@@ -350,7 +350,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -377,8 +377,8 @@
     }
   },
   "HeuristicReflectionAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "smart_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [],
@@ -397,7 +397,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -424,8 +424,8 @@
     }
   },
   "HeuristicCheckAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "smart_model",
     "Prompts": {
       "SystemPrompt": {
         "vars": [],
@@ -444,7 +444,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -471,13 +471,13 @@
     }
   },
   "SalienceAgent": {
-    "API": "claude_api",
-    "Model": "claude",
+    "API": "openai_api",
+    "Model": "fast_model",
     "Prompts": {
       "": ""
     },
     "Params": {
-      "max_new_tokens": 2000,
+      "max_new_tokens": 200,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,

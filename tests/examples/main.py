@@ -8,7 +8,7 @@ functions.set_auto_mode()
 while True:
 
     data = ExecutionAgent().run()
-    functions.print_result(data)
+    functions.print_result(data, desc="Execution Agent")
     feedback = functions.check_auto_mode()
     data = TaskCreationAgent().run()
     functions.print_result(data)

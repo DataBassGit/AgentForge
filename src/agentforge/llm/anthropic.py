@@ -30,11 +30,11 @@ class Claude:
                 reply = response
                 break
 
-            except anthropic.ApiException:
-                print(f"\n\nError: Retrying in {backoff} seconds...")
+            except anthropic.ApiException as e:
+                print(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}")
                 time.sleep(backoff)
 
         if reply is None:
             raise RuntimeError("\n\nError: Failed to get Anthropic Response")
 
-        return reply
+        return reply['completion']

@@ -13,16 +13,19 @@ logger = Logger(name="Chroma Utils")
 logger.set_level('info')
 
 # Read configuration file
-db_path, chroma_db_impl = config.chromadb()
+db_path, db_embed, chroma_db_impl = config.chromadb()
 
-# Get API keys from environment variables
-openai_api_key = os.getenv('OPENAI_API_KEY')
+if db_embed is 'openai_ada2':
+    # Get API keys from environment variables
+    openai_api_key = os.getenv('OPENAI_API_KEY')
 
-# Embeddings
-openai_ef = embedding_functions.OpenAIEmbeddingFunction(
-    api_key=openai_api_key,
-    model_name="text-embedding-ada-002"
-)
+    # Embeddings - need to handle embedding errors gracefully
+    embedding = embedding_functions.OpenAIEmbeddingFunction(
+        api_key=openai_api_key,
+        model_name="text-embedding-ada-002"
+    )
+else:
+    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
 
 
 class ChromaUtils:
@@ -52,7 +55,7 @@ class ChromaUtils:
     def select_collection(self, collection_name):
         try:
             self.collection = self.client.get_or_create_collection(collection_name,
-                                                                   embedding_function=openai_ef)
+                                                                   embedding_function=embedding)
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
@@ -176,3 +179,5 @@ class ChromaUtils:
         logger.log(f"DB Query - Results: {result}", 'debug')
 
         return result
+    def reset_memory(self):
+        self.client.reset()

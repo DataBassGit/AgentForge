@@ -34,7 +34,7 @@ class StorageInterface:
 
         if config.get('ChromaDB', 'DBFreshStart') == 'True':
             collection_name = "tasks"
-            self.storage_utils.clear_collection(collection_name)
+            self.storage_utils.reset_memory()
 
             persona_data = config.persona()
             task_dicts = [{"task_order": i + 1, "task_desc": task}
