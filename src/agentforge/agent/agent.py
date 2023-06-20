@@ -77,8 +77,6 @@ class Agent:
     def run(self, bot_id=None, **kwargs):
         # This function will be the main entry point for your agent.
         self.logger.log(f"Running Agent...", 'info')
-        if 'context' not in kwargs:
-            kwargs['context'] = 'No context provided'
 
         # Load data
         data = {}
@@ -91,8 +89,6 @@ class Agent:
         task_order = data.get('this_task_order')
         if task_order is not None:
             data['next_task_order'] = _calculate_next_task_order(task_order)
-
-
 
         # Generate prompt
         prompt = self.generate_prompt(**data)
@@ -166,14 +162,14 @@ class Agent:
                 (instruction_prompt_template, instruction_prompt_vars),
             )
 
-        if context_prompt:
+        if context_prompt and "context" in kwargs:
             context_prompt_template = context_prompt["template"]
             context_prompt_vars = context_prompt["vars"]
             templates.append(
                 (context_prompt_template, context_prompt_vars),
             )
 
-        if feedback_prompt:
+        if feedback_prompt and "feedback" in kwargs:
             feedback_prompt_template = feedback_prompt["template"]
             feedback_prompt_vars = feedback_prompt["vars"]
             templates.append(
