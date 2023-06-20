@@ -77,10 +77,12 @@ class Agent:
     def run(self, bot_id=None, **kwargs):
         # This function will be the main entry point for your agent.
         self.logger.log(f"Running Agent...", 'info')
+        if 'context' not in kwargs:
+            kwargs['context'] = 'No context provided'
 
         # Load data
         data = {}
-        if "database" in self.agent_data:
+        if "task" not in kwargs:
             db_data = self.load_data_from_memory()
             data.update(db_data)
         data.update(self.agent_data)
@@ -89,6 +91,8 @@ class Agent:
         task_order = data.get('this_task_order')
         if task_order is not None:
             data['next_task_order'] = _calculate_next_task_order(task_order)
+
+
 
         # Generate prompt
         prompt = self.generate_prompt(**data)

@@ -7,5 +7,5 @@ class ExecutionAgent(Agent):
             'collection_name': "tasks",
             'include': ["documents"],
         })
-        task = task_list[0]
+        task = task_list['documents'][0]
         return {'task': task}
