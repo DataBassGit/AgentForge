@@ -81,7 +81,7 @@ class Agent:
         # Load data
         data = {}
         if "task" not in kwargs:
-            db_data = self.load_data_from_memory()
+            db_data = self.load_current_task()
             data.update(db_data)
         data.update(self.agent_data)
         data.update(kwargs)
@@ -137,6 +137,14 @@ class Agent:
 
     def load_data_from_memory(self):
         raise NotImplementedError
+
+    def load_current_task(self):
+        task_list = self.storage.load_collection({
+            'collection_name': "tasks",
+            'include': ["documents"],
+        })
+        task = task_list['documents'][0]
+        return {'task': task}
 
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
