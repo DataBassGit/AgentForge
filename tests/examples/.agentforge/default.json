@@ -3,7 +3,7 @@
   "Objective": "Write a program for an AI to use to search the internet.",
   "Tasks": [
     "Identify programming languages and frameworks suitable for the project,",
-    "Set up a development environment with necessary tools and libraries,",
+    "design a development environment with necessary tools and libraries and explain it to the human. The agent will not execute these tasks. Those steps will be performed by the human,",
     "Design a software architecture for the web search tool,",
     "Develop a web scraper to gather data from the internet,",
     "Implement a search algorithm to process and find relevant information,",
@@ -194,7 +194,7 @@
         "vars": [
           ""
         ],
-        "template": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
+        "template": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments! Do not use brackets. It should be formatted as follows: \n\n1. First task.\n2. Second task.\n3. Etc."
       }
     },
     "Params": {
@@ -473,6 +473,62 @@
     "Model": "claude",
     "Prompts": {
       "": ""
+    },
+    "Params": {
+      "max_new_tokens": 2000,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "ReflexionAgent": {
+    "API": "claude_api",
+    "Model": "claude",
+    "Prompts": {
+      "SystemPrompt": {
+        "vars": [
+          "objective"
+        ],
+        "template": "\nYou are an agent that reviews responses for accuracy and safety. The respondent whose answer reviewing is tryign to accomplish the following goal: {objective}"
+      },
+      "ContextPrompt": {
+        "vars": [
+          "context"
+        ],
+        "template": "\nTake into account this summary of the respondent's previous actions: {context}"
+      },
+      "InstructionPrompt": {
+        "vars": [
+          "task"
+        ],
+        "template": "\nTheir current task is as follows: {task}"
+      },
+      "FeedbackPrompt": {
+        "vars": [
+          "feedback"
+        ],
+        "template": "\nPlease reflect on the respondent's answer: {feedback} \nResponse:"
+      }
     },
     "Params": {
       "max_new_tokens": 2000,

@@ -11,17 +11,6 @@ from .. import config
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
 
-
-def _order_tasks(task_list):
-    filtered_results = [task for task in task_list if task['task_order'].isdigit()]
-
-    ordered_results = [
-        {'task_order': int(task['task_order']), 'task_desc': task['task_desc']}
-        for task in filtered_results]
-
-    return ordered_results
-
-
 def _print_task_list(task_list):
     # Print the task list
     print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
@@ -107,8 +96,8 @@ class Agent:
             output = parsed_data
 
         if "tasks" in parsed_data:
-            ordered_tasks = _order_tasks(parsed_data["tasks"])
-            output = ordered_tasks
+            ordered_tasks = parsed_data["tasks"]
+            output = parsed_data["tasks"]
             task_desc_list = [task['task_desc'] for task in ordered_tasks]
             self.save_tasks(ordered_tasks, task_desc_list)
             _print_task_list(ordered_tasks)

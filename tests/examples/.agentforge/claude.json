@@ -196,7 +196,7 @@
         "vars": [
           ""
         ],
-        "template": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
+        "template": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments! "
       }
     },
     "Params": {
