@@ -161,6 +161,7 @@ class Salience:
             self.logger.log(f"Data: {data}", 'debug')
             functions.print_result(data['task_result']['result'], "Execution Results")
             status = self.status_agent.run(**data)
+            functions.print_result(status, 'Status Agent')
 
 
 if __name__ == '__main__':

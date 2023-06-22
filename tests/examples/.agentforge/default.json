@@ -2,8 +2,6 @@
   "Name": "EMF",
   "Objective": "Write a program for an AI to use to search the internet.",
   "Tasks": [
-    "Define the project scope and requirements for the web search tool,",
-    "Research existing technologies and tools for web search,",
     "Identify programming languages and frameworks suitable for the project,",
     "Set up a development environment with necessary tools and libraries,",
     "Design a software architecture for the web search tool,",
@@ -234,7 +232,7 @@
         "vars": [
           "objective"
         ],
-        "template": "You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it!"
+        "template": "You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it! The execution agent does not have code execution privliges, so it is not necessary to verify the steps are actually complete."
       },
       "ContextPrompt": {
         "vars": [
