@@ -72,6 +72,10 @@ class Agent:
         if "task" not in kwargs:
             db_data = self.load_current_task()
             data.update(db_data)
+        if "task_list" not in kwargs:
+            db_data = self.load_data_from_memory()
+            if db_data is not None:
+                data.update(db_data)
         data.update(self.agent_data)
         data.update(kwargs)
 
@@ -125,7 +129,7 @@ class Agent:
         return result
 
     def load_data_from_memory(self):
-        raise NotImplementedError
+        pass
 
     def load_current_task(self):
         task_list = self.storage.load_collection({
@@ -159,7 +163,7 @@ class Agent:
                 (instruction_prompt_template, instruction_prompt_vars),
             )
 
-        if context_prompt and "context" in kwargs:
+        if context_prompt:
             context_prompt_template = context_prompt["template"]
             context_prompt_vars = context_prompt["vars"]
             templates.append(

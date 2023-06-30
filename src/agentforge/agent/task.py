@@ -1,23 +1,38 @@
 from .agent import Agent
 
 
+
 class TaskCreationAgent(Agent):
-    def load_data_from_storage(self):
+
+    def load_data_from_memory(self):
+
         result_collection = self.storage.load_collection({
             'collection_name': "results",
             'include': ["documents"]
         })
-        result = result_collection[0] if result_collection else ["No results found"]
+
+        try:
+            result = result_collection[0] if result_collection else ["No results found"]
+        except Exception as e:
+            result = ["No results found"]
 
         task_collection = self.storage.load_collection({
             'collection_name': "tasks",
             'include': ["documents"],
         })
 
-        task_list = task_collection if task_collection else []
-        task = task_list[0] if task_collection else None
+        x = 0
+        task_list = []
+        for task in task_collection['documents']:
+            task_list.append(f"{x+1}. {task_collection['documents'][x]}")
+            x += 1
+        # print(task_list)
+        # task_list = [task['documents'] for task in task_collection]
 
-        return {'result': result, 'task': task, 'task_list': task_list}
+        # task_list = task_collection if task_collection else []
+        # task = task_list[0] if task_collection else None
+
+        return {'result': result, 'task_list': task_list}
 
     def parse_output(self, result, bot_id, data):
         new_tasks = result.split("\n")

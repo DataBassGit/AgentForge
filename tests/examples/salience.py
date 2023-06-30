@@ -162,6 +162,7 @@ class Salience:
             functions.print_result(data['task_result']['result'], "Execution Results")
             status = self.status_agent.run(**data)
             functions.print_result(status, 'Status Agent')
+            functions.show_tasks('Salience')
 
 
 if __name__ == '__main__':
