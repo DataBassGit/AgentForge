@@ -12,7 +12,7 @@ while True:
     data = TaskCreationAgent().run(context=context)
     functions.print_result(data, desc="Task Creation Agent")
     feedback = functions.check_auto_mode()
-    #data = PrioritizationAgent().run()
+    # data = PrioritizationAgent().run()
     result = ExecutionAgent().run()
     functions.print_result(result, desc="Execution Agent")
 

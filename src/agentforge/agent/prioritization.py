@@ -3,7 +3,7 @@ from .agent import Agent
 
 class PrioritizationAgent(Agent):
     # Additional functions
-    def load_data_from_storage(self):
+    def load_data_from_memory(self):
         collection_name = "tasks"
 
         task_list = self.storage.load_collection({
