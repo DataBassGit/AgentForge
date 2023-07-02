@@ -1,13 +1,11 @@
-import chromadb
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from .utils.storage_interface import StorageInterface
+from .storage_interface import StorageInterface
 
 class SemanticComparator:
-    def __init__(self, collection_name):
-        self.client = chromadb.Client()
-        self.collection = self.client.get_collection(collection_name)
-        self.vectorizer = TfidfVectorizer()
+    def __init__(self):
+        self.collection = StorageInterface().storage_utils.get_collection('tools')
+        # self.vectorizer = TfidfVectorizer()
 
     def compare(self, query):
         # get all documents from the collection
@@ -26,6 +24,12 @@ class SemanticComparator:
         # return the similarities
         return similarities
 
+    def query(self, query):
+        result = self.collection.query(
+            query_texts=[query],
+            n_results=1,
+        )
+        return result
 
 # iLoad tools database! [storage interface]
 # from json file [tools folder]
@@ -38,12 +42,14 @@ class SemanticComparator:
 # select top if above threshold [above]
 
 # Initialize the comparator with the 'tools' collection
-comparator = SemanticComparator('tools')
+# comparator = SemanticComparator('tools')
 
 # Now we can compare a query to the documents
-query = "Your query text here"
-similarities = comparator.compare(query)
+# search = "The 'Intelligent Chunk' tool splits"
+# similarities = comparator.compare(search)
+#
+# print(similarities)
 
 # If you want to get the most similar document
-most_similar_doc_index = similarities.argmax()
-most_similar_doc = tools_docs[most_similar_doc_index]
+# most_similar_doc_index = similarities.argmax()
+# most_similar_doc = tools_docs[most_similar_doc_index]
