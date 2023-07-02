@@ -76,6 +76,9 @@ class Agent:
             db_data = self.load_data_from_memory()
             if db_data is not None:
                 data.update(db_data)
+        if "context" not in kwargs:
+            db_data = {'context':"No Context Provided."}
+            data.update(db_data)
         data.update(self.agent_data)
         data.update(kwargs)
 
