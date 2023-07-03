@@ -2,14 +2,18 @@ import sys
 import threading
 import time
 import uuid
+from typing import Dict, Any
 
 from ..llm import LLM
 from ..logs.logger_config import Logger
 from .. import config
 
+from ..utils.storage_interface import StorageInterface
+
 
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
+
 
 def _print_task_list(task_list):
     # Print the task list
@@ -22,6 +26,27 @@ def _render_template(template, variables, data):
     return template.format(
         **{k: v for k, v in data.items() if k in variables}
     )
+
+
+def load_agent_data(agent_name):
+    # Load persona data
+    persona_data = config.persona()
+
+    # Initialize agent data
+    agent_data: Dict[str, Any] = dict(
+        name=agent_name,
+        llm=config.get_llm(persona_data[agent_name]['API'], agent_name),
+        objective=persona_data['Objective'],
+        prompts=persona_data[agent_name]['Prompts'],
+        params=persona_data[agent_name]['Params'],
+        storage=StorageInterface().storage_utils,
+    )
+
+    if "HeuristicImperatives" in persona_data:
+        imperatives = persona_data["HeuristicImperatives"]
+        agent_data.update(heuristic_imperatives=imperatives)
+
+    return agent_data
 
 
 class Spinner:
@@ -54,11 +79,13 @@ class Agent:
     def __init__(self, agent_name=None, log_level="info"):
         if agent_name is None:
             agent_name = self.__class__.__name__
+
         self._spinner = Spinner()
-        self.agent_data = config.get_agent_data(agent_name)
+        self.agent_data = load_agent_data(agent_name)
         self.storage = self.agent_data['storage']
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
+
 
     def parse_output(self, result, bot_id, data):
         return {"result": result}

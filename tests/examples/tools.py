@@ -1,9 +1,14 @@
-from agentforge.utils import storage_interface
+from agentforge.utils.storage_interface import StorageInterface
 # from agentforge.utils.toolselect import SemanticComparator
 
 
 
 search = "The 'Intelligent Chunk' tool splits"
-similarities = storage_interface().StorageInterface.query(search)
+storage = StorageInterface().storage_utils
 
-print(similarities)
+
+peek = storage.peek('tools')
+
+# similarities = storage.query_memory(search)
+
+print(peek)

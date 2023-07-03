@@ -16,3 +16,4 @@ src/agentforge/persona/chatbot.json
 src/agentforge/salience.py
 
 tests/DB/
+tests/examples/Logs/log.txt

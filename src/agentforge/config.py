@@ -5,23 +5,24 @@ import os
 import pathlib
 from typing import Dict, Any
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-from .utils.storage_interface import StorageInterface
+# from .utils.storage_interface import StorageInterface
 
 _parser: configparser.ConfigParser | None = None
 _persona: Dict | None = None
+_tools: Dict | None = None
 
 
 def _load():
     global _parser
     global _persona
+    global _tools
 
     _config_path = pathlib.Path(
         os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
     )
 
-    load_dotenv(_config_path / '.env')
 
     _parser = configparser.ConfigParser()
     _parser.read(_config_path / 'config.ini')
@@ -32,8 +33,13 @@ def _load():
     with open(persona_path, 'r') as json_file:
         _persona = json.load(json_file)
 
+    tools_path = _config_path / "tools.json"  # Add the path to the tools.json
 
-def _get_llm(api, agent_name):
+    with open(tools_path, 'r') as json_file:  # Open the tools.json file
+        _tools = json.load(json_file)  # Load the data from tools.json to _tools
+
+
+def get_llm(api, agent_name):
     model_name = _parser.get('ModelLibrary', _persona[agent_name]['Model'])
     models = {
         "claude_api": {
@@ -68,27 +74,6 @@ def _get_llm(api, agent_name):
     return model_class(*args)
 
 
-def get_agent_data(agent_name):
-    # Load persona data
-    persona_data = persona()
-
-    # Initialize agent data
-    agent_data: Dict[str, Any] = dict(
-        name=agent_name,
-        llm=_get_llm(persona_data[agent_name]['API'], agent_name),
-        objective=persona_data['Objective'],
-        prompts=persona_data[agent_name]['Prompts'],
-        params=persona_data[agent_name]['Params'],
-        storage=StorageInterface().storage_utils,
-    )
-
-    if "HeuristicImperatives" in persona_data:
-        imperatives = persona_data["HeuristicImperatives"]
-        agent_data.update(heuristic_imperatives=imperatives)
-
-    return agent_data
-
-
 def get(section, key, **kwargs):
     if not _parser:
         _load()
@@ -104,6 +89,13 @@ def persona():
         _load()
 
     return _persona
+
+
+def tools():
+    if not _tools:
+        _load()
+
+    return _tools
 
 
 def storage_api():

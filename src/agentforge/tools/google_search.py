@@ -3,9 +3,6 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import json
 
-from dotenv import load_dotenv
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', 'Config', '.env')
-load_dotenv(dotenv_path)
 google_api_key = os.getenv('GOOGLE_API_KEY')
 search_engine_id = os.getenv('SEARCH_ENGINE_ID')
 

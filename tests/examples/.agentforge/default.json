@@ -509,7 +509,7 @@
         "vars": [
           "objective"
         ],
-        "template": "\nYou are an agent that reviews responses for accuracy and safety. The respondent whose answer reviewing is tryign to accomplish the following goal: {objective}"
+        "template": "\nYou are an agent that reviews responses for accuracy and safety. The respondent whose answer reviewing is trying to accomplish the following goal: {objective}"
       },
       "ContextPrompt": {
         "vars": [
@@ -528,6 +528,57 @@
           "feedback"
         ],
         "template": "\nPlease reflect on the respondent's answer: {feedback} \nResponse:"
+      }
+    },
+    "Params": {
+      "max_new_tokens": 2000,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "ToolPrimingAgent": {
+    "API": "claude_api",
+    "Model": "claude",
+    "Prompts": {
+      "SystemPrompt": {
+        "vars": [
+          "action"
+        ],
+        "template": "\nYou are a Tool Priming Agent preparing to carry out the following action: {action}"
+      },
+      "ContextPrompt": {
+        "vars": [
+          "task",
+          "tools"
+        ],
+        "template": "\nThis action is part of a larger task: {task}\n\n Below, you'll find a list of tools you'll be using, along with a description for each one, instructions for their usage, and examples of how they've been used in the past:\n\n{tools}"
+      },
+      "InstructionPrompt": {
+        "vars": [
+          "none"
+        ],
+        "template": "\nYour task is to prime each tool according to their provided instructions in readiness for the upcoming action.\n\nPlease provide your response in the following format:\n\nPrimed Tools: <List of Each Primed Tool>"
       }
     },
     "Params": {
