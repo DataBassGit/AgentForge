@@ -91,8 +91,8 @@ class StorageInterface:
             self.initialize_task_collection()
             self.initialize_tool_collection()
 
-            tool_data = config.tools()
-            print(tool_data)
+            # tool_data = config.tools()
+            # print(tool_data)
 
 
 
