@@ -1,5 +1,6 @@
 import uuid
 
+
 from .. import config
 
 
@@ -63,16 +64,42 @@ class StorageInterface:
             'Name': name,
             'Description': details['Description'],
             'Example': details['Example'],
-            'Instruction': details['Instruction']}
-            for name, details in tools_data.items()]
+            'Instruction': details['Instruction']
+        } for name, details in tools_data.items()]
 
         ids = [str(i + 1) for i in range(len(tools_data))]
         tool_names = [metadata['Name'] for metadata in metadatas]
 
         params = {
-            "collection_name": 'Tools',
+            "collection_name": 'tools',
             "ids": ids,
             "data": tool_names,
+            "metadata": metadatas,
+        }
+
+        self.storage_utils.save_memory(params)
+
+    def initialize_action_collection(self):
+        """
+        Initializes the tools collection with the data from tools.json.
+        """
+        action_data = config.actions()
+
+        metadatas = [{
+            'Name': name,
+            'Description': details['Description'],
+            'Example': details['Example'],
+            'Instruction': details['Instruction'],
+            'Tools': ', '.join(details['Tools'])
+        } for name, details in action_data.items()]
+
+        ids = [str(i + 1) for i in range(len(action_data))]
+        action_names = [metadata['Name'] for metadata in metadatas]
+
+        params = {
+            "collection_name": 'actions',
+            "ids": ids,
+            "data": action_names,
             "metadata": metadatas,
         }
 
@@ -89,11 +116,6 @@ class StorageInterface:
         if config.get('ChromaDB', 'DBFreshStart') == 'True':
             self.storage_utils.reset_memory()
             self.initialize_task_collection()
+            self.initialize_action_collection()
             self.initialize_tool_collection()
-
-            # tool_data = config.tools()
-            # print(tool_data)
-
-
-
 

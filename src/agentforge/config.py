@@ -11,18 +11,19 @@ from typing import Dict, Any
 
 _parser: configparser.ConfigParser | None = None
 _persona: Dict | None = None
+_actions: Dict | None = None
 _tools: Dict | None = None
 
 
 def _load():
     global _parser
     global _persona
+    global _actions
     global _tools
 
     _config_path = pathlib.Path(
         os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
     )
-
 
     _parser = configparser.ConfigParser()
     _parser.read(_config_path / 'config.ini')
@@ -32,6 +33,11 @@ def _load():
 
     with open(persona_path, 'r') as json_file:
         _persona = json.load(json_file)
+
+    actions_path = _config_path / "actions.json"  # Add the path to the actions.json
+
+    with open(actions_path, 'r') as json_file:  # Open the actions.json file
+        _actions = json.load(json_file)  # Load the data from actions.json to _actions
 
     tools_path = _config_path / "tools.json"  # Add the path to the tools.json
 
@@ -96,6 +102,13 @@ def tools():
         _load()
 
     return _tools
+
+
+def actions():
+    if not _actions:
+        _load()
+
+    return _actions
 
 
 def storage_api():
