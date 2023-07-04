@@ -1,11 +1,15 @@
 import os
 from datetime import datetime
-
 from pynput import keyboard
-from termcolor import colored
 
 from .storage_interface import StorageInterface
 from ..logs.logger_config import Logger
+
+from .. import config
+
+from termcolor import colored, cprint
+from colorama import init
+init(autoreset=True)
 
 logger = Logger(name="Function Utils")
 
@@ -25,7 +29,8 @@ class Functions:
         try:
             # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
             if key == keyboard.Key.esc and self.mode == 'auto':
-                print("\nSwitching to Manual Mode...")
+                # print("\nSwitching to Manual Mode...")
+                cprint("\nSwitching to Manual Mode...", 'green', attrs=['bold'])
                 self.mode = 'manual'
         except AttributeError:
             pass  # Handle a special key that we don't care about
@@ -36,24 +41,23 @@ class Functions:
             user_input = input("\nEnter Auto or Manual Mode? (a/m):")
             if user_input.lower() == 'a':
                 self.mode = 'auto'
-                print(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!\n")
+                cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
                 break
 
             elif user_input.lower() == 'm':
-                print(f"\nManual Mode Set.\n")
+                cprint(f"\nManual Mode Set.", 'green', attrs=['bold'])
                 self.mode = 'manual'
                 break
 
             else:
-                print("\nPlease select a valid option!\n")
+                cprint(f"\nPlease select a valid option!", 'red', attrs=['bold'])
 
     def check_auto_mode(self, feedback_from_status=None):
         context = None
 
         # Check if the mode is manual
         if self.mode == 'manual':
-            user_input = input(
-                "\nAllow AI to continue? (y/n/auto) or provide feedback: ")
+            user_input = input("\nAllow AI to continue? (y/n/auto) or provide feedback: ")
             if user_input.lower() == 'y':
                 context = feedback_from_status
                 pass
@@ -61,7 +65,7 @@ class Functions:
                 quit()
             elif user_input.lower() == 'auto':
                 self.mode = 'auto'
-                print(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!\n")
+                cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
             else:
                 context = user_input
 
@@ -70,8 +74,7 @@ class Functions:
     def check_status(self, status):
         if status is not None:
             if self.mode != 'auto':
-                user_input = input(
-                    f"Feedback:{status}\n\nSend this feedback to the execution agent? (y/n): ")
+                user_input = input(f"Feedback:{status}\n\nSend this feedback to the execution agent? (y/n): ")
                 if user_input.lower() == 'y':
                     result = status
                 else:
@@ -83,24 +86,12 @@ class Functions:
     def get_auto_mode(self):
         return self.mode
 
-    # Replace with show_tasks after hackathon
-    def print_task_list(self, task_list):
-        # Print the task list
-        print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
-        for t in task_list:
-            print(str(t["task_order"]) + ": " + t["task_desc"])
-
-    # def print_next_task(self, task):
-    #     # Print the next task
-    #     print("\033[92m\033[1m" + "\n*****NEXT TASK*****\n" + "\033[0m\033[0m")
-    #     print(str(task["task_order"]) + ": " + task["task_desc"])
-
     def print_result(self, result, desc):
         # Print the task result
-        # print("\033[92m\033[1m" + "\n*****RESULT*****\n" + "\033[0m\033[0m")
-        print(colored(f"\n\n***** {desc} - RESULT *****\n", 'green', attrs=['bold']))
+        cprint(f"***** {desc} - RESULT *****\n", 'green', attrs=['bold'])
         print(result)
-        print(colored(f"\n*****\n", 'green', attrs=['bold']))
+        cprint(f"\n*****", 'green', attrs=['bold'])
+
         # Save the result to a log.txt file in the /Logs/ folder
         log_folder = "Logs"
         log_file = "log.txt"
@@ -113,6 +104,7 @@ class Functions:
         self.write_file(log_folder, log_file, result)
 
     def show_tasks(self, desc):
+        objective = config.persona()['Objective']
         self.storage.storage_utils.select_collection("tasks")
 
         task_collection = self.storage.storage_utils.collection.get()
@@ -121,8 +113,7 @@ class Functions:
         # Sort the task list by task order
         task_list.sort(key=lambda x: x["task_order"])
 
-        print(
-            colored(f"\n\n***** {desc} - TASK LIST *****\n", 'magenta', attrs=['bold']))
+        cprint(f"\n***** {desc} - TASK LIST *****\n\nObjective: {objective}", 'blue', attrs=['bold'])
 
         for task in task_list:
             task_order = task["task_order"]
@@ -136,7 +127,7 @@ class Functions:
 
             print(f"{task_order}: {task_desc} - {status_text}")
 
-        print(colored(f"\n*****\n", 'magenta', attrs=['bold']))
+        cprint(f"\n*****\n", 'blue', attrs=['bold'])
 
     def write_file(self, folder, file, result):
         with open(os.path.join(folder, file), "a") as f:

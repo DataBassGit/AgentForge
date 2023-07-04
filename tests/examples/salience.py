@@ -22,7 +22,7 @@ class Salience:
         data = self.load_data_from_storage()
 
         # Feed Data to the Search Utility
-        print('\nQUERYING MEMORY\n')
+        # print('\nQUERYING MEMORY\n')
         params = {
             'collection_name': "results",
             'query': data['current_task']['document'],
@@ -162,7 +162,6 @@ class Salience:
             functions.print_result(data['task_result']['result'], "Execution Results")
             status = self.status_agent.run(**data)
             functions.print_result(status, 'Status Agent')
-            functions.show_tasks('Salience')
 
 
 if __name__ == '__main__':

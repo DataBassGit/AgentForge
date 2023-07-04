@@ -10,6 +10,9 @@ from .. import config
 
 from ..utils.storage_interface import StorageInterface
 
+from termcolor import colored, cprint
+from colorama import init
+init(autoreset=True)
 
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
@@ -91,11 +94,14 @@ class Agent:
         return {"result": result}
 
     def run(self, bot_id=None, **kwargs):
+        agent_name = self.__class__.__name__
         # This function will be the main entry point for your agent.
-        self.logger.log(f"Running Agent...", 'info')
+        # self.logger.log(f"Running Agent...", 'info')
+        cprint(f"\n{agent_name} - Running Agent...", 'red', attrs=['bold'])
 
         # Load data
         data = {}
+
         if "task" not in kwargs:
             db_data = self.load_current_task()
             data.update(db_data)
@@ -104,8 +110,9 @@ class Agent:
             if db_data is not None:
                 data.update(db_data)
         if "context" not in kwargs:
-            db_data = {'context':"No Context Provided."}
+            db_data = {'context': "No Context Provided."}
             data.update(db_data)
+
         data.update(self.agent_data)
         data.update(kwargs)
 
@@ -123,6 +130,9 @@ class Agent:
         parsed_data = self.parse_output(result, bot_id, data)
 
         output = None
+
+        # self.logger.log(f"Agent Done!", 'info')
+        cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
         # Save and print the results
         if "result" in parsed_data:
@@ -145,7 +155,6 @@ class Agent:
             output = reason
             self.save_status(status, task_id, description, order)
 
-        self.logger.log(f"Agent Done!", 'info')
         return output
 
     def load_result_data(self):

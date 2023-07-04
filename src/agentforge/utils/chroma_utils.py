@@ -15,7 +15,7 @@ logger.set_level('info')
 # Read configuration file
 db_path, db_embed, chroma_db_impl = config.chromadb()
 
-if db_embed is 'openai_ada2':
+if db_embed == 'openai_ada2':
     # Get API keys from environment variables
     openai_api_key = os.getenv('OPENAI_API_KEY')
 
@@ -171,7 +171,8 @@ class ChromaUtils:
             result = self.collection.query(
                 query_texts=[query],
                 n_results=num_results,
-                where=filter
+                where=filter,
+                include=["embeddings", "documents","metadatas", "distances"]
             )
         else:
             result = {'documents': "No Results!"}
@@ -179,6 +180,38 @@ class ChromaUtils:
         logger.log(f"DB Query - Results: {result}", 'debug')
 
         return result
+
+    def query_embedding(self, params, num_results=1):
+        collection_name = params.pop('collection_name', None)
+        self.select_collection(collection_name)
+
+        max_result_count = self.collection.count()
+
+        num_results = min(num_results, max_result_count)
+
+        embeddings = params.pop('embeddings', None)
+        filter = params.pop('filter', None)
+        task_desc = params.pop('task_description', None)
+
+        logger.log(
+            f"\nDB Query - Num Results: {num_results}"
+            f"\n\nDB Query - Text Query: {task_desc}",
+            'debug'
+        )
+
+        if num_results > 0:
+            result = self.collection.query(
+                query_embeddings=embeddings,
+                n_results=num_results,
+                where=filter,
+            )
+        else:
+            result = {'documents': "No Results!"}
+
+        # logger.log(f"DB Query - Results: {result}", 'debug')
+
+        return result
+
     def reset_memory(self):
         self.client.reset()
 

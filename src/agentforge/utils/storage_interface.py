@@ -111,6 +111,7 @@ class StorageInterface:
         self.storage_utils.init_storage()
         self.storage_utils.select_collection("results")
         self.storage_utils.select_collection("tasks")
+        self.storage_utils.select_collection("actions")
         self.storage_utils.select_collection("tools")
 
         if config.get('ChromaDB', 'DBFreshStart') == 'True':
