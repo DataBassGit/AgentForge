@@ -23,11 +23,11 @@ Install the required dependencies:
 pip install -e .
 ```
 
-Navigate to `/tests/examples/.agentforge`, and use the .env.example to create a .env file that contains your api keys.
+Navigate to `/tests/examples/.agentforge`, and copy the .env.example to create a .env file that contains your api keys.
 
 ## Usage
 
-Modify the agent prompts in `/tests/examples/.agentforgedefault.json`. At the top of the file you will edit the name, objective, and tasks.
+Modify the agent prompts in `/tests/examples/.agentforge/default.json`. At the top of the file you will edit the name, objective, and tasks.
 This should be enough to start.
 
 Navigate to `/tests/examples/` in your console and run
