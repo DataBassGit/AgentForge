@@ -34,6 +34,7 @@ query = "What's the recipe for making a universe?"
 params = {
     "collection_name": 'tools',
     "query": query,
+    "include": ["embeddings", "documents", "metadatas", "distances"]
 }
 
 text_search = storage.query_memory(params)
@@ -42,11 +43,12 @@ print('Text Search')
 print(text_search)
 # print(text_search['documents'])
 
-query_emb = storage.return_embedding([query])
+query_emb = storage.return_embedding(query)
 
 params = {
     "collection_name": 'tools',
     "embeddings": query_emb,
+    "include": ["embeddings", "documents", "metadatas", "distances"]
 }
 
 emb_search = storage.query_embedding(params)

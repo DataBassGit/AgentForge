@@ -160,6 +160,7 @@ class ChromaUtils:
 
         query = params.pop('query', None)
         filter = params.pop('filter', None)
+        include = params.pop('include', ["documents", "metadatas", "distances"])
         task_desc = params.pop('task_description', None)
 
         logger.log(
@@ -173,8 +174,7 @@ class ChromaUtils:
                 query_texts=[query],
                 n_results=num_results,
                 where=filter,
-                include=["embeddings", "documents", "metadatas", "distances"]
-                # include=["documents", "metadatas", "distances"]
+                include=include
             )
         else:
             result = {'documents': "No Results!"}
@@ -193,6 +193,7 @@ class ChromaUtils:
 
         embeddings = params.pop('embeddings', None)
         filter = params.pop('filter', None)
+        include = params.pop('include', ["documents", "metadatas", "distances"])
         task_desc = params.pop('task_description', None)
 
         logger.log(
@@ -206,7 +207,7 @@ class ChromaUtils:
                 query_embeddings=embeddings,
                 n_results=num_results,
                 where=filter,
-                include=["embeddings", "documents", "metadatas", "distances"]
+                include=include
             )
         else:
             result = {'documents': "No Results!"}
@@ -222,4 +223,4 @@ class ChromaUtils:
         return embedding
 
     def return_embedding(self, text_to_embed):
-        return embedding(text_to_embed)
+        return embedding([text_to_embed])
