@@ -94,12 +94,14 @@ class StorageInterface:
         } for name, details in action_data.items()]
 
         ids = [str(i + 1) for i in range(len(action_data))]
-        action_names = [metadata['Name'] for metadata in metadatas]
+        description = [metadata['Description'] for metadata in metadatas]
+        # action_names = [metadata['Name'] for metadata in metadatas]
 
         params = {
             "collection_name": 'actions',
             "ids": ids,
-            "data": action_names,
+            # "data": action_names,
+            "data": description,
             "metadata": metadatas,
         }
 
