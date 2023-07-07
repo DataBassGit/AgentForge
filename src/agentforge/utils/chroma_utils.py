@@ -55,7 +55,8 @@ class ChromaUtils:
     def select_collection(self, collection_name):
         try:
             self.collection = self.client.get_or_create_collection(collection_name,
-                                                                   embedding_function=embedding, metadata={"hnsw:space": "cosine"})
+                                                                   embedding_function=embedding,
+                                                                   metadata={"hnsw:space": "cosine"})
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
@@ -172,7 +173,8 @@ class ChromaUtils:
                 query_texts=[query],
                 n_results=num_results,
                 where=filter,
-                include=["embeddings", "documents","metadatas", "distances"]
+                include=["embeddings", "documents", "metadatas", "distances"]
+                # include=["documents", "metadatas", "distances"]
             )
         else:
             result = {'documents': "No Results!"}
@@ -204,6 +206,7 @@ class ChromaUtils:
                 query_embeddings=embeddings,
                 n_results=num_results,
                 where=filter,
+                include=["embeddings", "documents", "metadatas", "distances"]
             )
         else:
             result = {'documents': "No Results!"}
