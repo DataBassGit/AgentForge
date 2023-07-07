@@ -55,7 +55,7 @@ class ChromaUtils:
     def select_collection(self, collection_name):
         try:
             self.collection = self.client.get_or_create_collection(collection_name,
-                                                                   embedding_function=embedding)
+                                                                   embedding_function=embedding, metadata={"hnsw:space": "cosine"})
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 

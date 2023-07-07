@@ -68,12 +68,12 @@ class StorageInterface:
         } for name, details in tools_data.items()]
 
         ids = [str(i + 1) for i in range(len(tools_data))]
-        tool_names = [metadata['Name'] for metadata in metadatas]
+        description = [metadata['Description'] for metadata in metadatas]
 
         params = {
             "collection_name": 'tools',
             "ids": ids,
-            "data": tool_names,
+            "data": description,
             "metadata": metadatas,
         }
 

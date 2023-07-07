@@ -1,8 +1,10 @@
 from agentforge.utils.storage_interface import StorageInterface
+from scipy.spatial import distance
+from sklearn.metrics.pairwise import cosine_distances
 
-query = "The 'Intelligent Chunk' tool splits a provided text into smaller, manageable parts or 'chunks'. The user decides the size of these chunks based on their needs."
-
-# query = "Lesbians"
+# query = "How do I cook a potatoe?"
+query = "Lesbians do not eat potatoes"
+# query = "takes a query string and a number of results as inputs."
 
 storage = StorageInterface().storage_utils
 
@@ -20,16 +22,28 @@ print('')
 print('Text')
 print(similarities)
 
+
 params = {
     "collection_name": 'tools',
     "embeddings": test_emb,
 }
 
-similarities = storage.query_embedding(params)
+similarities2 = storage.return_embedding(query)
 print('')
 print('Embeddings')
-print(similarities)
+print(similarities2)
+
+# print('')
+# distance2 = cosine_distances(similarities2[0])
+# print(distance2)
 
 print('')
+distance2 = distance.cosine(similarities2[0], similarities['embeddings'][0][0])
+print(distance2)
 
 
+# print('')
+# print('Embeddings2')
+# print(similarities['embeddings'][0][0])
+
+# storage.return_embedding(params)
