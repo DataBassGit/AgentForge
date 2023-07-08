@@ -1,6 +1,5 @@
 from agentforge.utils.storage_interface import StorageInterface
 from scipy.spatial import distance
-from sklearn.metrics.pairwise import cosine_distances
 
 storage = StorageInterface().storage_utils
 
@@ -40,8 +39,8 @@ params = {
 text_search = storage.query_memory(params)
 print('')
 print('Text Search')
-print(text_search)
-# print(text_search['documents'])
+# print(text_search)
+print(text_search['documents'])
 
 query_emb = storage.return_embedding(query)
 
@@ -51,11 +50,11 @@ params = {
     "include": ["embeddings", "documents", "metadatas", "distances"]
 }
 
-emb_search = storage.query_embedding(params)
+emb_search = storage.query_memory(params)
 print('')
 print('Embedding Search')
-print(emb_search)
-# print(emb_search['documents'])
+# print(emb_search)
+print(emb_search['documents'])
 
 distance = distance.cosine(query_emb[0], text_search['embeddings'][0][0])
 print('')
