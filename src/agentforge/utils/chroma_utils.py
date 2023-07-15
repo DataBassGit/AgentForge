@@ -202,3 +202,4 @@ class ChromaUtils:
 
     def return_embedding(self, text_to_embed):
         return embedding([text_to_embed])
+

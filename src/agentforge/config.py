@@ -42,7 +42,10 @@ def _load():
 
 
 def get_llm(api, agent_name):
-    model_name = _parser.get('ModelLibrary', _persona[agent_name]['Model'])
+
+    model_name = _persona[agent_name].get('Model', _persona['Defaults']['Model'])
+    model_name = _parser.get('ModelLibrary', model_name)
+
     models = {
         "claude_api": {
             "module": "anthropic",
@@ -93,6 +96,13 @@ def persona():
     return _persona
 
 
+def tasks():
+    if not _persona:
+        _load()
+
+    return _persona['Tasks']
+
+
 def tools():
     if not _tools:
         _load()
@@ -105,6 +115,19 @@ def actions():
         _load()
 
     return _actions
+
+
+switch = {
+    "Persona": persona,
+    "Tasks": tasks,
+    "Tools": tools,
+    "Actions": actions
+}
+
+
+def switch_case(case):
+    # func = switch.get(case, lambda: "Invalid case")
+    return switch.get(case, lambda: "Invalid case")
 
 
 def storage_api():

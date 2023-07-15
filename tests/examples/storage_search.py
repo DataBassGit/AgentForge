@@ -1,6 +1,42 @@
 from agentforge.utils.storage_interface import StorageInterface
 from scipy.spatial import distance
 
+
+def tools_metadata_builder(name, details):
+    return {
+        'Name': name,
+        'Description': details['Description'],
+        'Example': details['Example'],
+        'Instruction': details['Instruction']
+    }
+
+
+def tools_id_generator(data):
+    return [str(i + 1) for i in range(len(data))]
+
+
+def tools_description_extractor(metadata):
+    return metadata['Description']
+
+
+def actions_metadata_builder(name, details):
+    return {
+        'Name': name,
+        'Description': details['Description'],
+        'Example': details['Example'],
+        'Instruction': details['Instruction'],
+        'Tools': ', '.join(details['Tools'])
+    }
+
+
+def actions_id_generator(data):
+    return [str(i + 1) for i in range(len(data))]
+
+
+def actions_description_extractor(metadata):
+    return metadata['Description']
+
+
 storage = StorageInterface().storage_utils
 
 

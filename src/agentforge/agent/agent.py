@@ -14,6 +14,7 @@ from termcolor import colored, cprint
 from colorama import init
 init(autoreset=True)
 
+
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
 
@@ -35,16 +36,28 @@ def load_agent_data(agent_name):
     # Load persona data
     persona_data = config.persona()
 
+    agent = persona_data[agent_name]
+    defaults = persona_data['Defaults']
+
+    api = agent.get('API', defaults['API'])
+    params = agent.get('Params', defaults['Params'])
+
     # Initialize agent data
     agent_data: Dict[str, Any] = dict(
         name=agent_name,
-        llm=config.get_llm(persona_data[agent_name]['API'], agent_name),
+        llm=config.get_llm(api, agent_name),
         objective=persona_data['Objective'],
-        prompts=persona_data[agent_name]['Prompts'],
-        params=persona_data[agent_name]['Params'],
+        prompts=agent['Prompts'],
+        params=params,
         storage=StorageInterface().storage_utils,
+        # memories=persona_data["Memories"]
     )
 
+    # if "Collections" in agent:
+    #     collections = agent["Collections"]
+    #     agent_data.update(collections=collections)
+
+    # ETHOS
     if "HeuristicImperatives" in persona_data:
         imperatives = persona_data["HeuristicImperatives"]
         agent_data.update(heuristic_imperatives=imperatives)
@@ -86,6 +99,9 @@ class Agent:
         self._spinner = Spinner()
         self.agent_data = load_agent_data(agent_name)
         self.storage = self.agent_data['storage']
+
+        # self.initialize_memories()
+
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 
@@ -282,3 +298,57 @@ class Agent:
             }]
         }
         self.storage.update_memory(params)
+
+    def metadata_extractor(self, metadata, extract):
+        return metadata[extract]
+
+    def id_generator(self, data):
+        return [str(i + 1) for i in range(len(data))]
+
+    def metadata_builder(self, name, details):
+        # Define your builder function in each agent
+        pass
+
+    # def new_create_memory_collection(self, memory, data):
+    #
+    #     data = config.switch_case(data)
+    #
+    #     params = {
+    #         # 'data_source': config.persona,
+    #         # 'collection_name': 'tasks',
+    #         'data_source': data,
+    #         'collection_name': memory,
+    #         'metadata_builder': self.metadata_builder,
+    #         'id_generator': self.id_generator,
+    #         'description_extractor': self.metadata_extractor,
+    #         # 'list_key': 'Tasks'  # Optional | specify the key in the dictionary that contains the list
+    #     }
+    #
+    #     self.storageInt.initialize_memory(params)
+
+
+    # def create_memory_collection(self, collection_name, data):
+    #
+    #     params = {
+    #         # 'data_source': config.persona,
+    #         # 'collection_name': 'tasks',
+    #         'data_source': data,
+    #         'collection_name': collection_name,
+    #         'metadata_builder': self.metadata_builder,
+    #         'id_generator': self.id_generator,
+    #         'description_extractor': self.metadata_extractor,
+    #         # 'list_key': 'Tasks'  # Optional | specify the key in the dictionary that contains the list
+    #     }
+    #
+    #     self.storage.initialize_memory(params)
+
+    # def initialize_memories(self):
+    #
+    #     # description = [description_extractor(metadata) for metadata in metadatas]
+    #
+    #     memories = self.agent_data.get('memories', None)
+    #
+    #     if memories is not None:
+    #         [self.new_create_memory_collection(key, value) for key, value in memories.items()]
+    #     else:
+    #         pass
