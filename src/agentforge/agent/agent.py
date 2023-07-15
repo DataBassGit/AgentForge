@@ -23,7 +23,7 @@ def _print_task_list(task_list):
     # Print the task list
     print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
     for t in task_list:
-        print(str(t["task_order"]) + ": " + t["task_desc"])
+        print(str(t["Order"]) + ": " + t["Description"])
 
 
 def _render_template(template, variables, data):
@@ -50,12 +50,7 @@ def load_agent_data(agent_name):
         prompts=agent['Prompts'],
         params=params,
         storage=StorageInterface().storage_utils,
-        # memories=persona_data["Memories"]
     )
-
-    # if "Collections" in agent:
-    #     collections = agent["Collections"]
-    #     agent_data.update(collections=collections)
 
     # ETHOS
     if "HeuristicImperatives" in persona_data:
@@ -99,9 +94,6 @@ class Agent:
         self._spinner = Spinner()
         self.agent_data = load_agent_data(agent_name)
         self.storage = self.agent_data['storage']
-
-        # self.initialize_memories()
-
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 
@@ -155,10 +147,10 @@ class Agent:
             self.save_results(parsed_data["result"])
             output = parsed_data
 
-        if "tasks" in parsed_data:
-            ordered_tasks = parsed_data["tasks"]
-            output = parsed_data["tasks"]
-            task_desc_list = [task['task_desc'] for task in ordered_tasks]
+        if "Tasks" in parsed_data:
+            ordered_tasks = parsed_data["Tasks"]
+            output = parsed_data["Tasks"]
+            task_desc_list = [task['Description'] for task in ordered_tasks]
             self.save_tasks(ordered_tasks, task_desc_list)
             _print_task_list(ordered_tasks)
 
@@ -175,7 +167,7 @@ class Agent:
 
     def load_result_data(self):
         result_collection = self.storage.load_collection({
-            'collection_name': "results",
+            'collection_name': "Results",
             'include': ["documents"],
         })
         result = result_collection[0] if result_collection else ["No results found"]
@@ -188,7 +180,7 @@ class Agent:
 
     def load_current_task(self):
         task_list = self.storage.load_collection({
-            'collection_name': "tasks",
+            'collection_name': "Tasks",
             'include': ["documents"],
         })
         task = task_list['documents'][0]
@@ -251,24 +243,24 @@ class Agent:
         params = self.agent_data.get("params", {})
         return model.generate_text(prompt, **params,).strip()
 
-    def save_results(self, result, collection_name="results"):
+    def save_results(self, result, collection_name="Results"):
         self.storage.save_memory({
             'data': [result],
             'collection_name': collection_name,
         })
 
     def save_tasks(self, ordered_results, task_desc_list):
-        collection_name = "tasks"
+        collection_name = "Tasks"
         self.storage.clear_collection(collection_name)
 
         metadatas = [{
-            "task_status": "not completed",
-            "task_desc": task["task_desc"],
-            "list_id": str(uuid.uuid4()),
-            "task_order": task["task_order"]
+            "Status": "not completed",
+            "Description": task["Description"],
+            "List_ID": str(uuid.uuid4()),
+            "Order": task["Order"]
         } for task in ordered_results]
 
-        task_orders = [task["task_order"] for task in ordered_results]
+        task_orders = [task["Order"] for task in ordered_results]
 
         params = {
             "collection_name": collection_name,
@@ -288,67 +280,13 @@ class Agent:
             'debug'
         )
         params = {
-            'collection_name': "tasks",
+            'collection_name': "Tasks",
             'ids': [task_id],
             'data': [text],
             'metadata': [{
-                "task_status": status,
-                "task_desc": text,
-                "task_order": task_order,
+                "Status": status,
+                "Description": text,
+                "Order": task_order,
             }]
         }
         self.storage.update_memory(params)
-
-    def metadata_extractor(self, metadata, extract):
-        return metadata[extract]
-
-    def id_generator(self, data):
-        return [str(i + 1) for i in range(len(data))]
-
-    def metadata_builder(self, name, details):
-        # Define your builder function in each agent
-        pass
-
-    # def new_create_memory_collection(self, memory, data):
-    #
-    #     data = config.switch_case(data)
-    #
-    #     params = {
-    #         # 'data_source': config.persona,
-    #         # 'collection_name': 'tasks',
-    #         'data_source': data,
-    #         'collection_name': memory,
-    #         'metadata_builder': self.metadata_builder,
-    #         'id_generator': self.id_generator,
-    #         'description_extractor': self.metadata_extractor,
-    #         # 'list_key': 'Tasks'  # Optional | specify the key in the dictionary that contains the list
-    #     }
-    #
-    #     self.storageInt.initialize_memory(params)
-
-
-    # def create_memory_collection(self, collection_name, data):
-    #
-    #     params = {
-    #         # 'data_source': config.persona,
-    #         # 'collection_name': 'tasks',
-    #         'data_source': data,
-    #         'collection_name': collection_name,
-    #         'metadata_builder': self.metadata_builder,
-    #         'id_generator': self.id_generator,
-    #         'description_extractor': self.metadata_extractor,
-    #         # 'list_key': 'Tasks'  # Optional | specify the key in the dictionary that contains the list
-    #     }
-    #
-    #     self.storage.initialize_memory(params)
-
-    # def initialize_memories(self):
-    #
-    #     # description = [description_extractor(metadata) for metadata in metadatas]
-    #
-    #     memories = self.agent_data.get('memories', None)
-    #
-    #     if memories is not None:
-    #         [self.new_create_memory_collection(key, value) for key, value in memories.items()]
-    #     else:
-    #         pass

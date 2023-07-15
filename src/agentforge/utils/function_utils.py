@@ -105,20 +105,20 @@ class Functions:
 
     def show_tasks(self, desc):
         objective = config.persona()['Objective']
-        self.storage.storage_utils.select_collection("tasks")
+        self.storage.storage_utils.select_collection("Tasks")
 
         task_collection = self.storage.storage_utils.collection.get()
         task_list = task_collection["metadatas"]
 
         # Sort the task list by task order
-        task_list.sort(key=lambda x: x["task_order"])
+        task_list.sort(key=lambda x: x["Order"])
 
         cprint(f"\n***** {desc} - TASK LIST *****\n\nObjective: {objective}", 'blue', attrs=['bold'])
 
         for task in task_list:
-            task_order = task["task_order"]
-            task_desc = task["task_desc"]
-            task_status = task["task_status"]
+            task_order = task["Order"]
+            task_desc = task["Description"]
+            task_status = task["Status"]
 
             if task_status == "completed":
                 status_text = colored("completed", 'green')

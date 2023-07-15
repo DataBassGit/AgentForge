@@ -89,6 +89,17 @@ def get(section, key, **kwargs):
     return _parser.get(section, key)
 
 
+def storage_api():
+    return get('StorageAPI', 'library')
+
+
+def chromadb():
+    db_path = get('ChromaDB', 'persist_directory', fallback=None)
+    db_embed = get('ChromaDB', 'embedding', fallback=None)
+    chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
+    return db_path, db_embed, chroma_db_impl
+
+
 def persona():
     if not _persona:
         _load()
@@ -125,17 +136,5 @@ switch = {
 }
 
 
-def switch_case(case):
-    # func = switch.get(case, lambda: "Invalid case")
+def data(case):
     return switch.get(case, lambda: "Invalid case")
-
-
-def storage_api():
-    return get('StorageAPI', 'library')
-
-
-def chromadb():
-    db_path = get('ChromaDB', 'persist_directory', fallback=None)
-    db_embed = get('ChromaDB', 'embedding', fallback=None)
-    chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
-    return db_path, db_embed, chroma_db_impl

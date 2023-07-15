@@ -3,7 +3,7 @@
   "Objective": "Write a program for an AI to use to search the internet.",
   "Tasks": [
     "Identify programming languages and frameworks suitable for the project",
-    "design a development environment with necessary tools and libraries and explain it to the human. The agent will not execute these tasks. Those steps will be performed by the human",
+    "Design a development environment with necessary tools and libraries and explain it to the human. The agent will not execute these tasks. Those steps will be performed by the human",
     "Design a software architecture for the web search tool",
     "Develop a web scraper to gather data from the internet",
     "Implement a search algorithm to process and find relevant information",
@@ -14,11 +14,14 @@
     "Debug and fix any issues found during testing",
     "Document the tool's design, functionality, and usage instructions",
     "Deploy the tool for use by the AI autonomous agent",
-    "Monitor the tool's performance and make adjustments as needed",
+    "Monitor the tool's performance and make adjustments nas needed",
     "Maintain and update the tool based on feedback and new requirements"
   ],
   "Memories": {
-      "Tasks" : "task_desc"
+    "Tasks" : "",
+    "Results": "",
+    "Tools": "",
+    "Actions": ""
   },
   "HeuristicImperatives": [
     "1. Reduce suffering in the universe: Guiding AI systems to reduce harm, address inequalities, and alleviate pain and distress for all sentient beings, including humans, animals, and other life forms.",

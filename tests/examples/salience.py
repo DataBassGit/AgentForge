@@ -24,7 +24,7 @@ class Salience:
         # Feed Data to the Search Utility
         # print('\nQUERYING MEMORY\n')
         params = {
-            'collection_name': "results",
+            'collection_name': "Results",
             'query': data['current_task']['document'],
         }
         search_results = self.storage.query_memory(params, 5)['documents']
@@ -56,7 +56,7 @@ class Salience:
             "task_result": task_result,
             "current_task": data['current_task'],
             "context": context,
-            "task_order": data['task_order']
+            "Order": data['Order']
         }
 
         self.logger.log(f"Execution Results: {execution_results}", 'debug')
@@ -66,7 +66,7 @@ class Salience:
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({
-            'collection_name': "results",
+            'collection_name': "Results",
             'include': ["documents"]
         })
 
@@ -78,7 +78,7 @@ class Salience:
         self.logger.log(f"Load Data Results:\n{result}", 'debug')
 
         task_collection = self.storage.load_collection({
-            'collection_name': "tasks",
+            'collection_name': "Tasks",
             'include': ["documents", "metadatas"]
         })
 
@@ -89,8 +89,8 @@ class Salience:
         paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'],
                                    task_collection['metadatas']))
 
-        # sort the paired up tasks by 'task_order' in 'metadatas'
-        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['task_order'])
+        # sort the paired up tasks by 'Order' in 'metadatas'
+        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['Order'])
 
         # split the sorted tasks back into separate lists
         sorted_ids, sorted_documents, sorted_metadatas = zip(*sorted_tasks)
@@ -111,9 +111,9 @@ class Salience:
         current_task = None
         # iterate over sorted_metadatas
         for i, metadata in enumerate(sorted_metadatas):
-            # check if the task_status is not completed
+            # check if the Task Status is not completed
             self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
-            if metadata['task_status'] == 'not completed':
+            if metadata['Status'] == 'not completed':
                 current_task = {
                     'id': sorted_ids[i],
                     'document': sorted_documents[i],
@@ -133,7 +133,7 @@ class Salience:
             'current_task': current_task,
             'task_list': ordered_list,
             'task_ids': sorted_ids,
-            'task_order': current_task["metadata"]["task_order"]
+            'Order': current_task["metadata"]["Order"]
         }
 
         return ordered_results

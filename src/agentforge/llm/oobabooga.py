@@ -72,7 +72,7 @@ class OobaboogaV2:
             response = session.post(self._uri, json=request)
 
             if response.status_code == 200:
-                reply = response.json()['results'][0]['text']
+                reply = response.json()['Results'][0]['text']
                 print(prompt + reply)
 
         return reply
