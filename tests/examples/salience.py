@@ -33,7 +33,8 @@ class Salience:
 
         # Summarize the Search Results
         if search_results == 'No Results!':
-            context = "No previous actions have been taken."
+            # context = "No Context Provided."
+            context = None
         else:
             context = self.summarization_agent.run(text="\n".join(search_results[0]))
 
@@ -168,9 +169,6 @@ class Salience:
 
             functions.print_result(result, 'Status Agent')
 
-
-def contains_phrase(text, phrase):
-    return phrase in text
 
 if __name__ == '__main__':
     Salience().loop()

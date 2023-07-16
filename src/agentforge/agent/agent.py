@@ -123,7 +123,8 @@ class Agent:
             if db_data is not None:
                 data.update(db_data)
         if "context" not in kwargs:
-            db_data = {'context': "No Context Provided."}
+            # db_data = {'context': "No Context Provided."}
+            db_data = {'context': None}
             data.update(db_data)
         if "task_result" in kwargs:
             db_data = {'result': kwargs['task_result']['result']}
@@ -132,21 +133,38 @@ class Agent:
         data.update(self.agent_data)
         data.update(kwargs)
 
+        feedback = data.get('feedback', None)
+        if feedback is None:
+            data['prompts'].pop('FeedbackPrompt', None)
+
+        context = data.get('context', None)
+        if context is None:
+            db_data = {'context': "No Context Provided."}
+            data.update(db_data)
+        else:
+            db_data = {'context': context['result']}
+            data.update(db_data)
+
         task_order = data.get('this_task_order')
         if task_order is not None:
             data['next_task_order'] = _calculate_next_task_order(task_order)
 
-        feedback = data.get('feedback', None)
-
-        if feedback is None:
-            data['prompts'].pop('FeedbackPrompt', None)
-
         # Generate prompt
         prompts = self.generate_prompt(**data)
 
-        # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
-        # cprint(f"\n{prompt_output}", 'magenta', attrs=['blink'])
-        cprint(f"\n{prompts}", 'magenta', attrs=['blink'])
+        if self.logger.get_current_level() == 'INFO':
+            cprint(f'\nPrompt: "\n{prompts}"', 'magenta', attrs=['concealed'])
+
+            # For Open AI, Will need to retry later
+            # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
+            # cprint(f"\n{prompt_output}", 'magenta', attrs=['blink'])
+
+        task = data.get('task', None)
+
+        if task is not None:
+            cprint(f'\nTask: {task}', 'green', attrs=['dark'])
+
+        cprint(f'\nThinking...', 'red', attrs=['concealed'])
 
         # Execute the main task of the agent
         with self._spinner:

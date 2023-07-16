@@ -76,7 +76,7 @@
         "vars": [
           "task"
         ],
-        "template": "Your current task: {task}\n\nResponse:"
+        "template": "Your current task: {task}\n\nResponse: {{your response}}"
       },
       "FeedbackPrompt": {
         "vars": [
