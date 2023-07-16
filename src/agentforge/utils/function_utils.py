@@ -74,11 +74,16 @@ class Functions:
     def check_status(self, status):
         if status is not None:
             if self.mode != 'auto':
-                user_input = input(f"Feedback:{status}\n\nSend this feedback to the execution agent? (y/n): ")
-                if user_input.lower() == 'y':
-                    result = status
+                result = None
+                completed = status['status']
+
+                if 'not completed' in completed:
+                    result = status['reason']
+                    # user_input = input(f"Feedback:{feedback}\n\nSend this feedback to the execution agent? (y/n): ")
+                    # if user_input.lower() == 'y':
                 else:
                     result = None
+
                 return result
             # elif self.mode == 'auto':
             #     return status

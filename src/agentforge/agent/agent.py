@@ -136,6 +136,11 @@ class Agent:
         if task_order is not None:
             data['next_task_order'] = _calculate_next_task_order(task_order)
 
+        feedback = data.get('feedback', None)
+
+        if feedback is None:
+            data['prompts'].pop('FeedbackPrompt', None)
+
         # Generate prompt
         prompts = self.generate_prompt(**data)
 
@@ -171,8 +176,8 @@ class Agent:
             description = parsed_data["task"]["description"]
             order = parsed_data["task"]["order"]
             status = parsed_data["status"]
-            reason = parsed_data["reason"]
-            output = reason
+            # reason = parsed_data["reason"]
+            output = parsed_data
             self.save_status(status, task_id, description, order)
 
         return output
@@ -242,10 +247,10 @@ class Agent:
         ]
 
         # Build Prompt OPEN AI
-        prompt = [
-            {"role": "system", "content": rendered_templates[0]},
-            {"role": "user", "content": "".join(rendered_templates[1:])}
-        ]
+        # prompt = [
+        #     {"role": "system", "content": rendered_templates[0]},
+        #     {"role": "user", "content": "".join(rendered_templates[1:])}
+        # ]
 
         # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
         prompt_output = ''.join(rendered_templates[0:])

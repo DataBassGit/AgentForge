@@ -113,7 +113,8 @@ class Salience:
         for i, metadata in enumerate(sorted_metadatas):
             # check if the Task Status is not completed
             self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
-            if metadata['Status'] == 'not completed':
+            # if metadata['Status'] == 'not completed':
+            if 'not completed' in metadata['Status']:
                 current_task = {
                     'id': sorted_ids[i],
                     'document': sorted_documents[i],
@@ -158,11 +159,18 @@ class Salience:
                 feedback = functions.check_auto_mode()
 
             data = self.run(feedback=feedback)
+
             self.logger.log(f"Data: {data}", 'debug')
             functions.print_result(data['task_result']['result'], "Execution Results")
             status = self.status_agent.run(**data)
-            functions.print_result(status, 'Status Agent')
 
+            result = f"Status: {status['status']}\n\nReason: {status['reason']}"
+
+            functions.print_result(result, 'Status Agent')
+
+
+def contains_phrase(text, phrase):
+    return phrase in text
 
 if __name__ == '__main__':
     Salience().loop()
