@@ -197,9 +197,6 @@ class ChromaUtils:
     def reset_memory(self):
         self.client.reset()
 
-    def return_embedding_function(self):
-        return embedding
-
     def return_embedding(self, text_to_embed):
         return embedding([text_to_embed])
 

@@ -11,14 +11,14 @@ class PrioritizationAgent(Agent):
             'include': ["documents"]
         })
 
-        this_task_order = self.storage.load_collection({
-            'collection_name': collection_name,
-            'include': ["ids"]
-        })[0]
-
+        # this_task_order = self.storage.load_collection({
+        #     'collection_name': collection_name,
+        #     'include': ["ids"]
+        # })
+        #
         data = {
-            'task_list': task_list,
-            'this_task_order': this_task_order
+            'task_list': task_list['documents'],
+            'this_task_order': task_list['ids'][0]
         }
 
         return data
