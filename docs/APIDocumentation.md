@@ -80,7 +80,7 @@ Input: None
 
 Output:
 
-* A dictionary containing a list of embeddings obtained from the "results" collection in the database.
+* A dictionary containing a list of embeddings obtained from the "Results" collection in the database.
 
 
 ## Endpoint: /bot_dict
@@ -93,7 +93,7 @@ Input:
 
 Output:
 
-* A dictionary containing the embeddings, documents, and metadata associated with the specified botid in the "results" collection in the database.
+* A dictionary containing the embeddings, documents, and metadata associated with the specified botid in the "Results" collection in the database.
 
 ### Example:
 ```

@@ -9,42 +9,55 @@ from ..logs.logger_config import Logger
 from .. import config
 
 from ..utils.storage_interface import StorageInterface
+from ..utils.function_utils import Functions
 
 from termcolor import colored, cprint
 from colorama import init
 init(autoreset=True)
 
+
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
 
 
-def _print_task_list(task_list):
-    # Print the task list
-    print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
-    for t in task_list:
-        print(str(t["task_order"]) + ": " + t["task_desc"])
+# def _print_task_list(task_list):
+#     # Print the task list
+#     print("\033[95m\033[1m" + "\n*****TASK MY TESTING LIST*****\n" + "\033[0m\033[0m")
+#     for t in task_list:
+#         print(str(t["Order"]) + ": " + t["Description"])
 
 
 def _render_template(template, variables, data):
-    return template.format(
+    temp = template.format(
         **{k: v for k, v in data.items() if k in variables}
     )
+
+
+
+    return temp
 
 
 def load_agent_data(agent_name):
     # Load persona data
     persona_data = config.persona()
 
+    agent = persona_data[agent_name]
+    defaults = persona_data['Defaults']
+
+    api = agent.get('API', defaults['API'])
+    params = agent.get('Params', defaults['Params'])
+
     # Initialize agent data
     agent_data: Dict[str, Any] = dict(
         name=agent_name,
-        llm=config.get_llm(persona_data[agent_name]['API'], agent_name),
+        llm=config.get_llm(api, agent_name),
         objective=persona_data['Objective'],
-        prompts=persona_data[agent_name]['Prompts'],
-        params=persona_data[agent_name]['Params'],
+        prompts=agent['Prompts'],
+        params=params,
         storage=StorageInterface().storage_utils,
     )
 
+    # ETHOS
     if "HeuristicImperatives" in persona_data:
         imperatives = persona_data["HeuristicImperatives"]
         agent_data.update(heuristic_imperatives=imperatives)
@@ -110,22 +123,52 @@ class Agent:
             if db_data is not None:
                 data.update(db_data)
         if "context" not in kwargs:
-            db_data = {'context': "No Context Provided."}
+            # db_data = {'context': "No Context Provided."}
+            db_data = {'context': None}
+            data.update(db_data)
+        if "task_result" in kwargs:
+            db_data = {'result': kwargs['task_result']['result']}
             data.update(db_data)
 
         data.update(self.agent_data)
         data.update(kwargs)
+
+        feedback = data.get('feedback', None)
+        if feedback is None:
+            data['prompts'].pop('FeedbackPrompt', None)
+
+        context = data.get('context', None)
+        if context is None:
+            db_data = {'context': "No Context Provided."}
+            data.update(db_data)
+        else:
+            db_data = {'context': context['result']}
+            data.update(db_data)
 
         task_order = data.get('this_task_order')
         if task_order is not None:
             data['next_task_order'] = _calculate_next_task_order(task_order)
 
         # Generate prompt
-        prompt = self.generate_prompt(**data)
+        prompts = self.generate_prompt(**data)
+
+        if self.logger.get_current_level() == 'INFO':
+            cprint(f'\nPrompt: "\n{prompts}"', 'magenta', attrs=['concealed'])
+
+            # For Open AI, Will need to retry later
+            # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
+            # cprint(f"\n{prompt_output}", 'magenta', attrs=['blink'])
+
+        task = data.get('task', None)
+
+        if task is not None:
+            cprint(f'\nTask: {task}', 'green', attrs=['dark'])
+
+        cprint(f'\nThinking...', 'red', attrs=['concealed'])
 
         # Execute the main task of the agent
         with self._spinner:
-            result = self.run_llm(prompt)
+            result = self.run_llm(prompts)
 
         parsed_data = self.parse_output(result, bot_id, data)
 
@@ -139,27 +182,27 @@ class Agent:
             self.save_results(parsed_data["result"])
             output = parsed_data
 
-        if "tasks" in parsed_data:
-            ordered_tasks = parsed_data["tasks"]
-            output = parsed_data["tasks"]
-            task_desc_list = [task['task_desc'] for task in ordered_tasks]
+        if "Tasks" in parsed_data:
+            ordered_tasks = parsed_data["Tasks"]
+            output = parsed_data["Tasks"]
+            task_desc_list = [task['Description'] for task in ordered_tasks]
             self.save_tasks(ordered_tasks, task_desc_list)
-            _print_task_list(ordered_tasks)
+            # _print_task_list(ordered_tasks)
 
         if "status" in parsed_data:
             task_id = parsed_data["task"]["task_id"]
             description = parsed_data["task"]["description"]
             order = parsed_data["task"]["order"]
             status = parsed_data["status"]
-            reason = parsed_data["reason"]
-            output = reason
+            # reason = parsed_data["reason"]
+            output = parsed_data
             self.save_status(status, task_id, description, order)
 
         return output
 
     def load_result_data(self):
         result_collection = self.storage.load_collection({
-            'collection_name': "results",
+            'collection_name': "Results",
             'include': ["documents"],
         })
         result = result_collection[0] if result_collection else ["No results found"]
@@ -172,7 +215,7 @@ class Agent:
 
     def load_current_task(self):
         task_list = self.storage.load_collection({
-            'collection_name': "tasks",
+            'collection_name': "Tasks",
             'include': ["documents"],
         })
         task = task_list['documents'][0]
@@ -195,13 +238,6 @@ class Agent:
             (system_prompt_template, system_prompt_vars),
         ]
 
-        if instruction_prompt:
-            instruction_prompt_template = instruction_prompt["template"]
-            instruction_prompt_vars = instruction_prompt["vars"]
-            templates.append(
-                (instruction_prompt_template, instruction_prompt_vars),
-            )
-
         if context_prompt:
             context_prompt_template = context_prompt["template"]
             context_prompt_vars = context_prompt["vars"]
@@ -216,16 +252,27 @@ class Agent:
                 (feedback_prompt_template, feedback_prompt_vars)
             )
 
+        if instruction_prompt:
+            instruction_prompt_template = instruction_prompt["template"]
+            instruction_prompt_vars = instruction_prompt["vars"]
+            templates.append(
+                (instruction_prompt_template, instruction_prompt_vars),
+            )
+
         rendered_templates = [
             _render_template(template, variables, data=kwargs)
             for template, variables in templates
         ]
 
-        # Build Prompt
-        prompt = [
-            {"role": "system", "content": rendered_templates[0]},
-            {"role": "user", "content": "".join(rendered_templates[1:])}
-        ]
+        # Build Prompt OPEN AI
+        # prompt = [
+        #     {"role": "system", "content": rendered_templates[0]},
+        #     {"role": "user", "content": "".join(rendered_templates[1:])}
+        # ]
+
+        # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
+        prompt_output = ''.join(rendered_templates[0:])
+        prompt = "\n\nHuman: " + prompt_output + "\n\nAssistant:"
 
         self.logger.log(f"Prompt:\n{prompt}", 'debug')
         return prompt
@@ -235,24 +282,24 @@ class Agent:
         params = self.agent_data.get("params", {})
         return model.generate_text(prompt, **params,).strip()
 
-    def save_results(self, result, collection_name="results"):
+    def save_results(self, result, collection_name="Results"):
         self.storage.save_memory({
             'data': [result],
             'collection_name': collection_name,
         })
 
     def save_tasks(self, ordered_results, task_desc_list):
-        collection_name = "tasks"
+        collection_name = "Tasks"
         self.storage.clear_collection(collection_name)
 
         metadatas = [{
-            "task_status": "not completed",
-            "task_desc": task["task_desc"],
-            "list_id": str(uuid.uuid4()),
-            "task_order": task["task_order"]
+            "Status": "not completed",
+            "Description": task["Description"],
+            "List_ID": str(uuid.uuid4()),
+            "Order": task["Order"]
         } for task in ordered_results]
 
-        task_orders = [task["task_order"] for task in ordered_results]
+        task_orders = [task["Order"] for task in ordered_results]
 
         params = {
             "collection_name": collection_name,
@@ -272,13 +319,13 @@ class Agent:
             'debug'
         )
         params = {
-            'collection_name': "tasks",
+            'collection_name': "Tasks",
             'ids': [task_id],
             'data': [text],
             'metadata': [{
-                "task_status": status,
-                "task_desc": text,
-                "task_order": task_order,
+                "Status": status,
+                "Description": text,
+                "Order": task_order,
             }]
         }
         self.storage.update_memory(params)

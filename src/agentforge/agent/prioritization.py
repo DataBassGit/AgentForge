@@ -4,7 +4,7 @@ from .agent import Agent
 class PrioritizationAgent(Agent):
     # Additional functions
     def load_data_from_memory(self):
-        collection_name = "tasks"
+        collection_name = "Tasks"
 
         task_list = self.storage.load_collection({
             'collection_name': collection_name,
@@ -33,8 +33,8 @@ class PrioritizationAgent(Agent):
                 task_order = task_parts[0].strip()
                 task_desc = task_parts[1].strip()
                 task_list.append({
-                    "task_order": task_order,
-                    "task_desc": task_desc,
+                    "Order": task_order,
+                    "Description": task_desc,
                 })
 
-        return {"tasks": task_list}
+        return {"Tasks": task_list}

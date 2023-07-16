@@ -5,13 +5,13 @@ class ToolSelectionAgent(Agent):
 
     def run(self, **params):
         action = self.storage.storage_utils.load_collection(
-            collection_name='actions',
+            collection_name='Actions',
             limit=1,
         )
         tools_used = action["metadatas"][0]['tools_used']
 
         tools = self.storage.storage_utils.query_memory(
-            collection_name='tools',
+            collection_name='Tools',
             where={'tools_used': tools_used},
             include=['metadatas'],
         )

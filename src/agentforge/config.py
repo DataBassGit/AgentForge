@@ -42,7 +42,10 @@ def _load():
 
 
 def get_llm(api, agent_name):
-    model_name = _parser.get('ModelLibrary', _persona[agent_name]['Model'])
+
+    model_name = _persona[agent_name].get('Model', _persona['Defaults']['Model'])
+    model_name = _parser.get('ModelLibrary', model_name)
+
     models = {
         "claude_api": {
             "module": "anthropic",
@@ -86,11 +89,29 @@ def get(section, key, **kwargs):
     return _parser.get(section, key)
 
 
+def storage_api():
+    return get('StorageAPI', 'library')
+
+
+def chromadb():
+    db_path = get('ChromaDB', 'persist_directory', fallback=None)
+    db_embed = get('ChromaDB', 'embedding', fallback=None)
+    chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
+    return db_path, db_embed, chroma_db_impl
+
+
 def persona():
     if not _persona:
         _load()
 
     return _persona
+
+
+def tasks():
+    if not _persona:
+        _load()
+
+    return _persona['Tasks']
 
 
 def tools():
@@ -107,12 +128,13 @@ def actions():
     return _actions
 
 
-def storage_api():
-    return get('StorageAPI', 'library')
+switch = {
+    "Persona": persona,
+    "Tasks": tasks,
+    "Tools": tools,
+    "Actions": actions
+}
 
 
-def chromadb():
-    db_path = get('ChromaDB', 'persist_directory', fallback=None)
-    db_embed = get('ChromaDB', 'embedding', fallback=None)
-    chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
-    return db_path, db_embed, chroma_db_impl
+def data(case):
+    return switch.get(case, lambda: "Invalid case")

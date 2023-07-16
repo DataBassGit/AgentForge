@@ -4,7 +4,7 @@ from .storage_interface import StorageInterface
 
 class SemanticComparator:
     def __init__(self):
-        self.collection = StorageInterface().storage_utils.get_collection('tools')
+        self.collection = StorageInterface().storage_utils.get_collection('Tools')
         # self.vectorizer = TfidfVectorizer()
 
     def compare(self, query):
@@ -41,8 +41,8 @@ class SemanticComparator:
 # cosine similarity comparison of results [above]
 # select top if above threshold [above]
 
-# Initialize the comparator with the 'tools' collection
-# comparator = SemanticComparator('tools')
+# Initialize the comparator with the 'Tools' collection
+# comparator = SemanticComparator('Tools')
 
 # Now we can compare a query to the documents
 # search = "The 'Intelligent Chunk' tool splits"

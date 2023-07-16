@@ -7,9 +7,9 @@ class StatusAgent(Agent):
         reason = result.split("Reason: ")[1].rstrip()
         task = {
             "task_id": data['current_task']['id'],
-            "description": data['current_task']['metadata']['task_desc'],
+            "description": data['current_task']['metadata']['Description'],
             "status": status,
-            "order": data['current_task']['metadata']['task_order'],
+            "order": data['current_task']['metadata']['Order'],
         }
         return {
             "task": task,
@@ -20,13 +20,13 @@ class StatusAgent(Agent):
     def load_data_from_storage(self):
         # Load necessary data from storage and return it as a dictionary
         result_collection = self.storage.load_collection({
-            'collection_name': "results",
+            'collection_name': "Results",
             'include': ["documents"],
         })
         result = result_collection[0] if result_collection else ["No results found"]
 
         task_collection = self.storage.load_collection({
-            'collection_name': "tasks",
+            'collection_name': "Tasks",
             'include': ["documents"],
         })
 
