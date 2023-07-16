@@ -14,6 +14,7 @@ class Salience:
         self.status_agent = StatusAgent()
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
+        self.functions = Functions()
 
     def run(self, feedback=None):
 
@@ -37,6 +38,7 @@ class Salience:
             context = None
         else:
             context = self.summarization_agent.run(text="\n".join(search_results[0]))
+            self.functions.print_result(result=context, desc="Summary Agent results")
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
@@ -142,32 +144,32 @@ class Salience:
 
     def loop(self):
         # Add a variable to set the mode
-        functions = Functions()
-        functions.set_auto_mode()
+        # functions = Functions()
+        self.functions.set_auto_mode()
         status = None
 
         while True:
             collection_list = self.storage.collection_list()
             self.logger.log(f"Collection List: {collection_list}", 'debug')
 
-            functions.show_tasks('Salience')
+            self.functions.show_tasks('Salience')
 
             # Allow for feedback if auto mode is disabled
-            status_result = functions.check_status(status)
+            status_result = self.functions.check_status(status)
             if status_result is not None:
-                feedback = functions.check_auto_mode(status_result)
+                feedback = self.functions.check_auto_mode(status_result)
             else:
-                feedback = functions.check_auto_mode()
+                feedback = self.functions.check_auto_mode()
 
             data = self.run(feedback=feedback)
 
             self.logger.log(f"Data: {data}", 'debug')
-            functions.print_result(data['task_result']['result'], "Execution Results")
+            self.functions.print_result(data['task_result']['result'], "Execution Results")
             status = self.status_agent.run(**data)
 
             result = f"Status: {status['status']}\n\nReason: {status['reason']}"
 
-            functions.print_result(result, 'Status Agent')
+            self.functions.print_result(result, 'Status Agent')
 
 
 if __name__ == '__main__':

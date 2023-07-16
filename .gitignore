@@ -17,3 +17,5 @@ src/agentforge/salience.py
 
 tests/DB/
 tests/examples/Logs/log.txt
+
+tests/examples/Logs/
