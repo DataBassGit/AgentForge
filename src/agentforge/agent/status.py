@@ -11,6 +11,15 @@ class StatusAgent(Agent):
             "status": status,
             "order": data['current_task']['metadata']['Order'],
         }
+
+        # Log results
+        if status == "completed":
+            filename = "./Logs/results.txt"
+            separator = "\n\n\n\n---\n\n\n\n"
+            text_to_append = data['result']
+            with open(filename, "a") as file:
+                file.write(separator + text_to_append)
+
         return {
             "task": task,
             "status": status,

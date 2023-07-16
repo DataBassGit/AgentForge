@@ -38,7 +38,7 @@ class Salience:
             context = None
         else:
             context = self.summarization_agent.run(text="\n".join(search_results[0]))
-            self.functions.print_result(result=context, desc="Summary Agent results")
+            self.functions.print_result(result=context['result'], desc="Summary Agent results")
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
