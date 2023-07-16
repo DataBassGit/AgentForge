@@ -117,6 +117,7 @@ class Functions:
 
         # Sort the task list by task order
         task_list.sort(key=lambda x: x["Order"])
+        result = f"Objective: {objective}\n\nTasks:\n"
 
         cprint(f"\n***** {desc} - TASK LIST *****\n\nObjective: {objective}", 'blue', attrs=['bold'])
 
@@ -131,8 +132,10 @@ class Functions:
                 status_text = colored("not completed", 'red')
 
             print(f"{task_order}: {task_desc} - {status_text}")
+            result = result + f"\n{task_order}: {task_desc}"
 
         cprint(f"\n*****\n", 'blue', attrs=['bold'])
+        return result
 
     def write_file(self, folder, file, result):
         with open(os.path.join(folder, file), "a") as f:

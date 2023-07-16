@@ -15,6 +15,10 @@ class Salience:
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
         self.functions = Functions()
+        logtasks = self.functions.show_tasks('Objectives')
+        filename = "./Logs/results.txt"
+        with open(filename, "a") as file:
+            file.write(logtasks)
 
     def run(self, feedback=None):
 
