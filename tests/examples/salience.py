@@ -40,7 +40,7 @@ class Salience:
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
         task_result = self.exec_agent.run(
-            task=data['current_task'],
+            task=data['current_task']['document'],
             context=context,
             feedback=feedback,
         )

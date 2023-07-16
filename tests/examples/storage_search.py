@@ -4,22 +4,22 @@ from scipy.spatial import distance
 storage = StorageInterface().storage_utils
 
 
-def search_storage_by_threshold(params, num_results=1):
+def search_storage_by_threshold(parameters, num_results=1):
     from scipy.spatial import distance
 
-    collection_name = params.pop('collection_name', None)
-    threshold = params.pop('threshold', 0.7)
-    query_text = params.pop('query', None)
+    collection_name = parameters.pop('collection_name', None)
+    threshold = parameters.pop('threshold', 0.7)
+    query_text = parameters.pop('query', None)
 
     query_emb = storage.return_embedding(query_text)
 
-    params = {
+    parameters = {
         "collection_name": collection_name,
         "embeddings": query_emb,
         "include": ["embeddings", "documents", "metadatas", "distances"]
     }
 
-    results = storage.query_memory(params, num_results)
+    results = storage.query_memory(parameters, num_results)
 
     dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
 

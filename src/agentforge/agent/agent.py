@@ -9,6 +9,7 @@ from ..logs.logger_config import Logger
 from .. import config
 
 from ..utils.storage_interface import StorageInterface
+from ..utils.function_utils import Functions
 
 from termcolor import colored, cprint
 from colorama import init
@@ -19,17 +20,21 @@ def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
 
 
-def _print_task_list(task_list):
-    # Print the task list
-    print("\033[95m\033[1m" + "\n*****TASK LIST*****\n" + "\033[0m\033[0m")
-    for t in task_list:
-        print(str(t["Order"]) + ": " + t["Description"])
+# def _print_task_list(task_list):
+#     # Print the task list
+#     print("\033[95m\033[1m" + "\n*****TASK MY TESTING LIST*****\n" + "\033[0m\033[0m")
+#     for t in task_list:
+#         print(str(t["Order"]) + ": " + t["Description"])
 
 
 def _render_template(template, variables, data):
-    return template.format(
+    temp = template.format(
         **{k: v for k, v in data.items() if k in variables}
     )
+
+
+
+    return temp
 
 
 def load_agent_data(agent_name):
@@ -120,6 +125,9 @@ class Agent:
         if "context" not in kwargs:
             db_data = {'context': "No Context Provided."}
             data.update(db_data)
+        if "task_result" in kwargs:
+            db_data = {'result': kwargs['task_result']['result']}
+            data.update(db_data)
 
         data.update(self.agent_data)
         data.update(kwargs)
@@ -129,11 +137,15 @@ class Agent:
             data['next_task_order'] = _calculate_next_task_order(task_order)
 
         # Generate prompt
-        prompt = self.generate_prompt(**data)
+        prompts = self.generate_prompt(**data)
+
+        # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
+        # cprint(f"\n{prompt_output}", 'magenta', attrs=['blink'])
+        cprint(f"\n{prompts}", 'magenta', attrs=['blink'])
 
         # Execute the main task of the agent
         with self._spinner:
-            result = self.run_llm(prompt)
+            result = self.run_llm(prompts)
 
         parsed_data = self.parse_output(result, bot_id, data)
 
@@ -152,7 +164,7 @@ class Agent:
             output = parsed_data["Tasks"]
             task_desc_list = [task['Description'] for task in ordered_tasks]
             self.save_tasks(ordered_tasks, task_desc_list)
-            _print_task_list(ordered_tasks)
+            # _print_task_list(ordered_tasks)
 
         if "status" in parsed_data:
             task_id = parsed_data["task"]["task_id"]
@@ -203,13 +215,6 @@ class Agent:
             (system_prompt_template, system_prompt_vars),
         ]
 
-        if instruction_prompt:
-            instruction_prompt_template = instruction_prompt["template"]
-            instruction_prompt_vars = instruction_prompt["vars"]
-            templates.append(
-                (instruction_prompt_template, instruction_prompt_vars),
-            )
-
         if context_prompt:
             context_prompt_template = context_prompt["template"]
             context_prompt_vars = context_prompt["vars"]
@@ -224,16 +229,27 @@ class Agent:
                 (feedback_prompt_template, feedback_prompt_vars)
             )
 
+        if instruction_prompt:
+            instruction_prompt_template = instruction_prompt["template"]
+            instruction_prompt_vars = instruction_prompt["vars"]
+            templates.append(
+                (instruction_prompt_template, instruction_prompt_vars),
+            )
+
         rendered_templates = [
             _render_template(template, variables, data=kwargs)
             for template, variables in templates
         ]
 
-        # Build Prompt
+        # Build Prompt OPEN AI
         prompt = [
             {"role": "system", "content": rendered_templates[0]},
             {"role": "user", "content": "".join(rendered_templates[1:])}
         ]
+
+        # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
+        prompt_output = ''.join(rendered_templates[0:])
+        prompt = "\n\nHuman: " + prompt_output + "\n\nAssistant:"
 
         self.logger.log(f"Prompt:\n{prompt}", 'debug')
         return prompt
