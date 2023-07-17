@@ -11,7 +11,7 @@ from .. import config
 from ..utils.storage_interface import StorageInterface
 from ..utils.function_utils import Functions
 
-from termcolor import colored, cprint
+from termcolor import cprint
 from colorama import init
 init(autoreset=True)
 
@@ -149,22 +149,22 @@ class Agent:
         if task_order is not None:
             data['next_task_order'] = _calculate_next_task_order(task_order)
 
-        # Generate prompt
-        prompts = self.generate_prompt(**data)
-
-        if self.logger.get_current_level() == 'INFO':
-            cprint(f'\nPrompt: "\n{prompts}"', 'magenta', attrs=['concealed'])
-
-            # For Open AI, Will need to retry later
-            # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
-            # cprint(f"\n{prompt_output}", 'magenta', attrs=['blink'])
-
         task = data.get('task', None)
 
         if task is not None:
             cprint(f'\nTask: {task}', 'green', attrs=['dark'])
 
         cprint(f'\nThinking...', 'red', attrs=['concealed'])
+
+        # Generate prompt
+        prompts = self.generate_prompt(**data)
+
+        # if self.logger.get_current_level() == 'INFO':
+        #     cprint(f'\nPrompt: "\n{prompts}"', 'magenta', attrs=['concealed'])
+
+        # For Open AI, Will need to retry later
+        # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
+        # cprint(f"\n{prompt_output}", 'magenta', attrs=['blink'])
 
         # Execute the main task of the agent
         with self._spinner:
@@ -259,10 +259,12 @@ class Agent:
                 (instruction_prompt_template, instruction_prompt_vars),
             )
 
-        rendered_templates = [
+        prompts = [
             _render_template(template, variables, data=kwargs)
             for template, variables in templates
         ]
+
+        self.logger.log(f"Prompt:\n{prompts}", 'debug')
 
         # Build Prompt OPEN AI
         # prompt = [
@@ -271,11 +273,13 @@ class Agent:
         # ]
 
         # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
-        prompt_output = ''.join(rendered_templates[0:])
-        prompt = "\n\nHuman: " + prompt_output + "\n\nAssistant:"
 
-        self.logger.log(f"Prompt:\n{prompt}", 'debug')
-        return prompt
+
+        # prompt = ''.join(rendered_templates[0:])
+        # prompt = "\n\nHuman: " + prompt_output + "\n\nAssistant:"
+
+        # self.logger.log(f"Prompt:\n{prompt}", 'debug')
+        return prompts
 
     def run_llm(self, prompt):
         model: LLM = self.agent_data['llm']
