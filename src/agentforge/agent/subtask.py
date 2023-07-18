@@ -1,7 +1,6 @@
 from .agent import Agent
 
 
-
 class TaskCreationAgent(Agent):
 
     def load_data_from_memory(self,task):
