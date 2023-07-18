@@ -16,15 +16,33 @@ from colorama import init
 init(autoreset=True)
 
 
+def handle_prompt_type(prompts, prompt_type):
+    """Handle each type of prompt and return template and vars."""
+    prompt_data = prompts.get(prompt_type, {})
+    if prompt_data:
+        return [(prompt_data['template'], prompt_data['vars'])]
+    return []
+
+
+def set_feedback(data):
+    feedback = data.get('feedback')
+    if feedback is None:
+        data['prompts'].pop('FeedbackPrompt', None)
+
+
+def set_task_order(data):
+    task_order = data.get('this_task_order')
+    if task_order is not None:
+        data['next_task_order'] = _calculate_next_task_order(task_order)
+
+
+def show_task(data):
+    if 'task' in data:
+        cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
+
+
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
-
-
-# def _print_task_list(task_list):
-#     # Print the task list
-#     print("\033[95m\033[1m" + "\n*****TASK MY TESTING LIST*****\n" + "\033[0m\033[0m")
-#     for t in task_list:
-#         print(str(t["Order"]) + ": " + t["Description"])
 
 
 def _render_template(template, variables, data):
@@ -32,9 +50,15 @@ def _render_template(template, variables, data):
         **{k: v for k, v in data.items() if k in variables}
     )
 
-
-
     return temp
+
+
+def fetch_context(kwargs):
+        return {'context': kwargs.get('context', {}).get('result', "No Context Provided.")}
+
+
+def fetch_task_result(kwargs):
+    return {'result': kwargs['task_result']['result']}
 
 
 def load_agent_data(agent_name):
@@ -102,19 +126,8 @@ class Agent:
         self.logger = Logger(name=agent_name)
         self.logger.set_level(log_level)
 
-
     def parse_output(self, result, bot_id, data):
         return {"result": result}
-
-    # def parse_output(self, result, bot_id, data):
-    #     parsed_data = {
-    #         "result": result,
-    #         "Tasks": None,  # Add here the correct way to extract tasks from result.
-    #         "status": None,  # Add here the correct way to extract status from result.
-    #         "task": None  # Add here the correct way to extract task from result.
-    #     }
-    #
-    #     return parsed_data
 
     def get_data(self, key, loader, kwargs, data, invert_logic=False):
         if ((key not in kwargs) and not invert_logic) or ((key in kwargs) and invert_logic):
@@ -143,35 +156,25 @@ class Agent:
 
     def run(self, bot_id=None, **kwargs):
         agent_name = self.__class__.__name__
-        # This function will be the main entry point for your agent.
         # self.logger.log(f"Running Agent...", 'info')
         cprint(f"\n{agent_name} - Running Agent...", 'red', attrs=['bold'])
 
+        context_data = kwargs.get('context') or {}
+        context_result = context_data.get('result', "No Context Provided.")
+        task_result_data = kwargs.get('task_result') or {}
+        task_result = task_result_data.get('result', None)
+
         # Load data
         data = {}
-
         data = self.get_data("task", self.load_current_task, kwargs, data)
         data = self.get_data("task_list", self.load_data_from_memory, kwargs, data)
-        data = self.get_data("context",
-                             lambda: {'context': kwargs.get('context', {}).get('result', "No Context Provided.")},
-                             kwargs, data)
-        data = self.get_data("task_result", lambda: {'result': kwargs['task_result']['result']}, kwargs, data,
-                             invert_logic=True)
-
+        data = self.get_data("context", lambda: {'context': context_result}, kwargs, data)
+        data = self.get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
         data.update(self.agent_data, **kwargs)
 
-        feedback = data.get('feedback', None)
-        if feedback is None:
-            data['prompts'].pop('FeedbackPrompt', None)
-
-        task_order = data.get('this_task_order')
-        if task_order is not None:
-            data['next_task_order'] = _calculate_next_task_order(task_order)
-
-        if 'task' in data:
-            cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
-
-        cprint(f'\nThinking...', 'red', attrs=['concealed'])
+        set_feedback(data)
+        set_task_order(data)
+        show_task(data)
 
         # Generate prompt
         prompts = self.generate_prompt(**data)
@@ -181,34 +184,10 @@ class Agent:
             result = self.run_llm(prompts)
 
         parsed_data = self.parse_output(result, bot_id, data)
-
-        output = None
-        # output = self.save_parsed_data(parsed_data)
+        output = self.save_parsed_data(parsed_data)
 
         # self.logger.log(f"Agent Done!", 'info')
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
-
-
-
-        # Save and print the results
-        if "result" in parsed_data:
-            self.save_results(parsed_data["result"])
-            output = parsed_data
-
-        if "Tasks" in parsed_data:
-            ordered_tasks = parsed_data["Tasks"]
-            output = parsed_data["Tasks"]
-            task_desc_list = [task['Description'] for task in ordered_tasks]
-            self.save_tasks(ordered_tasks, task_desc_list)
-            # _print_task_list(ordered_tasks)
-
-        if "status" in parsed_data:
-            task_id = parsed_data["task"]["task_id"]
-            description = parsed_data["task"]["description"]
-            order = parsed_data["task"]["order"]
-            status = parsed_data["status"]
-            output = parsed_data
-            self.save_status(status, task_id, description, order)
 
         return output
 
@@ -226,50 +205,22 @@ class Agent:
         pass
 
     def load_current_task(self):
-        task_list = self.storage.load_collection({
-            'collection_name': "Tasks",
-            'include': ["documents"],
-        })
+        task_list = self.storage.load_collection({'collection_name': "Tasks", 'include': ["documents"]})
         task = task_list['documents'][0]
         return {'task': task}
 
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
         prompts = self.agent_data['prompts']
+        templates = []
+
+        # Handle system prompt
         system_prompt = prompts['SystemPrompt']
-        instruction_prompt = prompts.get('InstructionPrompt', {})
-        context_prompt = prompts.get('ContextPrompt', {})
-        feedback_prompt = prompts.get('FeedbackPrompt', {})
+        templates.append((system_prompt["template"], system_prompt["vars"]))
 
-        system_prompt_template = system_prompt["template"]
-
-        system_prompt_vars = system_prompt["vars"]
-
-        # Format Prompts
-        templates = [
-            (system_prompt_template, system_prompt_vars),
-        ]
-
-        if context_prompt:
-            context_prompt_template = context_prompt["template"]
-            context_prompt_vars = context_prompt["vars"]
-            templates.append(
-                (context_prompt_template, context_prompt_vars),
-            )
-
-        if feedback_prompt and "feedback" in kwargs:
-            feedback_prompt_template = feedback_prompt["template"]
-            feedback_prompt_vars = feedback_prompt["vars"]
-            templates.append(
-                (feedback_prompt_template, feedback_prompt_vars)
-            )
-
-        if instruction_prompt:
-            instruction_prompt_template = instruction_prompt["template"]
-            instruction_prompt_vars = instruction_prompt["vars"]
-            templates.append(
-                (instruction_prompt_template, instruction_prompt_vars),
-            )
+        # Handle other types of prompts
+        for prompt_type in ['ContextPrompt', 'FeedbackPrompt', 'InstructionPrompt']:
+            templates.extend(handle_prompt_type(prompts, prompt_type))
 
         prompts = [
             _render_template(template, variables, data=kwargs)
