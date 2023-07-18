@@ -31,12 +31,11 @@ class Claude:
 
     def generate_text(self, prompts, **params):
         reply = None
+        prompt = parse_prompts(prompts)
 
         for attempt in range(self.num_retries):
             backoff = 2 ** (attempt + 2)
             try:
-                prompt = parse_prompts(prompts)
-
                 response = client.completion(
                     prompt=prompt,
                     stop_sequences=[anthropic.HUMAN_PROMPT],

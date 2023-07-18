@@ -106,6 +106,41 @@ class Agent:
     def parse_output(self, result, bot_id, data):
         return {"result": result}
 
+    # def parse_output(self, result, bot_id, data):
+    #     parsed_data = {
+    #         "result": result,
+    #         "Tasks": None,  # Add here the correct way to extract tasks from result.
+    #         "status": None,  # Add here the correct way to extract status from result.
+    #         "task": None  # Add here the correct way to extract task from result.
+    #     }
+    #
+    #     return parsed_data
+
+    def get_data(self, key, loader, kwargs, data, invert_logic=False):
+        if ((key not in kwargs) and not invert_logic) or ((key in kwargs) and invert_logic):
+            db_data = loader()
+            if db_data is not None:
+                data.update(db_data)
+        return data
+
+    def save_parsed_data(self, parsed_data):
+        save_operations = {
+            "result": (self.save_results, lambda data: data),
+            "Tasks": (
+            lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks]), lambda data: data["Tasks"]),
+            "status": (lambda status: self.save_status(status, parsed_data["task"]["task_id"],
+                                                       parsed_data["task"]["description"],
+                                                       parsed_data["task"]["order"]), lambda data: data)
+        }
+
+        output = None
+        for key, (save_function, data_selector) in save_operations.items():
+            if key in parsed_data:
+                save_function(parsed_data[key])
+                output = data_selector(parsed_data)
+
+        return output
+
     def run(self, bot_id=None, **kwargs):
         agent_name = self.__class__.__name__
         # This function will be the main entry point for your agent.
@@ -115,56 +150,31 @@ class Agent:
         # Load data
         data = {}
 
-        if "task" not in kwargs:
-            db_data = self.load_current_task()
-            data.update(db_data)
-        if "task_list" not in kwargs:
-            db_data = self.load_data_from_memory()
-            if db_data is not None:
-                data.update(db_data)
-        if "context" not in kwargs:
-            # db_data = {'context': "No Context Provided."}
-            db_data = {'context': None}
-            data.update(db_data)
-        if "task_result" in kwargs:
-            db_data = {'result': kwargs['task_result']['result']}
-            data.update(db_data)
+        data = self.get_data("task", self.load_current_task, kwargs, data)
+        data = self.get_data("task_list", self.load_data_from_memory, kwargs, data)
+        data = self.get_data("context",
+                             lambda: {'context': kwargs.get('context', {}).get('result', "No Context Provided.")},
+                             kwargs, data)
+        data = self.get_data("task_result", lambda: {'result': kwargs['task_result']['result']}, kwargs, data,
+                             invert_logic=True)
 
-        data.update(self.agent_data)
-        data.update(kwargs)
+        data.update(self.agent_data, **kwargs)
 
         feedback = data.get('feedback', None)
         if feedback is None:
             data['prompts'].pop('FeedbackPrompt', None)
 
-        context = data.get('context', None)
-        if context is None:
-            db_data = {'context': "No Context Provided."}
-            data.update(db_data)
-        else:
-            db_data = {'context': context['result']}
-            data.update(db_data)
-
         task_order = data.get('this_task_order')
         if task_order is not None:
             data['next_task_order'] = _calculate_next_task_order(task_order)
 
-        task = data.get('task', None)
-
-        if task is not None:
-            cprint(f'\nTask: {task}', 'green', attrs=['dark'])
+        if 'task' in data:
+            cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
 
         cprint(f'\nThinking...', 'red', attrs=['concealed'])
 
         # Generate prompt
         prompts = self.generate_prompt(**data)
-
-        # if self.logger.get_current_level() == 'INFO':
-        #     cprint(f'\nPrompt: "\n{prompts}"', 'magenta', attrs=['concealed'])
-
-        # For Open AI, Will need to retry later
-        # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
-        # cprint(f"\n{prompt_output}", 'magenta', attrs=['blink'])
 
         # Execute the main task of the agent
         with self._spinner:
@@ -173,9 +183,12 @@ class Agent:
         parsed_data = self.parse_output(result, bot_id, data)
 
         output = None
+        # output = self.save_parsed_data(parsed_data)
 
         # self.logger.log(f"Agent Done!", 'info')
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
+
+
 
         # Save and print the results
         if "result" in parsed_data:
@@ -194,7 +207,6 @@ class Agent:
             description = parsed_data["task"]["description"]
             order = parsed_data["task"]["order"]
             status = parsed_data["status"]
-            # reason = parsed_data["reason"]
             output = parsed_data
             self.save_status(status, task_id, description, order)
 
@@ -266,19 +278,6 @@ class Agent:
 
         self.logger.log(f"Prompt:\n{prompts}", 'debug')
 
-        # Build Prompt OPEN AI
-        # prompt = [
-        #     {"role": "system", "content": rendered_templates[0]},
-        #     {"role": "user", "content": "".join(rendered_templates[1:])}
-        # ]
-
-        # prompt_output = '\n'.join([prompt['content'] for prompt in prompts])
-
-
-        # prompt = ''.join(rendered_templates[0:])
-        # prompt = "\n\nHuman: " + prompt_output + "\n\nAssistant:"
-
-        # self.logger.log(f"Prompt:\n{prompt}", 'debug')
         return prompts
 
     def run_llm(self, prompt):
