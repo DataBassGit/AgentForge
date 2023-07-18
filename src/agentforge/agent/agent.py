@@ -86,6 +86,12 @@ def _set_feedback(data):
         data['prompts'].pop('FeedbackPrompt', None)
 
 
+def _set_context(data):
+    context = data.get('context')
+    if context is None:
+        data['prompts'].pop('ContextPrompt', None)
+
+
 def _set_task_order(data):
     task_order = data.get('this_task_order')
     if task_order is not None:
@@ -113,7 +119,7 @@ class Agent:
         cprint(f"\n{agent_name} - Running Agent...", 'red', attrs=['bold'])
 
         context_data = kwargs.get('context') or {}
-        context_result = context_data.get('result', "No Context Provided.")
+        context = context_data.get('result', None)
         task_result_data = kwargs.get('task_result') or {}
         task_result = task_result_data.get('result', None)
 
@@ -121,10 +127,12 @@ class Agent:
         data = {}
         data = _get_data("task", self.load_current_task, kwargs, data)
         data = _get_data("task_list", _do_nothing, kwargs, data)
-        data = _get_data("context", lambda: {'context': context_result}, kwargs, data)
+        data.update({'context': context})
         data = _get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
+
         data.update(self.agent_data, **kwargs)
 
+        _set_context(data)
         _set_feedback(data)
         _set_task_order(data)
         _show_task(data)
