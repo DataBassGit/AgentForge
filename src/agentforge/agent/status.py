@@ -3,7 +3,7 @@ from .agent import Agent
 
 class StatusAgent(Agent):
     def parse_output(self, result, bot_id, data):
-        status = result.split("Status: ")[1].split("\n")[0].lower()
+        status = result.split("Status: ")[1].split("\n")[0].lower().strip()
         reason = result.split("Reason: ")[1].rstrip()
         task = {
             "task_id": data['current_task']['id'],
