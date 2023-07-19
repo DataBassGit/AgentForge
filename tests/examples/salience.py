@@ -15,30 +15,26 @@ class Salience:
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
         self.functions = Functions()
-        logtasks = self.functions.show_tasks('Objectives')
+
+        log_tasks = self.functions.show_tasks('Objectives')
         filename = "./Logs/results.txt"
         with open(filename, "a") as file:
-            file.write(logtasks)
+            file.write(log_tasks)
 
-    def run(self, context=None, feedback=None):
+    def run(self, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
         # Load Last Results and Current Task as Data
         data = self.load_data_from_storage()
 
         # Feed Data to the Search Utility
-        # print('\nQUERYING MEMORY\n')
-        params = {
-            'collection_name': "Results",
-            'query': data['current_task']['document'],
-        }
+        params = {'collection_name': "Results", 'query': data['current_task']['document']}
         search_results = self.storage.query_memory(params, 5)['documents']
 
         self.logger.log(f"Search Results: {search_results}", 'info')
 
         # Summarize the Search Results
         if search_results == 'No Results!':
-            # context = "No Context Provided."
             context = None
         else:
             context = self.summarization_agent.run(text="\n".join(search_results[0]))
@@ -46,11 +42,7 @@ class Salience:
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        task_result = self.exec_agent.run(
-            task=data['current_task']['document'],
-            context=context,
-            feedback=feedback,
-        )
+        task_result = self.exec_agent.run(task=data['current_task']['document'], context=context, feedback=feedback)
 
         # Return Execution Results to the Job Agent to determine Frustration
 
@@ -59,12 +51,10 @@ class Salience:
 
         # Save the Status of the task to the Tasks DB
 
-        execution_results = {
-            "task_result": task_result,
-            "current_task": data['current_task'],
-            "context": context,
-            "Order": data['Order']
-        }
+        execution_results = {"task_result": task_result,
+                             "current_task": data['current_task'],
+                             "context": context,
+                             "Order": data['Order']}
 
         self.logger.log(f"Execution Results: {execution_results}", 'debug')
 
@@ -72,10 +62,7 @@ class Salience:
         return execution_results
 
     def load_data_from_storage(self):
-        result_collection = self.storage.load_collection({
-            'collection_name': "Results",
-            'include': ["documents"]
-        })
+        result_collection = self.storage.load_collection({'collection_name': "Results", 'include': ["documents"]})
 
         if result_collection['documents']:
             result = result_collection['documents'][0]
@@ -84,17 +71,14 @@ class Salience:
 
         self.logger.log(f"Load Data Results:\n{result}", 'debug')
 
-        task_collection = self.storage.load_collection({
-            'collection_name': "Tasks",
-            'include': ["documents", "metadatas"]
-        })
+        task_collection = self.storage.load_collection({'collection_name': "Tasks",
+                                                        'include': ["documents", "metadatas"]})
 
         self.logger.log(f"Tasks Before Ordering:\n{task_collection}", 'debug')
         # quit()
 
         # first, pair up 'ids', 'documents' and 'metadatas' for sorting
-        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'],
-                                   task_collection['metadatas']))
+        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
 
         # sort the paired up tasks by 'Order' in 'metadatas'
         sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['Order'])
@@ -112,7 +96,6 @@ class Salience:
         }
 
         self.logger.log(f"Tasks Ordered list:\n{ordered_list}", 'debug')
-
         self.logger.log(f"Tasks IDs:\n{sorted_ids}", 'debug')
 
         current_task = None
@@ -122,11 +105,7 @@ class Salience:
             self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
             # if metadata['Status'] == 'not completed':
             if 'not completed' in metadata['Status']:
-                current_task = {
-                    'id': sorted_ids[i],
-                    'document': sorted_documents[i],
-                    'metadata': metadata
-                }
+                current_task = {'id': sorted_ids[i], 'document': sorted_documents[i], 'metadata': metadata}
                 break  # break the loop as soon as we find the first not_completed task
 
         if current_task is None:
