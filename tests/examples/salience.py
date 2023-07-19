@@ -20,7 +20,7 @@ class Salience:
         with open(filename, "a") as file:
             file.write(logtasks)
 
-    def run(self, feedback=None):
+    def run(self, context=None, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
         # Load Last Results and Current Task as Data

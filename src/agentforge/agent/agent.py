@@ -1,6 +1,6 @@
 import uuid
 from typing import Dict, Any
-
+import copy
 from ..llm import LLM
 from ..logs.logger_config import Logger
 from .. import config
@@ -14,18 +14,6 @@ init(autoreset=True)
 
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
-
-
-def _do_nothing():
-    pass
-
-
-def _fetch_context(kwargs):
-    return {'context': kwargs.get('context', {}).get('result', "No Context Provided.")}
-
-
-def _fetch_task_result(kwargs):
-    return {'result': kwargs['task_result']['result']}
 
 
 def _get_data(key, loader, kwargs, data, invert_logic=False):
@@ -72,24 +60,17 @@ def _load_agent_data(agent_name):
     return agent_data
 
 
+def remove_prompt_if_none(prompts, kwargs, prompt_type, kwarg_key):
+    if prompts.get(prompt_type) and kwargs.get(kwarg_key) is None:
+        prompts.pop(prompt_type)
+
+
 def _render_template(template, variables, data):
     temp = template.format(
         **{k: v for k, v in data.items() if k in variables}
     )
 
     return temp
-
-
-def _set_feedback(data):
-    feedback = data.get('feedback')
-    if feedback is None:
-        data['prompts'].pop('FeedbackPrompt', None)
-
-
-def _set_context(data):
-    context = data.get('context')
-    if context is None:
-        data['prompts'].pop('ContextPrompt', None)
 
 
 def _set_task_order(data):
@@ -125,15 +106,12 @@ class Agent:
 
         # Load data
         data = {}
-        data = _get_data("task", self.load_current_task, kwargs, data)
-        data = _get_data("task_list", _do_nothing, kwargs, data)
-        data.update({'context': context})
-        data = _get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
-
         data.update(self.agent_data, **kwargs)
 
-        _set_context(data)
-        _set_feedback(data)
+        data = _get_data("task", self.load_current_task, kwargs, data)
+        data = _get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
+        data.update({'context': context})
+
         _set_task_order(data)
         _show_task(data)
 
@@ -154,7 +132,7 @@ class Agent:
 
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
-        prompts = self.agent_data['prompts']
+        prompts = self.agent_data['prompts'].copy()
         templates = []
 
         # Handle system prompt
@@ -162,9 +140,13 @@ class Agent:
         templates.append((system_prompt["template"], system_prompt["vars"]))
 
         # Handle other types of prompts
+        remove_prompt_if_none(prompts, kwargs, 'ContextPrompt', 'context')
+        remove_prompt_if_none(prompts, kwargs, 'FeedbackPrompt', 'feedback')
+
         for prompt_type in ['ContextPrompt', 'FeedbackPrompt', 'InstructionPrompt']:
             templates.extend(_handle_prompt_type(prompts, prompt_type))
 
+        # Render Prompts
         prompts = [
             _render_template(template, variables, data=kwargs)
             for template, variables in templates
