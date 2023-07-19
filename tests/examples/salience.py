@@ -103,8 +103,7 @@ class Salience:
         for i, metadata in enumerate(sorted_metadatas):
             # check if the Task Status is not completed
             self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
-            # if metadata['Status'] == 'not completed':
-            if 'not completed' in metadata['Status'].strip():
+            if metadata['Status'] == 'not completed':
                 current_task = {'id': sorted_ids[i], 'document': sorted_documents[i], 'metadata': metadata}
                 break  # break the loop as soon as we find the first not_completed task
 
@@ -127,15 +126,12 @@ class Salience:
 
     def loop(self):
         # Add a variable to set the mode
-        # functions = Functions()
         self.functions.set_auto_mode()
         status = None
 
         while True:
             collection_list = self.storage.collection_list()
             self.logger.log(f"Collection List: {collection_list}", 'debug')
-
-            # self.functions.show_tasks('Salience')
 
             # Allow for feedback if auto mode is disabled
             status_result = self.functions.check_status(status)
