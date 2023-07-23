@@ -29,12 +29,6 @@ class StatusAgent(Agent):
 
     def load_additional_data(self, data):
         data['objective'] = self.agent_data.get('objective')
-
         data['task'] = self.load_current_task()['task']
 
-        # Load the context data
-        context_data = data.get('context') or {}
-        data['context'] = context_data.get('result', None)
-
-        _set_task_order(data)
         _show_task(data)

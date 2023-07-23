@@ -23,7 +23,7 @@ class Salience:
         with open(filename, "a") as file:
             file.write(log_tasks)
 
-    def run(self, feedback=None):
+    def run(self, context=None, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
         # Load Last Results and Current Task as Data
@@ -34,19 +34,24 @@ class Salience:
         params = {'collection_name': "Results", 'query': current_task['document']}
         search_results = self.storage.query_memory(params, 5)['documents']
 
+        if search_results == 'No Results!':
+            self.logger.log('No results from query_memory, using peek instead.', 'info')
+            search_results = self.storage.peek(params['collection_name'])['documents']
+
         self.logger.log(f"Search Results: {search_results}", 'info')
 
+        summary = None
         # Summarize the Search Results
-        if search_results == 'No Results!':
-            context = None
-        else:
+        if search_results != 'No Results!':
             text = "\n".join(search_results[0])
-            context = self.summarization_agent.run(text=text)
-            self.functions.print_result(result=context['result'], desc="Summary Agent results")
+            summary = self.summarization_agent.run(text=text)['result']
+            self.functions.print_result(result=summary, desc="Summary Agent results")
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        task_result = self.exec_agent.run(task=current_task['document'], context=context, feedback=feedback)
+        task_result = self.exec_agent.run(summary=summary,
+                                          context=context,
+                                          feedback=feedback)
 
         # Return Execution Results to the Job Agent to determine Frustration
 
@@ -125,12 +130,14 @@ class Salience:
         while True:
             # Allow for feedback if auto mode is disabled
             status_result = self.functions.check_status(status)
-            if status_result is not None:
-                feedback = self.functions.check_auto_mode(status_result)
-            else:
-                feedback = self.functions.check_auto_mode()
+            # if status_result is not None:
+            #     context = self.functions.check_auto_mode(status_result)
+            # else:
+            #     context = None
 
-            data = self.run(feedback=feedback)
+            feedback = self.functions.check_auto_mode()
+
+            data = self.run(context=status_result, feedback=feedback)
 
             self.logger.log(f"Data: {data}", 'debug')
 
@@ -144,6 +151,7 @@ class Salience:
             # testing = self.action_agent.run(task=current_task['document']) # THIS IS WHERE WE WOULD RUN THE ACTION SELECTION AGENT
 
             self.functions.show_task_list('Salience')
+
 
 if __name__ == '__main__':
     Salience().loop()

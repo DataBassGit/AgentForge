@@ -78,7 +78,16 @@ class ChromaUtils:
 
     def peek(self, collection_name):
         self.select_collection(collection_name)
-        return self.collection.peek()
+
+        max_result_count = self.collection.count()
+        num_results = min(1, max_result_count)
+
+        if num_results > 0:
+            result = self.collection.peek()
+        else:
+            result = {'documents': "No Results!"}
+
+        return result
 
     def load_collection(self, params):
         try:
@@ -151,7 +160,7 @@ class ChromaUtils:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
     def query_memory(self, params, num_results=1):
-        collection_name = params.pop('collection_name', None)
+        collection_name = params.get('collection_name', None)
         self.select_collection(collection_name)
 
         max_result_count = self.collection.count()

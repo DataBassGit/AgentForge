@@ -59,9 +59,18 @@ def _load_agent_data(agent_name):
     return agent_data
 
 
-def remove_prompt_if_none(prompts, kwargs, prompt_type):
-    if prompts.get(prompt_type) and kwargs.get(prompt_type.lower()) is None:
-        prompts.pop(prompt_type)
+# def remove_prompt_if_none(prompts, kwargs, prompt_type):
+#     if prompts.get(prompt_type) and kwargs.get(prompt_type.lower()) is None:
+#         prompts.pop(prompt_type)
+
+def remove_prompt_if_none(prompts, kwargs):
+    prompts_copy = prompts.copy()
+    for prompt_type, prompt_data in prompts_copy.items():
+        required_vars = prompt_data.get('vars', [])
+        for var in required_vars:
+            if kwargs.get(var) is None:
+                prompts.pop(prompt_type)
+                break  # Exit this loop, the dictionary has been changed
 
 
 def _render_template(template, variables, data):
@@ -124,14 +133,11 @@ class Agent:
         system_prompt = prompts['System']
         templates.append((system_prompt["template"], system_prompt["vars"]))
 
+        # Remove prompts if there's no corresponding data in kwargs
+        remove_prompt_if_none(prompts, kwargs)
+
         # Handle other types of prompts
         other_prompt_types = [prompt_type for prompt_type in prompts.keys() if prompt_type != 'System']
-
-        # Remove prompts if there's no corresponding data in kwargs
-        remove_prompt_if_none(prompts, kwargs, 'Context')
-        remove_prompt_if_none(prompts, kwargs, 'Feedback')
-
-        # Iterate over all other prompt types
         for prompt_type in other_prompt_types:
             templates.extend(_handle_prompt_type(prompts, prompt_type))
 
@@ -168,10 +174,7 @@ class Agent:
     def load_additional_data(self, data):
         # Add 'objective' to the data
         data['objective'] = self.agent_data.get('objective')
-
-        # Load the context data
-        context_data = data.get('context') or {}
-        data['context'] = context_data.get('result', None)
+        data['task'] = self.load_current_task()['task']
 
         _set_task_order(data)
         _show_task(data)
