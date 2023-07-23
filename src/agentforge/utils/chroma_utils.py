@@ -209,3 +209,30 @@ class ChromaUtils:
     def return_embedding(self, text_to_embed):
         return embedding([text_to_embed])
 
+    def search_storage_by_threshold(self, parameters, num_results=1):
+        from scipy.spatial import distance
+
+        collection_name = parameters.pop('collection_name', None)
+        threshold = parameters.pop('threshold', 0.7)
+        query_text = parameters.pop('query', None)
+
+        query_emb = self.return_embedding(query_text)
+
+        parameters = {
+            "collection_name": collection_name,
+            "embeddings": query_emb,
+            "include": ["embeddings", "documents", "metadatas", "distances"]
+        }
+
+        results = self.query_memory(parameters, num_results)
+
+        dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
+
+        if dist >= threshold:
+            results = {'documents': f"No results found within threshold: {threshold}!\nCosine Distance: {dist}"}
+        else:
+            results['cosine_distance'] = dist
+            results['embeddings'] = None
+
+        return results
+
