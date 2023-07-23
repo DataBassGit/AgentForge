@@ -1,6 +1,5 @@
 import uuid
 from typing import Dict, Any
-import copy
 from ..llm import LLM
 from ..logs.logger_config import Logger
 from .. import config
@@ -73,15 +72,15 @@ def _render_template(template, variables, data):
     return temp
 
 
+def _show_task(data):
+    if 'task' in data:
+        cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
+
+
 def _set_task_order(data):
     task_order = data.get('this_task_order')
     if task_order is not None:
         data['next_task_order'] = _calculate_next_task_order(task_order)
-
-
-def _show_task(data):
-    if 'task' in data:
-        cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
 
 
 class Agent:
@@ -96,36 +95,15 @@ class Agent:
 
     def run(self, bot_id=None, **kwargs):
         agent_name = self.__class__.__name__
-        # self.logger.log(f"Running Agent...", 'info')
+
         cprint(f"\n{agent_name} - Running Agent...", 'red', attrs=['bold'])
 
-        context_data = kwargs.get('context') or {}
-        context = context_data.get('result', None)
-        task_result_data = kwargs.get('task_result') or {}
-        task_result = task_result_data.get('result', None)
-
-        # Load data
-        data = {}
-        data.update(self.agent_data, **kwargs)
-
-        data = _get_data("task", self.load_current_task, kwargs, data)
-        data = _get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
-        data.update({'context': context})
-
-        _set_task_order(data)
-        _show_task(data)
-
-        # Generate prompt
+        data = self.load_and_process_data(**kwargs)
         prompts = self.generate_prompt(**data)
-
-        # Execute the main task of the agent
         result = self.run_llm(prompts)
-
         parsed_data = self.parse_output(result, bot_id, data)
-
         output = self.save_parsed_data(parsed_data)
 
-        # self.logger.log(f"Agent Done!", 'info')
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
         return output
@@ -156,8 +134,31 @@ class Agent:
 
         return prompts
 
+    def get_task_list(self):
+        return self.storage.load_collection({'collection_name': "Tasks",
+                                             'include': ["documents", "metadatas"]})
+
+    def load_and_process_data(self, **kwargs):
+        context_data = kwargs.get('context') or {}
+        context = context_data.get('result', None)
+        task_result_data = kwargs.get('task_result') or {}
+        task_result = task_result_data.get('result', None)
+
+        # Load data
+        data = {}
+        data.update(self.agent_data, **kwargs)
+
+        data = _get_data("task", self.load_current_task, kwargs, data)
+        data = _get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
+        data.update({'context': context})
+
+        _set_task_order(data)
+        _show_task(data)
+
+        return data
+
     def load_current_task(self):
-        task_list = self.storage.load_collection({'collection_name': "Tasks", 'include': ["documents"]})
+        task_list = self.get_task_list()
         task = task_list['documents'][0]
         return {'task': task}
 
@@ -244,3 +245,4 @@ class Agent:
         }
 
         self.storage.save_memory(params)
+
