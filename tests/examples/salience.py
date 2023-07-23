@@ -55,7 +55,7 @@ class Salience:
 
         # Save the Status of the task to the Tasks DB
 
-        execution_results = {"task_result": task_result,
+        execution_results = {"task_result": task_result['result'],
                              "current_task": current_task,
                              "context": context,
                              "Order": data['Order']}
@@ -134,7 +134,7 @@ class Salience:
 
             self.logger.log(f"Data: {data}", 'debug')
 
-            self.functions.print_result(data['task_result']['result'], "Execution Results")
+            self.functions.print_result(data['task_result'], "Execution Results")
 
             status = self.status_agent.run(**data)
             result = f"Status: {status['status']}\n\nReason: {status['reason']}"

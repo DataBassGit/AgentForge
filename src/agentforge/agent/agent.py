@@ -117,8 +117,7 @@ class Agent:
 
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
-        prompts = self.agent_data['prompts'].copy()
-        # prompts = kwargs['prompts']
+        prompts = kwargs['prompts']
         templates = []
 
         # Handle system prompt
@@ -167,26 +166,15 @@ class Agent:
         return data
 
     def load_additional_data(self, data):
-        # Load the context data
-        # context_data = kwargs.get('context') or {}
-        # context = context_data.get('result', None)
-        # data['context'] = context
-
         # Add 'objective' to the data
         data['objective'] = self.agent_data.get('objective')
 
-        if 'task' not in data:
-            data['task'] = self.load_current_task()['task']
-
-        # Load the task_result data
-        task_result_data = data.get('task_result') or {}
-        data['result'] = task_result_data.get('result', None)
-        # data = _get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
+        # Load the context data
+        context_data = data.get('context') or {}
+        data['context'] = context_data.get('result', None)
 
         _set_task_order(data)
         _show_task(data)
-
-
 
     def load_current_task(self):
         task_list = self.get_task_list()
