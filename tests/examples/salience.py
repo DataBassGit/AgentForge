@@ -47,6 +47,9 @@ class Salience:
             summary = self.summarization_agent.run(text=text)['result']
             self.functions.print_result(result=summary, desc="Summary Agent results")
 
+        # summary = self.summarization_agent.run(text=current_task)
+        # self.functions.print_result(result=summary, desc="Summary Agent results")
+
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
         task_result = self.exec_agent.run(summary=summary,
@@ -130,10 +133,6 @@ class Salience:
         while True:
             # Allow for feedback if auto mode is disabled
             status_result = self.functions.check_status(status)
-            # if status_result is not None:
-            #     context = self.functions.check_auto_mode(status_result)
-            # else:
-            #     context = None
 
             feedback = self.functions.check_auto_mode()
 
@@ -143,12 +142,14 @@ class Salience:
 
             self.functions.print_result(data['task_result'], "Execution Results")
 
-            status = self.status_agent.run(**data)
-            result = f"Status: {status['status']}\n\nReason: {status['reason']}"
+            status_results = self.status_agent.run(**data)
+            status = status_results['status']
+            reason = status_results['reason']
 
+            result = f"Status: {status}\n\nReason: {reason}"
             self.functions.print_result(result, 'Status Agent')
 
-            # testing = self.action_agent.run(task=current_task['document']) # THIS IS WHERE WE WOULD RUN THE ACTION SELECTION AGENT
+            # testing = self.action_agent.run(context=reason) # THIS IS WHERE WE WOULD RUN THE ACTION SELECTION AGENT
 
             self.functions.show_task_list('Salience')
 

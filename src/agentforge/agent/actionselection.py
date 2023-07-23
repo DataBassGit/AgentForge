@@ -20,25 +20,33 @@ class ActionSelectionAgent(Agent):
         else:
             return None
 
-    def load_and_process_data(self, **kwargs):
-
-        objective = self.agent_data['objective']
-        task_list = self.get_completed_tasks()
-        task = self.load_current_task()
-
-        # Load data
-        data = {}
-        data.update(self.agent_data, **kwargs)
-
-        data = _get_data("task", self.load_current_task, kwargs, data)
-        data = data.update({'objective': objective})
-        data = data.update({'task_list': task_list})
-
-        data.update()
+    def load_additional_data(self, data):
+        # Add 'objective' to the data
+        data['objective'] = self.agent_data.get('objective')
+        data['task_list'] = self.get_completed_tasks()
+        data['task'] = self.load_current_task()['task']
 
         _show_task(data)
 
-        return data
-
-    pass
+    # def load_and_process_data(self, **kwargs):
+    #
+    #     objective = self.agent_data['objective']
+    #     task_list = self.get_completed_tasks()
+    #     task = self.load_current_task()
+    #
+    #     # Load data
+    #     data = {}
+    #     data.update(self.agent_data, **kwargs)
+    #
+    #     data = _get_data("task", self.load_current_task, kwargs, data)
+    #     data = data.update({'objective': objective})
+    #     data = data.update({'task_list': task_list})
+    #
+    #     data.update()
+    #
+    #     _show_task(data)
+    #
+    #     return data
+    #
+    # pass
 

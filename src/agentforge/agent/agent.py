@@ -59,10 +59,6 @@ def _load_agent_data(agent_name):
     return agent_data
 
 
-# def remove_prompt_if_none(prompts, kwargs, prompt_type):
-#     if prompts.get(prompt_type) and kwargs.get(prompt_type.lower()) is None:
-#         prompts.pop(prompt_type)
-
 def remove_prompt_if_none(prompts, kwargs):
     prompts_copy = prompts.copy()
     for prompt_type, prompt_data in prompts_copy.items():

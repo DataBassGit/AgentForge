@@ -120,7 +120,7 @@
         "vars": [
           ""
         ],
-        "template": "You are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:\n    1. Highlight the main points and key findings of the text.\n    2. Maintain the original context and intention of the text.\n    3. Be written in a clear and coherent manner.\n\nAdditionally, please follow these guidelines while summarizing the text:\n\n    1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.\n    2. Ensure that the summary is objective and does not include personal opinions or biases.\n    3. Use proper citation or attribution, if applicable.\n    3. Provide the summary in the following format:\n\n        Summary: <your summary>.\n\n"
+        "template": "You are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:\n    1. Highlight the main points and key findings of the text.\n    2. Maintain the original context and intention of the text.\n    3. Be written in a clear and coherent manner.\n\nAdditionally, please follow these guidelines while summarizing the text:\n\n    1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.\n    2. Ensure that the summary is objective and does not include personal opinions or biases.\n    3. Use proper citation or attribution, if applicable.\n\n"
       },
       "Instruction": {
         "vars": [
@@ -303,7 +303,13 @@
         "vars": [
           "context"
         ],
-        "template": "Take into account this summary of your previous actions: {context}\n\n"
+        "template": "Take into consideration the following critique from the last action taken:\n\n{context}\n\n---\n\n"
+      },
+      "Summary": {
+        "vars": [
+          "summary"
+        ],
+        "template": "Take into account this summary of your previous actions:\n\n{summary}\n\n---\n\n"
       },
       "Instruction": {
         "vars": [
