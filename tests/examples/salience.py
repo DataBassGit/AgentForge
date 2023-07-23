@@ -46,8 +46,6 @@ class Salience:
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        # testing = self.action_agent.run(task=current_task['document'])
-
         task_result = self.exec_agent.run(task=current_task['document'], context=context, feedback=feedback)
 
         # Return Execution Results to the Job Agent to determine Frustration
@@ -142,8 +140,10 @@ class Salience:
             result = f"Status: {status['status']}\n\nReason: {status['reason']}"
 
             self.functions.print_result(result, 'Status Agent')
-            self.functions.show_task_list('Salience')
 
+            # testing = self.action_agent.run(task=current_task['document']) # THIS IS WHERE WE WOULD RUN THE ACTION SELECTION AGENT
+
+            self.functions.show_task_list('Salience')
 
 if __name__ == '__main__':
     Salience().loop()

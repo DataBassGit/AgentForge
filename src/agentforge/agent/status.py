@@ -27,20 +27,20 @@ class StatusAgent(Agent):
             "reason": reason,
         }
 
-    def load_data_from_storage(self):
-        # Load necessary data from storage and return it as a dictionary
-        result_collection = self.storage.load_collection({
-            'collection_name': "Results",
-            'include': ["documents"],
-        })
-        result = result_collection[0] if result_collection else ["No results found"]
-
-        task_collection = self.storage.load_collection({
-            'collection_name': "Tasks",
-            'include': ["documents"],
-        })
-
-        task_list = task_collection if task_collection else []
-        task = task_list[0] if task_collection else None
-
-        return {'result': result, 'task': task, 'task_list': task_list}
+    # def load_data_from_storage(self):
+    #     # Load necessary data from storage and return it as a dictionary
+    #     result_collection = self.storage.load_collection({
+    #         'collection_name': "Results",
+    #         'include': ["documents"],
+    #     })
+    #     result = result_collection[0] if result_collection else ["No results found"]
+    #
+    #     task_collection = self.storage.load_collection({
+    #         'collection_name': "Tasks",
+    #         'include': ["documents"],
+    #     })
+    #
+    #     task_list = task_collection if task_collection else []
+    #     task = task_list[0] if task_collection else None
+    #
+    #     return {'result': result, 'task': task, 'task_list': task_list}
