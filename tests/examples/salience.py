@@ -31,24 +31,10 @@ class Salience:
 
         # Feed Data to the Search Utility
         current_task = data['current_task']
-        params = {'collection_name': "Results", 'query': current_task['document']}
-        search_results = self.storage.query_memory(params, 5)['documents']
+        summary = self.summarization_agent.run(query=current_task)
 
-        if search_results == 'No Results!':
-            self.logger.log('No results from query_memory, using peek instead.', 'info')
-            search_results = self.storage.peek(params['collection_name'])['documents']
-
-        self.logger.log(f"Search Results: {search_results}", 'info')
-
-        summary = None
-        # Summarize the Search Results
-        if search_results != 'No Results!':
-            text = "\n".join(search_results[0])
-            summary = self.summarization_agent.run(text=text)['result']
+        if summary is not None:
             self.functions.print_result(result=summary, desc="Summary Agent results")
-
-        # summary = self.summarization_agent.run(text=current_task)
-        # self.functions.print_result(result=summary, desc="Summary Agent results")
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
@@ -142,11 +128,10 @@ class Salience:
 
             self.functions.print_result(data['task_result'], "Execution Results")
 
-            status_results = self.status_agent.run(**data)
-            status = status_results['status']
-            reason = status_results['reason']
+            status = self.status_agent.run(**data)
+            reason = status['reason']
 
-            result = f"Status: {status}\n\nReason: {reason}"
+            result = f"Status: {status['status']}\n\nReason: {reason}"
             self.functions.print_result(result, 'Status Agent')
 
             # testing = self.action_agent.run(context=reason) # THIS IS WHERE WE WOULD RUN THE ACTION SELECTION AGENT

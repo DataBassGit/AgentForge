@@ -7,13 +7,6 @@ class SummarizationAgent(Agent):
         super().__init__()
         self.storage = StorageInterface().storage_utils
 
-    def load_additional_data(self, data):
-        # Add 'objective' to the data
-        data['objective'] = self.agent_data.get('objective')
-        data['task'] = self.load_current_task()['task']
-
-        _show_task(data)
-
     def get_search_results(self, text):
         params = {'collection_name': "Results", 'query': text['document']}
         search_results = self.storage.query_memory(params, 5)['documents']
@@ -27,10 +20,8 @@ class SummarizationAgent(Agent):
 
         return text
 
-    # def run(self, text):
-    #     text = self.get_search_results(text)
-    #     summary = super().run(text=text)
-    #
-    #     result = summary['result']
-    #
-    #     return result
+    def run(self, **kwargs):
+        text = self.get_search_results(kwargs['query'])
+        if text is not None:
+            summary = super().run(text=text)
+            return summary['result']
