@@ -299,12 +299,6 @@
         ],
         "template": "Your task is to prepare for the following assignment: {task}\n\nThis task list was curated to achieve the core goal: {objective}\n\n"
       },
-      "Summary": {
-        "vars": [
-          "summary"
-        ],
-        "template": "Take into account this summary of your previous actions:\n\n{summary}\n\n---\n\n"
-      },
       "Context": {
         "vars": [
           "context"

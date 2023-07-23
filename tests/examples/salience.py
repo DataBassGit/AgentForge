@@ -134,7 +134,8 @@ class Salience:
             result = f"Status: {status['status']}\n\nReason: {reason}"
             self.functions.print_result(result, 'Status Agent')
 
-            # testing = self.action_agent.run(context=reason) # THIS IS WHERE WE WOULD RUN THE ACTION SELECTION AGENT
+            testing = self.action_agent.run(context=reason)['result']
+            self.functions.print_result(testing, 'Action Selection Agent')
 
             self.functions.show_task_list('Salience')
 

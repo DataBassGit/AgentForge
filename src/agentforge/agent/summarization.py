@@ -3,9 +3,6 @@ from agentforge.utils.storage_interface import StorageInterface
 
 
 class SummarizationAgent(Agent):
-    def __init__(self):
-        super().__init__()
-        self.storage = StorageInterface().storage_utils
 
     def get_search_results(self, text):
         params = {'collection_name': "Results", 'query': text['document']}

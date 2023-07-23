@@ -63,6 +63,9 @@ def remove_prompt_if_none(prompts, kwargs):
     prompts_copy = prompts.copy()
     for prompt_type, prompt_data in prompts_copy.items():
         required_vars = prompt_data.get('vars', [])
+        # If there are no required vars or all vars are empty, we keep the prompt
+        if not required_vars or all(not var for var in required_vars):
+            continue
         for var in required_vars:
             if kwargs.get(var) is None:
                 prompts.pop(prompt_type)
