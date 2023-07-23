@@ -134,8 +134,11 @@ class Salience:
             result = f"Status: {status['status']}\n\nReason: {reason}"
             self.functions.print_result(result, 'Status Agent')
 
-            testing = self.action_agent.run(context=reason)['result']
-            self.functions.print_result(testing, 'Action Selection Agent')
+            if status['status'] != 'completed':
+                testing = self.action_agent.run(context=reason)['result']
+                self.functions.print_result(testing, 'Action Selection Agent')
+
+            #actionsearch = self.action_agent.search(context=testing)['result']
 
             self.functions.show_task_list('Salience')
 

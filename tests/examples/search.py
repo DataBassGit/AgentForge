@@ -6,6 +6,7 @@ web_scrape = WebScraper()
 
 search_results = google.google_search("spaceships", 5)
 url = search_results[2][0]
+print(url)
 scrapped = web_scrape.get_plain_text(url)
 chunks = smart_chunk.intelligent_chunk(scrapped, chunk_size=0)
 
