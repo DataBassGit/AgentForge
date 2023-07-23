@@ -59,9 +59,17 @@ def _load_agent_data(agent_name):
     return agent_data
 
 
-def remove_prompt_if_none(prompts, kwargs, prompt_type, kwarg_key):
-    if prompts.get(prompt_type) and kwargs.get(kwarg_key) is None:
-        prompts.pop(prompt_type)
+def remove_prompt_if_none(prompts, kwargs):
+    prompts_copy = prompts.copy()
+    for prompt_type, prompt_data in prompts_copy.items():
+        required_vars = prompt_data.get('vars', [])
+        # If there are no required vars or all vars are empty, we keep the prompt
+        if not required_vars or all(not var for var in required_vars):
+            continue
+        for var in required_vars:
+            if kwargs.get(var) is None:
+                prompts.pop(prompt_type)
+                break  # Exit this loop, the dictionary has been changed
 
 
 def _render_template(template, variables, data):
@@ -83,14 +91,21 @@ def _set_task_order(data):
         data['next_task_order'] = _calculate_next_task_order(task_order)
 
 
+def _order_task_list(task_list):
+    task_list.sort(key=lambda x: x["Order"])
+
+
 class Agent:
+
+    _agent_name = None
+
     def __init__(self, agent_name=None, log_level="info"):
         if agent_name is None:
-            agent_name = self.__class__.__name__
+            self._agent_name = self.__class__.__name__
 
-        self.agent_data = _load_agent_data(agent_name)
+        self.agent_data = _load_agent_data(self._agent_name)
         self.storage = self.agent_data['storage']
-        self.logger = Logger(name=agent_name)
+        self.logger = Logger(name=self._agent_name)
         self.logger.set_level(log_level)
 
     def run(self, bot_id=None, **kwargs):
@@ -110,18 +125,19 @@ class Agent:
 
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
-        prompts = self.agent_data['prompts'].copy()
+        prompts = kwargs['prompts']
         templates = []
 
         # Handle system prompt
-        system_prompt = prompts['SystemPrompt']
+        system_prompt = prompts['System']
         templates.append((system_prompt["template"], system_prompt["vars"]))
 
-        # Handle other types of prompts
-        remove_prompt_if_none(prompts, kwargs, 'ContextPrompt', 'context')
-        remove_prompt_if_none(prompts, kwargs, 'FeedbackPrompt', 'feedback')
+        # Remove prompts if there's no corresponding data in kwargs
+        remove_prompt_if_none(prompts, kwargs)
 
-        for prompt_type in ['ContextPrompt', 'FeedbackPrompt', 'InstructionPrompt']:
+        # Handle other types of prompts
+        other_prompt_types = [prompt_type for prompt_type in prompts.keys() if prompt_type != 'System']
+        for prompt_type in other_prompt_types:
             templates.extend(_handle_prompt_type(prompts, prompt_type))
 
         # Render Prompts
@@ -139,23 +155,28 @@ class Agent:
                                              'include': ["documents", "metadatas"]})
 
     def load_and_process_data(self, **kwargs):
-        context_data = kwargs.get('context') or {}
-        context = context_data.get('result', None)
-        task_result_data = kwargs.get('task_result') or {}
-        task_result = task_result_data.get('result', None)
+        # Load agent data
+        self.agent_data = _load_agent_data(self._agent_name)
 
-        # Load data
-        data = {}
-        data.update(self.agent_data, **kwargs)
+        # The data dict will contain all the data that the agent requires
+        data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
 
-        data = _get_data("task", self.load_current_task, kwargs, data)
-        data = _get_data("task_result", lambda: {'result': task_result}, kwargs, data, invert_logic=True)
-        data.update({'context': context})
+        # Add any other data needed by the agent from kwargs
+        for key in kwargs:
+            data[key] = kwargs[key]
+
+        # Load additional data from storage that was not passed in kwargs
+        self.load_additional_data(data)
+
+        return data
+
+    def load_additional_data(self, data):
+        # Add 'objective' to the data
+        data['objective'] = self.agent_data.get('objective')
+        data['task'] = self.load_current_task()['task']
 
         _set_task_order(data)
         _show_task(data)
-
-        return data
 
     def load_current_task(self):
         task_list = self.get_task_list()

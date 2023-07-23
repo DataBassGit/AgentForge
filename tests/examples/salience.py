@@ -23,7 +23,7 @@ class Salience:
         with open(filename, "a") as file:
             file.write(log_tasks)
 
-    def run(self, feedback=None):
+    def run(self, context=None, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
         # Load Last Results and Current Task as Data
@@ -31,24 +31,16 @@ class Salience:
 
         # Feed Data to the Search Utility
         current_task = data['current_task']
-        params = {'collection_name': "Results", 'query': current_task['document']}
-        search_results = self.storage.query_memory(params, 5)['documents']
+        summary = self.summarization_agent.run(query=current_task)
 
-        self.logger.log(f"Search Results: {search_results}", 'info')
-
-        # Summarize the Search Results
-        if search_results == 'No Results!':
-            context = None
-        else:
-            text = "\n".join(search_results[0])
-            context = self.summarization_agent.run(text=text)
-            self.functions.print_result(result=context['result'], desc="Summary Agent results")
+        if summary is not None:
+            self.functions.print_result(result=summary, desc="Summary Agent results")
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        # testing = self.action_agent.run(task=current_task['document'])
-
-        task_result = self.exec_agent.run(task=current_task['document'], context=context, feedback=feedback)
+        task_result = self.exec_agent.run(summary=summary,
+                                          context=context,
+                                          feedback=feedback)
 
         # Return Execution Results to the Job Agent to determine Frustration
 
@@ -57,7 +49,7 @@ class Salience:
 
         # Save the Status of the task to the Tasks DB
 
-        execution_results = {"task_result": task_result,
+        execution_results = {"task_result": task_result['result'],
                              "current_task": current_task,
                              "context": context,
                              "Order": data['Order']}
@@ -127,21 +119,24 @@ class Salience:
         while True:
             # Allow for feedback if auto mode is disabled
             status_result = self.functions.check_status(status)
-            if status_result is not None:
-                feedback = self.functions.check_auto_mode(status_result)
-            else:
-                feedback = self.functions.check_auto_mode()
 
-            data = self.run(feedback=feedback)
+            feedback = self.functions.check_auto_mode()
+
+            data = self.run(context=status_result, feedback=feedback)
 
             self.logger.log(f"Data: {data}", 'debug')
 
-            self.functions.print_result(data['task_result']['result'], "Execution Results")
+            self.functions.print_result(data['task_result'], "Execution Results")
 
             status = self.status_agent.run(**data)
-            result = f"Status: {status['status']}\n\nReason: {status['reason']}"
+            reason = status['reason']
 
+            result = f"Status: {status['status']}\n\nReason: {reason}"
             self.functions.print_result(result, 'Status Agent')
+
+            testing = self.action_agent.run(context=reason)['result']
+            self.functions.print_result(testing, 'Action Selection Agent')
+
             self.functions.show_task_list('Salience')
 
 

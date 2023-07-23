@@ -1,4 +1,4 @@
-from .agent import Agent
+from .agent import Agent, _set_task_order, _show_task
 
 
 class StatusAgent(Agent):
@@ -17,7 +17,7 @@ class StatusAgent(Agent):
             filename = "./Logs/results.txt"
             separator = "\n\n\n\n---\n\n\n\n"
             task_to_append = "\nTask: " + data['current_task']['metadata']['Description'] + "\n\n"
-            text_to_append = data['result']
+            text_to_append = data['task_result']
             with open(filename, "a") as file:
                 file.write(separator + task_to_append + text_to_append)
 
@@ -27,20 +27,8 @@ class StatusAgent(Agent):
             "reason": reason,
         }
 
-    def load_data_from_storage(self):
-        # Load necessary data from storage and return it as a dictionary
-        result_collection = self.storage.load_collection({
-            'collection_name': "Results",
-            'include': ["documents"],
-        })
-        result = result_collection[0] if result_collection else ["No results found"]
+    def load_additional_data(self, data):
+        data['objective'] = self.agent_data.get('objective')
+        data['task'] = self.load_current_task()['task']
 
-        task_collection = self.storage.load_collection({
-            'collection_name': "Tasks",
-            'include': ["documents"],
-        })
-
-        task_list = task_collection if task_collection else []
-        task = task_list[0] if task_collection else None
-
-        return {'result': result, 'task': task, 'task_list': task_list}
+        _show_task(data)
