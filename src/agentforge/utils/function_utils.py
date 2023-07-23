@@ -29,7 +29,6 @@ class Functions:
         try:
             # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
             if key == keyboard.Key.esc and self.mode == 'auto':
-                # print("\nSwitching to Manual Mode...")
                 cprint("\nSwitching to Manual Mode...", 'green', attrs=['bold'])
                 self.mode = 'manual'
         except AttributeError:
@@ -74,19 +73,14 @@ class Functions:
     def check_status(self, status):
         if status is not None:
             if self.mode != 'auto':
-                result = None
                 completed = status['status']
 
                 if 'not completed' in completed:
                     result = status['reason']
-                    # user_input = input(f"Feedback:{feedback}\n\nSend this feedback to the execution agent? (y/n): ")
-                    # if user_input.lower() == 'y':
                 else:
                     result = None
 
                 return result
-            # elif self.mode == 'auto':
-            #     return status
 
     def get_auto_mode(self):
         return self.mode
@@ -108,7 +102,7 @@ class Functions:
         # Save the result to the log file
         self.write_file(log_folder, log_file, result)
 
-    def show_tasks(self, desc):
+    def show_task_list(self, desc):
         objective = config.persona()['Objective']
         self.storage.storage_utils.select_collection("Tasks")
 
