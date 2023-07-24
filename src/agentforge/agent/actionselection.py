@@ -14,8 +14,8 @@ class ActionSelectionAgent(Agent):
 
         search = self.storage.search_storage_by_threshold(params)
 
-        return {"result": f"{search['documents']}"}
-
+        return {"tools": f"{search['metadatas'][0][0]['Tools']}",
+                "result": f"{search['documents'][0][0]}"}
 
     def load_additional_data(self, data):
         # Add 'objective' to the data
