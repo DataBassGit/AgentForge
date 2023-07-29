@@ -4,8 +4,14 @@ from agentforge.utils.storage_interface import StorageInterface
 
 class SummarizationAgent(Agent):
 
+    def run(self, **kwargs):
+        text = self.get_search_results(kwargs['query'])
+        if text is not None:
+            summary = super().run(text=text)
+            return summary['result']
+
     def get_search_results(self, text):
-        params = {'collection_name': "Results", 'query': text['document']}
+        params = {'collection_name': "Results", 'query': text}
         search_results = self.storage.query_memory(params, 5)['documents']
 
         if search_results == 'No Results!':
@@ -17,8 +23,18 @@ class SummarizationAgent(Agent):
 
         return text
 
-    def run(self, **kwargs):
-        text = self.get_search_results(kwargs['query'])
-        if text is not None:
-            summary = super().run(text=text)
-            return summary['result']
+    # def parse_output(self, **kwargs):  # Remember to incorporate bot_if and data later on
+    #     response = output = kwargs['result']
+    #
+    #     memory = {
+    #         'collection_name': "Results",
+    #         'data': response,
+    #     }
+    #
+    #     parsed_data = {
+    #         'response': response,
+    #         'memory': memory,
+    #         'output': output
+    #     }
+    #
+    #     return parsed_data

@@ -2,6 +2,7 @@ from agentforge.agent.execution import ExecutionAgent
 from agentforge.agent.status import StatusAgent
 from agentforge.agent.summarization import SummarizationAgent
 from agentforge.agent.actionselection import ActionSelectionAgent
+from agentforge.agent.actionpriming import ActionPrimingAgent
 from agentforge.logs.logger_config import Logger
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
@@ -14,6 +15,7 @@ class Salience:
         self.exec_agent = ExecutionAgent()
         self.status_agent = StatusAgent()
         self.action_agent = ActionSelectionAgent()
+        self.priming_agent = ActionPrimingAgent()
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
         self.functions = Functions()
@@ -31,7 +33,7 @@ class Salience:
 
         # Feed Data to the Search Utility
         current_task = data['current_task']
-        summary = self.summarization_agent.run(query=current_task)
+        summary = self.summarization_agent.run(query=current_task['document'])
 
         if summary is not None:
             self.functions.print_result(result=summary, desc="Summary Agent results")
@@ -139,10 +141,19 @@ class Salience:
             #     self.functions.print_result(testing, 'Action Selection Agent')
             #     actionsearch = self.action_agent.search(context=testing)['result']
 
-            #testing
-            testing = self.action_agent.run(context=reason)['tools']
+            action = self.action_agent.run(context=reason)
 
-            self.functions.print_result(testing, 'Action Selection Agent')
+            if 'documents' in action:
+                action = action['metadatas'][0][0]
+                selection = action['Description']
+            else:
+                selection = 'No Relevant Action Found'
+
+            self.functions.print_result(selection, 'Action Selection Agent')
+
+            # if 'Description' in action:
+            #     testing = self.priming_agent.run(action=action)
+            #     self.functions.print_result(testing, 'Action Priming Agent')
 
             self.functions.show_task_list('Salience')
 

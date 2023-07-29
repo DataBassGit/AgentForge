@@ -14,6 +14,8 @@ def metadata_builder(collection_name, name, details):
     if collection_name == 'Tools':
         metadata = {
             'Name': name,
+            'Args': details['Instruction'],
+            'Command': details['Command'],
             'Description': details['Description'],
             'Example': details['Example'],
             'Instruction': details['Instruction']

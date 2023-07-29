@@ -116,7 +116,7 @@ class Agent:
         data = self.load_and_process_data(**kwargs)
         prompts = self.generate_prompt(**data)
         result = self.run_llm(prompts)
-        parsed_data = self.parse_output(result, bot_id, data)
+        parsed_data = self.parse_output(result=result, data=data)
         output = self.save_parsed_data(parsed_data)
 
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
@@ -171,7 +171,8 @@ class Agent:
         return data
 
     def load_additional_data(self, data):
-        # Add 'objective' to the data
+        # By default, it does nothing, each agent should override this function to load any additional data
+        # # Add 'objective' to the data
         data['objective'] = self.agent_data.get('objective')
         data['task'] = self.load_current_task()['task']
 
@@ -183,17 +184,7 @@ class Agent:
         task = task_list['documents'][0]
         return {'task': task}
 
-    def load_result_data(self):
-        result_collection = self.storage.load_collection({
-            'collection_name': "Results",
-            'include': ["documents"],
-        })
-        result = result_collection[0] if result_collection else ["No results found"]
-        self.logger.log(f"Result Data Loaded:\n{result}", 'debug')
-
-        return result
-
-    def parse_output(self, result, bot_id, data):  # Remember to incorporate bot_if and data later on
+    def parse_output(self, result, **kwargs):
         return {"result": result}
 
     def run_llm(self, prompt):
@@ -220,30 +211,29 @@ class Agent:
         return output
 
     def save_results(self, result, collection_name="Results"):
-        self.storage.save_memory({
+        params = {
             'data': [result],
             'collection_name': collection_name,
-        })
+        }
+
+        self.storage.save_memory(params)
 
     def save_status(self, status, task_id, text, task_order):
-        self.logger.log(
-            f"\nSave Task: {text}"
-            f"\nSave ID: {task_id}"
-            f"\nSave Order: {task_order}"
-            f"\nSave Status: {status}",
-            'debug'
-        )
+        # self.logger.log(
+        #     f"\nSave Task: {text}"
+        #     f"\nSave ID: {task_id}"
+        #     f"\nSave Order: {task_order}"
+        #     f"\nSave Status: {status}",
+        #     'debug'
+        # )
         params = {
             'collection_name': "Tasks",
             'ids': [task_id],
             'data': [text],
-            'metadata': [{
-                "Status": status,
-                "Description": text,
-                "Order": task_order,
-            }]
+            'metadata': [{"Status": status, "Description": text, "Order": task_order}]
         }
-        self.storage.update_memory(params)
+
+        self.storage.save_memory(params)
 
     def save_tasks(self, ordered_results, task_desc_list):
         collection_name = "Tasks"

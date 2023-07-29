@@ -126,31 +126,7 @@ class ChromaUtils:
                 m['timestamp'] = timestamp
 
             self.select_collection(collection_name)
-            self.collection.add(
-                documents=documents,
-                metadatas=meta,
-                ids=ids
-            )
-
-        except Exception as e:
-            raise ValueError(f"\n\nError saving results. Error: {e}")
-
-    def update_memory(self, params):
-        try:
-            collection_name = params.pop('collection_name', None)
-            ids = params.pop('ids', None)
-            documents = params.pop('data', None)
-            meta = params.pop('metadata', [{} for _ in documents])
-
-            if ids is None:
-                ids = [str(uuid.uuid4()) for _ in documents]
-
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            for m in meta:
-                m['timestamp'] = timestamp
-
-            self.select_collection(collection_name)
-            self.collection.update(
+            self.collection.upsert(
                 documents=documents,
                 metadatas=meta,
                 ids=ids
@@ -193,14 +169,6 @@ class ChromaUtils:
         else:
             result = {'documents': "No Results!"}
 
-        # logger.log(
-        #         f"\nDB Query - Num Results: {num_results}"
-        #         f"\n\nDB Query - Text Query: {query}"
-        #         f"\n\nDB Query - Text Query: {embeddings}"
-        #         f"DB Query - Results: {result}",
-        #         'debug'
-        #     )
-
         return result
 
     def reset_memory(self):
@@ -225,14 +193,14 @@ class ChromaUtils:
         }
 
         results = self.query_memory(parameters, num_results)
-
         dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
 
         if dist >= threshold:
-            results = {'documents': f"No results found within threshold: {threshold}!\nCosine Distance: {dist}"}
-        else:
-            results['cosine_distance'] = dist
-            results['embeddings'] = None
+            # results = {'documents': f"No results found within threshold: {threshold}!\nCosine Distance: {dist}"}
+            results = {'failed': 'No action found!'}
+        # else:
+        #     results['cosine_distance'] = dist
+        #     results['embeddings'] = None
 
         return results
 
