@@ -36,27 +36,6 @@ class Functions:
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
 
-    @staticmethod
-    def dyn_tool(tool, payload, func="run"):
-        import importlib
-        module = importlib.import_module(tool)
-        run = getattr(module, func)
-        result = run(payload)
-        return result
-
-    @staticmethod
-    def load_tool(storage, tool):
-        params = {
-            "collection_name": 'Tools',
-            "query": tool,
-            "include": ["documents", "metadatas"]
-        }
-
-        results = storage.query_memory(params)
-        filtered = extract_metadata(results)
-
-        return filtered
-
     def on_press(self, key):
         try:
             # If 'Esc' is pressed and mode is 'auto', switch to 'manual'

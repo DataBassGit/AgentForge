@@ -1,3 +1,4 @@
+from agentforge.loops.action import Action
 from agentforge.agent.execution import ExecutionAgent
 from agentforge.agent.status import StatusAgent
 from agentforge.agent.summarization import SummarizationAgent
@@ -12,6 +13,7 @@ class Salience:
     def __init__(self):
         # Summarize the Search Results
         self.summarization_agent = SummarizationAgent()
+        self.action = Action()
         self.exec_agent = ExecutionAgent()
         self.status_agent = StatusAgent()
         self.action_agent = ActionSelectionAgent()
@@ -116,11 +118,11 @@ class Salience:
     def loop(self):
         # Add a variable to set the mode
         self.functions.set_auto_mode()
-        status = None
+        status_results = None
 
         while True:
             # Allow for feedback if auto mode is disabled
-            status_result = self.functions.check_status(status)
+            status_result = self.functions.check_status(status_results)
 
             feedback = self.functions.check_auto_mode()
 
@@ -130,10 +132,11 @@ class Salience:
 
             self.functions.print_result(data['task_result'], "Execution Results")
 
-            status = self.status_agent.run(**data)
-            reason = status['reason']
+            status_results = self.status_agent.run(**data)
+            data['status'] = status_results['status']
+            data['reason'] = status_results['reason']
 
-            result = f"Status: {status['status']}\n\nReason: {reason}"
+            result = f"Status: {data['status']}\n\nReason: {data['reason']}"
             self.functions.print_result(result, 'Status Agent')
 
             # if status['status'] != 'completed':
@@ -141,19 +144,7 @@ class Salience:
             #     self.functions.print_result(testing, 'Action Selection Agent')
             #     actionsearch = self.action_agent.search(context=testing)['result']
 
-            action = self.action_agent.run(context=reason)
-
-            if 'documents' in action:
-                action = action['metadatas'][0][0]
-                selection = action['Description']
-            else:
-                selection = 'No Relevant Action Found'
-
-            self.functions.print_result(selection, 'Action Selection Agent')
-
-            if 'Description' in action:
-                testing = self.priming_agent.run(action=action)
-                self.functions.print_result(testing, 'Action Priming Agent')
+            self.action.run(data['status'])
 
             self.functions.show_task_list('Salience')
 

@@ -8,13 +8,10 @@ init(autoreset=True)
 
 def extract_metadata(results):
     # extract the 'metadatas' key from results
-    metadata_list = results['metadatas']
-
-    # iterate over each metadata entry in the list
-    # each entry is a list where the first item is the dictionary we want
-    extracted_metadata = metadata_list[0][0]
+    extracted_metadata = results['metadatas'][0][0]
 
     return extracted_metadata
+
 
 class ActionPrimingAgent(Agent):
     functions = Functions()
