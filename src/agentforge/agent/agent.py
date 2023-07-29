@@ -257,9 +257,4 @@ class Agent:
 
         self.storage.save_memory(params)
 
-    def dyn_tool(self, tool, payload, func="run"):
-        import importlib
-        module = importlib.import_module(tool)
-        run = getattr(module, func)
-        result = run(payload)
-        return result
+

@@ -1,4 +1,6 @@
 from .agent import Agent, _show_task
+from agentforge.utils.function_utils import Functions
+
 from termcolor import cprint
 from colorama import init
 init(autoreset=True)
@@ -14,8 +16,8 @@ def extract_metadata(results):
 
     return extracted_metadata
 
-
 class ActionPrimingAgent(Agent):
+    functions = Functions()
 
     # def parse_output(self, result, **kwargs):
 

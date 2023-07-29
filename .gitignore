@@ -15,7 +15,7 @@ src/agentforge/persona/chatbot.json
 
 src/agentforge/salience.py
 
-tests/DB/
-tests/examples/Logs/log.txt
+Examples/DB/
+Examples/Architectures/Logs/log.txt
 
-tests/examples/Logs/
+Examples/Architectures/Logs/

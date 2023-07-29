@@ -17,7 +17,7 @@ class Salience:
         self.functions = Functions()
 
         log_tasks = self.functions.show_task_list('Objectives')
-        filename = "./Logs/results.txt"
+        filename = "../../Examples/Architectures/Logs/results.txt"
         with open(filename, "a") as file:
             file.write(log_tasks)
 

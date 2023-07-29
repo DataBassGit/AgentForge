@@ -14,6 +14,17 @@ init(autoreset=True)
 logger = Logger(name="Function Utils")
 
 
+def extract_metadata(results):
+    # extract the 'metadatas' key from results
+    metadata_list = results['metadatas']
+
+    # iterate over each metadata entry in the list
+    # each entry is a list where the first item is the dictionary we want
+    extracted_metadata = metadata_list[0][0]
+
+    return extracted_metadata
+
+
 class Functions:
     mode = None
     storage = None
@@ -24,6 +35,27 @@ class Functions:
         # Start the listener for 'Esc' key press
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
+
+    @staticmethod
+    def dyn_tool(tool, payload, func="run"):
+        import importlib
+        module = importlib.import_module(tool)
+        run = getattr(module, func)
+        result = run(payload)
+        return result
+
+    @staticmethod
+    def load_tool(storage, tool):
+        params = {
+            "collection_name": 'Tools',
+            "query": tool,
+            "include": ["documents", "metadatas"]
+        }
+
+        results = storage.query_memory(params)
+        filtered = extract_metadata(results)
+
+        return filtered
 
     def on_press(self, key):
         try:
@@ -131,12 +163,14 @@ class Functions:
         cprint(f"\n*****\n", 'blue', attrs=['bold'])
         return result
 
-    def write_file(self, folder, file, result):
+    @staticmethod
+    def write_file(folder, file, result):
         with open(os.path.join(folder, file), "a") as f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
 
-    def read_file(self, file_path):
+    @staticmethod
+    def read_file(file_path):
         with open(file_path, 'r') as file:
             text = file.read()
         return text
