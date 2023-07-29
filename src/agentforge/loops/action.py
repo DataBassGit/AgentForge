@@ -15,13 +15,9 @@ def dyna_tool(tool, payload, func="run"):
     return result
 
 
-def extract_metadata(results):
+def extract_metadata(data):
     # extract the 'metadatas' key from results
-    metadata_list = results['metadatas']
-
-    # iterate over each metadata entry in the list
-    # each entry is a list where the first item is the dictionary we want
-    extracted_metadata = metadata_list[0][0]
+    extracted_metadata = data['metadatas'][0][0]
 
     return extracted_metadata
 
@@ -40,19 +36,39 @@ class Action:
             file.write(log_tasks)
 
     def run(self, context, **kwargs):
-        action = self.action_agent.run(context=context)
 
-        if 'documents' in action:
-            action = action['metadatas'][0][0]
+        # tools = {tool: self.load_tool(tool) for tool in tool_data}
+
+        action_results = self.action_agent.run(context=context)
+
+        if 'documents' in action_results:
+            action = extract_metadata(action_results)
             selection = action['Description']
+            self.functions.print_result(selection, 'Action Selection Agent')
+
+            tool_data = action['Tools'].split(', ')
+            tools = {tool: self.load_tool(tool) for tool in tool_data}
+
+            self.functions.print_result(tools, 'TOOLS')
+
+            payloads = {}
+            for tool_name, tool_info in tools.items():
+                payload = self.priming_agent.run(tool=tool_info)
+                # do something with payload here if needed
+                payloads[tool_name] = payload
+
+            self.functions.print_result(payloads, 'Action Priming Agent')
+
+            # payload = self.priming_agent.run(tool=tools[0],action=action)
+            results = 'We run the tool here using the payload and get results'
+
+
+            # if 'Description' in action:
+            #     testing = self.priming_agent.run(action=action)
+            #     self.functions.print_result(testing, 'Action Priming Agent')
+
         else:
-            selection = 'No Relevant Action Found'
-
-        self.functions.print_result(selection, 'Action Selection Agent')
-
-        if 'Description' in action:
-            testing = self.priming_agent.run(action=action)
-            self.functions.print_result(testing, 'Action Priming Agent')
+            self.functions.print_result('No Relevant Action Found', 'Action Selection Agent')
 
     def load_tool(self, tool):
         params = {

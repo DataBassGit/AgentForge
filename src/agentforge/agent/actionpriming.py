@@ -1,6 +1,4 @@
 from .agent import Agent, _show_task
-from agentforge.utils.function_utils import Functions
-
 from termcolor import cprint
 from colorama import init
 init(autoreset=True)
@@ -14,7 +12,6 @@ def extract_metadata(results):
 
 
 class ActionPrimingAgent(Agent):
-    functions = Functions()
 
     # def parse_output(self, result, **kwargs):
 
@@ -22,13 +19,12 @@ class ActionPrimingAgent(Agent):
         # Add 'objective' to the data
         data['objective'] = self.agent_data.get('objective')
         data['task'] = self.load_current_task()['task']
-        tool_data = data['action']['Tools'].split(', ')
-
-        data['tools'] = {tool: self.load_tool(tool) for tool in tool_data}
+        # tool_data = data['action']['Tools'].split(', ')
+        #
+        # data['tools'] = {tool: self.load_tool(tool) for tool in tool_data}
 
         _show_task(data)
-
-        print(data['tools'])
+        # print(data['tools'])
 
     def load_tool(self, tool):
         params = {

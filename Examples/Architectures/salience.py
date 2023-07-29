@@ -144,7 +144,7 @@ class Salience:
             #     self.functions.print_result(testing, 'Action Selection Agent')
             #     actionsearch = self.action_agent.search(context=testing)['result']
 
-            self.action.run(data['status'])
+            self.action.run(data['reason'])
 
             self.functions.show_task_list('Salience')
 
