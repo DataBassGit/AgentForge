@@ -151,9 +151,9 @@ class Salience:
 
             self.functions.print_result(selection, 'Action Selection Agent')
 
-            # if 'Description' in action:
-            #     testing = self.priming_agent.run(action=action)
-            #     self.functions.print_result(testing, 'Action Priming Agent')
+            if 'Description' in action:
+                testing = self.priming_agent.run(action=action)
+                self.functions.print_result(testing, 'Action Priming Agent')
 
             self.functions.show_task_list('Salience')
 

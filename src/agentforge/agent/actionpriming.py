@@ -21,15 +21,15 @@ class ActionPrimingAgent(Agent):
 
     def load_additional_data(self, data):
         # Add 'objective' to the data
-        # data['objective'] = self.agent_data.get('objective')
-        # data['task'] = self.load_current_task()['task']
+        data['objective'] = self.agent_data.get('objective')
+        data['task'] = self.load_current_task()['task']
         tool_data = data['action']['Tools'].split(', ')
 
-        tools = {tool: self.load_tool(tool) for tool in tool_data}
+        data['tools'] = {tool: self.load_tool(tool) for tool in tool_data}
 
-        print(tools)
-        quit()
-        return tools
+        _show_task(data)
+
+        print(data['tools'])
 
     def load_tool(self, tool):
         params = {
