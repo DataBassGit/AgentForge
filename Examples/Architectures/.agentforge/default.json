@@ -344,7 +344,7 @@
         "vars": [
           ""
         ],
-        "template": "Your job requires you to prime the tool you've been provided by taking into consideration the forthcoming task in the light of the main objective and context you've been given.\n\nYou must prime the tool using ONLY the RESPONSE FORMAT provided below. DO NOT PROVIDE ANY COMMENTARY OUTSIDE OF THE RESPONSE FORMAT REQUESTED!\n\nRESPONSE FORMAT:\n{{\n\t'command': {{\n\t\t'name': <command name>,\n\t\t'args': {{'arg name': <value>}}\n\t}},\n\t'thoughts': {{\n\t\t'reasoning': <your reasoning>,\n\t\t'speak': <thoughts summary to say to user>\n\t}}\n}}"
+        "template": "Your job requires you to prime the tool you've been provided by taking into consideration the forthcoming task in the light of the main objective and context you've been given.\n\nYou must prime the tool using ONLY the RESPONSE FORMAT provided below. DO NOT PROVIDE ANY COMMENTARY OUTSIDE OF THE RESPONSE FORMAT REQUESTED!\n\nRESPONSE FORMAT:\n{{\n\t\"command\": {{\n\t\t\"name\": <command name>,\n\t\t\"args\": {{\"arg name\": <value>}}\n\t}},\n\t\"thoughts\": {{\n\t\t\"reasoning\": <your reasoning>,\n\t\t\"speak\": <thoughts summary to say to user>\n\t}}\n}}"
       }
     }
   }

@@ -1,5 +1,6 @@
 from .agent import Agent, _show_task
 
+import json
 import ast
 from termcolor import cprint
 from colorama import init
@@ -16,7 +17,8 @@ def extract_metadata(results):
 class ActionPrimingAgent(Agent):
 
     def build_output(self, result, **kwargs):
-        payload = ast.literal_eval(result['result'])
+        formatted_result = result['result'].replace('\n', '').replace('\t', '')
+        payload = ast.literal_eval(formatted_result)
 
         return payload
 

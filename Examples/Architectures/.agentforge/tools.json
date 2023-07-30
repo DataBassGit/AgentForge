@@ -1,6 +1,6 @@
 {
   "Web_Scrape": {
-    "Args": "URL: {url}",
+    "Args": "url: {url}",
     "Command": "get_plain_text",
     "Description": "The 'WebScraper' tool is used to pull all text from a webpage. Simply provide the web address (URL), and the tool will return the webpage's content in plain text.",
     "Example": "scrapped = web_scrape.get_plain_text(url)",
