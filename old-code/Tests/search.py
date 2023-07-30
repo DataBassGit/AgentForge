@@ -1,6 +1,6 @@
 import agentforge.tools.google_search as google
 import agentforge.tools.intelligent_chunk as smart_chunk
-from agentforge.tools.webscrape import WebScraper
+from agentforge.tools.web_scrape import WebScraper
 
 web_scrape = WebScraper()
 

@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-class WebScraper:
+class web_scrape:
     def __init__(self):
         pass
 

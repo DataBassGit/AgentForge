@@ -3,16 +3,23 @@ from agentforge.agent.actionpriming import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 
-
+import importlib
 from termcolor import cprint
 from colorama import init
 init(autoreset=True)
 
-def dyna_tool(tool, payload, func="run"):
-    import importlib
-    module = importlib.import_module(tool)
-    run = getattr(module, func)
-    result = run(payload)
+
+def dyna_tool(tool, payload):
+    command = payload['command']['name']  # Hard code the command
+    args = payload['command']['args']
+
+    msg = f"agentforge.tools.{tool}"
+
+    module = importlib.import_module(msg)
+    command_func = getattr(module, command)
+
+    result = command_func(**args)
+
     return result
 
 
@@ -60,7 +67,11 @@ class Action:
                 tool = parse_tools_data(tool_info)
                 payload = self.priming_agent.run(tool=tool)
 
-                self.functions.print_result(payload, 'Action Priming Agent')
+                self.functions.print_result(payload, 'Action Agent - PAYLOAD')
+
+                tool_result = dyna_tool(tool_name.lower(), payload)
+
+                self.functions.print_result(tool_result, 'Action Agent - TOOL RESULTS')
 
                 # do something with payload here if needed
                 payloads[tool_name] = payload
