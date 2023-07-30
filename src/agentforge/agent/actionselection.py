@@ -10,7 +10,7 @@ class ActionSelectionAgent(Agent):
         params = {
             "collection_name": 'Actions',
             "query": result,
-            "threshold": 0.99,  # optional
+            "threshold": 0.70,
             "num_results": 1,  # optional
         }
 
