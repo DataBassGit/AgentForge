@@ -111,7 +111,7 @@ class Functions:
             os.makedirs(log_folder)
 
         # Save the result to the log file
-        self.write_file(log_folder, log_file, result)
+        # self.write_file(log_folder, log_file, result)
 
     def show_task_list(self, desc):
         objective = config.persona()['Objective']
@@ -144,7 +144,7 @@ class Functions:
 
     @staticmethod
     def write_file(folder, file, result):
-        with open(os.path.join(folder, file), "a") as f:
+        with open(os.path.join(folder, file), "a", encoding="utf-8") as f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
 

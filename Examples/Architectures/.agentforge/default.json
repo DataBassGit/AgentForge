@@ -332,7 +332,7 @@
         "vars": [
           "results"
         ],
-        "template": "Use the following data from previous results in order to prime the tool:\n\n{results}\n\n---\n\n"
+        "template": "Use the following data in order to prime the tool:\n\n{results}\n\n---\n\n"
       },
       "Context": {
         "vars": [

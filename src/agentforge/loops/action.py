@@ -63,9 +63,10 @@ class Action:
             tools = {tool: self.load_tool(tool) for tool in tool_data}
 
             payloads = {}
+            tool_result = None
             for tool_name, tool_info in tools.items():
                 tool = parse_tools_data(tool_info)
-                payload = self.priming_agent.run(tool=tool)
+                payload = self.priming_agent.run(tool=tool, results=tool_result)
 
                 self.functions.print_result(payload, 'Action Agent - PAYLOAD')
 
