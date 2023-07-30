@@ -6,7 +6,7 @@ init(autoreset=True)
 
 class ActionSelectionAgent(Agent):
 
-    def parse_output(self, result, **kwargs):  # Remember to incorporate bot_if and data later on
+    def parse_result(self, result, **kwargs):  # Remember to incorporate bot_if and data later on
         params = {
             "collection_name": 'Actions',
             "query": result,

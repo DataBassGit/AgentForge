@@ -1,4 +1,6 @@
 from .agent import Agent, _show_task
+
+import ast
 from termcolor import cprint
 from colorama import init
 init(autoreset=True)
@@ -13,7 +15,10 @@ def extract_metadata(results):
 
 class ActionPrimingAgent(Agent):
 
-    # def parse_output(self, result, **kwargs):
+    def build_output(self, result, **kwargs):
+        payload = ast.literal_eval(result['result'])
+
+        return payload
 
     def load_additional_data(self, data):
         # Add 'objective' to the data

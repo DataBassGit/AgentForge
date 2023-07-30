@@ -3,6 +3,7 @@ from agentforge.agent.actionpriming import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 
+
 from termcolor import cprint
 from colorama import init
 init(autoreset=True)
@@ -20,6 +21,11 @@ def extract_metadata(data):
     extracted_metadata = data['metadatas'][0][0]
 
     return extracted_metadata
+
+
+def parse_tools_data(tool_info):
+    tool = '\n'.join([f'{key}: {value}' for key, value in tool_info.items()])
+    return tool
 
 
 class Action:
@@ -49,23 +55,15 @@ class Action:
             tool_data = action['Tools'].split(', ')
             tools = {tool: self.load_tool(tool) for tool in tool_data}
 
-            self.functions.print_result(tools, 'TOOLS')
-
             payloads = {}
             for tool_name, tool_info in tools.items():
-                payload = self.priming_agent.run(tool=tool_info)
+                tool = parse_tools_data(tool_info)
+                payload = self.priming_agent.run(tool=tool)
+
+                self.functions.print_result(payload, 'Action Priming Agent')
+
                 # do something with payload here if needed
                 payloads[tool_name] = payload
-
-            self.functions.print_result(payloads, 'Action Priming Agent')
-
-            # payload = self.priming_agent.run(tool=tools[0],action=action)
-            results = 'We run the tool here using the payload and get results'
-
-
-            # if 'Description' in action:
-            #     testing = self.priming_agent.run(action=action)
-            #     self.functions.print_result(testing, 'Action Priming Agent')
 
         else:
             self.functions.print_result('No Relevant Action Found', 'Action Selection Agent')
@@ -79,6 +77,7 @@ class Action:
 
         results = self.storage.query_memory(params)
         filtered = extract_metadata(results)
+        filtered.pop('timestamp', None)
 
         return filtered
 

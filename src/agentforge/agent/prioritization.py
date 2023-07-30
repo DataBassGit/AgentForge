@@ -23,7 +23,7 @@ class PrioritizationAgent(Agent):
 
         return data
 
-    def parse_output(self, result, bot_id, data):
+    def parse_result(self, result, **kwargs):
         new_tasks = result.split("\n")
 
         task_list = []

@@ -116,8 +116,11 @@ class Agent:
         data = self.load_and_process_data(**kwargs)
         prompts = self.generate_prompt(**data)
         result = self.run_llm(prompts)
-        parsed_data = self.parse_output(result=result, data=data)
-        output = self.save_parsed_data(parsed_data)
+        parsed_data = self.parse_result(result=result, data=data)
+
+        self.save_parsed_data(parsed_data)
+
+        output = self.build_output(parsed_data)
 
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
@@ -184,7 +187,7 @@ class Agent:
         task = task_list['documents'][0]
         return {'task': task}
 
-    def parse_output(self, result, **kwargs):
+    def parse_result(self, result, **kwargs):
         return {"result": result}
 
     def run_llm(self, prompt):
@@ -194,18 +197,27 @@ class Agent:
 
     def save_parsed_data(self, parsed_data):
         save_operations = {
-            "result": (self.save_results, lambda data: data),
-            "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks]),
-                      lambda data: data["Tasks"]),
+            "result": self.save_results,
+            "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks])),
             "status": (lambda status: self.save_status(status, parsed_data["task"]["task_id"],
                                                        parsed_data["task"]["description"],
-                                                       parsed_data["task"]["order"]), lambda data: data)
+                                                       parsed_data["task"]["order"]))
         }
 
-        output = None
-        for key, (save_function, data_selector) in save_operations.items():
+        for key, save_function in save_operations.items():
             if key in parsed_data:
                 save_function(parsed_data[key])
+
+    def build_output(self, parsed_data):
+        build_operations = {
+            "result": (lambda data: data),
+            "Tasks": (lambda data: data["Tasks"]),
+            "status": (lambda data: data)
+        }
+
+        output = parsed_data
+        for key, data_selector in build_operations.items():
+            if key in parsed_data:
                 output = data_selector(parsed_data)
 
         return output
@@ -219,13 +231,6 @@ class Agent:
         self.storage.save_memory(params)
 
     def save_status(self, status, task_id, text, task_order):
-        # self.logger.log(
-        #     f"\nSave Task: {text}"
-        #     f"\nSave ID: {task_id}"
-        #     f"\nSave Order: {task_order}"
-        #     f"\nSave Status: {status}",
-        #     'debug'
-        # )
         params = {
             'collection_name': "Tasks",
             'ids': [task_id],

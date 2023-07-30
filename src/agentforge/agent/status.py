@@ -2,7 +2,7 @@ from .agent import Agent, _set_task_order, _show_task
 
 
 class StatusAgent(Agent):
-    def parse_output(self, result, **kwargs):
+    def parse_result(self, result, **kwargs):
         status = result.split("Status: ")[1].split("\n")[0].lower().strip()
         reason = result.split("Reason: ")[1].rstrip()
         task = {

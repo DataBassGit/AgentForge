@@ -33,7 +33,7 @@ class TaskCreationAgent(Agent):
 
         return {'result': result, 'task_list': task_list}
 
-    def parse_output(self, result, bot_id, data):
+    def parse_result(self, result, **kwargs):
         new_tasks = result.split("\n")
 
         result = [{"Description": task_desc} for task_desc in new_tasks]
