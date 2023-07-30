@@ -3,7 +3,27 @@ import time
 
 import openai
 
-openai.api_key = os.environ.get('OPENAI_API_KEY')
+from termcolor import cprint
+from colorama import init
+init(autoreset=True)
+
+# openai.api_key = os.environ.get('OPENAI_API_KEY')
+openai.api_key = os.getenv('OPENAI_API_KEY')
+_level = 'debug'
+
+
+def parse_prompts(prompts):
+
+    if _level == 'debug':
+        prompt = ''.join(prompts)
+        cprint(f'\nPrompt:\n"{prompt}"', 'magenta', attrs=['concealed'])
+
+    prompt = [
+        {"role": "system", "content": prompts[0]},
+        {"role": "user", "content": "".join(prompts[1:])}
+    ]
+
+    return prompt
 
 
 class GPT:
@@ -12,15 +32,14 @@ class GPT:
     def __init__(self, model):
         self._model = model
 
-    def generate_text(self, prompt, **params):
+    def generate_text(self, prompts, **params):
         reply = None
-
+        prompt = parse_prompts(prompts)
         # will retry to get chat if a rate limit or bad gateway error is received
         # from the chat, up to limit of num_retries
         for attempt in range(self.num_retries):
             backoff = 2 ** (attempt + 2)
             try:
-
                 response = openai.ChatCompletion.create(
                     model=self._model,
                     messages=prompt,

@@ -3,25 +3,23 @@ import importlib
 import json
 import os
 import pathlib
-from typing import Dict, Any
-
-from dotenv import load_dotenv
-
-from .utils.storage_interface import StorageInterface
+from typing import Dict
 
 _parser: configparser.ConfigParser | None = None
 _persona: Dict | None = None
+_actions: Dict | None = None
+_tools: Dict | None = None
 
 
 def _load():
     global _parser
     global _persona
+    global _actions
+    global _tools
 
     _config_path = pathlib.Path(
         os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
     )
-
-    load_dotenv(_config_path / '.env')
 
     _parser = configparser.ConfigParser()
     _parser.read(_config_path / 'config.ini')
@@ -32,9 +30,22 @@ def _load():
     with open(persona_path, 'r') as json_file:
         _persona = json.load(json_file)
 
+    actions_path = _config_path / "actions.json"  # Add the path to the actions.json
 
-def _get_llm(api, agent_name):
-    model_name = _parser.get('ModelLibrary', _persona[agent_name]['Model'])
+    with open(actions_path, 'r') as json_file:  # Open the actions.json file
+        _actions = json.load(json_file)  # Load the data from actions.json to _actions
+
+    tools_path = _config_path / "tools.json"  # Add the path to the tools.json
+
+    with open(tools_path, 'r') as json_file:  # Open the tools.json file
+        _tools = json.load(json_file)  # Load the data from tools.json to _tools
+
+
+def get_llm(api, agent_name):
+
+    model_name = _persona[agent_name].get('Model', _persona['Defaults']['Model'])
+    model_name = _parser.get('ModelLibrary', model_name)
+
     models = {
         "claude_api": {
             "module": "anthropic",
@@ -68,27 +79,6 @@ def _get_llm(api, agent_name):
     return model_class(*args)
 
 
-def get_agent_data(agent_name):
-    # Load persona data
-    persona_data = persona()
-
-    # Initialize agent data
-    agent_data: Dict[str, Any] = dict(
-        name=agent_name,
-        llm=_get_llm(persona_data[agent_name]['API'], agent_name),
-        objective=persona_data['Objective'],
-        prompts=persona_data[agent_name]['Prompts'],
-        params=persona_data[agent_name]['Params'],
-        storage=StorageInterface().storage_utils,
-    )
-
-    if "HeuristicImperatives" in persona_data:
-        imperatives = persona_data["HeuristicImperatives"]
-        agent_data.update(heuristic_imperatives=imperatives)
-
-    return agent_data
-
-
 def get(section, key, **kwargs):
     if not _parser:
         _load()
@@ -99,6 +89,17 @@ def get(section, key, **kwargs):
     return _parser.get(section, key)
 
 
+def storage_api():
+    return get('StorageAPI', 'library')
+
+
+def chromadb():
+    db_path = get('ChromaDB', 'persist_directory', fallback=None)
+    db_embed = get('ChromaDB', 'embedding', fallback=None)
+    chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
+    return db_path, db_embed, chroma_db_impl
+
+
 def persona():
     if not _persona:
         _load()
@@ -106,11 +107,34 @@ def persona():
     return _persona
 
 
-def storage_api():
-    return get('StorageAPI', 'library')
+def tasks():
+    if not _persona:
+        _load()
+
+    return _persona['Tasks']
 
 
-def chromadb():
-    db_path = get('ChromaDB', 'persist_directory', fallback=None)
-    chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
-    return db_path, chroma_db_impl
+def tools():
+    if not _tools:
+        _load()
+
+    return _tools
+
+
+def actions():
+    if not _actions:
+        _load()
+
+    return _actions
+
+
+switch = {
+    "Persona": persona,
+    "Tasks": tasks,
+    "Tools": tools,
+    "Actions": actions
+}
+
+
+def data(case):
+    return switch.get(case, lambda: "Invalid case")

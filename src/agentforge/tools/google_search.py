@@ -3,20 +3,17 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import json
 
-from dotenv import load_dotenv
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', 'Config', '.env')
-load_dotenv(dotenv_path)
 google_api_key = os.getenv('GOOGLE_API_KEY')
 search_engine_id = os.getenv('SEARCH_ENGINE_ID')
 
 
-def google_search(query, num_results=5):
+def google_search(query, number_result=5):
     try:
         # Initialize the Custom Search API service
         service = build("customsearch", "v1", developerKey=google_api_key)
 
         # Send the search query and retrieve the results
-        result = service.cse().list(q=query, cx=search_engine_id, num=num_results).execute()
+        result = service.cse().list(q=query, cx=search_engine_id, num=number_result).execute()
 
         # Extract the search result items from the response
         search_results = result.get("items", [])

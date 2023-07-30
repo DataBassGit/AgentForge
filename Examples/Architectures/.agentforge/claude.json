@@ -2,9 +2,22 @@
   "Name": "EMF",
   "Objective": "Write a program for an AI to use to search the internet.",
   "Tasks": [
-    "Develop a task list",
-    "Reflect on the task list",
-    "Act out the task list"
+    "Define the project scope and requirements for the web search tool,",
+    "Research existing technologies and tools for web search,",
+    "Identify programming languages and frameworks suitable for the project,",
+    "Set up a development environment with necessary tools and libraries,",
+    "Design a software architecture for the web search tool,",
+    "Develop a web scraper to gather data from the internet,",
+    "Implement a search algorithm to process and find relevant information,",
+    "Create a database to store and manage the scraped data,",
+    "Develop a user interface that the AI autonomous agent can interact with,",
+    "Integrate all components (web scraper, search algorithm, database, UI),",
+    "Test the tool for functionality and performance,",
+    "Debug and fix any issues found during testing,",
+    "Document the tool's design, functionality, and usage instructions,",
+    "Deploy the tool for use by the AI autonomous agent,",
+    "Monitor the tool's performance and make adjustments as needed,",
+    "Maintain and update the tool based on feedback and new requirements,"
   ],
   "HeuristicImperatives": [
     "1. Reduce suffering in the universe: Guiding AI systems to reduce harm, address inequalities, and alleviate pain and distress for all sentient beings, including humans, animals, and other life forms.",
@@ -12,8 +25,8 @@
     "3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information."
   ],
   "ExecutionAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -41,7 +54,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -68,8 +81,8 @@
     }
   },
   "PrioritizationAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -91,7 +104,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -118,8 +131,8 @@
     }
   },
   "SummarizationAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -135,7 +148,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -162,8 +175,8 @@
     }
   },
   "TaskCreationAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -183,11 +196,11 @@
         "vars": [
           ""
         ],
-        "template": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments!"
+        "template": "\nBased on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks. Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments! "
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -214,8 +227,8 @@
     }
   },
   "StatusAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -239,7 +252,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -266,8 +279,8 @@
     }
   },
   "SearchSelector": {
-    "API": "openai_api",
-    "Model": "fast_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [
@@ -289,7 +302,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -316,8 +329,8 @@
     }
   },
   "HeuristicComparatorAgent": {
-    "API": "openai_api",
-    "Model": "smart_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [],
@@ -337,7 +350,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -364,8 +377,8 @@
     }
   },
   "HeuristicReflectionAgent": {
-    "API": "openai_api",
-    "Model": "smart_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [],
@@ -384,7 +397,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -411,8 +424,8 @@
     }
   },
   "HeuristicCheckAgent": {
-    "API": "openai_api",
-    "Model": "smart_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "SystemPrompt": {
         "vars": [],
@@ -431,7 +444,7 @@
       }
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,
@@ -458,13 +471,13 @@
     }
   },
   "SalienceAgent": {
-    "API": "openai_api",
-    "Model": "fast_model",
+    "API": "claude_api",
+    "Model": "claude",
     "Prompts": {
       "": ""
     },
     "Params": {
-      "max_new_tokens": 200,
+      "max_new_tokens": 2000,
       "temperature": 0.5,
       "top_p": 0.9,
       "n": 1,

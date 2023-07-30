@@ -3,10 +3,10 @@ from .agent import Agent
 
 class TaskCreationAgent(Agent):
 
-    def load_data_from_memory(self):
+    def load_data_from_memory(self,task):
 
         result_collection = self.storage.load_collection({
-            'collection_name': "Results",
+            'collection_name': "results",
             'include': ["documents"]
         })
 
@@ -16,7 +16,7 @@ class TaskCreationAgent(Agent):
             result = ["No results found"]
 
         task_collection = self.storage.load_collection({
-            'collection_name': "Tasks",
+            'collection_name': task,
             'include': ["documents"],
         })
 
@@ -36,16 +36,16 @@ class TaskCreationAgent(Agent):
     def parse_result(self, result, **kwargs):
         new_tasks = result.split("\n")
 
-        result = [{"Description": task_desc} for task_desc in new_tasks]
-        filtered_results = [task for task in result if task['Description'] and task['Description'][0].isdigit()]
+        result = [{"task_desc": task_desc} for task_desc in new_tasks]
+        filtered_results = [task for task in result if task['task_desc'] and task['task_desc'][0].isdigit()]
 
         try:
             order_tasks = [{
-                'Order': int(task['Description'].split('. ', 1)[0]),
-                'Description': task['Description'].split('. ', 1)[1]
+                'task_order': int(task['task_desc'].split('. ', 1)[0]),
+                'task_desc': task['task_desc'].split('. ', 1)[1]
             } for task in filtered_results]
         except Exception as e:
             raise ValueError(f"\n\nError ordering tasks. Error: {e}")
 
-        return {"Tasks": order_tasks}
+        return {"tasks": order_tasks}
 

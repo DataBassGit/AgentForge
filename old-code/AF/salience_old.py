@@ -14,6 +14,12 @@ class Salience:
         self.status_agent = StatusAgent()
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
+        self.functions = Functions()
+
+        log_tasks = self.functions.show_task_list('Objectives')
+        filename = "../../Examples/Architectures/Logs/results.txt"
+        with open(filename, "a") as file:
+            file.write(log_tasks)
 
     def run(self, feedback=None):
 
@@ -22,28 +28,21 @@ class Salience:
         data = self.load_data_from_storage()
 
         # Feed Data to the Search Utility
-        print('\nQUERYING MEMORY\n')
-        params = {
-            'collection_name': "results",
-            'query': data['current_task']['document'],
-        }
+        params = {'collection_name': "Results", 'query': data['current_task']['document']}
         search_results = self.storage.query_memory(params, 5)['documents']
 
         self.logger.log(f"Search Results: {search_results}", 'info')
 
         # Summarize the Search Results
         if search_results == 'No Results!':
-            context = "No previous actions have been taken."
+            context = None
         else:
             context = self.summarization_agent.run(text="\n".join(search_results[0]))
+            self.functions.print_result(result=context['result'], desc="Summary Agent results")
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        task_result = self.exec_agent.run(
-            task=data['current_task'],
-            context=context,
-            feedback=feedback,
-        )
+        task_result = self.exec_agent.run(task=data['current_task']['document'], context=context, feedback=feedback)
 
         # Return Execution Results to the Job Agent to determine Frustration
 
@@ -52,12 +51,10 @@ class Salience:
 
         # Save the Status of the task to the Tasks DB
 
-        execution_results = {
-            "task_result": task_result,
-            "current_task": data['current_task'],
-            "context": context,
-            "task_order": data['task_order']
-        }
+        execution_results = {"task_result": task_result,
+                             "current_task": data['current_task'],
+                             "context": context,
+                             "Order": data['Order']}
 
         self.logger.log(f"Execution Results: {execution_results}", 'debug')
 
@@ -65,10 +62,7 @@ class Salience:
         return execution_results
 
     def load_data_from_storage(self):
-        result_collection = self.storage.load_collection({
-            'collection_name': "results",
-            'include': ["documents"]
-        })
+        result_collection = self.storage.load_collection({'collection_name': "Results", 'include': ["documents"]})
 
         if result_collection['documents']:
             result = result_collection['documents'][0]
@@ -77,20 +71,17 @@ class Salience:
 
         self.logger.log(f"Load Data Results:\n{result}", 'debug')
 
-        task_collection = self.storage.load_collection({
-            'collection_name': "tasks",
-            'include': ["documents", "metadatas"]
-        })
+        task_collection = self.storage.load_collection({'collection_name': "Tasks",
+                                                        'include': ["documents", "metadatas"]})
 
         self.logger.log(f"Tasks Before Ordering:\n{task_collection}", 'debug')
         # quit()
 
         # first, pair up 'ids', 'documents' and 'metadatas' for sorting
-        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'],
-                                   task_collection['metadatas']))
+        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
 
-        # sort the paired up tasks by 'task_order' in 'metadatas'
-        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['task_order'])
+        # sort the paired up tasks by 'Order' in 'metadatas'
+        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['Order'])
 
         # split the sorted tasks back into separate lists
         sorted_ids, sorted_documents, sorted_metadatas = zip(*sorted_tasks)
@@ -105,20 +96,15 @@ class Salience:
         }
 
         self.logger.log(f"Tasks Ordered list:\n{ordered_list}", 'debug')
-
         self.logger.log(f"Tasks IDs:\n{sorted_ids}", 'debug')
 
         current_task = None
         # iterate over sorted_metadatas
         for i, metadata in enumerate(sorted_metadatas):
-            # check if the task_status is not completed
+            # check if the Task Status is not completed
             self.logger.log(f"Sorted Metadatas:\n{metadata}", 'debug')
-            if metadata['task_status'] == 'not completed':
-                current_task = {
-                    'id': sorted_ids[i],
-                    'document': sorted_documents[i],
-                    'metadata': metadata
-                }
+            if metadata['Status'] == 'not completed':
+                current_task = {'id': sorted_ids[i], 'document': sorted_documents[i], 'metadata': metadata}
                 break  # break the loop as soon as we find the first not_completed task
 
         if current_task is None:
@@ -133,34 +119,38 @@ class Salience:
             'current_task': current_task,
             'task_list': ordered_list,
             'task_ids': sorted_ids,
-            'task_order': current_task["metadata"]["task_order"]
+            'Order': current_task["metadata"]["Order"]
         }
 
         return ordered_results
 
     def loop(self):
         # Add a variable to set the mode
-        functions = Functions()
-        functions.set_auto_mode()
+        self.functions.set_auto_mode()
         status = None
 
         while True:
             collection_list = self.storage.collection_list()
             self.logger.log(f"Collection List: {collection_list}", 'debug')
 
-            functions.show_tasks('Salience')
-
             # Allow for feedback if auto mode is disabled
-            status_result = functions.check_status(status)
+            status_result = self.functions.check_status(status)
             if status_result is not None:
-                feedback = functions.check_auto_mode(status_result)
+                feedback = self.functions.check_auto_mode(status_result)
             else:
-                feedback = functions.check_auto_mode()
+                feedback = self.functions.check_auto_mode()
 
             data = self.run(feedback=feedback)
+
             self.logger.log(f"Data: {data}", 'debug')
-            functions.print_result(data['task_result']['result'], "Execution Results")
+            self.functions.print_result(data['task_result']['result'], "Execution Results")
             status = self.status_agent.run(**data)
+
+            result = f"Status: {status['status']}\n\nReason: {status['reason']}"
+
+            self.functions.print_result(result, 'Status Agent')
+
+            self.functions.show_task_list('Salience')
 
 
 if __name__ == '__main__':

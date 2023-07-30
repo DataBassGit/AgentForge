@@ -1,6 +1,44 @@
 import uuid
-
 from .. import config
+
+
+def metadata_builder(collection_name, name, details):
+    if collection_name == 'Tasks':
+        metadata = {
+            "Status": "not completed",
+            "Description": details,
+            "List_ID": str(uuid.uuid4()),
+            "Order": name + 1
+        }
+
+    if collection_name == 'Tools':
+        metadata = {
+            'Name': name,
+            'Args': details['Args'],
+            'Command': details['Command'],
+            'Description': details['Description'],
+            'Example': details['Example'],
+            'Instruction': details['Instruction']
+        }
+
+    if collection_name == 'Actions':
+        metadata = {
+            'Name': name,
+            'Description': details['Description'],
+            'Example': details['Example'],
+            'Instruction': details['Instruction'],
+            'Tools': ', '.join(details['Tools'])
+        }
+
+    return metadata
+
+
+def description_extractor(metadata):
+    return metadata["Description"]
+
+
+def id_generator(data):
+    return [str(i + 1) for i in range(len(data))]
 
 
 class StorageInterface:
@@ -25,33 +63,48 @@ class StorageInterface:
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
+    def initialize_memory(self, memory, extra):
+        """
+        Initializes a collection with provided data source and metadata builder.
+        """
+
+        data = config.data(memory)()
+        collection_name = memory
+        builder = metadata_builder
+        generator = id_generator
+        extractor = description_extractor
+
+        if data == 'Invalid case':
+            return
+
+        ids = generator(data)
+
+        if isinstance(data, list):
+            metadatas = [builder(collection_name, i, item) for i, item in enumerate(data)]
+        else:
+            metadatas = [builder(collection_name, key, value) for key, value in data.items()]
+
+        description = [extractor(metadata) for metadata in metadatas]
+
+        save_params = {
+            "collection_name": collection_name,
+            "ids": ids,
+            "data": description,
+            "metadata": metadatas,
+        }
+
+        self.storage_utils.select_collection(collection_name)
+        self.storage_utils.save_memory(save_params)
+
     def initialize_chroma(self):
         from .chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
-        self.storage_utils.select_collection("results")
-        self.storage_utils.select_collection("tasks")
 
         if config.get('ChromaDB', 'DBFreshStart') == 'True':
-            collection_name = "tasks"
-            self.storage_utils.clear_collection(collection_name)
+            self.storage_utils.reset_memory()
+            memories = config.persona()['Memories']
 
-            persona_data = config.persona()
-            task_dicts = [{"task_order": i + 1, "task_desc": task}
-                          for i, task in enumerate(persona_data['Tasks'])]
-            task_list = [task_dict["task_desc"] for task_dict in task_dicts]
+            [self.initialize_memory(key, value) for key, value in memories.items()]
 
-            metadatas = [{
-                "task_status": "not completed",
-                "task_desc": task["task_desc"],
-                "list_id": str(uuid.uuid4()),
-                "task_order": task["task_order"]
-            } for task in task_dicts]
 
-            params = {
-                "collection_name": collection_name,
-                "ids": [str(order["task_order"]) for order in task_dicts],
-                "data": task_list,
-                "metadata": metadatas,
-            }
-            self.storage_utils.save_memory(params)

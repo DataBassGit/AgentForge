@@ -33,7 +33,7 @@ This should be enough to start.
 Navigate to `/tests/examples/` in your console and run
 
 ```shell
-python salience.py
+python salience_old.py
 ```
 
 You will be asked if you would like to run in manual mode or auto mode. Choose manual mode for now.

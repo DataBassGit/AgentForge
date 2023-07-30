@@ -1,9 +1,9 @@
 import json
 import os
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
-import umap
+# import umap
 import yaml
 from sentence_transformers import SentenceTransformer
 
