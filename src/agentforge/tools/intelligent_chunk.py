@@ -1,4 +1,5 @@
 import spacy
+from ..utils.storage_interface import StorageInterface
 
 
 def intelligent_chunk(text, chunk_size):
@@ -11,8 +12,10 @@ def intelligent_chunk(text, chunk_size):
     }
     
     # Load the spacy model (you can use a different model if you prefer)
-    nlp = spacy.load('en_core_web_sm')
+    #nlp = StorageInterface().storage_utils.return_embedding(str(text))
     # Increase the max_length limit to accommodate large texts
+    nlp = spacy.blank('en')
+    nlp.add_pipe('sentencizer')
     nlp.max_length = 3000000
     
     # Tokenize the text into sentences using spacy
