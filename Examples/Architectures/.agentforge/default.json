@@ -1,6 +1,6 @@
 {
   "Name": "EMF",
-  "Objective": "Write a program for an AI to use to search the internet.",
+  "Objective": "Write a program design for my business in applied behavioral analysis, and identify a task analysis process.",
   "Tasks": [
     "Identify programming languages and frameworks suitable for the project",
     "Design a development environment with necessary tools and libraries and explain it to the human. The agent will not execute these tasks. Those steps will be performed by the human",
@@ -90,7 +90,9 @@
         ],
         "template": "Please complete the following task: {task}\n\nResponse: {{your response}}"
       }
-    }
+    },
+    "type": "agent",
+    "inputs": [summary,feedback]
   },
   "PrioritizationAgent": {
     "Prompts": {
