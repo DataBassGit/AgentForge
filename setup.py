@@ -58,4 +58,5 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     python_requires=">=3.9",
+    scripts=['utils/installer/agentforge-newbot']
 )

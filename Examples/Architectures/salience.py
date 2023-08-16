@@ -139,14 +139,13 @@ class Salience:
             result = f"Status: {data['status']}\n\nReason: {data['reason']}"
             self.functions.print_result(result, 'Status Agent')
 
-            # if status['status'] != 'completed':
-            #     testing = self.action_agent.run(context=reason)['result']
-            #     self.functions.print_result(testing, 'Action Selection Agent')
-            #     actionsearch = self.action_agent.search(context=testing)['result']
+            # status test
+            # self.action.run(data['reason'])
+
 
             if data['status'] != 'completed':
                 frustration += .1
-                self.action.run(data['reason'])
+                self.action.run(data['reason'], frustration=frustration)
             else:
                 frustration = 0
             print(f"\nFrustration level: {frustration}\n")

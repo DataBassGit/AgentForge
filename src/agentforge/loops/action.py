@@ -52,7 +52,7 @@ class Action:
 
         # tools = {tool: self.load_tool(tool) for tool in tool_data}
 
-        action_results = self.action_agent.run(context=context)
+        action_results = self.action_agent.run(context=context, frustration=kwargs.get('frustration',0))
 
         if 'documents' in action_results:
             action = extract_metadata(action_results)

@@ -7,12 +7,14 @@ init(autoreset=True)
 class ActionSelectionAgent(Agent):
 
     def parse_result(self, result, **kwargs):  # Remember to incorporate bot_if and data later on
+        frustration = kwargs.get('frustration',0)
         params = {
             "collection_name": 'Actions',
             "query": result,
-            "threshold": 0.70,
+            "threshold": 0.50+frustration,
             "num_results": 1,  # optional
         }
+        print(f'Frustration Sent: {frustration}\nFrustration Threshold: {params["threshold"]}')
 
         search = self.storage.search_storage_by_threshold(params)
 
