@@ -10,6 +10,7 @@ from agentforge.utils.storage_interface import StorageInterface
 
 
 class Salience:
+
     def __init__(self):
         # Summarize the Search Results
         self.summarization_agent = SummarizationAgent()
@@ -21,11 +22,14 @@ class Salience:
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
         self.functions = Functions()
+        self.frustration = 0
+        self.frustration_step = 0.1
+        self.max_frustration = 0.5
 
-        log_tasks = self.functions.show_task_list('Objectives')
-        filename = "./Logs/results.txt"
-        with open(filename, "a") as file:
-            file.write(log_tasks)
+        # log_tasks = self.functions.show_task_list('Objectives')
+        # filename = "./Logs/results.txt"
+        # with open(filename, "a") as file:
+        #     file.write(log_tasks)
 
     def run(self, context=None, feedback=None):
 
@@ -62,6 +66,15 @@ class Salience:
 
         self.logger.log(f"Agent Done!", 'info')
         return execution_results
+
+    # noinspection PyTypeChecker
+    def frustrate(self):
+        if self.frustration < self.max_frustration:
+            self.frustration += self.frustration_step
+            self.frustration = min(self.frustration, self.max_frustration)
+            print(f"\nIncreased Frustration Level: {self.frustration}\n")
+        else:
+            print(f"\nMax Frustration Level Reached: {self.frustration}\n")
 
     def load_data_from_storage(self):
         result_collection = self.storage.load_collection({'collection_name': "Results", 'include': ["documents"]})
@@ -117,19 +130,18 @@ class Salience:
 
     def loop(self):
         # Add a variable to set the mode
-        self.functions.set_auto_mode()
+        # self.functions.set_auto_mode()
         status_results = None
 
         while True:
+            self.functions.show_task_list('Salience')
+
             # Allow for feedback if auto mode is disabled
             status_result = self.functions.check_status(status_results)
-
             feedback = self.functions.check_auto_mode()
-
             data = self.run(context=status_result, feedback=feedback)
 
             self.logger.log(f"Data: {data}", 'debug')
-
             self.functions.print_result(data['task_result'], "Execution Results")
 
             status_results = self.status_agent.run(**data)
@@ -139,18 +151,11 @@ class Salience:
             result = f"Status: {data['status']}\n\nReason: {data['reason']}"
             self.functions.print_result(result, 'Status Agent')
 
-            # status test
-            # self.action.run(data['reason'])
-
-
             if data['status'] != 'completed':
-                frustration += .1
-                self.action.run(data['reason'], frustration=frustration)
+                self.frustrate()
+                self.action.run(data['reason'], frustration=self.frustration)
             else:
-                frustration = 0
-            print(f"\nFrustration level: {frustration}\n")
-
-            self.functions.show_task_list('Salience')
+                self.frustration = 0
 
 
 if __name__ == '__main__':

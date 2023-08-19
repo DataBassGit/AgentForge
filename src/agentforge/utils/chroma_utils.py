@@ -174,9 +174,6 @@ class ChromaUtils:
     def reset_memory(self):
         self.client.reset()
 
-    def return_embedding(self, text_to_embed):
-        return embedding([text_to_embed])
-
     def search_storage_by_threshold(self, parameters, num_results=1):
         from scipy.spatial import distance
 
@@ -204,3 +201,6 @@ class ChromaUtils:
 
         return results
 
+    @staticmethod
+    def return_embedding(text_to_embed):
+        return embedding([text_to_embed])

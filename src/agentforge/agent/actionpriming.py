@@ -26,12 +26,8 @@ class ActionPrimingAgent(Agent):
         # Add 'objective' to the data
         data['objective'] = self.agent_data.get('objective')
         data['task'] = self.load_current_task()['task']
-        # tool_data = data['action']['Tools'].split(', ')
-        #
-        # data['tools'] = {tool: self.load_tool(tool) for tool in tool_data}
 
         _show_task(data)
-        # print(data['tools'])
 
     def load_tool(self, tool):
         params = {
@@ -44,6 +40,3 @@ class ActionPrimingAgent(Agent):
         filtered = extract_metadata(results)
 
         return filtered
-
-    # def save_parsed_data(self, parsed_data):
-    #     return parsed_data
