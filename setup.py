@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.0",
+    version="0.1.0.4",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -58,5 +58,9 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     python_requires=">=3.9",
-    scripts=['utils/installer/agentforge-newbot']
+    entry_points={
+        'console_scripts': [
+            'agentforge=agentforge.utils.installer.agentforge_cli:main',
+        ],
+    }
 )
