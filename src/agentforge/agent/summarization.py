@@ -21,19 +21,3 @@ class SummarizationAgent(Agent):
             text = "\n".join(search_results[0])
 
         return text
-
-    # def parse_output(self, **kwargs):  # Remember to incorporate bot_if and data later on
-    #     response = output = kwargs['result']
-    #
-    #     memory = {
-    #         'collection_name': "Results",
-    #         'data': response,
-    #     }
-    #
-    #     parsed_data = {
-    #         'response': response,
-    #         'memory': memory,
-    #         'output': output
-    #     }
-    #
-    #     return parsed_data

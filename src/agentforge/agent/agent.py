@@ -196,11 +196,12 @@ class Agent:
         return model.generate_text(prompt, **params,).strip()
 
     def build_output(self, parsed_data):
-        build_operations = self.get_build_operations()
+        build_operations = self.get_build_operations(parsed_data)
         output = parsed_data
         for key, data_selector in build_operations.items():
             if key in parsed_data:
                 output = data_selector(parsed_data)
+                break
 
         return output
 
@@ -214,16 +215,6 @@ class Agent:
         params = {
             'data': [result],
             'collection_name': "Results",
-        }
-
-        self.storage.save_memory(params)
-
-    def save_status(self, status, task_id, text, task_order):
-        params = {
-            'collection_name': "Tasks",
-            'ids': [task_id],
-            'data': [text],
-            'metadata': [{"Status": status, "Description": text, "Order": task_order}]
         }
 
         self.storage.save_memory(params)
@@ -253,23 +244,16 @@ class Agent:
 
         self.storage.save_memory(params)
 
-    def get_build_operations(self):
+    def get_build_operations(self, parsed_data):
         build_operations = {
-            "Tasks": (lambda data: data["Tasks"]),
             "Result": (lambda data: data),
-            "status": (lambda data: data)
         }
 
         return build_operations
 
     def get_save_operations(self, parsed_data):
         save_operations = {
-            "Result": self.save_results,
-            "Tasks": self.save_tasks,
-            # "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks])),
-            "status": (lambda status: self.save_status(status, parsed_data["task"]["task_id"],
-                                                       parsed_data["task"]["description"],
-                                                       parsed_data["task"]["order"]))
+            "Result": self.save_results
         }
 
         return save_operations
