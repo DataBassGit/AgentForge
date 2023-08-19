@@ -126,8 +126,6 @@ class Agent:
 
         return output
 
-
-
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
         prompts = kwargs['prompts']
@@ -212,10 +210,10 @@ class Agent:
             if key in parsed_data:
                 save_function(parsed_data[key])
 
-    def save_results(self, result, collection_name="Results"):
+    def save_results(self, result):
         params = {
             'data': [result],
-            'collection_name': collection_name,
+            'collection_name': "Results",
         }
 
         self.storage.save_memory(params)
@@ -230,9 +228,12 @@ class Agent:
 
         self.storage.save_memory(params)
 
-    def save_tasks(self, ordered_results, task_desc_list):
+    def save_tasks(self, parsed_data):
         collection_name = "Tasks"
         self.storage.clear_collection(collection_name)
+
+        ordered_results = parsed_data['tasks']
+        task_desc_list = [task['Description'] for task in ordered_results]
 
         metadatas = [{
             "Status": "not completed",
@@ -254,8 +255,8 @@ class Agent:
 
     def get_build_operations(self):
         build_operations = {
-            "Result": (lambda data: data),
             "Tasks": (lambda data: data["Tasks"]),
+            "Result": (lambda data: data),
             "status": (lambda data: data)
         }
 
@@ -264,17 +265,12 @@ class Agent:
     def get_save_operations(self, parsed_data):
         save_operations = {
             "Result": self.save_results,
-            "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks])),
+            "Tasks": self.save_tasks,
+            # "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks])),
             "status": (lambda status: self.save_status(status, parsed_data["task"]["task_id"],
                                                        parsed_data["task"]["description"],
                                                        parsed_data["task"]["order"]))
         }
-
-        # save_operations = {
-        #     "Result": self.save_results,
-        #     "status": self.save_status,
-        #     "Tasks": self.save_tasks
-        # }
 
         return save_operations
 
