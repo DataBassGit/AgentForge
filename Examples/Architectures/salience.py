@@ -57,7 +57,7 @@ class Salience:
 
         # Save the Status of the task to the Tasks DB
 
-        execution_results = {"task_result": task_result['result'],
+        execution_results = {"task_result": task_result['Result'],
                              "current_task": current_task,
                              "context": context,
                              "Order": data['Order']}

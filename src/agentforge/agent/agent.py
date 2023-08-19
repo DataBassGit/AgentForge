@@ -126,6 +126,8 @@ class Agent:
 
         return output
 
+
+
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
         prompts = kwargs['prompts']
@@ -188,39 +190,27 @@ class Agent:
         return {'task': task}
 
     def parse_result(self, result, **kwargs):
-        return {"result": result}
+        return {"Result": result}
 
     def run_llm(self, prompt):
         model: LLM = self.agent_data['llm']
         params = self.agent_data.get("params", {})
         return model.generate_text(prompt, **params,).strip()
 
-    def save_parsed_data(self, parsed_data):
-        save_operations = {
-            "result": self.save_results,
-            "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks])),
-            "status": (lambda status: self.save_status(status, parsed_data["task"]["task_id"],
-                                                       parsed_data["task"]["description"],
-                                                       parsed_data["task"]["order"]))
-        }
-
-        for key, save_function in save_operations.items():
-            if key in parsed_data:
-                save_function(parsed_data[key])
-
     def build_output(self, parsed_data):
-        build_operations = {
-            "result": (lambda data: data),
-            "Tasks": (lambda data: data["Tasks"]),
-            "status": (lambda data: data)
-        }
-
+        build_operations = self.get_build_operations()
         output = parsed_data
         for key, data_selector in build_operations.items():
             if key in parsed_data:
                 output = data_selector(parsed_data)
 
         return output
+
+    def save_parsed_data(self, parsed_data):
+        save_operations = self.get_save_operations(parsed_data)
+        for key, save_function in save_operations.items():
+            if key in parsed_data:
+                save_function(parsed_data[key])
 
     def save_results(self, result, collection_name="Results"):
         params = {
@@ -262,4 +252,29 @@ class Agent:
 
         self.storage.save_memory(params)
 
+    def get_build_operations(self):
+        build_operations = {
+            "Result": (lambda data: data),
+            "Tasks": (lambda data: data["Tasks"]),
+            "status": (lambda data: data)
+        }
+
+        return build_operations
+
+    def get_save_operations(self, parsed_data):
+        save_operations = {
+            "Result": self.save_results,
+            "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks])),
+            "status": (lambda status: self.save_status(status, parsed_data["task"]["task_id"],
+                                                       parsed_data["task"]["description"],
+                                                       parsed_data["task"]["order"]))
+        }
+
+        # save_operations = {
+        #     "Result": self.save_results,
+        #     "status": self.save_status,
+        #     "Tasks": self.save_tasks
+        # }
+
+        return save_operations
 

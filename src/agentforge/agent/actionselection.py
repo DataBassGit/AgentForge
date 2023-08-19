@@ -12,6 +12,8 @@ class ActionSelectionAgent(Agent):
         threshold = 0.3 + frustration
         threshold = min(threshold, max_threshold)
 
+        threshold = 0.99
+
         print(f'\nFrustration Threshold: {threshold}')
 
         params = {
