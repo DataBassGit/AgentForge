@@ -33,7 +33,8 @@ class StatusAgent(Agent):
 
         _show_task(data)
 
-    def save_status(self, status, parsed_data):
+    def save_status(self, parsed_data):
+        status = parsed_data["status"]
         task_id = parsed_data["task"]["task_id"]
         text = parsed_data["task"]["description"]
         task_order = parsed_data["task"]["order"]
@@ -47,16 +48,5 @@ class StatusAgent(Agent):
 
         self.storage.save_memory(params)
 
-    def get_save_operations(self, parsed_data):
-        save_operations = {
-            "status": (lambda status: self.save_status(status, parsed_data))
-        }
-
-        return save_operations
-
-    def get_build_operations(self, parsed_data):
-        build_operations = {
-            "status": (lambda data: data)
-        }
-
-        return build_operations
+    def save_parsed_data(self, parsed_data):
+        self.save_status(parsed_data)

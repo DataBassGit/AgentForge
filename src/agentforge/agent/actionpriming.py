@@ -17,7 +17,7 @@ def extract_metadata(results):
 class ActionPrimingAgent(Agent):
 
     def build_output(self, result, **kwargs):
-        formatted_result = result['Result'].replace('\n', '').replace('\t', '')
+        formatted_result = result.replace('\n', '').replace('\t', '')
         payload = ast.literal_eval(formatted_result)
 
         return payload
@@ -40,3 +40,7 @@ class ActionPrimingAgent(Agent):
         filtered = extract_metadata(results)
 
         return filtered
+
+    def save_parsed_data(self, parsed_data):
+        pass
+

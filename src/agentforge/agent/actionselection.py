@@ -35,4 +35,5 @@ class ActionSelectionAgent(Agent):
         _show_task(data)
 
     def save_parsed_data(self, parsed_data):
-        return parsed_data
+        # return parsed_data
+        pass

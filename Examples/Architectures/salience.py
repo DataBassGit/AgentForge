@@ -50,14 +50,8 @@ class Salience:
                                           context=context,
                                           feedback=feedback)
 
-        # Return Execution Results to the Job Agent to determine Frustration
-
-        # Depending on Frustration Results feed the Tasks and Execution Results
-        # to the Analysis Agent to determine the status of the Current Task
-
-        # Save the Status of the task to the Tasks DB
-
-        execution_results = {"task_result": task_result['Result'],
+        # execution_results = {"task_result": task_result['Result'],
+        execution_results = {"task_result": task_result,
                              "current_task": current_task,
                              "context": context,
                              "Order": data['Order']}

@@ -126,6 +126,9 @@ class Agent:
 
         return output
 
+    def build_output(self, parsed_data):
+        return parsed_data
+
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
         prompts = kwargs['prompts']
@@ -188,73 +191,22 @@ class Agent:
         return {'task': task}
 
     def parse_result(self, result, **kwargs):
-        return {"Result": result}
+        return result
 
     def run_llm(self, prompt):
         model: LLM = self.agent_data['llm']
         params = self.agent_data.get("params", {})
         return model.generate_text(prompt, **params,).strip()
 
-    def build_output(self, parsed_data):
-        build_operations = self.get_build_operations(parsed_data)
-        output = parsed_data
-        for key, data_selector in build_operations.items():
-            if key in parsed_data:
-                output = data_selector(parsed_data)
-                break
-
-        return output
-
     def save_parsed_data(self, parsed_data):
-        save_operations = self.get_save_operations(parsed_data)
-        for key, save_function in save_operations.items():
-            if key in parsed_data:
-                save_function(parsed_data[key])
+        self.save_results(parsed_data)
 
     def save_results(self, result):
         params = {
             'data': [result],
-            'collection_name': "Results",
+            'collection_name': 'Results',
         }
 
         self.storage.save_memory(params)
 
-    def save_tasks(self, parsed_data):
-        collection_name = "Tasks"
-        self.storage.clear_collection(collection_name)
-
-        ordered_results = parsed_data['tasks']
-        task_desc_list = [task['Description'] for task in ordered_results]
-
-        metadatas = [{
-            "Status": "not completed",
-            "Description": task["Description"],
-            "List_ID": str(uuid.uuid4()),
-            "Order": task["Order"]
-        } for task in ordered_results]
-
-        task_orders = [task["Order"] for task in ordered_results]
-
-        params = {
-            "collection_name": collection_name,
-            "ids": [str(order) for order in task_orders],
-            "data": task_desc_list,
-            "metadata": metadatas,
-        }
-
-        self.storage.save_memory(params)
-
-    def get_build_operations(self, parsed_data):
-        build_operations = {
-            "Result": (lambda data: data),
-        }
-
-        return build_operations
-
-    def get_save_operations(self, parsed_data):
-        save_operations = {
-            "Result": self.save_results
-        }
-
-        return save_operations
 
