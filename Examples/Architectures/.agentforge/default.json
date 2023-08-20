@@ -93,28 +93,6 @@
     },
     "type": "agent"
   },
-  "PrioritizationAgent": {
-    "Prompts": {
-      "System": {
-        "vars": [
-          "task_list"
-        ],
-        "template": "\nYou are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: {task_list}"
-      },
-      "Context": {
-        "vars": [
-          "objective"
-        ],
-        "template": "\nConsider the ultimate objective of your team: {objective}. Do not remove any tasks."
-      },
-      "Instruction": {
-        "vars": [
-          "next_task_order"
-        ],
-        "template": "\nReturn the result as a numbered list in the following format:\n#. First task\n#. Second task\nStart the task list with number {next_task_order}\nReturn ONLY the updated task list as an array, avoid any notes or unnecessary comments!"
-      }
-    }
-  },
   "SummarizationAgent": {
     "Prompts": {
       "System": {

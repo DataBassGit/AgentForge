@@ -1,21 +1,19 @@
 from agentforge.agent.taskcreation import TaskCreationAgent
-from agentforge.agent.prioritization import PrioritizationAgent
-from agentforge.agent.execution import ExecutionAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 
 storage = StorageInterface().storage_utils
 functions = Functions()
 functions.set_auto_mode()
-# reflex = None
-# context = None
+reflex = None
+context = None
 result = None
-# data = None
+data = None
 
 task_creation_agent = TaskCreationAgent()
 
 while True:
-    functions.show_task_list('BabyAGI')
+    functions.show_task_list('Salience')
     feedback = functions.check_auto_mode()
 
     data = task_creation_agent.run(goal=result)
