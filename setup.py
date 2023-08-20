@@ -10,11 +10,12 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.0",
+    version="0.1.0.14",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
     url="https://github.com/DataBassGit/HiAGI",
+    include_package_data=True,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
@@ -58,5 +59,19 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     python_requires=">=3.9",
-    scripts=['utils/installer/agentforge-newbot']
+    package_data={
+        "agentforge.loops": ["*"],
+        "agentforge.utils.installer": [
+            "actions.json",
+            "config.ini",
+            "default.json",
+            "tools.json",
+        ],
+    },
+    entry_points={
+        'console_scripts': [
+            'agentforge=agentforge.utils.installer.agentforge_cli:main',
+        ],
+    }
+
 )

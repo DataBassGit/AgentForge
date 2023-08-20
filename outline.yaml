@@ -1,0 +1,137 @@
+Examples:
+  Architectures:
+    Logs:
+      AppliedBehavioralAnalysisPlan1.txt: file
+      log.txt: file
+      results.txt: file
+    api.py: file
+    salience.py: file
+LICENSE: file
+MANIFEST.in: file
+README.md: file
+dir.py: file
+dist:
+  agentforge-0.1.0.9.tar.gz: file
+docs:
+  APIDocumentation.md: file
+  SalienceVisualization.png: file
+  image.png: file
+old-code:
+  AF:
+    heuristic_check_agent.py: file
+    heuristic_comparator_agent.py: file
+    heuristic_reflection_agent.py: file
+    intelligent_chunk_old.py: file
+    prioritization.py: file
+    salience_old.py: file
+  Tests:
+    babyagi.py: file
+    search.py: file
+    seed_data.py: file
+    storage_search.py: file
+    tools.py: file
+    web_scrape.py: file
+requirements.txt: file
+setup.py: file
+src:
+  agentforge:
+    __init__.py: file
+    __pycache__:
+      __init__.cpython-311.pyc: file
+      config.cpython-311.pyc: file
+    agent:
+      __init__.py: file
+      __pycache__:
+        __init__.cpython-311.pyc: file
+        actionpriming.cpython-311.pyc: file
+        actionselection.cpython-311.pyc: file
+        agent.cpython-311.pyc: file
+        execution.cpython-311.pyc: file
+        execution_agent.cpython-311.pyc: file
+        prioritization.cpython-311.pyc: file
+        prioritization_agent.cpython-311.pyc: file
+        reflexion.cpython-311.pyc: file
+        salience_agent.cpython-311.pyc: file
+        status.cpython-311.pyc: file
+        status_agent.cpython-311.pyc: file
+        summarization.cpython-311.pyc: file
+        summarization_agent.cpython-311.pyc: file
+        task.cpython-311.pyc: file
+        task_creation_agent.cpython-311.pyc: file
+      actionpriming.py: file
+      actionselection.py: file
+      agent.py: file
+      execution.py: file
+      func:
+        __pycache__:
+          __init__.cpython-311.pyc: file
+          agent_functions.cpython-311.pyc: file
+        customagents.py: file
+      reflexion.py: file
+      status.py: file
+      summarization.py: file
+      taskcreation.py: file
+    config:
+      __pycache__:
+        __init__.cpython-311.pyc: file
+        loader.cpython-311.pyc: file
+    config.py: file
+    llm:
+      __init__.py: file
+      __pycache__:
+        __init__.cpython-311.pyc: file
+        anthropic.cpython-311.pyc: file
+        openai.cpython-311.pyc: file
+        openai_api.cpython-311.pyc: file
+        openaifuncts.cpython-311.pyc: file
+      anthropic.py: file
+      customapi.py: file
+      oobabooga.py: file
+      openai.py: file
+    logs:
+      AgentForge.log: file
+      __init__.py: file
+      __pycache__:
+        __init__.cpython-311.pyc: file
+        logger_config.cpython-311.pyc: file
+      log.txt: file
+      logger_config.py: file
+    loops:
+      __pycache__:
+        action.cpython-311.pyc: file
+      action.py: file
+    tools:
+      __init__.py: file
+      __pycache__:
+        __init__.cpython-311.pyc: file
+        google_search.cpython-311.pyc: file
+        intelligent_chunk.cpython-311.pyc: file
+        web_scrape.cpython-311.pyc: file
+        webscrape.cpython-311.pyc: file
+      dyn_tool.py: file
+      google_search.py: file
+      intelligent_chunk.py: file
+      web_scrape.py: file
+    utils:
+      __init__.py: file
+      __pycache__:
+        __init__.cpython-311.pyc: file
+        chroma_utils.cpython-311.pyc: file
+        function_utils.cpython-311.pyc: file
+        storage_interface.cpython-311.pyc: file
+        toolselect.cpython-311.pyc: file
+      chroma_utils.py: file
+      embedding_utils.py: file
+      function_utils.py: file
+      installer:
+        __init__.py: file
+        actions.json: file
+        agentforge_cli.py: file
+        config.ini: file
+        default.json: file
+        tools.json: file
+      pinecone_utils.py: file
+      scenario_utils.py: file
+      scenario_utils_bak.py: file
+      storage_interface.py: file
+      toolselect.py: file

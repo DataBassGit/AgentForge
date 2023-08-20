@@ -2,13 +2,12 @@ import importlib
 import json
 import os
 import pathlib
-from typing import Dict
+from typing import Union, Dict
 
 _config: Dict | None = None
 _persona: Dict | None = None
 _actions: Dict | None = None
 _tools: Dict | None = None
-
 
 def _load():
     # global _parser
