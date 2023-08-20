@@ -1,5 +1,6 @@
 from agentforge.loops.action import Action
 from agentforge.agent.execution import ExecutionAgent
+from agentforge.agent.taskcreation import TaskCreationAgent
 from agentforge.agent.status import StatusAgent
 from agentforge.agent.summarization import SummarizationAgent
 from agentforge.agent.actionselection import ActionSelectionAgent
@@ -16,6 +17,7 @@ class Salience:
         self.summarization_agent = SummarizationAgent()
         self.action = Action()
         self.exec_agent = ExecutionAgent()
+        self.task_creation_agent = TaskCreationAgent()
         self.status_agent = StatusAgent()
         self.action_agent = ActionSelectionAgent()
         self.priming_agent = ActionPrimingAgent()
@@ -124,7 +126,11 @@ class Salience:
 
     def loop(self):
         # Add a variable to set the mode
-        # self.functions.set_auto_mode()
+
+        goal = self.functions.prepare_objective()
+        if goal is not None:
+            self.task_creation_agent.run(goal=goal)
+
         status_results = None
 
         while True:

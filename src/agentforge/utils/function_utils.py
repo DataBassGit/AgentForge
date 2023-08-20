@@ -45,6 +45,16 @@ class Functions:
         except AttributeError:
             pass  # Handle a special key that we don't care about
 
+    def prepare_objective(self):
+        while True:
+            user_input = input("\nDefine Objective (leave empty to use defaults):")
+            if user_input.lower() == '':
+                return None
+            else:
+                config.persona()['Objective'] = user_input
+                return user_input
+
+
     def set_auto_mode(self):
         # print("\nEnter Auto or Manual Mode? (a/m)")
         while True:
