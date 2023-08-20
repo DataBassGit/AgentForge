@@ -2,12 +2,13 @@ import importlib
 import json
 import os
 import pathlib
-from typing import Union, Dict
+from typing import Dict
 
 _config: Dict | None = None
 _persona: Dict | None = None
 _actions: Dict | None = None
 _tools: Dict | None = None
+
 
 def _load():
     # global _parser
@@ -88,7 +89,7 @@ def get(section, key, default=None):
 
 
 def storage_api():
-    return get('StorageAPI', 'library')
+    return get('StorageAPI', 'selected')
 
 
 def chromadb():

@@ -1,12 +1,5 @@
 {
-  "Config": {
-    "ModelLibrary" : {
-      "claude" : "claude-1",
-      "fast_model" : "gpt-3.5-turbo",
-      "smart_model" : "gpt-4"
-    }
-  },
-  "Name": "EMF",
+  "Name": "AF",
   "Objective": "Write a program design for my business in applied behavioral analysis, and identify a task analysis process.",
   "Tasks": [
     "Identify programming languages and frameworks suitable for the project",

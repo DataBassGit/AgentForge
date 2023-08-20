@@ -15,8 +15,7 @@
     "default" : "default"
   },
   "StorageAPI" : {
-    "library" : "chroma",
-    "pinecone" : "pinecone"
+    "selected" : "chroma"
   },
   "Pinecone" : {
     "environment" : "us-east4-gcp",
