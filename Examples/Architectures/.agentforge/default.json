@@ -294,7 +294,7 @@
       "Context": {
         "vars": [
           "seta",
-          "heuristi_Imperatives"
+          "heuristic_imperatives"
         ],
         "template": "\n\nHere is the response the agent provided:\n\nAgent_Response: {seta}\n\nHere is are the companies morals and guidelines:\n\nHeuristics: {heuristic_imperatives}"
       },
