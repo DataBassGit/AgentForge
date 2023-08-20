@@ -1,50 +1,52 @@
-import configparser
 import importlib
 import json
 import os
 import pathlib
 from typing import Dict
 
-_parser: configparser.ConfigParser | None = None
+_config: Dict | None = None
 _persona: Dict | None = None
 _actions: Dict | None = None
 _tools: Dict | None = None
 
 
 def _load():
-    global _parser
+    # global _parser
+    global _config
     global _persona
     global _actions
     global _tools
 
-    _config_path = pathlib.Path(
+    _path = pathlib.Path(
         os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
     )
 
-    _parser = configparser.ConfigParser()
-    _parser.read(_config_path / 'config.ini')
+    _config_path = _path / "config.json"  # Add the path to the Config JSON file
 
-    persona_name = _parser.get('Persona', 'persona')
-    persona_path = _config_path / f"{persona_name}.json"
+    with open(_config_path, 'r') as json_file:  # Open the Config JSON file
+        _config = json.load(json_file)  # Load the data from the Config JSON file
 
-    with open(persona_path, 'r') as json_file:
-        _persona = json.load(json_file)
+    persona_name = _config['Persona']['default']
+    persona_path = _path / f"{persona_name}.json"  # Add the path to the Persona JSON file
 
-    actions_path = _config_path / "actions.json"  # Add the path to the actions.json
+    with open(persona_path, 'r') as json_file:  # Open the Persona JSON file
+        _persona = json.load(json_file)  # Load the data from the Persona JSON file
 
-    with open(actions_path, 'r') as json_file:  # Open the actions.json file
-        _actions = json.load(json_file)  # Load the data from actions.json to _actions
+    actions_path = _path / "actions.json"  # Add the path to the Actions JSON file
 
-    tools_path = _config_path / "tools.json"  # Add the path to the tools.json
+    with open(actions_path, 'r') as json_file:  # Open the Actions JSON file
+        _actions = json.load(json_file)  # Load the data from the Actions JSON file
 
-    with open(tools_path, 'r') as json_file:  # Open the tools.json file
-        _tools = json.load(json_file)  # Load the data from tools.json to _tools
+    tools_path = _path / "tools.json"  # Add the path to the Tools JSON file
+
+    with open(tools_path, 'r') as json_file:  # Open the Tools JSON file
+        _tools = json.load(json_file)  # Load the data from the Tools JSON file
 
 
 def get_llm(api, agent_name):
 
     model_name = _persona[agent_name].get('Model', _persona['Defaults']['Model'])
-    model_name = _parser.get('ModelLibrary', model_name)
+    model_name = _config['ModelLibrary'].get(model_name)
 
     models = {
         "claude_api": {
@@ -79,14 +81,11 @@ def get_llm(api, agent_name):
     return model_class(*args)
 
 
-def get(section, key, **kwargs):
-    if not _parser:
+def get(section, key, default=None):
+    if _config is None:
         _load()
 
-    if "default" in kwargs:
-        _parser.get(section, key, fallback=kwargs["default"])
-
-    return _parser.get(section, key)
+    return _config.get(section, {}).get(key, default)
 
 
 def storage_api():
@@ -94,8 +93,8 @@ def storage_api():
 
 
 def chromadb():
-    db_path = get('ChromaDB', 'persist_directory', fallback=None)
-    db_embed = get('ChromaDB', 'embedding', fallback=None)
+    db_path = get('ChromaDB', 'persist_directory', default=None)
+    db_embed = get('ChromaDB', 'embedding', default=None)
     chroma_db_impl = get('ChromaDB', 'chroma_db_impl')
     return db_path, db_embed, chroma_db_impl
 

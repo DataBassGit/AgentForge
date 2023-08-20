@@ -46,13 +46,11 @@ class Salience:
         if summary is not None:
             self.functions.print_result(result=summary, desc="Summary Agent results")
 
-        # self.logger.log(f"Summary of Results: {context}", 'info')
 
         task_result = self.exec_agent.run(summary=summary,
                                           context=context,
                                           feedback=feedback)
 
-        # execution_results = {"task_result": task_result['Result'],
         execution_results = {"task_result": task_result,
                              "current_task": current_task,
                              "context": context,

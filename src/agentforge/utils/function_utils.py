@@ -54,24 +54,6 @@ class Functions:
                 config.persona()['Objective'] = user_input
                 return user_input
 
-
-    def set_auto_mode(self):
-        # print("\nEnter Auto or Manual Mode? (a/m)")
-        while True:
-            user_input = input("\nEnter Auto or Manual Mode? (a/m):")
-            if user_input.lower() == 'a':
-                self.mode = 'auto'
-                cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
-                break
-
-            elif user_input.lower() == 'm':
-                cprint(f"\nManual Mode Set.", 'green', attrs=['bold'])
-                self.mode = 'manual'
-                break
-
-            else:
-                cprint(f"\nPlease select a valid option!", 'red', attrs=['bold'])
-
     def check_auto_mode(self, feedback_from_status=None):
         context = None
 
