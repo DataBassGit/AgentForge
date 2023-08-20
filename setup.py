@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.1",
+    version="0.1.0.14",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -60,6 +60,7 @@ setup(
     ],
     python_requires=">=3.9",
     package_data={
+        "agentforge.loops": ["*"],
         "agentforge.utils.installer": [
             "actions.json",
             "config.ini",

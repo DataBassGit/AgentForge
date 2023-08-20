@@ -3,12 +3,12 @@ import importlib
 import json
 import os
 import pathlib
-from typing import Dict
+from typing import Union, Dict
 
-_parser: configparser.ConfigParser | None = None
-_persona: Dict | None = None
-_actions: Dict | None = None
-_tools: Dict | None = None
+_parser: Union[configparser.ConfigParser, None] = None
+_persona: Union[Dict, None] = None
+_actions: Union[Dict, None] = None
+_tools: Union[Dict, None] = None
 
 
 def _load():
