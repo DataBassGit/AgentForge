@@ -14,14 +14,6 @@ def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
 
 
-def _get_data(key, loader, kwargs, data, invert_logic=False):
-    if ((key not in kwargs) and not invert_logic) or ((key in kwargs) and invert_logic):
-        db_data = loader()
-        if db_data is not None:
-            data.update(db_data)
-    return data
-
-
 def _handle_prompt_type(prompts, prompt_type):
     """Handle each type of prompt and return template and vars."""
     prompt_data = prompts.get(prompt_type, {})
@@ -88,10 +80,6 @@ def _set_task_order(data):
     task_order = data.get('this_task_order')
     if task_order is not None:
         data['next_task_order'] = _calculate_next_task_order(task_order)
-
-
-def _order_task_list(task_list):
-    task_list.sort(key=lambda x: x["Order"])
 
 
 class Agent:
