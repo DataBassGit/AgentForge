@@ -1,4 +1,3 @@
-import uuid
 from typing import Dict, Any
 from ..llm import LLM
 from ..logs.logger_config import Logger
@@ -13,14 +12,6 @@ init(autoreset=True)
 
 def _calculate_next_task_order(this_task_order):
     return int(this_task_order) + 1
-
-
-def _get_data(key, loader, kwargs, data, invert_logic=False):
-    if ((key not in kwargs) and not invert_logic) or ((key in kwargs) and invert_logic):
-        db_data = loader()
-        if db_data is not None:
-            data.update(db_data)
-    return data
 
 
 def _handle_prompt_type(prompts, prompt_type):
@@ -91,10 +82,6 @@ def _set_task_order(data):
         data['next_task_order'] = _calculate_next_task_order(task_order)
 
 
-def _order_task_list(task_list):
-    task_list.sort(key=lambda x: x["Order"])
-
-
 class Agent:
 
     _agent_name = None
@@ -125,6 +112,9 @@ class Agent:
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
         return output
+
+    def build_output(self, parsed_data):
+        return parsed_data
 
     def generate_prompt(self, **kwargs):
         # Load Prompts from Persona Data
@@ -188,7 +178,7 @@ class Agent:
         return {'task': task}
 
     def parse_result(self, result, **kwargs):
-        return {"result": result}
+        return result
 
     def run_llm(self, prompt):
         model: LLM = self.agent_data['llm']
@@ -196,68 +186,12 @@ class Agent:
         return model.generate_text(prompt, **params,).strip()
 
     def save_parsed_data(self, parsed_data):
-        save_operations = {
-            "result": self.save_results,
-            "Tasks": (lambda tasks: self.save_tasks(tasks, [task['Description'] for task in tasks])),
-            "status": (lambda status: self.save_status(status, parsed_data["task"]["task_id"],
-                                                       parsed_data["task"]["description"],
-                                                       parsed_data["task"]["order"]))
-        }
+        self.save_results(parsed_data)
 
-        for key, save_function in save_operations.items():
-            if key in parsed_data:
-                save_function(parsed_data[key])
-
-    def build_output(self, parsed_data):
-        build_operations = {
-            "result": (lambda data: data),
-            "Tasks": (lambda data: data["Tasks"]),
-            "status": (lambda data: data)
-        }
-
-        output = parsed_data
-        for key, data_selector in build_operations.items():
-            if key in parsed_data:
-                output = data_selector(parsed_data)
-
-        return output
-
-    def save_results(self, result, collection_name="Results"):
+    def save_results(self, result):
         params = {
             'data': [result],
-            'collection_name': collection_name,
-        }
-
-        self.storage.save_memory(params)
-
-    def save_status(self, status, task_id, text, task_order):
-        params = {
-            'collection_name': "Tasks",
-            'ids': [task_id],
-            'data': [text],
-            'metadata': [{"Status": status, "Description": text, "Order": task_order}]
-        }
-
-        self.storage.save_memory(params)
-
-    def save_tasks(self, ordered_results, task_desc_list):
-        collection_name = "Tasks"
-        self.storage.clear_collection(collection_name)
-
-        metadatas = [{
-            "Status": "not completed",
-            "Description": task["Description"],
-            "List_ID": str(uuid.uuid4()),
-            "Order": task["Order"]
-        } for task in ordered_results]
-
-        task_orders = [task["Order"] for task in ordered_results]
-
-        params = {
-            "collection_name": collection_name,
-            "ids": [str(order) for order in task_orders],
-            "data": task_desc_list,
-            "metadata": metadatas,
+            'collection_name': 'Results',
         }
 
         self.storage.save_memory(params)

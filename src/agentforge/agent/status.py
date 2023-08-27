@@ -32,3 +32,21 @@ class StatusAgent(Agent):
         data['task'] = self.load_current_task()['task']
 
         _show_task(data)
+
+    def save_status(self, parsed_data):
+        status = parsed_data["status"]
+        task_id = parsed_data["task"]["task_id"]
+        text = parsed_data["task"]["description"]
+        task_order = parsed_data["task"]["order"]
+
+        params = {
+            'collection_name': "Tasks",
+            'ids': [task_id],
+            'data': [text],
+            'metadata': [{"Status": status, "Description": text, "Order": task_order}]
+        }
+
+        self.storage.save_memory(params)
+
+    def save_parsed_data(self, parsed_data):
+        self.save_status(parsed_data)

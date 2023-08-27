@@ -1,5 +1,4 @@
 from .agent import Agent, _show_task
-from agentforge.utils.storage_interface import StorageInterface
 
 
 class SummarizationAgent(Agent):
@@ -8,7 +7,7 @@ class SummarizationAgent(Agent):
         text = self.get_search_results(kwargs['query'])
         if text is not None:
             summary = super().run(text=text)
-            return summary['result']
+            return summary
 
     def get_search_results(self, text):
         params = {'collection_name': "Results", 'query': text}
@@ -22,19 +21,3 @@ class SummarizationAgent(Agent):
             text = "\n".join(search_results[0])
 
         return text
-
-    # def parse_output(self, **kwargs):  # Remember to incorporate bot_if and data later on
-    #     response = output = kwargs['result']
-    #
-    #     memory = {
-    #         'collection_name': "Results",
-    #         'data': response,
-    #     }
-    #
-    #     parsed_data = {
-    #         'response': response,
-    #         'memory': memory,
-    #         'output': output
-    #     }
-    #
-    #     return parsed_data

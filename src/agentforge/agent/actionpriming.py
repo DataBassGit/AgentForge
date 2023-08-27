@@ -17,7 +17,7 @@ def extract_metadata(results):
 class ActionPrimingAgent(Agent):
 
     def build_output(self, result, **kwargs):
-        formatted_result = result['result'].replace('\n', '').replace('\t', '')
+        formatted_result = result.replace('\n', '').replace('\t', '')
         payload = ast.literal_eval(formatted_result)
 
         return payload
@@ -26,12 +26,8 @@ class ActionPrimingAgent(Agent):
         # Add 'objective' to the data
         data['objective'] = self.agent_data.get('objective')
         data['task'] = self.load_current_task()['task']
-        # tool_data = data['action']['Tools'].split(', ')
-        #
-        # data['tools'] = {tool: self.load_tool(tool) for tool in tool_data}
 
         _show_task(data)
-        # print(data['tools'])
 
     def load_tool(self, tool):
         params = {
@@ -45,5 +41,6 @@ class ActionPrimingAgent(Agent):
 
         return filtered
 
-    # def save_parsed_data(self, parsed_data):
-    #     return parsed_data
+    def save_parsed_data(self, parsed_data):
+        pass
+

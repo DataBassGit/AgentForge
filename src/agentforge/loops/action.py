@@ -43,16 +43,11 @@ class Action:
         self.storage = StorageInterface().storage_utils
         self.functions = Functions()
 
-        log_tasks = self.functions.show_task_list('Objectives')
-        filename = "./Logs/results.txt"
-        with open(filename, "a") as file:
-            file.write(log_tasks)
-
     def run(self, context, **kwargs):
 
-        # tools = {tool: self.load_tool(tool) for tool in tool_data}
+        frustration = kwargs.get('frustration', 0)
 
-        action_results = self.action_agent.run(context=context)
+        action_results = self.action_agent.run(context=context, frustration=frustration)
 
         if 'documents' in action_results:
             action = extract_metadata(action_results)
@@ -78,7 +73,7 @@ class Action:
                 payloads[tool_name] = payload
 
         else:
-            self.functions.print_result('No Relevant Action Found', 'Action Selection Agent')
+            self.functions.print_result(f'No Relevant Action Found with Frustration Level: {frustration}', 'Action Selection Agent')
 
     def load_tool(self, tool):
         params = {

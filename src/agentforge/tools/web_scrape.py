@@ -1,9 +1,16 @@
 import requests
+import re
+
 from bs4 import BeautifulSoup
 from ..tools.intelligent_chunk import intelligent_chunk
 from ..utils.chroma_utils import ChromaUtils as storage
 
 storage_instance = storage()  # Create an instance of ChromaUtils
+
+
+def remove_extra_newlines(chunk):
+    return re.sub(r'\n+', '\n\n', chunk)
+
 
 def get_plain_text(url):
     # Send a GET request to the URL
@@ -19,11 +26,13 @@ def get_plain_text(url):
 
     return "Webpage saved to memory."
 
+
 def chunk_save(chunks, url):
     for chunk in chunks:
+        chunk = remove_extra_newlines(chunk)
         params = {
             'data': [chunk],
-            'collection_name': 'results',
+            'collection_name': 'Results',
             'metadata': [{"source_url": url}]
         }
         storage_instance.save_memory(params)  # Call save_memory on the instance
