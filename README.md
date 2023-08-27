@@ -1,8 +1,8 @@
 # AgentForge
 AgentForge - is an advanced AI-driven task automation system designed for generating, prioritizing, and executing tasks based on a specified objective.
-Utilizing state-of-the-art technologies such as ChromaDB, SentenceTransformer, and the OpenAI API for text generation, AgentForge aims to deliver efficient and reliable task management solutions.
 
-The primary goal of this project is to establish a user-friendly, low-code/no-code framework that empowers users to rapidly iterate on cognitive architectures.
+
+The primary goal of this project is to establish a user-friendly, low-code framework that empowers users to rapidly iterate on cognitive architectures.
 Simultaneously, the framework is designed to accommodate developers with a seamless integration process for incorporating new logic modules as the AI landscape continues to evolve.
 By fostering a collaborative and accessible environment, AgentForge seeks to contribute to the advancement of AI research and development across various domains.
 
@@ -10,6 +10,41 @@ By fostering a collaborative and accessible environment, AgentForge seeks to con
 
 ## Installation
 To install AgentForge, follow these steps:
+
+Set your environment variables:
+
+Claude: ANTHROPIC_API_KEY
+OpenAI: OPENAI_API_KEY
+Google: GOOGLE_API_KEY
+
+
+Install AgentForge:
+
+```shell
+pip install agentforge
+```
+
+Navigate to where you want your bot's project folder:
+
+```shell
+cd c:\bot\folder
+```
+
+Run the initialization script:
+
+```shell
+agentforge init
+```
+
+Additionally, if you just want to try our demo agent, run the following command to copy our bot script to your project folder:
+
+```shell
+agentforge salience
+```
+
+## Devbuild installation
+
+If you want to install the build from the dev branch and help with development, follow these instructions instead:
 
 Clone the GitHub repository:
 
@@ -24,6 +59,7 @@ pip install -e .
 ```
 
 Navigate to `/tests/examples/.agentforge`, and use the .env.example to create a .env file that contains your api keys.
+
 
 ## Usage
 
