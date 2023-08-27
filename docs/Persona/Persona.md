@@ -71,7 +71,7 @@ Specifies the LLM model to be used. For example: `"claude"`.
 
 #### `Params`
 
-A dictionary of parameters that control the behavior of the LLM. These parameters depend on the API being used so for a deeper breakdown of the parameters please refer to the documentation for the API being used:
+A dictionary of parameters that control the behavior of the LLM. These parameters depend on the API being used so for a deeper breakdown of the parameters please refer to the corresponding API documentation.
 
 #### Example:
 

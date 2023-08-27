@@ -26,7 +26,7 @@ Each agent gets its prompts based on its name and the associated [Persona File](
 
 ## Overriding Methods
 
-If you need to customize the behavior of a subagent, you can override any of the inherited methods. This allows for flexibility in how the agent behaves without affecting the overall architecture.
+If you need to customize the behavior of a SubAgent, you can override any of the inherited methods. This allows for flexibility in how the agent behaves without affecting the overall architecture.
 
 ### Example
 ```python
