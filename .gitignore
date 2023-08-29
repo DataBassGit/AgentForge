@@ -16,27 +16,13 @@ src/agentforge/persona/chatbot.json
 src/agentforge/salience.py
 
 Examples/DB/
-Examples/Architectures/Logs/log.txt
-
-Examples/Architectures/Logs/
-/Examples/Architectures/Logs/
 
 build/
 
 dist/
 
-Examples/API/Logs/AppliedBehavioralAnalysisPlan1.txt
-
-Examples/API/Logs/results.txt
-
-Examples/API/Logs/log.txt
-
-Examples/CustomAgents/Logs/log.txt
-
-Examples/CustomAgents/Logs/results.txt
-
-Examples/SalienceBot/Logs/
-
 Examples/API/Logs/
 
 Examples/CustomAgents/Logs/
+
+Examples/SalienceBot/Logs/
