@@ -13,7 +13,7 @@ logger = Logger(name="Chroma Utils")
 logger.set_level('info')
 
 # Read configuration file
-db_path, db_embed, chroma_db_impl = config.chromadb()
+db_path, db_embed = config.chromadb()
 
 if db_embed == 'openai_ada2':
     # Get API keys from environment variables
@@ -45,12 +45,20 @@ class ChromaUtils:
         pass
 
     def init_storage(self):
+
         if self.client is None:
-            settings = Settings(chroma_db_impl=chroma_db_impl,
-                                persist_directory=db_path)
             if db_path:
-                settings.persist_directory = db_path
-            self.client = chromadb.Client(settings)
+                self.client = chromadb.PersistentClient(path="db_path", settings=Settings(allow_reset=True))
+            else:
+                self.client = chromadb.EphemeralClient()
+
+        # Old db init
+        # if self.client is None:
+        #     settings = Settings(chroma_db_impl=chroma_db_impl,
+        #                         persist_directory=db_path)
+        #     if db_path:
+        #         settings.persist_directory = db_path
+        #     self.client = chromadb.Client(settings)
 
     def select_collection(self, collection_name):
         try:
