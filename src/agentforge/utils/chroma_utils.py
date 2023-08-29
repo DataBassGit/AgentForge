@@ -48,7 +48,7 @@ class ChromaUtils:
 
         if self.client is None:
             if db_path:
-                self.client = chromadb.PersistentClient(path="db_path", settings=Settings(allow_reset=True))
+                self.client = chromadb.PersistentClient(path=db_path, settings=Settings(allow_reset=True))
             else:
                 self.client = chromadb.EphemeralClient()
 
