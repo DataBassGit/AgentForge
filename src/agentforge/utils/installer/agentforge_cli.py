@@ -14,7 +14,7 @@ def copy_files():
 
     files_to_copy = [
         "actions.json",
-        "config.ini",
+        "config.json",
         "default.json",
         "tools.json",
     ]

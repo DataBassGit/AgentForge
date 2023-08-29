@@ -1,10 +1,13 @@
+import importlib
+
 def agentload (agentname,classname):
-    import importlib
+
     agent = importlib.import_module(agentname)
     customclass = getattr(classname,agent)
-    return customclass()
+    return customclass
 
-#
+
+
 
 
 """
