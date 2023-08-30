@@ -24,8 +24,12 @@ if db_embed == 'openai_ada2':
         api_key=openai_api_key,
         model_name="text-embedding-ada-002"
     )
+elif db_embed == 'all-distilroberta-v1':
+    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
+elif db_embed == 'gte-base':
+    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
 else:
-    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
 
 
 class ChromaUtils:
