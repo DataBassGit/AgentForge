@@ -32,12 +32,10 @@ class Agent:
 
         data = self.load_data(**kwargs)
         self.process_data(data)
-        prompts = self.generate_prompt(**data)
-        result = self.run_llm(prompts)
+        prompt = self.generate_prompt(**data)
+        result = self.run_llm(prompt)
         parsed_data = self.parse_result(result=result, data=data)
-
         self.save_parsed_result(parsed_data)
-
         output = self.build_output(parsed_data)
 
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
