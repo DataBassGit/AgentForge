@@ -34,9 +34,9 @@ class Agent:
         self.process_data(data)
         prompt = self.generate_prompt(**data)
         result = self.run_llm(prompt)
-        parsed_data = self.parse_result(result=result, data=data)
-        self.save_parsed_result(parsed_data)
-        output = self.build_output(parsed_data)
+        parsed_result = self.parse_result(result=result, data=data)
+        self.save_parsed_result(parsed_result)
+        output = self.build_output(parsed_result)
 
         cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
@@ -120,7 +120,7 @@ class Agent:
         params = self.agent_data.get("params", {})
         return model.generate_text(prompt, **params,).strip()
 
-    def save_parsed_result(self, result):
+    def save_parsed_result(self, parsed_result):
         """This function saves the LLM Result to memory"""
-        params = {'data': [result], 'collection_name': 'Results'}
+        params = {'data': [parsed_result], 'collection_name': 'Results'}
         self.storage.save_memory(params)
