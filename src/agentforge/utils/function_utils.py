@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from pynput import keyboard
+from typing import Dict, Any
 
 from .storage_interface import StorageInterface
 from ..logs.logger_config import Logger
@@ -9,20 +10,10 @@ from .. import config
 
 from termcolor import colored, cprint
 from colorama import init
+
 init(autoreset=True)
 
 logger = Logger(name="Function Utils")
-
-
-def extract_metadata(results):
-    # extract the 'metadatas' key from results
-    metadata_list = results['metadatas']
-
-    # iterate over each metadata entry in the list
-    # each entry is a list where the first item is the dictionary we want
-    extracted_metadata = metadata_list[0][0]
-
-    return extracted_metadata
 
 
 class Functions:
@@ -44,15 +35,6 @@ class Functions:
                 self.mode = 'manual'
         except AttributeError:
             pass  # Handle a special key that we don't care about
-
-    def prepare_objective(self):
-        while True:
-            user_input = input("\nDefine Objective (leave empty to use defaults):")
-            if user_input.lower() == '':
-                return None
-            else:
-                config.persona()['Objective'] = user_input
-                return user_input
 
     def check_auto_mode(self, feedback_from_status=None):
         context = None
@@ -121,6 +103,85 @@ class Functions:
         return result
 
     @staticmethod
+    def calculate_next_task_order(this_task_order):
+        return int(this_task_order) + 1
+
+    def get_ordered_task_list(self):
+        # Load Tasks
+        self.storage.storage_utils.select_collection("Tasks")
+
+        task_collection = self.storage.storage_utils.load_collection({'collection_name': "Tasks",
+                                                                      'include': ["documents", "metadatas"]})
+
+        # first, pair up 'ids', 'documents' and 'metadatas' for sorting
+        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
+
+        # sort the paired up tasks by 'Order' in 'metadatas'
+        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['Order'])
+
+        # split the sorted tasks back into separate lists
+        sorted_ids, sorted_documents, sorted_metadatas = zip(*sorted_tasks)
+
+        # create the ordered results dictionary
+        ordered_list = {'ids': list(sorted_ids),
+                        'embeddings': task_collection['embeddings'],
+                        'documents': list(sorted_documents),
+                        'metadatas': list(sorted_metadatas)}
+
+        return ordered_list
+
+    def get_current_task(self):
+        ordered_list = self.get_ordered_task_list()
+
+        current_task = None
+        # iterate over sorted_metadatas
+        for i, metadata in enumerate(ordered_list['metadatas']):
+            # check if the Task Status is not completed
+            if metadata['Status'] == 'not completed':
+                current_task = {'id': ordered_list['ids'][i], 'document': ordered_list['documents'][i],
+                                'metadata': metadata}
+                break  # break the loop as soon as we find the first not_completed task
+
+        return current_task
+
+    def get_task_description(self):
+        pass
+
+    def get_task_list(self):
+        return self.storage.storage_utils.load_collection({'collection_name': "Tasks",
+                                                           'include': ["documents", "metadatas"]})
+
+    @staticmethod
+    def handle_prompt_type(prompts, prompt_type):
+        """Handle each type of prompt and return template and vars."""
+        prompt_data = prompts.get(prompt_type, {})
+        if prompt_data:
+            return [(prompt_data['template'], prompt_data['vars'])]
+        return []
+
+    @staticmethod
+    def load_agent_data(agent_name):
+        persona_data = config.persona()  # Load persona data
+
+        agent = persona_data[agent_name]
+        defaults = persona_data['Defaults']
+
+        api = agent.get('API', defaults['API'])
+        params = agent.get('Params', defaults['Params'])
+
+        # Initialize agent data
+        agent_data: Dict[str, Any] = dict(
+            name=agent_name,
+            llm=config.get_llm(api, agent_name),
+            objective=persona_data['Objective'],
+            prompts=agent['Prompts'],
+            params=params,
+            storage=StorageInterface().storage_utils,
+        )
+
+        return agent_data
+
+    @staticmethod
     def log_tasks(tasks):
         filename = "./Logs/results.txt"
         with open(filename, "a") as file:
@@ -145,10 +206,52 @@ class Functions:
         # self.write_file(log_folder, log_file, result)
 
     @staticmethod
+    def prepare_objective():
+        while True:
+            user_input = input("\nDefine Objective (leave empty to use defaults):")
+            if user_input.lower() == '':
+                return None
+            else:
+                config.persona()['Objective'] = user_input
+                return user_input
+
+    @staticmethod
     def read_file(file_path):
         with open(file_path, 'r') as file:
             text = file.read()
         return text
+
+    @staticmethod
+    def remove_prompt_if_none(prompts, kwargs):
+        prompts_copy = prompts.copy()
+        for prompt_type, prompt_data in prompts_copy.items():
+            required_vars = prompt_data.get('vars', [])
+            # If there are no required vars or all vars are empty, we keep the prompt
+            if not required_vars or all(not var for var in required_vars):
+                continue
+            for var in required_vars:
+                if kwargs.get(var) is None:
+                    prompts.pop(prompt_type)
+                    break  # Exit this loop, the dictionary has been changed
+
+    @staticmethod
+    def render_template(template, variables, data):
+        temp = template.format(
+            **{k: v for k, v in data.items() if k in variables}
+        )
+
+        return temp
+
+    @staticmethod
+    def set_task_order(data):
+        task_order = data.get('this_task_order')
+        if task_order is not None:
+            data['next_task_order'] = Functions.calculate_next_task_order(task_order)
+
+    @staticmethod
+    def show_task(data):
+        if 'task' in data:
+            cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
 
     @staticmethod
     def write_file(folder, file, result):

@@ -1,4 +1,4 @@
-from .agent import Agent, _set_task_order, _show_task
+from .agent import Agent
 
 
 class StatusAgent(Agent):
@@ -27,12 +27,6 @@ class StatusAgent(Agent):
             "reason": reason,
         }
 
-    def load_additional_data(self, data):
-        data['objective'] = self.agent_data.get('objective')
-        data['task'] = self.load_current_task()['task']
-
-        _show_task(data)
-
     def save_status(self, parsed_data):
         status = parsed_data["status"]
         task_id = parsed_data["task"]["task_id"]
@@ -48,5 +42,5 @@ class StatusAgent(Agent):
 
         self.storage.save_memory(params)
 
-    def save_parsed_data(self, parsed_data):
+    def save_parsed_result(self, parsed_data):
         self.save_status(parsed_data)

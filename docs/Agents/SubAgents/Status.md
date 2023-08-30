@@ -71,7 +71,7 @@ Adds 'objective' and 'task' to the data dictionary, similar to other SubAgents.
 ```python
 def load_additional_data(self, data):
     data['objective'] = self.agent_data.get('objective')
-    data['task'] = self.load_current_task()['task']
+    data['task'] = self.functions.get_current_task()['document']
 
     _show_task(data)
 ```

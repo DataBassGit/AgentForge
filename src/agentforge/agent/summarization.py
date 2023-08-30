@@ -1,4 +1,4 @@
-from .agent import Agent, _show_task
+from .agent import Agent
 
 
 class SummarizationAgent(Agent):

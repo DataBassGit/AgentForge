@@ -24,7 +24,7 @@ class TaskCreationAgent(Agent):
 
         return order_tasks
 
-    def save_parsed_data(self, parsed_data):
+    def save_parsed_result(self, parsed_data):
         self.save_tasks(parsed_data)
 
     def save_tasks(self, task_list):

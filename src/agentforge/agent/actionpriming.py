@@ -1,8 +1,7 @@
-from .agent import Agent, _show_task
+from .agent import Agent
 
-import json
 import ast
-from termcolor import cprint
+
 from colorama import init
 init(autoreset=True)
 
@@ -22,13 +21,6 @@ class ActionPrimingAgent(Agent):
 
         return payload
 
-    def load_additional_data(self, data):
-        # Add 'objective' to the data
-        data['objective'] = self.agent_data.get('objective')
-        data['task'] = self.load_current_task()['task']
-
-        _show_task(data)
-
     def load_tool(self, tool):
         params = {
             "collection_name": 'Tools',
@@ -41,6 +33,6 @@ class ActionPrimingAgent(Agent):
 
         return filtered
 
-    def save_parsed_data(self, parsed_data):
+    def save_parsed_result(self, parsed_data):
         pass
 
