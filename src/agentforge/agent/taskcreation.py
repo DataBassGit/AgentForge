@@ -4,9 +4,9 @@ import uuid
 
 class TaskCreationAgent(Agent):
 
-    def load_additional_data(self, data):
-        if data['goal'] is None:
-            data['goal'] = self.agent_data.get('objective')
+    # def load_additional_data(self, data):
+    #     if data['goal'] is None:
+    #         data['goal'] = self.agent_data.get('objective')
 
     def parse_result(self, result, **kwargs):
         new_tasks = result.split("\n")
@@ -29,7 +29,7 @@ class TaskCreationAgent(Agent):
 
     def save_tasks(self, task_list):
         collection_name = "Tasks"
-        self.storage.clear_collection(collection_name)
+        self.storage.delete_collection(collection_name)
 
         metadatas = [{
             "Status": "not completed",

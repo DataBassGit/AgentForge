@@ -78,13 +78,6 @@ class ChromaUtils:
         except Exception as e:
             print("\n\nError deleting collection: ", e)
 
-    def clear_collection(self, collection_name):
-        try:
-            self.select_collection(collection_name)
-            self.collection.delete()
-        except Exception as e:
-            print("\n\nError clearing table:", e)
-
     def collection_list(self):
         return self.client.list_collections()
 

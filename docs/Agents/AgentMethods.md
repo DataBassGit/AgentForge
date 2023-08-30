@@ -24,14 +24,22 @@ Welcome to the Agent Methods documentation! In this section, we'll walk you thro
 
 ```python
 def run(self, bot_id=None, **kwargs):
-    self.agent_name = self.__class__.__name__  # Get the name of the agent class
+    """This function is the heart of all Agents, it defines how Agents receive and process data"""
+    agent_name = self.__class__.__name__
 
-    data = self.load_and_process_data(**kwargs)  # Load and process data based on additional keyword arguments
-    prompts = self.generate_prompt(**data)  # Generate the prompt required for the LLM
-    result = self.run_llm(prompts)  # Execute prompt using the LLM and receive the result
-    parsed_data = self.parse_result(result=result, data=data)  # Parse the received result to obtain usable data
-    self.save_parsed_result(parsed_data)  # Save the parsed data for future use or reference
-    output = self.build_output(parsed_data)  # Build the output based on the parsed data
+    cprint(f"\n{agent_name} - Running Agent...", 'red', attrs=['bold'])
+
+    data = self.load_data(**kwargs)
+    self.process_data(data)
+    prompts = self.generate_prompt(**data)
+    result = self.run_llm(prompts)
+    parsed_data = self.parse_result(result=result, data=data)
+
+    self.save_parsed_result(parsed_data)
+
+    output = self.build_output(parsed_data)
+
+    cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
     return output
 ```

@@ -35,13 +35,17 @@ The `Agent` class serves as a default template for creating new agents. By provi
 4. Create a `Logger` instance and set its log level.
 
 ```python
-def __init__(self, agent_name=None, log_level='info'):
-    if agent_name is None:
-        self._agent_name = self.__class__.__name__
-    self.agent_data = _load_agent_data(self._agent_name)
-    self.storage = self.agent_data['storage']
-    self.logger = Logger(name=self._agent_name)
-    self.logger.set_level(log_level)
+    def __init__(self, agent_name=None, log_level="info"):
+        """This function Initializes the Agent, it loads the relevant data depending on it's name as well as setting up the storage and logger"""
+        if agent_name is None:
+            self._agent_name = self.__class__.__name__
+
+        self.functions = Functions()
+        self.agent_data = self.functions.load_agent_data(self._agent_name)
+        self.storage = self.agent_data['storage']
+
+        self.logger = Logger(name=self._agent_name)
+        self.logger.set_level(log_level)
 ```
 
 

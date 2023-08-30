@@ -76,14 +76,9 @@ class Agent:
 
         return prompts
 
-    def load_data(self, **kwargs):
-        """This function is in charge of calling all the relevant load data methods"""
-        data = self.load_agent_data(**kwargs)
-
-        self.load_main_data(data)
-        self.load_additional_data(data)
-
-        return data
+    def load_additional_data(self, data):
+        """This function does nothing by default, it is meant to be overriden by SubAgents if needed"""
+        pass
 
     def load_agent_data(self, **kwargs):
         """This function loads the Agent data and any additional data given to it"""
@@ -98,23 +93,28 @@ class Agent:
 
         return data
 
+    def load_data(self, **kwargs):
+        """This function is in charge of calling all the relevant load data methods"""
+        data = self.load_agent_data(**kwargs)
+
+        self.load_main_data(data)
+        self.load_additional_data(data)
+
+        return data
+
     def load_main_data(self, data):
         """This function loads the main data for the Agent, by default it's the Objective and Current Task"""
         data['objective'] = self.agent_data.get('objective')
         data['task'] = self.functions.get_current_task()['document']
 
-    def load_additional_data(self, data):
-        """This function does nothing by default, it is meant to be overriden by SubAgents if needed"""
-        pass
+    def parse_result(self, result, **kwargs):
+        """This function simply returns the result by default, it is meant to be overriden by SubAgents if needed"""
+        return result
 
     def process_data(self, data):
         """This function is for processing the data before being rendering the prompt"""
         self.functions.set_task_order(data)
         self.functions.show_task(data)
-
-    def parse_result(self, result, **kwargs):
-        """This function simply returns the result by default, it is meant to be overriden by SubAgents if needed"""
-        return result
 
     def run_llm(self, prompt):
         """This function sends the rendered prompt to the LLM and returns the model response"""

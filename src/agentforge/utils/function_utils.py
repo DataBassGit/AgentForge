@@ -27,15 +27,6 @@ class Functions:
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
 
-    def on_press(self, key):
-        try:
-            # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
-            if key == keyboard.Key.esc and self.mode == 'auto':
-                cprint("\nSwitching to Manual Mode...", 'green', attrs=['bold'])
-                self.mode = 'manual'
-        except AttributeError:
-            pass  # Handle a special key that we don't care about
-
     def check_auto_mode(self, feedback_from_status=None):
         context = None
 
@@ -69,6 +60,57 @@ class Functions:
 
     def get_auto_mode(self):
         return self.mode
+
+    def get_current_task(self):
+        ordered_list = self.get_ordered_task_list()
+
+        current_task = None
+        # iterate over sorted_metadatas
+        for i, metadata in enumerate(ordered_list['metadatas']):
+            # check if the Task Status is not completed
+            if metadata['Status'] == 'not completed':
+                current_task = {'id': ordered_list['ids'][i], 'document': ordered_list['documents'][i],
+                                'metadata': metadata}
+                break  # break the loop as soon as we find the first not_completed task
+
+        return current_task
+
+    def get_ordered_task_list(self):
+        # Load Tasks
+        self.storage.storage_utils.select_collection("Tasks")
+
+        task_collection = self.storage.storage_utils.load_collection({'collection_name': "Tasks",
+                                                                      'include': ["documents", "metadatas"]})
+
+        # first, pair up 'ids', 'documents' and 'metadatas' for sorting
+        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
+
+        # sort the paired up tasks by 'Order' in 'metadatas'
+        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['Order'])
+
+        # split the sorted tasks back into separate lists
+        sorted_ids, sorted_documents, sorted_metadatas = zip(*sorted_tasks)
+
+        # create the ordered results dictionary
+        ordered_list = {'ids': list(sorted_ids),
+                        'embeddings': task_collection['embeddings'],
+                        'documents': list(sorted_documents),
+                        'metadatas': list(sorted_metadatas)}
+
+        return ordered_list
+
+    def get_task_list(self):
+        return self.storage.storage_utils.load_collection({'collection_name': "Tasks",
+                                                           'include': ["documents", "metadatas"]})
+
+    def on_press(self, key):
+        try:
+            # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
+            if key == keyboard.Key.esc and self.mode == 'auto':
+                cprint("\nSwitching to Manual Mode...", 'green', attrs=['bold'])
+                self.mode = 'manual'
+        except AttributeError:
+            pass  # Handle a special key that we don't care about
 
     def show_task_list(self, desc):
         objective = config.persona()['Objective']
@@ -105,51 +147,6 @@ class Functions:
     @staticmethod
     def calculate_next_task_order(this_task_order):
         return int(this_task_order) + 1
-
-    def get_ordered_task_list(self):
-        # Load Tasks
-        self.storage.storage_utils.select_collection("Tasks")
-
-        task_collection = self.storage.storage_utils.load_collection({'collection_name': "Tasks",
-                                                                      'include': ["documents", "metadatas"]})
-
-        # first, pair up 'ids', 'documents' and 'metadatas' for sorting
-        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
-
-        # sort the paired up tasks by 'Order' in 'metadatas'
-        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['Order'])
-
-        # split the sorted tasks back into separate lists
-        sorted_ids, sorted_documents, sorted_metadatas = zip(*sorted_tasks)
-
-        # create the ordered results dictionary
-        ordered_list = {'ids': list(sorted_ids),
-                        'embeddings': task_collection['embeddings'],
-                        'documents': list(sorted_documents),
-                        'metadatas': list(sorted_metadatas)}
-
-        return ordered_list
-
-    def get_current_task(self):
-        ordered_list = self.get_ordered_task_list()
-
-        current_task = None
-        # iterate over sorted_metadatas
-        for i, metadata in enumerate(ordered_list['metadatas']):
-            # check if the Task Status is not completed
-            if metadata['Status'] == 'not completed':
-                current_task = {'id': ordered_list['ids'][i], 'document': ordered_list['documents'][i],
-                                'metadata': metadata}
-                break  # break the loop as soon as we find the first not_completed task
-
-        return current_task
-
-    def get_task_description(self):
-        pass
-
-    def get_task_list(self):
-        return self.storage.storage_utils.load_collection({'collection_name': "Tasks",
-                                                           'include': ["documents", "metadatas"]})
 
     @staticmethod
     def handle_prompt_type(prompts, prompt_type):
@@ -188,6 +185,16 @@ class Functions:
             file.write(tasks)
 
     @staticmethod
+    def prepare_objective():
+        while True:
+            user_input = input("\nDefine Objective (leave empty to use defaults):")
+            if user_input.lower() == '':
+                return None
+            else:
+                config.persona()['Objective'] = user_input
+                return user_input
+
+    @staticmethod
     def print_result(result, desc):
         # Print the task result
         cprint(f"***** {desc} - RESULT *****\n", 'green', attrs=['bold'])
@@ -204,16 +211,6 @@ class Functions:
 
         # Save the result to the log file
         # self.write_file(log_folder, log_file, result)
-
-    @staticmethod
-    def prepare_objective():
-        while True:
-            user_input = input("\nDefine Objective (leave empty to use defaults):")
-            if user_input.lower() == '':
-                return None
-            else:
-                config.persona()['Objective'] = user_input
-                return user_input
 
     @staticmethod
     def read_file(file_path):
