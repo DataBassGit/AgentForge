@@ -121,7 +121,9 @@ For a more detailed break-down of our `Salience` example please refer to the [Sa
 
 For more in-depth documentation, please refer to the following sections:
 
-- **[Agent Class]()**: Comprehensive guide on how Agents work.
+**Note**: The documentation outlined in this section is a work in progress some links and files may not be correctly linked nor available yet.
+
+- **[Agent](docs/Config/AgentClass.md)**: Comprehensive guides on how Agents work.
 - **[Config](docs/Config/)**: Documentation on system related configurations.
 - **[LLM](docs/LLM/)**: All you need to know about integrating LLM models.
 - **[Persona](docs/Persona/)**: How to configure and use personas.
