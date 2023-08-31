@@ -1,4 +1,4 @@
-# -=Agents=-
+# Default SubAgents
 ## ExecutionAgent
 
 * Inputs: context, summary
@@ -31,18 +31,3 @@
 
 * Inputs: result
 * Sourced from database: goal, task, task_list
-
-# HeuristicComaratorAgent
-
-* Inputs: seta, setb
-* Sourced from database: heuristic_imperatives
-
-# HuristicReflectionAgent
-
-* Inputs: seta
-* Sourced from database: heuristic_imperatives
-
-# HeuristicCheckAgent
-
-* Inputs: seta
-* Sourced from database: heuristic_imperatives

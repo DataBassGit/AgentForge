@@ -13,7 +13,7 @@ logger = Logger(name="Chroma Utils")
 logger.set_level('info')
 
 # Read configuration file
-db_path, db_embed, chroma_db_impl = config.chromadb()
+db_path, db_embed = config.chromadb()
 
 if db_embed == 'openai_ada2':
     # Get API keys from environment variables
@@ -24,8 +24,12 @@ if db_embed == 'openai_ada2':
         api_key=openai_api_key,
         model_name="text-embedding-ada-002"
     )
+elif db_embed == 'all-distilroberta-v1':
+    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
+elif db_embed == 'gte-base':
+    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
 else:
-    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
 
 
 class ChromaUtils:
@@ -45,12 +49,20 @@ class ChromaUtils:
         pass
 
     def init_storage(self):
+
         if self.client is None:
-            settings = Settings(chroma_db_impl=chroma_db_impl,
-                                persist_directory=db_path)
             if db_path:
-                settings.persist_directory = db_path
-            self.client = chromadb.Client(settings)
+                self.client = chromadb.PersistentClient(path=db_path, settings=Settings(allow_reset=True))
+            else:
+                self.client = chromadb.EphemeralClient()
+
+        # Old db init
+        # if self.client is None:
+        #     settings = Settings(chroma_db_impl=chroma_db_impl,
+        #                         persist_directory=db_path)
+        #     if db_path:
+        #         settings.persist_directory = db_path
+        #     self.client = chromadb.Client(settings)
 
     def select_collection(self, collection_name):
         try:
@@ -65,13 +77,6 @@ class ChromaUtils:
             self.client.delete_collection(collection_name)
         except Exception as e:
             print("\n\nError deleting collection: ", e)
-
-    def clear_collection(self, collection_name):
-        try:
-            self.select_collection(collection_name)
-            self.collection.delete()
-        except Exception as e:
-            print("\n\nError clearing table:", e)
 
     def collection_list(self):
         return self.client.list_collections()

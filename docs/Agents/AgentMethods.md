@@ -24,14 +24,22 @@ Welcome to the Agent Methods documentation! In this section, we'll walk you thro
 
 ```python
 def run(self, bot_id=None, **kwargs):
-    self.agent_name = self.__class__.__name__                   # Get the name of the agent class
-    
-    data = self.load_and_process_data(**kwargs)                 # Load and process data based on additional keyword arguments
-    prompts = self.generate_prompt(**data)                      # Generate the prompt required for the LLM
-    result = self.run_llm(prompts)                              # Execute prompt using the LLM and receive the result
-    parsed_data = self.parse_result(result=result, data=data)   # Parse the received result to obtain usable data
-    self.save_parsed_data(parsed_data)                          # Save the parsed data for future use or reference
-    output = self.build_output(parsed_data)                     # Build the output based on the parsed data
+    """This function is the heart of all Agents, it defines how Agents receive and process data"""
+    agent_name = self.__class__.__name__
+
+    cprint(f"\n{agent_name} - Running Agent...", 'red', attrs=['bold'])
+
+    data = self.load_data(**kwargs)
+    self.process_data(data)
+    prompts = self.generate_prompt(**data)
+    result = self.run_llm(prompts)
+    parsed_data = self.parse_result(result=result, data=data)
+
+    self.save_parsed_result(parsed_data)
+
+    output = self.build_output(parsed_data)
+
+    cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
     return output
 ```
@@ -94,7 +102,7 @@ def load_and_process_data(self, **kwargs):
 def load_additional_data(self, data):
     # By default, it does nothing; meant to be overridden by each subagent
     data['objective'] = self.agent_data.get('objective')
-    data['task'] = self.load_current_task()['task']
+    data['task'] = self.functions.get_current_task()['document']
 
     _set_task_order(data)
     _show_task(data)
@@ -177,7 +185,7 @@ def run_llm(self, prompt):
 
 ### `parse_result(result, **kwargs)`
 
-**Purpose**: This method is intended for parsing the result obtained from the LLM. By default, it simply returns the result as-is. It's designed to be overridden by [SubAgents](SubAgents.md) to implement specific parsing logic.
+**Purpose**: This method is intended for parsing the result obtained from the LLM. By default, it simply returns the result as-is. It's designed to be overridden by [SubAgents](SubAgentCreation.md) to implement specific parsing logic.
 
 **Arguments**:
 - `result`: The raw result obtained from the LLM.
@@ -241,7 +249,7 @@ def save_results(self, result):
 
 ### `build_output(parsed_data)`
 
-**Purpose**: This method is responsible for constructing the final output that the agent will return. By default, it simply returns the parsed data as-is. It's designed to be overridden by [SubAgents](SubAgents.md) for custom output formatting or additional logic.
+**Purpose**: This method is responsible for constructing the final output that the agent will return. By default, it simply returns the parsed data as-is. It's designed to be overridden by [SubAgents](SubAgentCreation.md) for custom output formatting or additional logic.
 
 **Arguments**:
 - `parsed_data`: The parsed data that needs to be formatted or otherwise processed for output.
@@ -297,7 +305,7 @@ def get_task_list(self):
 
 ```python
 def load_current_task(self):
-    task_list = self.get_task_list()
+    task_list = self.functions.get_task_list()
     task = task_list['documents'][0]
     return {'task': task}
 ```
@@ -306,6 +314,6 @@ def load_current_task(self):
 
 ## Note: Additional Agent Methods
 
-While the key methods relevant for agent creation have been covered, the `Agent` class contains additional methods for those who want to dive deeper into its functionalities. For a complete list and documentation of these extra methods, refer to the [Additional Agent Methods Page](AdditionalAgentMethods.md).
+While the key methods relevant for agent creation have been covered, the `Agent` class contains additional methods for those who want to dive deeper into its functionalities. For a complete list and documentation of these extra methods, refer to the [Additional Agent Methods Page](../Utils/FunctionUtils.md).
 
 ---

@@ -1,6 +1,6 @@
-# Additional Agent Methods
+# Function Utils
 
-Welcome to the in-depth section of the Agent Methods documentation! Here, we'll explore the additional methods within the `Agent` class that weren't covered in the main [Agent Methods Page](AgentMethods.md). These methods are for those who wish to dig deeper and understand the nitty-gritty details of the agent's functionalities.
+Welcome to the in-depth section for Function Utils! Here, we'll explore additional methods that the `Agent` class and other classes can access. These methods are for those who wish to dig deeper and understand the nitty-gritty details of the framework's functionalities.
 
 
 These additional methods are static methods found in the `agent.py` file but not in the actual `Agent` class. These methods are not meant to be overridden and serve specific purposes within the framework.

@@ -87,7 +87,7 @@ Clears the existing tasks and saves the new ones.
 ```python
 def save_tasks(self, task_list):
     collection_name = "Tasks"
-    self.storage.clear_collection(collection_name)
+    self.storage.delete_collection(collection_name)
 
     metadatas = [{
         "Status": "not completed",

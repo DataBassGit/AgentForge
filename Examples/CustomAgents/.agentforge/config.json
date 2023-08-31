@@ -1,0 +1,32 @@
+{
+  "EmbeddingLibrary" : {
+    "library" : "sentence_transformers"
+  },
+  "LanguageModelAPI" : {
+    "library" : "openai_api",
+    "oobabooga" : "oobabooga_api"
+  },
+  "ModelLibrary" : {
+    "claude" : "claude-1",
+    "fast_model" : "gpt-3.5-turbo",
+    "smart_model" : "gpt-4"
+  },
+  "Persona" : {
+    "default" : "default"
+  },
+  "StorageAPI" : {
+    "selected" : "chroma"
+  },
+  "Pinecone" : {
+    "environment" : "us-east4-gcp",
+    "index_name" : "test-table",
+    "dimension" : "768"
+  },
+  "ChromaDB" : {
+    "chroma_db_impl" : "duckdb+parquet",
+    "persist_directory" : "../DB/ChromaDB",
+    "collection_name" : "collection-test",
+    "DBFreshStart" : "True",
+    "embedding" : "None"
+  }
+}

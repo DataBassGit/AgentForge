@@ -1,0 +1,326 @@
+{
+  "Config": {
+    "ModelLibrary" : {
+      "claude" : "claude-1",
+      "fast_model" : "gpt-3.5-turbo",
+      "smart_model" : "gpt-4"
+    }
+  },
+  "Name": "EMF",
+  "Objective": "Create a batch file that can update a pip library as a test build, separate from the main distribution.",
+  "Tasks": [
+    "Plan the Batch File: Outline the commands that will be included, such as activation of a virtual environment, installation or upgrading of the library, and any additional steps like running tests.",
+    "Create the Batch File",
+    "Document the Batch File: Include comments within the batch file to explain what each command does. Provide external documentation if this batch file will be used by other team members."
+  ],
+  "Memories": {
+    "Tasks" : "",
+    "Results": "",
+    "Tools": "",
+    "Actions": ""
+  },
+  "Defaults" : {
+    "API" : "claude_api",
+    "Model": "claude",
+    "Params": {
+      "max_new_tokens": 2000,
+      "temperature": 0.5,
+      "top_p": 0.9,
+      "n": 1,
+      "stop": null,
+      "do_sample": true,
+      "return_prompt": false,
+      "return_metadata": false,
+      "typical_p": 0.95,
+      "repetition_penalty": 1.05,
+      "encoder_repetition_penalty": 1.0,
+      "top_k": 0,
+      "min_length": 0,
+      "no_repeat_ngram_size": 2,
+      "num_beams": 1,
+      "penalty_alpha": 0,
+      "length_penalty": 1.0,
+      "early_stopping": false,
+      "pad_token_id": null,
+      "eos_token_id": null,
+      "use_cache": true,
+      "num_return_sequences": 1,
+      "bad_words_ids": null,
+      "seed": -1
+    }
+  },
+  "ActionPrimingAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          "task",
+          "objective"
+        ],
+        "template": "Your task is to prepare a tool for the following assignment: {task}\n\nThis task was curated to achieve the core goal: {objective}\n\n"
+      },
+      "Tool": {
+        "vars": [
+          "tool"
+        ],
+        "template": "Here is a breakdown of the tool you are required to prime:\n\n{tool}\n\n---\n\n"
+      },
+      "Results": {
+        "vars": [
+          "results"
+        ],
+        "template": "Use the following data in order to prime the tool:\n\n{results}\n\n---\n\n"
+      },
+      "Context": {
+        "vars": [
+          "context"
+        ],
+        "template": "Take into consideration the following critique from the last action taken:\n\n{context}\n\n---\n\n"
+      },
+      "Instruction": {
+        "vars": [
+          ""
+        ],
+        "template": "Your job requires you to prime the tool you've been provided by taking into consideration the forthcoming task in the light of the main objective and context you've been given.\n\nYou must prime the tool using ONLY the RESPONSE FORMAT provided below. DO NOT PROVIDE ANY COMMENTARY OUTSIDE OF THE RESPONSE FORMAT REQUESTED!\n\nRESPONSE FORMAT:\n{{\n\t\"command\": {{\n\t\t\"name\": <command name>,\n\t\t\"args\": {{\"arg name\": <value>}}\n\t}},\n\t\"thoughts\": {{\n\t\t\"reasoning\": <your reasoning>,\n\t\t\"speak\": <thoughts summary to say to user>\n\t}}\n}}"
+      }
+    }
+  },
+  "ActionSelectionAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          "task",
+          "objective"
+        ],
+        "template": "Your task is to prepare for the following assignment: {task}\n\nThis task was curated to achieve the core goal: {objective}\n\n"
+      },
+      "Context": {
+        "vars": [
+          "context"
+        ],
+        "template": "Take into consideration the following critique from the last action taken:\n\n{context}\n\n---\n\n"
+      },
+      "Instruction": {
+        "vars": [
+          ""
+        ],
+        "template": "Your job requires you to review the forthcoming task in the light of the main objective and context you've been given.\n\nYou must recommend an action alongside a description of that action, which is expected to most effectively fulfill the upcoming task.\n\nPlease adhere to the following example for your response:\n\nAction Name: Web search\n\nDescription: This action executes a Google search with a query, extracts the text from one of the retrieved URLs, and divides the harvested text into smaller portions\n\nOnly offer the action you have selected.\nStrictly adhere to the given format.\nRefrain from offering any supplementary commentary."
+      }
+    }
+  },
+  "ExecutionAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          "objective"
+        ],
+        "template": "You are an AI who performs one task based on the following objective: {objective}\n\n"
+      },
+     "Summary": {
+        "vars": [
+          "summary"
+        ],
+        "template": "Take into account this summary of your previous actions:\n\n{summary}\n\n---\n\n"
+      },
+      "Context": {
+        "vars": [
+          "context"
+        ],
+        "template": "Take into consideration the following critique from the last action taken:\n\n{context}\n\n---\n\n"
+      },
+      "Feedback": {
+        "vars": [
+          "feedback"
+        ],
+        "template": "Take into consideration the following feedback from the user:\n\n{feedback}\n\n---\n\n"
+      },
+      "Instruction": {
+        "vars": [
+          "task"
+        ],
+        "template": "Please complete the following task: {task}\n\nResponse: {{your response}}"
+      }
+    },
+    "type": "agent"
+  },
+  "ReflexionAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          "objective"
+        ],
+        "template": "\nYou are an agent that reviews responses for accuracy and safety. The respondent whose answer reviewing is trying to accomplish the following goal: {objective}"
+      },
+      "Context": {
+        "vars": [
+          "context"
+        ],
+        "template": "\nTake into account this summary of the respondent's previous actions: {context}"
+      },
+      "Instruction": {
+        "vars": [
+          "task"
+        ],
+        "template": "\nTheir current task is as follows: {task}"
+      },
+      "Feedback": {
+        "vars": [
+          "feedback"
+        ],
+        "template": "\nPlease reflect on the respondent's answer: {feedback} \nResponse:"
+      }
+    }
+  },
+  "SalienceAgent": {
+    "Prompts": {
+      "": ""
+    }
+  },
+  "SearchSelector": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          "objective"
+        ],
+        "template": "You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\n You're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it!"
+      },
+      "Context": {
+        "vars": [
+          "context",
+          "current_task",
+          "task_result"
+        ],
+        "template": "Here is a summary with context of what has been previously done: {context}\n\nAn execution agent has been given the following task to complete: {current_task}.\n\n. The agent has attempted to complete the task and has followed up with this result on the task: {task_result}."
+      },
+      "Instruction": {
+        "vars": [],
+        "template": "\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {completed or not completed}\nReason: {reason for conclusion reached}"
+      }
+    }
+  },
+  "StatusAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          "objective"
+        ],
+        "template": "You are an expert agent supervisor who is in charge of determining the status of tasks given to an execution agent. The task given to the execution agent is part of a list of tasks created to achieve the following overarching goal: {objective}\n\nYou're job is to analyze the results of the current task given to the execution agent, determine if the task has been completed or not and provide feedback as to the status of the task.\n\nIMPORTANT NOTE: Your job is to evaluate ONLY if the current task has been completed or not, you do not need to evaluate if the overarching goal has been completed as the current task is only a small part of it! The execution agent does not have code execution privileges, so it is not necessary to verify if the steps are actually completed.\n\n"
+      },
+      "Summary": {
+        "vars": [
+          "summary"
+        ],
+        "template": "Here is a summary with context of what has been previously done: {summary}\n\n"
+      },
+      "Instruction": {
+        "vars": [
+          "task",
+          "task_result"
+        ],
+        "template": "An execution agent has been given the following task to complete: {task}\n\nThe agent has attempted to complete the task and has followed up with this result on the task: \n\n---\n\n{task_result}\n\n---\n\nAnalyze the relevant data provided for the current task and determine it's current status, whether is has been completed or not and provide your reasoning as to the conclusion reached. You're respond must follow the following format:\n\nStatus: {{completed or not completed}}\nReason: {{reason for conclusion reached}}"
+      }
+    }
+  },
+  "SummarizationAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          ""
+        ],
+        "template": "You are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:\n    1. Highlight the main points and key findings of the text.\n    2. Maintain the original context and intention of the text.\n    3. Be written in a clear and coherent manner.\n\nAdditionally, please follow these guidelines while summarizing the text:\n\n    1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.\n    2. Ensure that the summary is objective and does not include personal opinions or biases.\n    3. Use proper citation or attribution, if applicable.\n\n"
+      },
+      "Instruction": {
+        "vars": [
+          "text"
+        ],
+        "template": "Text to abstract:\n\n---\n\n{text}\n\n---\n\n"
+      }
+    }
+  },
+  "TaskCreationAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [
+          "goal"
+        ],
+        "template": "You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: {goal}\n\n"
+      },
+      "Context": {
+        "vars": [
+          "result",
+          "task",
+          "task_list"
+        ],
+        "template": "The last completed task has the result: {result}\nThis result was based on this task description: {task}\nThis is the current task list: {task_list}\n\nBased on these results:\n\n"
+      },
+      "Instruction": {
+        "vars": [
+          ""
+        ],
+        "template": "Create new tasks to be completed by the AI system that do not overlap with incomplete tasks.Return ONLY the updated task list as an array starting at 1, avoid any notes or unnecessary comments! Do not use brackets. It should be formatted as follows: \n\n1. First task.\n2. Second task.\n3. Etc."
+      }
+    }
+  },
+  "HeuristicImperatives": [
+    "1. Reduce suffering in the universe: Guiding AI systems to reduce harm, address inequalities, and alleviate pain and distress for all sentient beings, including humans, animals, and other life forms.",
+    "2. Increase prosperity in the universe: Encouraging AI systems to promote well-being, flourishing, and economic growth for all life forms, fostering a thriving ecosystem where all can coexist harmoniously.",
+    "3. Increase understanding in the universe: Inspiring AI systems, as well as humans and other life forms, to expand knowledge, foster wisdom, and facilitate better decision-making through learning and the sharing of information."
+  ],
+  "HeuristicComparatorAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [],
+        "template": "\nYou are a professional analyst. You specialize in comparing datasets."
+      },
+      "Context": {
+        "vars": [
+          "seta",
+          "setb",
+          "heuristic_imperatives"
+        ],
+        "template": "\nHere are the three sets:\n\nSetA:\n{seta}\n\nSetB:\n{setb}\n\nCriteria:\n{heuristic_imperatives}"
+      },
+      "Instruction": {
+        "vars": [],
+        "template": "\nYou are tasked with comparing two sets, SetA and SetB, to determine which set more closely aligns with a reference set labeled Criteria.\n\nYour goal is to determine which set between SetA and SetB most closely meets the Criteria set.\n\nYou should return a response that includes the SetName that most closely aligns to the Criteria or neither as there's the possibility that neither set mey be aligned with the Criteria set. Please respond in the format:\n\nCHOICE: {SetX or neither; where X is the chosen set between A and B}\n\nREASON: {Reason for conclusion reached}"
+      }
+    }
+  },
+  "HeuristicReflectionAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [],
+        "template": "\nYou are a professional editor and reviewer with 20 years of experience. You receive responses from agents in the form of text. Your job is to make sure that they do not conflict with the companies morals and guidelines henceforth referred to as Heuristics, and provide edits to ensure that they meet those guidelines."
+      },
+      "Context": {
+        "vars": [
+          "seta",
+          "heuristic_imperatives"
+        ],
+        "template": "\n\nHere is the response the agent provided:\n\nAgent_Response: {seta}\n\nHere is are the companies morals and guidelines:\n\nHeuristics: {heuristic_imperatives}"
+      },
+      "Instruction": {
+        "vars": [],
+        "template": "\nYou have received the following text from an employee, Agent_Response. You must determine whether the text aligns with the companies morals and guidelines.\n\nYour goal is to determine if Agent_Response meets the heuristics, and provide changes to the response so that it meets the heuristics provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nRECOMMENDED EDIT: {Adjusted response}\n\nREASON: {Reason for conclusion reached}"
+      }
+    }
+  },
+  "HeuristicCheckAgent": {
+    "Prompts": {
+      "System": {
+        "vars": [],
+        "template": "\nYou are a professional analyst and reviewer with 20 years of experience. You specialize in comparing datasets to determine if they meet criteria. Your job is to make sure that they do not conflict with the companies morals and guidelines."
+      },
+      "Context": {
+        "vars": [
+          "seta",
+          "heuristic_imperatives"
+        ],
+        "template": "\n\nHere is the response the agent provided:\n\nAgent_Response: {seta}\n\nHere is are the companies morals and guidelines, henceforth referred to as Heuristics:\n {heuristic_imperatives}"
+      },
+      "Instruction": {
+        "vars": [],
+        "template": "\nYou have received the Agent_Response from an agent. You must determine whether the text aligns with the companies heuristics.\n\nYour goal is to determine if the provided response, Agent_Response, meets the companies morals and guidelines, Heuristics, and provide a formatted response and critique of the response provided.\n\nYou should return a response in the following format:\n\nMEETS CRITERIA: {YES or NO}\n\nREASON: {Reason for conclusion reached}"
+      }
+    }
+  }
+}

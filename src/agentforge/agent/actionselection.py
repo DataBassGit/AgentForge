@@ -1,5 +1,5 @@
-from .agent import Agent, _show_task
-from termcolor import cprint
+from .agent import Agent
+
 from colorama import init
 init(autoreset=True)
 
@@ -12,7 +12,7 @@ class ActionSelectionAgent(Agent):
         threshold = 0.3 + frustration
         threshold = min(threshold, max_threshold)
 
-        threshold = 0.99
+        # threshold = 0.99
 
         print(f'\nFrustration Threshold: {threshold}')
 
@@ -27,13 +27,5 @@ class ActionSelectionAgent(Agent):
 
         return search
 
-    def load_additional_data(self, data):
-        # Add 'objective' to the data
-        data['objective'] = self.agent_data.get('objective')
-        data['task'] = self.load_current_task()['task']
-
-        _show_task(data)
-
-    def save_parsed_data(self, parsed_data):
-        # return parsed_data
+    def save_parsed_result(self, parsed_data):
         pass

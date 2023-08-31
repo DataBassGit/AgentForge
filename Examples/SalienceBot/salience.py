@@ -28,11 +28,6 @@ class Salience:
         self.frustration_step = 0.1
         self.max_frustration = 0.5
 
-        # log_tasks = self.functions.show_task_list('Objectives')
-        # filename = "./Logs/results.txt"
-        # with open(filename, "a") as file:
-        #     file.write(log_tasks)
-
     def run(self, context=None, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
@@ -46,7 +41,6 @@ class Salience:
         if summary is not None:
             self.functions.print_result(result=summary, desc="Summary Agent results")
 
-
         task_result = self.exec_agent.run(summary=summary,
                                           context=context,
                                           feedback=feedback)
@@ -57,8 +51,8 @@ class Salience:
                              "Order": data['Order']}
 
         self.logger.log(f"Execution Results: {execution_results}", 'debug')
-
         self.logger.log(f"Agent Done!", 'info')
+
         return execution_results
 
     # noinspection PyTypeChecker
@@ -71,6 +65,7 @@ class Salience:
             print(f"\nMax Frustration Level Reached: {self.frustration}\n")
 
     def load_data_from_storage(self):
+        # Load Results
         result_collection = self.storage.load_collection({'collection_name': "Results", 'include': ["documents"]})
 
         if result_collection['documents']:
@@ -78,33 +73,11 @@ class Salience:
         else:
             result = "No results found"
 
-        task_collection = self.storage.load_collection({'collection_name': "Tasks",
-                                                        'include': ["documents", "metadatas"]})
-
-        # first, pair up 'ids', 'documents' and 'metadatas' for sorting
-        paired_up_tasks = list(zip(task_collection['ids'], task_collection['documents'], task_collection['metadatas']))
-
-        # sort the paired up tasks by 'Order' in 'metadatas'
-        sorted_tasks = sorted(paired_up_tasks, key=lambda x: x[2]['Order'])
-
-        # split the sorted tasks back into separate lists
-        sorted_ids, sorted_documents, sorted_metadatas = zip(*sorted_tasks)
-
-        # create the ordered results dictionary
-        ordered_list = {'ids': list(sorted_ids),
-                        'embeddings': task_collection['embeddings'],
-                        'documents': list(sorted_documents),
-                        'metadatas': list(sorted_metadatas)}
+        ordered_list = self.functions.get_ordered_task_list()
 
         self.logger.log(f"Ordered Task List:\n{ordered_list}", 'debug')
 
-        current_task = None
-        # iterate over sorted_metadatas
-        for i, metadata in enumerate(sorted_metadatas):
-            # check if the Task Status is not completed
-            if metadata['Status'] == 'not completed':
-                current_task = {'id': sorted_ids[i], 'document': sorted_documents[i], 'metadata': metadata}
-                break  # break the loop as soon as we find the first not_completed task
+        current_task = self.functions.get_current_task()
 
         if current_task is None:
             self.logger.log("Task list has been completed!!!", 'info')
@@ -114,7 +87,7 @@ class Salience:
             'result': result,
             'current_task': current_task,
             'task_list': ordered_list,
-            'task_ids': sorted_ids,
+            'task_ids': ordered_list['ids'],
             'Order': current_task["metadata"]["Order"]
         }
 
