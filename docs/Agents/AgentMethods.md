@@ -185,7 +185,7 @@ def run_llm(self, prompt):
 
 ### `parse_result(result, **kwargs)`
 
-**Purpose**: This method is intended for parsing the result obtained from the LLM. By default, it simply returns the result as-is. It's designed to be overridden by [SubAgents](SubAgents.md) to implement specific parsing logic.
+**Purpose**: This method is intended for parsing the result obtained from the LLM. By default, it simply returns the result as-is. It's designed to be overridden by [SubAgents](SubAgentCreation.md) to implement specific parsing logic.
 
 **Arguments**:
 - `result`: The raw result obtained from the LLM.
@@ -249,7 +249,7 @@ def save_results(self, result):
 
 ### `build_output(parsed_data)`
 
-**Purpose**: This method is responsible for constructing the final output that the agent will return. By default, it simply returns the parsed data as-is. It's designed to be overridden by [SubAgents](SubAgents.md) for custom output formatting or additional logic.
+**Purpose**: This method is responsible for constructing the final output that the agent will return. By default, it simply returns the parsed data as-is. It's designed to be overridden by [SubAgents](SubAgentCreation.md) for custom output formatting or additional logic.
 
 **Arguments**:
 - `parsed_data`: The parsed data that needs to be formatted or otherwise processed for output.
@@ -314,6 +314,6 @@ def load_current_task(self):
 
 ## Note: Additional Agent Methods
 
-While the key methods relevant for agent creation have been covered, the `Agent` class contains additional methods for those who want to dive deeper into its functionalities. For a complete list and documentation of these extra methods, refer to the [Additional Agent Methods Page](AdditionalAgentMethods.md).
+While the key methods relevant for agent creation have been covered, the `Agent` class contains additional methods for those who want to dive deeper into its functionalities. For a complete list and documentation of these extra methods, refer to the [Additional Agent Methods Page](../Utils/FunctionUtils.md).
 
 ---

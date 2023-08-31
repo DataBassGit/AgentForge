@@ -1,4 +1,4 @@
-# SubAgents and Method Overriding
+# SubAgent Creation
 
 ---
 
@@ -24,7 +24,7 @@ Each agent gets its prompts based on its name and the associated [Persona File](
 
 ---
 
-## Overriding Methods
+## Overriding Agent Methods
 
 If you need to customize the behavior of a SubAgent, you can override any of the inherited methods. This allows for flexibility in how the agent behaves without affecting the overall architecture.
 
@@ -32,20 +32,17 @@ If you need to customize the behavior of a SubAgent, you can override any of the
 ```python
 class NewAgent(Agent):
 
-    def load_and_process_data(self, **kwargs):
+    def process_data(self, **kwargs):
         # Custom behavior here
         # ...
-        
-    def generate_prompt(self, **data):
-        # Custom behavior here
-        # ...
+     
     
-    def save_parsed_data(self, parsed_data):
+    def save_parsed_result(self, parsed_result):
         # Custom behavior here
         # ...
 ```
 
-In this example, `NewAgent` overrides the `load_and_process_data`, `generate_prompt`, and `save_parsed_data` methods to implement custom behavior.
+In this example, `NewAgent` overrides the `process_data` and `save_parsed_result` methods to implement custom behavior.
 
 ---
 

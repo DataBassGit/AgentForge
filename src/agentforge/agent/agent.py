@@ -42,9 +42,9 @@ class Agent:
 
         return output
 
-    def build_output(self, parsed_data):
-        """This function returns the parsed_data by default, it is meant to be overriden by SubAgents if needed"""
-        return parsed_data
+    def build_output(self, parsed_result):
+        """This function returns the parsed_result by default, it is meant to be overriden by SubAgents if needed"""
+        return parsed_result
 
     def generate_prompt(self, **kwargs):
         """This function takes the data previously loaded and process it to render the prompt"""
@@ -94,7 +94,6 @@ class Agent:
     def load_data(self, **kwargs):
         """This function is in charge of calling all the relevant load data methods"""
         data = self.load_agent_data(**kwargs)
-
         self.load_main_data(data)
         self.load_additional_data(data)
 
@@ -110,7 +109,7 @@ class Agent:
         return result
 
     def process_data(self, data):
-        """This function is for processing the data before being rendering the prompt"""
+        """This function is for processing the data before rendering the prompt"""
         self.functions.set_task_order(data)
         self.functions.show_task(data)
 
