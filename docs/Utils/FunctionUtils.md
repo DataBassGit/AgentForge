@@ -1,9 +1,9 @@
 # Function Utils
 
-Welcome to the in-depth section for Function Utils! Here, we'll explore additional methods that the `Agent` class and other classes can access. These methods are for those who wish to dig deeper and understand the nitty-gritty details of the framework's functionalities.
+Welcome to the in-depth section for Function Utils! Here, we'll explore additional methods that the `Agent` class and other classes can import and use. This section is for those who wish to dig deeper and understand the nitty-gritty details of the framework's functionalities.
 
 
-These additional methods are static methods found in the `agent.py` file but not in the actual `Agent` class. These methods are not meant to be overridden and serve specific purposes within the framework.
+These additional methods are static methods found in the [function_utils.py](../../src/.agentforge/utils/function_utils.py) file as part of a `Functions` class. These methods are not meant to be overridden and serve specific purposes within the framework.
 
 ---
 
@@ -155,6 +155,56 @@ def _set_task_order(data):
     task_order = data.get('this_task_order')
     if task_order is not None:
         data['next_task_order'] = _calculate_next_task_order(task_order)
+```
+
+---
+
+---
+
+## Get Task List
+
+### `get_task_list()`
+
+**Purpose**: Retrieves the list of tasks from the agent's storage. This method accesses the storage component to fetch the tasks collection along with its documents and metadata.
+
+**Arguments**: None
+
+**Returns**: 
+- A collection containing tasks, including both the documents and metadata.
+
+**Workflow**:
+1. Create a query dictionary with the collection name 'Tasks' and specify the fields to include ('documents', 'metadatas').
+2. Call `self.storage.load_collection` with the query dictionary.
+
+```python
+def get_task_list(self):
+    return self.storage.load_collection({'collection_name': "Tasks",
+                                         'include': ["documents", "metadatas"]})
+```
+
+---
+
+## Load Current Task
+
+### `load_current_task()`
+
+**Purpose**: Fetches the current task from the task list in the agent's storage. This method utilizes the `get_task_list` method to obtain the tasks and then retrieves the first task.
+
+**Arguments**: None
+
+**Returns**: 
+- A dictionary containing the current task.
+
+**Workflow**:
+1. Call `self.get_task_list()` to fetch the list of tasks.
+2. Retrieve the first task from the `documents` field of the task list.
+3. Return a dictionary containing the current task.
+
+```python
+def load_current_task(self):
+    task_list = self.functions.get_task_list()
+    task = task_list['documents'][0]
+    return {'task': task}
 ```
 
 ---

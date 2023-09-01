@@ -1,10 +1,24 @@
 # Agent Methods
 
-Welcome to the Agent Methods documentation! In this section, we'll walk you through the key methods within the `Agent` class that are most relevant for creating subagents. Understanding these methods will help you customize and extend the capabilities of your subagents effectively.
+Welcome to the Agent Methods documentation! In this section, we'll walk you through the key methods within the `Agent` class that are most relevant for creating SubAgents. Understanding these methods will help you customize and extend the capabilities of your SubAgents effectively.
+
+## Methods
+1. [Run](#run)
+2. [Load Data](#load-data)
+3. [Load Agent Data](#load-agent-data)
+4. [Load Main Data](#load-main-data)
+5. [Load Additional Data](#load-additional-data)
+6. [Process Data](#process-data)
+7. [Generate Prompt](#generate-prompt)
+8. [Run LLM](#run-llm)
+9. [Parse Result](#parse-result)
+10. [Save Parsed Result](#save-parsed-result)
+11. [Build Output](#build-output)
+12. [Additional Functions](#note-additional-functions)
 
 ---
 
-## Run Method
+## Run
 
 ### `run(bot_id=None, **kwargs)`
 
@@ -31,13 +45,11 @@ def run(self, bot_id=None, **kwargs):
 
     data = self.load_data(**kwargs)
     self.process_data(data)
-    prompts = self.generate_prompt(**data)
-    result = self.run_llm(prompts)
-    parsed_data = self.parse_result(result=result, data=data)
-
-    self.save_parsed_result(parsed_data)
-
-    output = self.build_output(parsed_data)
+    prompt = self.generate_prompt(**data)
+    result = self.run_llm(prompt)
+    parsed_result = self.parse_result(result=result, data=data)
+    self.save_parsed_result(parsed_result)
+    output = self.build_output(parsed_result)
 
     cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
@@ -46,66 +58,123 @@ def run(self, bot_id=None, **kwargs):
 
 ---
 
-## Load & Process Data - Method
+## Load Data
 
-### `load_and_process_data(**kwargs)`
+### `load_data(**kwargs)`
 
-**Purpose**: This method loads and processes the data required for the agent to operate. It gathers data from multiple sources, including the agent's internal data and additional keyword arguments.
+**Purpose**: This method orchestrates the data loading process. It's the maestro directing the orchestra of `load_agent_data`, `load_main_data`, and `load_additional_data`.
 
 **Arguments**:
-- `**kwargs`: Additional keyword arguments that can supplement or override the default data.
+- `**kwargs`: Additional keyword arguments that may be needed for loading the agent's data.
 
 **Workflow**:
-1. Load internal agent data into `self.agent_data`.
-2. Initialize the `data` dictionary with parameters and prompts from `self.agent_data`.
-3. Incorporate any supplementary data passed through `kwargs`.
-4. Call `self.load_additional_data(data)` to load any other required data from storage.
-5. Return the consolidated `data` dictionary.
+1. Calls `self.load_agent_data(**kwargs)` to load agent-specific data into a new dictionary `data`.
+2. Invokes `self.load_main_data(data)` to populate the `data` dictionary with core data required for the agent's operation.
+3. Executes `self.load_additional_data(data)` to supplement the `data` dictionary with any extra information.
+4. Returns the consolidated `data` dictionary, ready for action.
 
 ```python
-def load_and_process_data(self, **kwargs):
-    # Load agent-specific data
-    self.agent_data = _load_agent_data(self._agent_name)
-    
-    # Initialize data dictionary with parameters and prompts
-    data = {'params': self.agent_data.get('params').copy(),
-            'prompts': self.agent_data['prompts'].copy()}
-    
-    # Add any supplementary data from kwargs
+def load_data(self, **kwargs):
+    """This function is in charge of calling all the relevant load data methods"""
+    data = self.load_agent_data(**kwargs)
+    self.load_main_data(data)
+    self.load_additional_data(data)
+
+    return data
+```
+---
+## Load Agent Data
+
+### `load_agent_data(**kwargs)`
+
+**Purpose**: This method is responsible for loading the core data specific to the agent.
+
+**Arguments**:
+- `**kwargs`: Additional keyword arguments that can be used to add more data to the agent's repertoire.
+
+**Workflow**:
+1. Refreshes `self.agent_data` by calling `self.functions.load_agent_data(self._agent_name)`.
+2. Initializes a `data` dictionary with two keys: 
+  - `params`: A copy of the parameters from `self.agent_data`.
+  - `prompts`: A copy of the prompts from `self.agent_data`.
+3. Iterates through `kwargs` to add any additional data to the `data` dictionary.
+4. Returns the filled-up `data` dictionary.
+
+```python
+def load_agent_data(self, **kwargs):
+    """This function loads the Agent data and any additional data given to it"""
+    self.agent_data = self.functions.load_agent_data(self._agent_name)
+    data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
     for key in kwargs:
         data[key] = kwargs[key]
-    
-    # Load any additional data from storage
-    self.load_additional_data(data)
-    
     return data
 ```
 
 ---
 
-## Load Additional Data - Method
+## Load Main Data
+
+### `load_main_data(data)`
+
+**Purpose**: This method loads the core, non-negotiable data that the agent needs for its tasks.
+
+**Arguments**:
+- `data` (`dict`): The existing data dictionary that's about to get the main data added to it.
+
+**Workflow**:
+1. Adds an `objective` to `data`, fetched from `self.agent_data.get('objective')`.
+2. Adds a `task` to `data`, obtained from `self.functions.get_current_task()['document']`.
+
+```python
+def load_main_data(self, data):
+    """This function loads the main data for the Agent, by default it's the Objective and Current Task"""
+    data['objective'] = self.agent_data.get('objective')
+    data['task'] = self.functions.get_current_task()['document'] 
+```
+
+---
+
+## Load Additional Data
 
 ### `load_additional_data(data)`
 
-**Purpose**: This method is intended to be overridden by subagents to load any additional data required for their specific functionalities. By default, it doesn't do much, but you can customize it as needed in the subagent.
+**Purpose**: By default, this method is a placeholder waiting for SubAgents to override it. It provides an access point to modify the data going into the agent.
 
 **Arguments**:
-- `data`: The existing data dictionary that can be extended or modified.
+- `data` (`dict`): The existing data dictionary that could potentially be enriched or altered by SubAgents.
 
-**Default Behavior**:
-- Adds an `objective` key-value pair from `self.agent_data`.
-- Adds a `task` key-value pair by calling `self.load_current_task()['task']`.
-- Calls `_set_task_order(data)` to possibly rearrange tasks.
-- Calls `_show_task(data)` to display the current task.
+**Workflow**:
+1. Does nothing. Yep, you read that right.
 
 ```python
 def load_additional_data(self, data):
-    # By default, it does nothing; meant to be overridden by each subagent
-    data['objective'] = self.agent_data.get('objective')
-    data['task'] = self.functions.get_current_task()['document']
+    """This function does nothing by default, it is meant to be overriden by SubAgents if needed"""
+    pass
 
-    _set_task_order(data)
-    _show_task(data)
+```
+
+**Note**: This method is designed to be overridden by [SubAgents](SubAgentCreation.md) for loading any additional data depending on their specific requirements.
+
+---
+
+## Process Data
+
+### `process_data(data)`
+
+**Purpose**: This method allows for processing the agent's data, it provides an access point for customization.
+
+**Arguments**:
+- `data` (`dict`): The existing data dictionary that's about to get some last-minute adjustments.
+
+**Workflow**:
+1. Calls `self.functions.set_task_order(data)` to possibly rearrange the tasks in the data.
+2. Invokes `self.functions.show_task(data)` to display the current task's details.
+
+```python
+def process_data(self, data):
+    """This function is for processing the data before rendering the prompt"""
+    self.functions.set_task_order(data)
+    self.functions.show_task(data)
 ```
 
 ---
@@ -114,7 +183,7 @@ def load_additional_data(self, data):
 
 ### `generate_prompt(**kwargs)`
 
-**Purpose**: This method generates the prompts required for the LLM to function. It uses predefined templates and variables to construct a list of prompts that will be used in the prompt execution. The prompts come from the persona data, which is loaded from the [Persona JSON File](./Persona_File.md).
+**Purpose**: This method generates the prompts required for the LLM to function. It uses predefined templates and variables to construct a list of prompts that will be used in the prompt execution. The prompts come from the persona data, which is loaded from the [Persona JSON File](../Persona/Persona.md).
 
 **Arguments**:
 - `**kwargs`: Additional keyword arguments that might contain extra data or overrides for the prompts.
@@ -129,6 +198,7 @@ def load_additional_data(self, data):
 
 ```python
 def generate_prompt(self, **kwargs):
+    """This function takes the data previously loaded and processes it to render the prompt"""
     # Load Prompts from Persona Data
     prompts = kwargs['prompts']
     templates = []
@@ -138,18 +208,20 @@ def generate_prompt(self, **kwargs):
     templates.append((system_prompt["template"], system_prompt["vars"]))
 
     # Remove prompts if there's no corresponding data in kwargs
-    remove_prompt_if_none(prompts, kwargs)
+    self.functions.remove_prompt_if_none(prompts, kwargs)
 
     # Handle other types of prompts
     other_prompt_types = [prompt_type for prompt_type in prompts.keys() if prompt_type != 'System']
     for prompt_type in other_prompt_types:
-        templates.extend(_handle_prompt_type(prompts, prompt_type))
+        templates.extend(self.functions.handle_prompt_type(prompts, prompt_type))
 
     # Render Prompts
     prompts = [
-        _render_template(template, variables, data=kwargs)
+        self.functions.render_template(template, variables, data=kwargs)
         for template, variables in templates
     ]
+
+    self.logger.log(f"Prompt:\n{prompts}", 'debug')
 
     return prompts
 ```
@@ -174,6 +246,7 @@ def generate_prompt(self, **kwargs):
 
 ```python
 def run_llm(self, prompt):
+    """This function sends the rendered prompt to the LLM and returns the model response"""
     model: LLM = self.agent_data['llm']
     params = self.agent_data.get("params", {})
     return model.generate_text(prompt, **params,).strip()
@@ -185,61 +258,42 @@ def run_llm(self, prompt):
 
 ### `parse_result(result, **kwargs)`
 
-**Purpose**: This method is intended for parsing the result obtained from the LLM. By default, it simply returns the result as-is. It's designed to be overridden by [SubAgents](SubAgentCreation.md) to implement specific parsing logic.
+**Purpose**: This method is designed to be a placeholder for processing the result returned by the LLM. By default, it simply returns the result as-is.
 
 **Arguments**:
-- `result`: The raw result obtained from the LLM.
-- `**kwargs`: Additional keyword arguments that might be used for parsing.
+- `result`: The result obtained from the LLM.
+- `**kwargs`: Additional keyword arguments that could potentially be used by SubAgents for custom parsing.
 
-**Default Behavior**:
-1. Return the received result without any modifications.
+**Workflow**:
+1. Returns the unaltered `result`.
 
 ```python
 def parse_result(self, result, **kwargs):
+    """This function simply returns the result by default, it is meant to be overriden by SubAgents if needed"""
     return result
 ```
 
----
-
-## Save Parsed Data
-
-### `save_parsed_data(parsed_data)`
-
-**Purpose**: This method saves the parsed data obtained from the LLM. It acts as a wrapper for the `save_results` method, providing a point of customization for subagents.
-
-**Arguments**:
-- `parsed_data`: The parsed data to be saved.
-
-**Workflow**:
-1. Call the `save_results` method with the parsed data.
-
-```python
-def save_parsed_data(self, parsed_data):
-    self.save_results(parsed_data)
-```
+**Note**: This method is primarily intended to be overridden by [SubAgents](SubAgentCreation.md) who may require custom parsing of the result.
 
 ---
 
-## Save Results
+## Save Parsed Result
 
-### `save_results(result)`
+### `save_parsed_result(parsed_result)`
 
-**Purpose**: This method directly interacts with the agent's storage to save the result. It's designed so that subagents can either modify how the data is stored or choose not to store it at all.
+**Purpose**: This method takes the processed result from the LLM and saves it to memory. It acts as the agent's short-term memory, preserving important results for future reference.
 
 **Arguments**:
-- `result`: The result to be saved.
+- `parsed_result`: The processed result that needs to be saved to memory.
 
 **Workflow**:
-1. Prepare a `params` dictionary with the result and collection name 'Results'.
-2. Call `self.storage.save_memory(params)` to save the data in the agent's storage.
+1. Constructs a parameter dictionary with `parsed_result` and a collection name 'Results'.
+2. Calls `self.storage.save_memory(params)` to save the parsed result to memory.
 
 ```python
-def save_results(self, result):
-    params = {
-        'data': [result],
-        'collection_name': 'Results',
-    }
-
+def save_parsed_result(self, parsed_result):
+    """This function saves the LLM Result to memory"""
+    params = {'data': [parsed_result], 'collection_name': 'Results'}
     self.storage.save_memory(params)
 ```
 
@@ -247,73 +301,28 @@ def save_results(self, result):
 
 ## Build Output
 
-### `build_output(parsed_data)`
+### `build_output(parsed_result)`
 
-**Purpose**: This method is responsible for constructing the final output that the agent will return. By default, it simply returns the parsed data as-is. It's designed to be overridden by [SubAgents](SubAgentCreation.md) for custom output formatting or additional logic.
+**Purpose**: This method serves as a placeholder for generating the final output based on the parsed result from the LLM. By default, it returns the parsed result without any modification.
 
 **Arguments**:
-- `parsed_data`: The parsed data that needs to be formatted or otherwise processed for output.
-
-**Default Behavior**:
-1. Return the received parsed data without any modifications.
-
-```python
-def build_output(self, parsed_data):
-    return parsed_data
-```
-
----
-
-## Get Task List
-
-### `get_task_list()`
-
-**Purpose**: Retrieves the list of tasks from the agent's storage. This method accesses the storage component to fetch the tasks collection along with its documents and metadata.
-
-**Arguments**: None
-
-**Returns**: 
-- A collection containing tasks, including both the documents and metadata.
+- `parsed_result`: The processed result that will form the basis for the final output.
 
 **Workflow**:
-1. Create a query dictionary with the collection name 'Tasks' and specify the fields to include ('documents', 'metadatas').
-2. Call `self.storage.load_collection` with the query dictionary.
+1. Returns the unmodified `parsed_result`.
 
 ```python
-def get_task_list(self):
-    return self.storage.load_collection({'collection_name': "Tasks",
-                                         'include': ["documents", "metadatas"]})
+def build_output(self, parsed_result):
+    """This function returns the parsed_result by default, it is meant to be overriden by SubAgents if needed"""
+    return parsed_result
 ```
+
+**Note**: This method is designed to be overridden by [SubAgents](SubAgentCreation.md) for custom output generation, depending on their specific requirements.
 
 ---
 
-## Load Current Task
+## Note: Additional Functions
 
-### `load_current_task()`
-
-**Purpose**: Fetches the current task from the task list in the agent's storage. This method utilizes the `get_task_list` method to obtain the tasks and then retrieves the first task.
-
-**Arguments**: None
-
-**Returns**: 
-- A dictionary containing the current task.
-
-**Workflow**:
-1. Call `self.get_task_list()` to fetch the list of tasks.
-2. Retrieve the first task from the `documents` field of the task list.
-3. Return a dictionary containing the current task.
-
-```python
-def load_current_task(self):
-    task_list = self.functions.get_task_list()
-    task = task_list['documents'][0]
-    return {'task': task}
-```
-
----
-
-## Note: Additional Agent Methods
-
-While the key methods relevant for agent creation have been covered, the `Agent` class contains additional methods for those who want to dive deeper into its functionalities. For a complete list and documentation of these extra methods, refer to the [Additional Agent Methods Page](../Utils/FunctionUtils.md).
+While the key methods relevant for agent creation have been covered in this section, the `Agent` class imports additional methods from a functions utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Function Utils](../Utils/FunctionUtils.md) Page.
 
 ---

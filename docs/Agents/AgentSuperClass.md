@@ -7,7 +7,7 @@ The `Agent` class serves as the superclass for all agent types in the framework.
 
 ### Agent as a Default Template
 
-The `Agent` class serves as a default template for creating new agents. By providing basic functionalities and methods meant to be overridden, it simplifies the process of defining specialized SubAgents. For more details on how to create SubAgents by extending this class, refer to the [SubAgents Page](./Subagents.md).
+The `Agent` super class serves as a default template for creating new agents. By providing basic functionalities and methods that can be overridden, it simplifies the process of defining specialized SubAgents. For more details on how to create SubAgents by extending this class, refer to the [SubAgents](SubAgentCreation.md) Page.
 
 ---
 
@@ -30,9 +30,10 @@ The `Agent` class serves as a default template for creating new agents. By provi
 
 **Initialization Steps**:
 1. If `agent_name` is not provided, use the class name as the agent name.
-2. Load agent data using `_load_agent_data`.
-3. Initialize data storage from `self.agent_data['storage']`.
-4. Create a `Logger` instance and set its log level.
+2. Initialize `Function` Utilities.
+3. Load agent data using `self.functions.load_agent_data`.
+4. Initialize data storage from `self.agent_data['storage']`.
+5. Create a `Logger` instance and set its log level.
 
 ```python
     def __init__(self, agent_name=None, log_level="info"):
@@ -54,7 +55,7 @@ The `Agent` class serves as a default template for creating new agents. By provi
 
 ## For Main Agent Methods
 
-For a detailed walkthrough of the main methods in the `Agent` class that are essential for creating SubAgents, please refer to the [Agent Methods Page](AgentMethods.md).
+For a detailed walkthrough of the main methods in the `Agent` class that are essential for creating SubAgents, please refer to the [Agent Methods](AgentMethods.md) Page.
 
 
 ---

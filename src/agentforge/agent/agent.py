@@ -47,7 +47,7 @@ class Agent:
         return parsed_result
 
     def generate_prompt(self, **kwargs):
-        """This function takes the data previously loaded and process it to render the prompt"""
+        """This function takes the data previously loaded and processes it to render the prompt"""
         # Load Prompts from Persona Data
         prompts = kwargs['prompts']
         templates = []
@@ -80,7 +80,7 @@ class Agent:
 
     def load_agent_data(self, **kwargs):
         """This function loads the Agent data and any additional data given to it"""
-        self.agent_data = self.functions.load_agent_data(self._agent_name)  # Is this needed if it's called in INIT?
+        self.agent_data = self.functions.load_agent_data(self._agent_name)
 
         # The data dict will contain all the data that the agent requires
         data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}

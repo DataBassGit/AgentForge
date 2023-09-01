@@ -20,13 +20,13 @@ In this example, `NewAgent` will behave exactly like its superclass `Agent` sinc
 
 ## Persona Files and Prompts
 
-Each agent gets its prompts based on its name and the associated [Persona File](./Persona.md). Simply by naming the subclass and creating the corresponding prompts, you can create a unique agent with default behaviors.
+Each agent gets its prompts based on its name and the associated [Persona File](../Persona/Persona.md). Simply by naming the subclass and creating the corresponding prompts, you can create a unique agent with default behaviors.
 
 ---
 
 ## Overriding Agent Methods
 
-If you need to customize the behavior of a SubAgent, you can override any of the inherited methods. This allows for flexibility in how the agent behaves without affecting the overall architecture.
+If you need to customize the behavior of a SubAgent, you can override any of the inherited [methods](AgentMethods.md). This allows for flexibility in how the agent behaves without affecting the overall architecture.
 
 ### Example
 ```python

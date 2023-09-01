@@ -1,5 +1,5 @@
 # AgentForge
-AgentForge is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents. Compatible with a range of LLM models — currently supporting OpenAI, Anthopic's Claude, and Oobabooga — it offers the flexibility to run different models for different agents based on your specific needs.
+AgentForge is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents. Compatible with a range of LLM models — currently supporting OpenAI, Anthropic's Claude, and Oobabooga — it offers the flexibility to run different models for different agents based on your specific needs.
 
 Whether you're a newbie looking for a user-friendly entry point or a seasoned developer aiming to build complex cognitive architectures, this framework has you covered.
 
@@ -8,14 +8,34 @@ Our database-agnostic framework is designed for seamless extensibility. While [C
 In summary, AgentForge is your beta-testing ground and future-proof hub for crafting intelligent, model-agnostic, and database-flexible autonomous agents.
 
 ## Table of Contents
-1. [Pre-Installation](#pre-installation)
-2. [Installation](#installation)
-3. [Dev-build Installation](#dev-build-installation)
-4. [Usage](#usage)
-5. [Documentation](#documentation)
-6. [Contributing](#contributing)
-7. [Contact Us](#contact-us)
-8. [License](#license)
+1. [Requisites](#requisites)
+2. [Pre-Installation](#pre-installation)
+3. [Installation](#installation)
+4. [Dev-build Installation](#dev-build-installation)
+5. [Usage](#usage)
+6. [Documentation](#documentation)
+7. [Contributing](#contributing)
+8. [Contact Us](#contact-us)
+9. [License](#license)
+
+---
+
+## Requisites
+
+**Note**: If you already have all the requisites below, you can skip ahead to the [Pre-Installation](#pre-installation) section.
+
+Make sure you have the following set up:
+
+### Python
+- Python must be installed, and the PATH variable should be configured accordingly.
+
+### Microsoft C++ Build Tools
+1. [ChromaDB](https://www.trychroma.com/) requires [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+2. Once downloaded, mark the 'Desktop Development with C++' for installation. It should automatically select these optional packages for you.
+   ![Cpp_Setup](/docs/Images/Cpp_Setup.png)
+3. When installation is complete, you'll see a message that says 'All installations are up-to-date.'
+   ![Cpp_Completion](/docs/Images/Cpp_Completion.png)
+4. Done! Close the Visual Studio installer.
 
 ---
 
@@ -24,14 +44,14 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 Before you get started with AgentForge, there are a few things you should know:
 
 ### LLM Models
-- **Local:** AgentForge can run using local models via the Oobabooga implementation. You'll need to host the model locally yourself as the Oobabooga implementation in AgentForge only handles the connection to the local server created by Oobabooga; it doesn't load or install any models.
+- **Local:** AgentForge can run using self-hosted models via the Oobabooga implementation. You'll need to host the model either locally yourself or on a cloud server as the Oobabooga implementation in AgentForge only handles the connection to the server created by Oobabooga; it doesn't load or install any models.
 - **Cloud-Based:** To use cloud-based LLM models like OpenAI, you'll need to obtain and set up API keys in your user environment variables.
 
-### Other Services
-- If you're planning to use Google Search functionalities, you'll need both a Google API key and a Google Search Engine ID key. 
+### LLM API Keys
+- You don't need API keys for both Claude and OpenAI if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Configuration]() file.
 
-### 3rd-Party API Documentation
-- We haven't provided guides for obtaining these API keys as it's outside the scope of this project. Plenty of resources are available online to guide you through the process.
+### Other Services
+- If you're planning to use Google Search functionalities, you'll need both a Google API key and a Google Search Engine ID key.
 
 ### Environment Variables
 Set your **User Environment Variables** names to the following:
@@ -42,6 +62,9 @@ Set your **User Environment Variables** names to the following:
 - **Google Search Engine ID**: SEARCH_ENGINE_ID
 
 ![Environment Variables](/docs/Images/EnvKeys.png)
+
+### 3rd-Party API Documentation
+- We haven't provided guides for obtaining these API keys as it's outside the scope of this project. Plenty of resources are available online to guide you through the process.
 
 ---
 
@@ -56,7 +79,7 @@ pip install agentforge
 2. Navigate to where you want your bot's project folder:
 
 ```shell
-cd c:\bot\folder
+cd c:\bot
 ```
 
 3. Run the initialization script:
@@ -65,7 +88,7 @@ cd c:\bot\folder
 agentforge init
 ```
 
-Additionally, if you want to try our demo agent, run the following command to copy our bot script to your project folder:
+Additionally, if you want to try our demo architecture, run the following command to copy our bot script to your project folder:
 
 ```shell
 agentforge salience
@@ -93,11 +116,14 @@ pip install -e .
 
 ## Usage
 
-Each bot or architecture you create should contain an `.agentforge` folder that holds its configuration files, including `default.json` which currently represents the persona and contains each agent's prompts.
+Each bot or architecture you create should contain an `.agentforge` folder that holds its configuration files.
+
+**Important**: Before running any bot, make sure the `.agentforge` folder's configuration files, including `default.json`, have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [SubAgents](docs/Agents/SubAgents/), as they can override these settings and call different models if needed.
+
 
 ### For Custom Agents
 
-To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find a `default.json` file where you can edit the persona's name, objective, and tasks. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentClass.md).
+To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find a several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
 
 ### For SalienceBot Example
 
@@ -113,6 +139,8 @@ This will execute a simple bot script that uses our default SubAgents to complet
 
 For a more detailed break-down of our `Salience` example please refer to the [Salience Page]()
 
+**Important** : Whenever a bot or architecture runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to turn the first time. Any subsequent runs will not have this issue as long as chroma has previously downloaded the models.
+
 **Note**: We're planning to expand how personas work to offer more flexibility in future releases.
 
 ---
@@ -121,14 +149,14 @@ For a more detailed break-down of our `Salience` example please refer to the [Sa
 
 For more in-depth documentation, please refer to the following sections:
 
-**Note**: The documentation outlined in this section is a work in progress some links and files may not be correctly linked nor available yet.
+**Note**: The documentation outlined in this section is a work in progress, some links and files may not be correctly linked nor available yet.
 
-- **[Agent](docs/Config/AgentClass.md)**: Comprehensive guides on how Agents work.
+- **[Agent](docs/Agents/AgentSuperClass.md)**: Comprehensive guides on how Agents work.
 - **[Config](docs/Config/)**: Documentation on system related configurations.
 - **[LLM](docs/LLM/)**: All you need to know about integrating LLM models.
 - **[Persona](docs/Persona/)**: How to configure and use personas.
 - **[SubAgents](docs/Agents/SubAgents/)**: Creating and customizing SubAgents.
-- **[Tools](docs/Tools&Actions/)**: How tools and actions are defined and executed by Agents.
+- **[Tools & Actions](docs/Tools&Actions/)**: How tools and actions are defined and executed by Agents.
 - **[Utils](docs/Utils/)**: Miscellaneous utilities.
 
 ---
