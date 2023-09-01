@@ -154,7 +154,7 @@ For more in-depth documentation, please refer to the following sections:
 - **[LLM](docs/LLM/)**: All you need to know about integrating LLM models.
 - **[Persona](docs/Persona/)**: How to configure and use personas.
 - **[SubAgents](docs/Agents/SubAgents/)**: Creating and customizing SubAgents.
-- **[Tools](docs/Tools&Actions/)**: How tools and actions are defined and executed by Agents.
+- **[Tools & Actions](docs/Tools&Actions/)**: How tools and actions are defined and executed by Agents.
 - **[Utils](docs/Utils/)**: Miscellaneous utilities.
 
 ---
