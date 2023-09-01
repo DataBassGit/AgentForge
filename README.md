@@ -8,17 +8,32 @@ Our database-agnostic framework is designed for seamless extensibility. While [C
 In summary, AgentForge is your beta-testing ground and future-proof hub for crafting intelligent, model-agnostic, and database-flexible autonomous agents.
 
 ## Table of Contents
-1. [Requisites](#requisites)
-2. [Pre-Installation](#pre-installation)
-3. [Installation](#installation)
-4. [Dev-build Installation](#dev-build-installation)
-5. [Usage](#usage)
-6. [Documentation](#documentation)
-7. [Contributing](#contributing)
-8. [Contact Us](#contact-us)
-9. [License](#license)
+1. [Features](#features)
+2. [Requisites](#requisites)
+3. [Pre-Installation](#pre-installation)
+4. [Installation](#installation)
+5. [Dev-build Installation](#dev-build-installation)
+6. [Usage](#usage)
+7. [Documentation](#documentation)
+8. [Contributing](#contributing)
+9. [Contact Us](#contact-us)
+10. [License](#license)
 
 ---
+## Features
+
+* Rapidly build and test cognitive architectures
+* Directly customize how agents handle memory
+* Open source model support
+* Easily edit prompts
+* Different LLM for each prompt
+* Build Custom Agents
+
+### Coming Soon
+
+* Custom Tools/Actions
+* Knowledge Graphs
+* Edit prompts live! (You can even have multiple prompt templates and switch!)
 
 ## Requisites
 
@@ -149,7 +164,7 @@ For more in-depth documentation, please refer to the following sections:
 
 **Note**: The documentation outlined in this section is a work in progress, some links and files may not be correctly linked nor available yet.
 
-- **[Agent](docs/Agents/AgentSuperClass.md)**: Comprehensive guides on how Agents work.
+- **[Agent](docs/Config/AgentSuperClass.md)**: Comprehensive guides on how Agents work.
 - **[Config](docs/Config/)**: Documentation on system related configurations.
 - **[LLM](docs/LLM/)**: All you need to know about integrating LLM models.
 - **[Persona](docs/Persona/)**: How to configure and use personas.

@@ -7,9 +7,12 @@ import pkg_resources
 
 def copy_files():
     os.makedirs(".agentforge", exist_ok=True)
-    os.makedirs("Logs", exist_ok=True)
+    os.makedirs("customagents")
+    os.makedirs("logs", exist_ok=True)
 
-    with open(os.path.join("Logs", "results.txt"), "w") as f:
+    with open(os.path.join("logs", "results.txt"), "w") as f:
+        f.write("Results log file\n")
+    with open(os.path.join("customagents", "__init__.py"), "w") as f:
         f.write("Results log file\n")
 
     files_to_copy = [
