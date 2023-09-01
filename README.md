@@ -123,7 +123,7 @@ Each bot or architecture you create should contain an `.agentforge` folder that 
 
 ### For Custom Agents
 
-To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find a several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentClass.md).
+To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find a several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
 
 ### For SalienceBot Example
 
@@ -149,7 +149,7 @@ For more in-depth documentation, please refer to the following sections:
 
 **Note**: The documentation outlined in this section is a work in progress, some links and files may not be correctly linked nor available yet.
 
-- **[Agent](docs/Config/AgentClass.md)**: Comprehensive guides on how Agents work.
+- **[Agent](docs/Agents/AgentSuperClass.md)**: Comprehensive guides on how Agents work.
 - **[Config](docs/Config/)**: Documentation on system related configurations.
 - **[LLM](docs/LLM/)**: All you need to know about integrating LLM models.
 - **[Persona](docs/Persona/)**: How to configure and use personas.
