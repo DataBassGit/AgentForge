@@ -8,7 +8,7 @@ Our database-agnostic framework is designed for seamless extensibility. While [C
 In summary, AgentForge is your beta-testing ground and future-proof hub for crafting intelligent, model-agnostic, and database-flexible autonomous agents.
 
 ## Table of Contents
-1. [Requisites](#pre-installation)
+1. [Requisites](#requisites)
 2. [Pre-Installation](#pre-installation)
 3. [Installation](#installation)
 4. [Dev-build Installation](#dev-build-installation)
