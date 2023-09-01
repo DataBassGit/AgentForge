@@ -30,9 +30,10 @@ The `Agent` super class serves as a default template for creating new agents. By
 
 **Initialization Steps**:
 1. If `agent_name` is not provided, use the class name as the agent name.
-2. Load agent data using `self.functions.load_agent_data`.
-3. Initialize data storage from `self.agent_data['storage']`.
-4. Create a `Logger` instance and set its log level.
+2. Initialize `Function` Utilities.
+3. Load agent data using `self.functions.load_agent_data`.
+4. Initialize data storage from `self.agent_data['storage']`.
+5. Create a `Logger` instance and set its log level.
 
 ```python
     def __init__(self, agent_name=None, log_level="info"):

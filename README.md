@@ -139,6 +139,8 @@ This will execute a simple bot script that uses our default SubAgents to complet
 
 For a more detailed break-down of our `Salience` example please refer to the [Salience Page]()
 
+**Important** : Whenever a bot or architecture runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to turn the first time. Any subsequent runs will not have this issue as long as chroma has previously downloaded the models.
+
 **Note**: We're planning to expand how personas work to offer more flexibility in future releases.
 
 ---
