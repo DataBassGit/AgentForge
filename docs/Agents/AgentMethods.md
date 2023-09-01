@@ -258,7 +258,7 @@ def run_llm(self, prompt):
 
 ### `parse_result(result, **kwargs)`
 
-**Purpose**: This method is designed to be a placeholder for processing the result returned by the Low-Level Module (LLM). By default, it simply returns the result as-is.
+**Purpose**: This method is designed to be a placeholder for processing the result returned by the LLM. By default, it simply returns the result as-is.
 
 **Arguments**:
 - `result`: The result obtained from the LLM.
@@ -281,7 +281,7 @@ def parse_result(self, result, **kwargs):
 
 ### `save_parsed_result(parsed_result)`
 
-**Purpose**: This method takes the processed result from the Low-Level Module (LLM) and saves it to memory. It acts as the agent's short-term memory, preserving important results for future reference.
+**Purpose**: This method takes the processed result from the LLM and saves it to memory. It acts as the agent's short-term memory, preserving important results for future reference.
 
 **Arguments**:
 - `parsed_result`: The processed result that needs to be saved to memory.
@@ -303,7 +303,7 @@ def save_parsed_result(self, parsed_result):
 
 ### `build_output(parsed_result)`
 
-**Purpose**: This method serves as a placeholder for generating the final output based on the parsed result from the Low-Level Module (LLM). By default, it returns the parsed result without any modification.
+**Purpose**: This method serves as a placeholder for generating the final output based on the parsed result from the LLM. By default, it returns the parsed result without any modification.
 
 **Arguments**:
 - `parsed_result`: The processed result that will form the basis for the final output.
