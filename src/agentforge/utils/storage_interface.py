@@ -57,6 +57,16 @@ class StorageInterface:
         # Add your initialization code here
         pass
 
+    def initialize_chroma(self):
+        self.storage_utils = ChromaUtils()
+        self.storage_utils.init_storage()
+
+        if self.config.get('ChromaDB', 'DBFreshStart') == 'True':
+            self.storage_utils.reset_memory()
+            storage = self.config.persona['Storage']
+
+            [self.prefill_storage(key, value) for key, value in storage.items()]
+
     def initialize_storage(self):
         if self.storage_utils is None:
             storage_api = self.config.storage_api()
@@ -65,20 +75,21 @@ class StorageInterface:
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
-    def prefill_storage(self, storage, content):
+    def prefill_storage(self, storage, data):
         """
         Initializes a collection with provided data source and metadata builder.
         """
-        do_content = content
-        data = self.config.get_config_element(storage)
+
+        if not data:
+            data = self.config.get_config_element(storage)
+
+            if data == 'Invalid case':
+                return
+
         collection_name = storage
         builder = metadata_builder
-        generator = id_generator
         extractor = description_extractor
-
-        if data == 'Invalid case':
-            return
-
+        generator = id_generator
         ids = generator(data)
 
         if isinstance(data, list):
@@ -97,13 +108,3 @@ class StorageInterface:
 
         self.storage_utils.select_collection(collection_name)
         self.storage_utils.save_memory(save_params)
-
-    def initialize_chroma(self):
-        self.storage_utils = ChromaUtils()
-        self.storage_utils.init_storage()
-
-        if self.config.get('ChromaDB', 'DBFreshStart') == 'True':
-            self.storage_utils.reset_memory()
-            storage = self.config.persona['Storage']
-
-            [self.prefill_storage(key, value) for key, value in storage.items()]

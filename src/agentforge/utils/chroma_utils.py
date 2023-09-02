@@ -194,11 +194,7 @@ class ChromaUtils:
         dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
 
         if dist >= threshold:
-            # results = {'documents': f"No results found within threshold: {threshold}!\nCosine Distance: {dist}"}
             results = {'failed': 'No action found!'}
-        # else:
-        #     results['cosine_distance'] = dist
-        #     results['embeddings'] = None
 
         return results
 

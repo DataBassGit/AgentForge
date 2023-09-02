@@ -4,21 +4,7 @@ import os
 import pathlib
 
 
-def load_json(file_path):
-    try:
-        with open(file_path, 'r') as json_file:
-            return json.load(json_file)
-    except FileNotFoundError:
-        print(f"File {file_path} not found.")
-        return {}
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON from {file_path}")
-        return {}
-
-
 class Config:
-    _switch = None
-
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
         self.config = {}
@@ -42,7 +28,6 @@ class Config:
     def get_config_element(self, case):
         switch = {
             "Persona": self.persona,
-            "Tasks": self.persona.get('Storage', {}).get('Tasks', {}),
             "Tools": self.tools,
             "Actions": self.actions
         }
@@ -87,6 +72,18 @@ class Config:
         args = model.get("args", [])
         return model_class(*args)
 
+    def get_json_data(self, file_name):
+        file_path = self.get_file_path(file_name)
+        try:
+            with open(file_path, 'r') as json_file:
+                return json.load(json_file)
+        except FileNotFoundError:
+            print(f"File {file_path} not found.")
+            return {}
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {file_path}")
+            return {}
+
     def load(self):
         self.load_config()
         self.load_persona()
@@ -95,22 +92,20 @@ class Config:
         self.load_tools()
 
     def load_actions(self):
-        self.actions = load_json(self.get_file_path("actions.json"))
-        pass
+        self.actions = self.get_json_data("actions.json")
 
     def load_agents(self):
-        self.agents = load_json(self.get_file_path("agents.json"))
-        pass
+        self.agents = self.get_json_data("agents.json")
 
     def load_config(self):
-        self.config = load_json(self.get_file_path("config.json"))
+        self.config = self.get_json_data("config.json")
 
     def load_persona(self):
-        persona_name = self.config.get('Persona', {}).get('default', "")
-        self.persona = load_json(self.get_file_path(f"personas/{persona_name}.json"))
+        persona_name = self.config.get('Persona', {}).get('selected', "")
+        self.persona = self.get_json_data(f"personas/{persona_name}.json")
 
     def load_tools(self):
-        self.tools = load_json(self.get_file_path("tools.json"))
+        self.tools = self.get_json_data("tools.json")
 
     def storage_api(self):
         return self.get('StorageAPI', 'selected')

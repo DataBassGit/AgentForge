@@ -106,6 +106,27 @@ class Functions:
         return self.storage.storage_utils.load_collection({'collection_name': "Tasks",
                                                            'include': ["documents", "metadatas"]})
 
+    def load_agent_data(self, agent_name):
+        self.config.load()
+        persona_data = self.config.persona  # Load persona data
+        defaults = persona_data['Defaults']
+
+        agent = self.config.agents[agent_name]
+        api = agent.get('API', defaults['API'])
+        params = agent.get('Params', defaults['Params'])
+
+        # Initialize agent data
+        agent_data: Dict[str, Any] = dict(
+            name=agent_name,
+            llm=self.config.get_llm(api, agent_name),
+            objective=persona_data['Objective'],
+            prompts=agent['Prompts'],
+            params=params,
+            storage=StorageInterface().storage_utils,
+        )
+
+        return agent_data
+
     def on_press(self, key):
         try:
             # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
@@ -114,6 +135,15 @@ class Functions:
                 self.mode = 'manual'
         except AttributeError:
             pass  # Handle a special key that we don't care about
+
+    def prepare_objective(self):
+        while True:
+            user_input = input("\nDefine Objective (leave empty to use defaults):")
+            if user_input.lower() == '':
+                return None
+            else:
+                self.config.persona['Objective'] = user_input
+                return user_input
 
     def show_task_list(self, desc):
         objective = self.config.persona['Objective']
@@ -159,42 +189,11 @@ class Functions:
             return [(prompt_data['template'], prompt_data['vars'])]
         return []
 
-    def load_agent_data(self, agent_name):
-        self.config.load()
-        persona_data = self.config.persona  # Load persona data
-        defaults = persona_data['Defaults']
-
-        agent = self.config.agents[agent_name]
-
-        api = agent.get('API', defaults['API'])
-        params = agent.get('Params', defaults['Params'])
-
-        # Initialize agent data
-        agent_data: Dict[str, Any] = dict(
-            name=agent_name,
-            llm=self.config.get_llm(api, agent_name),
-            objective=persona_data['Objective'],
-            prompts=agent['Prompts'],
-            params=params,
-            storage=StorageInterface().storage_utils,
-        )
-
-        return agent_data
-
     @staticmethod
     def log_tasks(tasks):
         filename = "./Logs/results.txt"
         with open(filename, "a") as file:
             file.write(tasks)
-
-    def prepare_objective(self):
-        while True:
-            user_input = input("\nDefine Objective (leave empty to use defaults):")
-            if user_input.lower() == '':
-                return None
-            else:
-                self.config.persona['Objective'] = user_input
-                return user_input
 
     @staticmethod
     def print_result(result, desc):

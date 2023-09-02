@@ -13,7 +13,7 @@
     "smart_model" : "gpt-4"
   },
   "Persona" : {
-    "default" : "persona"
+    "selected" : "persona"
   },
   "StorageAPI" : {
     "selected" : "chroma"
