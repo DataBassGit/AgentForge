@@ -7,6 +7,7 @@ from .storage_interface import StorageInterface
 from ..logs.logger_config import Logger
 
 from .. import config
+from ..config import Config
 
 from termcolor import colored, cprint
 from colorama import init
@@ -22,7 +23,9 @@ class Functions:
 
     def __init__(self):
         self.mode = 'manual'
+        self.config = Config()
         self.storage = StorageInterface()
+
         # Start the listener for 'Esc' key press
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
@@ -113,7 +116,7 @@ class Functions:
             pass  # Handle a special key that we don't care about
 
     def show_task_list(self, desc):
-        objective = config.persona()['Objective']
+        objective = self.config.persona['Objective']
         self.storage.storage_utils.select_collection("Tasks")
 
         task_collection = self.storage.storage_utils.collection.get()
@@ -156,12 +159,12 @@ class Functions:
             return [(prompt_data['template'], prompt_data['vars'])]
         return []
 
-    @staticmethod
-    def load_agent_data(agent_name):
-        persona_data = config.persona()  # Load persona data
-
-        agent = persona_data[agent_name]
+    def load_agent_data(self, agent_name):
+        self.config.load()
+        persona_data = self.config.persona  # Load persona data
         defaults = persona_data['Defaults']
+
+        agent = self.config.agents[agent_name]
 
         api = agent.get('API', defaults['API'])
         params = agent.get('Params', defaults['Params'])
@@ -169,7 +172,7 @@ class Functions:
         # Initialize agent data
         agent_data: Dict[str, Any] = dict(
             name=agent_name,
-            llm=config.get_llm(api, agent_name),
+            llm=self.config.get_llm(api, agent_name),
             objective=persona_data['Objective'],
             prompts=agent['Prompts'],
             params=params,
@@ -184,14 +187,13 @@ class Functions:
         with open(filename, "a") as file:
             file.write(tasks)
 
-    @staticmethod
-    def prepare_objective():
+    def prepare_objective(self):
         while True:
             user_input = input("\nDefine Objective (leave empty to use defaults):")
             if user_input.lower() == '':
                 return None
             else:
-                config.persona()['Objective'] = user_input
+                self.config.persona['Objective'] = user_input
                 return user_input
 
     @staticmethod

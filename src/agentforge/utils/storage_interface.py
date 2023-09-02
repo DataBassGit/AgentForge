@@ -104,6 +104,6 @@ class StorageInterface:
 
         if self.config.get('ChromaDB', 'DBFreshStart') == 'True':
             self.storage_utils.reset_memory()
-            storage = self.config.persona['Memories']
+            storage = self.config.persona['Storage']
 
             [self.prefill_storage(key, value) for key, value in storage.items()]
