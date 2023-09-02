@@ -8,10 +8,10 @@ _config: Dict | None = None
 _persona: Dict | None = None
 _actions: Dict | None = None
 _tools: Dict | None = None
-_switch = None
 
 
 class Config:
+    _switch = None
 
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
@@ -40,15 +40,6 @@ class Config:
         self.load_persona()
         self.load_actions()
         self.load_tools()
-        self.load_switch()
-
-    def load_switch(self):
-        _switch = {
-            "Persona": self.get_persona,
-            "Tasks": self.get_tasks,
-            "Tools": self.get_tools,
-            "Actions": self.get_actions
-        }
 
     def load_config(self):
         self.config = self.load_json(self._get_file_path("config.json"))
@@ -102,6 +93,16 @@ class Config:
         db_embed = get('ChromaDB', 'embedding', default=None)
         return db_path, db_embed
 
+    def get_config_element(self, case):
+        switch = {
+            "Persona": self.persona,
+            "Tasks": self.persona.get('Tasks', {}),
+            "Tools": self.tools,
+            "Actions": self.actions
+        }
+        return switch.get(case, "Invalid case")
+
+
 # -----------------------------------
 
 
@@ -138,7 +139,6 @@ def _load():
 
 
 def get_llm(api, agent_name):
-
     model_name = _persona[agent_name].get('Model', _persona['Defaults']['Model'])
     model_name = _config['ModelLibrary'].get(model_name)
 
@@ -220,7 +220,7 @@ def actions():
     return _actions
 
 
-switch = {
+_switch = {
     "Persona": persona,
     "Tasks": tasks,
     "Tools": tools,
@@ -229,4 +229,4 @@ switch = {
 
 
 def data(case):
-    return switch.get(case, lambda: "Invalid case")
+    return _switch.get(case, lambda: "Invalid case")

@@ -1,7 +1,7 @@
 import uuid
-from .. import config
 from ..config import Config
 from .chroma_utils import ChromaUtils
+
 
 def metadata_builder(collection_name, name, details):
     if collection_name == 'Tasks':
@@ -70,7 +70,7 @@ class StorageInterface:
         Initializes a collection with provided data source and metadata builder.
         """
         do_content = content
-        data = config.data(storage)()
+        data = self.config.get_config_element(storage)
         collection_name = storage
         builder = metadata_builder
         generator = id_generator
@@ -102,11 +102,8 @@ class StorageInterface:
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
 
-        # if config.get('ChromaDB', 'DBFreshStart') == 'True':
         if self.config.get('ChromaDB', 'DBFreshStart') == 'True':
             self.storage_utils.reset_memory()
             storage = self.config.persona['Memories']
 
             [self.prefill_storage(key, value) for key, value in storage.items()]
-
-

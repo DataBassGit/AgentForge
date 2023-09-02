@@ -6,42 +6,20 @@ import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
-from .. import config
 from ..config import Config
 from ..logs.logger_config import Logger
 
 logger = Logger(name="Chroma Utils")
 logger.set_level('info')
 
-# # Read configuration file
-# db_path, db_embed = Config.chromadb()
-#
-# if db_embed == 'openai_ada2':
-#     # Get API keys from environment variables
-#     openai_api_key = os.getenv('OPENAI_API_KEY')
-#
-#     # Embeddings - need to handle embedding errors gracefully
-#     embedding = embedding_functions.OpenAIEmbeddingFunction(
-#         api_key=openai_api_key,
-#         model_name="text-embedding-ada-002"
-#     )
-# elif db_embed == 'all-distilroberta-v1':
-#     embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
-# elif db_embed == 'gte-base':
-#     embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
-# else:
-#     embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
-
 
 class ChromaUtils:
     _instance = None
-
+    client = None
+    collection = None
     db_path = None
     db_embed = None
     embedding = None
-
-    client = None
-    collection = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -53,7 +31,7 @@ class ChromaUtils:
         return cls._instance
 
     def __init__(self):
-        # Do Nothing
+        # Add your initialization code here
         pass
 
     def init_embeddings(self):
@@ -64,7 +42,7 @@ class ChromaUtils:
             openai_api_key = os.getenv('OPENAI_API_KEY')
 
             # Embeddings - need to handle embedding errors gracefully
-            embedding = embedding_functions.OpenAIEmbeddingFunction(
+            self.embedding = embedding_functions.OpenAIEmbeddingFunction(
                 api_key=openai_api_key,
                 model_name="text-embedding-ada-002"
             )
@@ -81,14 +59,6 @@ class ChromaUtils:
                 self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
             else:
                 self.client = chromadb.EphemeralClient()
-
-        # Old db init
-        # if self.client is None:
-        #     settings = Settings(chroma_db_impl=chroma_db_impl,
-        #                         persist_directory=db_path)
-        #     if db_path:
-        #         settings.persist_directory = db_path
-        #     self.client = chromadb.Client(settings)
 
     def select_collection(self, collection_name):
         try:
