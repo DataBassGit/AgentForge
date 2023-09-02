@@ -108,7 +108,7 @@ git clone https://github.com/DataBassGit/AgentForge.git
 
 Install the required dependencies:
 
-```shell
+```shell+
 pip install -e .
 ```
 
@@ -123,7 +123,7 @@ Each bot or architecture you create should contain an `.agentforge` folder that 
 
 ### For Custom Agents
 
-To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find a several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
+To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
 
 ### For SalienceBot Example
 

@@ -7,52 +7,78 @@ from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
 from .. import config
+from ..config import Config
 from ..logs.logger_config import Logger
 
 logger = Logger(name="Chroma Utils")
 logger.set_level('info')
 
-# Read configuration file
-db_path, db_embed = config.chromadb()
-
-if db_embed == 'openai_ada2':
-    # Get API keys from environment variables
-    openai_api_key = os.getenv('OPENAI_API_KEY')
-
-    # Embeddings - need to handle embedding errors gracefully
-    embedding = embedding_functions.OpenAIEmbeddingFunction(
-        api_key=openai_api_key,
-        model_name="text-embedding-ada-002"
-    )
-elif db_embed == 'all-distilroberta-v1':
-    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
-elif db_embed == 'gte-base':
-    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
-else:
-    embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
+# # Read configuration file
+# db_path, db_embed = Config.chromadb()
+#
+# if db_embed == 'openai_ada2':
+#     # Get API keys from environment variables
+#     openai_api_key = os.getenv('OPENAI_API_KEY')
+#
+#     # Embeddings - need to handle embedding errors gracefully
+#     embedding = embedding_functions.OpenAIEmbeddingFunction(
+#         api_key=openai_api_key,
+#         model_name="text-embedding-ada-002"
+#     )
+# elif db_embed == 'all-distilroberta-v1':
+#     embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
+# elif db_embed == 'gte-base':
+#     embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
+# else:
+#     embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
 
 
 class ChromaUtils:
     _instance = None
+
+    db_path = None
+    db_embed = None
+    embedding = None
+
     client = None
     collection = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             logger.log("Creating chroma utils", 'debug')
+            cls.config = Config()
             cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
+            cls._instance.init_embeddings()
             cls._instance.init_storage()
         return cls._instance
 
     def __init__(self):
-        # Add your initialization code here
+        # Do Nothing
         pass
 
-    def init_storage(self):
+    def init_embeddings(self):
+        self.db_path, self.db_embed = self.config.chromadb()
 
+        if self.db_embed == 'openai_ada2':
+            # Get API keys from environment variables
+            openai_api_key = os.getenv('OPENAI_API_KEY')
+
+            # Embeddings - need to handle embedding errors gracefully
+            embedding = embedding_functions.OpenAIEmbeddingFunction(
+                api_key=openai_api_key,
+                model_name="text-embedding-ada-002"
+            )
+        elif self.db_embed == 'all-distilroberta-v1':
+            self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
+        elif self.db_embed == 'gte-base':
+            self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
+        else:
+            self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
+
+    def init_storage(self):
         if self.client is None:
-            if db_path:
-                self.client = chromadb.PersistentClient(path=db_path, settings=Settings(allow_reset=True))
+            if self.db_path:
+                self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
             else:
                 self.client = chromadb.EphemeralClient()
 
@@ -67,7 +93,7 @@ class ChromaUtils:
     def select_collection(self, collection_name):
         try:
             self.collection = self.client.get_or_create_collection(collection_name,
-                                                                   embedding_function=embedding,
+                                                                   embedding_function=self.embedding,
                                                                    metadata={"hnsw:space": "cosine"})
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
@@ -206,6 +232,5 @@ class ChromaUtils:
 
         return results
 
-    @staticmethod
-    def return_embedding(text_to_embed):
-        return embedding([text_to_embed])
+    def return_embedding(self, text_to_embed):
+        return self.embedding([text_to_embed])

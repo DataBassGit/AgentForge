@@ -1,6 +1,7 @@
 import uuid
 from .. import config
-
+from ..config import Config
+from .chroma_utils import ChromaUtils
 
 def metadata_builder(collection_name, name, details):
     if collection_name == 'Tasks':
@@ -47,6 +48,7 @@ class StorageInterface:
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
+            cls.config = Config()
             cls._instance = super(StorageInterface, cls).__new__(cls, *args, **kwargs)
             cls._instance.initialize_storage()
         return cls._instance
@@ -57,19 +59,19 @@ class StorageInterface:
 
     def initialize_storage(self):
         if self.storage_utils is None:
-            storage_api = config.storage_api()
+            storage_api = self.config.storage_api()
             if storage_api == 'chroma':
                 self.initialize_chroma()
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
-    def initialize_memory(self, memory, extra):
+    def prefill_storage(self, storage, content):
         """
         Initializes a collection with provided data source and metadata builder.
         """
-
-        data = config.data(memory)()
-        collection_name = memory
+        do_content = content
+        data = config.data(storage)()
+        collection_name = storage
         builder = metadata_builder
         generator = id_generator
         extractor = description_extractor
@@ -97,14 +99,14 @@ class StorageInterface:
         self.storage_utils.save_memory(save_params)
 
     def initialize_chroma(self):
-        from .chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
 
-        if config.get('ChromaDB', 'DBFreshStart') == 'True':
+        # if config.get('ChromaDB', 'DBFreshStart') == 'True':
+        if self.config.get('ChromaDB', 'DBFreshStart') == 'True':
             self.storage_utils.reset_memory()
-            memories = config.persona()['Memories']
+            storage = self.config.persona['Memories']
 
-            [self.initialize_memory(key, value) for key, value in memories.items()]
+            [self.prefill_storage(key, value) for key, value in storage.items()]
 
 

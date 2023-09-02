@@ -8,10 +8,104 @@ _config: Dict | None = None
 _persona: Dict | None = None
 _actions: Dict | None = None
 _tools: Dict | None = None
+_switch = None
+
+
+class Config:
+
+    def __init__(self, config_path=None):
+        self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
+        self.config = {}
+        self.persona = {}
+        self.actions = {}
+        self.tools = {}
+        self.load()
+
+    def load_json(self, file_path):
+        try:
+            with open(file_path, 'r') as json_file:
+                return json.load(json_file)
+        except FileNotFoundError:
+            print(f"File {file_path} not found.")
+            return {}
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {file_path}")
+            return {}
+
+    def _get_file_path(self, file_name):
+        return pathlib.Path(self.config_path) / file_name
+
+    def load(self):
+        self.load_config()
+        self.load_persona()
+        self.load_actions()
+        self.load_tools()
+        self.load_switch()
+
+    def load_switch(self):
+        _switch = {
+            "Persona": self.get_persona,
+            "Tasks": self.get_tasks,
+            "Tools": self.get_tools,
+            "Actions": self.get_actions
+        }
+
+    def load_config(self):
+        self.config = self.load_json(self._get_file_path("config.json"))
+
+    def load_persona(self):
+        persona_name = self.config.get('Persona', {}).get('default', "")
+        self.persona = self.load_json(self._get_file_path(f"{persona_name}.json"))
+
+    def load_actions(self):
+        self.actions = self.load_json(self._get_file_path("actions.json"))
+        pass
+
+    def load_tools(self):
+        self.tools = self.load_json(self._get_file_path("tools.json"))
+
+    def get_persona(self):
+        if not self.persona:
+            self.load_persona()
+
+        return self.persona
+
+    def get_tasks(self):
+        if not _persona:
+            self.load_persona()
+
+        return self.persona['Tasks']
+
+    def get_tools(self):
+        if not self.tools:
+            self.load_tools()
+
+        return self.tools
+
+    def get_actions(self):
+        if not self.actions:
+            self.load_actions()
+
+        return self.actions
+
+    def storage_api(self):
+        return get('StorageAPI', 'selected')
+
+    def get(self, section, key, default=None):
+        if self.config is None:
+            self.load()
+
+        return self.config.get(section, {}).get(key, default)
+
+    def chromadb(self):
+        db_path = get('ChromaDB', 'persist_directory', default=None)
+        db_embed = get('ChromaDB', 'embedding', default=None)
+        return db_path, db_embed
+
+# -----------------------------------
 
 
 def _load():
-    # global _parser
     global _config
     global _persona
     global _actions
