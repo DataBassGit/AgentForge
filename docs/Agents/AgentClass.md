@@ -1,13 +1,13 @@
-# `Agent` Super Class
+# `Agent` Base Class
 
 ---
 
 ## Overview
-The `Agent` class serves as the **Super Class** for all agents in the framework. It handles core functionalities such as data loading, prompt generation, LLM execution, and more.
+The `Agent` class serves as the **Base Class** for all agents in the framework. It handles core functionalities such as data loading, prompt generation, LLM execution, and more.
 
 ### Agent as a Default Template
 
-The `Agent` super class serves as a default template for creating new agents. By providing basic functionalities and methods that can be overridden, it simplifies the process of defining specialized SubAgents. For more details on how to create SubAgents by extending this class, refer to the [SubAgents](SubAgentCreation.md) Page.
+The `Agent` base class serves as a default template for creating new agents. By providing basic functionalities and methods that can be overridden, it simplifies the process of defining specialized agents. For more details on how to create custom agents by extending this class, refer to the [Custom Agents](CustomAgents.md) page.
 
 
 ---
@@ -61,7 +61,6 @@ def __init__(self, log_level="info"):
 
 ## For Main Agent Methods
 
-For a detailed walkthrough of the main methods in the `Agent` class that are essential for creating SubAgents, please refer to the [Agent Methods](AgentMethods.md) Page.
-
+For a detailed walkthrough of the main methods in the `Agent` class that are essential for creating [Custom Agents](CustomAgents.md), please refer to the [Agent Methods](AgentMethods.md) Page.
 
 ---

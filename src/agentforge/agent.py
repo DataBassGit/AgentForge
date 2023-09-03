@@ -61,7 +61,7 @@ class Agent:
         ]
 
     def load_additional_data(self):
-        """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
+        """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
         pass
 
     def load_agent_data(self, **kwargs):
@@ -89,7 +89,7 @@ class Agent:
         pass
 
     def process_data(self):
-        """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
+        """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
         pass
 
     def run_llm(self):

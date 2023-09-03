@@ -24,9 +24,7 @@ def dyna_tool(tool, payload):
 
 def extract_metadata(data):
     # extract the 'metadatas' key from results
-    extracted_metadata = data['metadatas'][0][0]
-
-    return extracted_metadata
+    return data['metadatas'][0][0]
 
 
 def parse_tools_data(tool_info):

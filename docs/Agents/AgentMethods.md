@@ -1,18 +1,20 @@
 # Agent Methods
 
-Welcome to the Agent Methods documentation! In this section, we'll walk you through the key methods within the `Agent` class which are the most relevant for creating SubAgents. Understanding these methods will help you customize and extend the capabilities of your SubAgents effectively.
+Welcome to the Agent Methods documentation! In this section, we'll walk you through the key methods within the `Agent` base class which are the most relevant for creating [Custom Agents](CustomAgents.md). Understanding these methods will help you customize and extend the capabilities of your agents effectively.
 
 ---
 
-## 📌 Important Note: Dual Purpose of Methods
+## 📌 Important Note: The Essence of Agents
 
-All the methods outlined in this documentation are designed with two primary objectives:
+All the methods outlined in this documentation serve a dual purpose:
 
-1. **SubAgent Customization**: These methods serve as access points for customizing SubAgents. You can override them to implement specific functionalities without changing the entire code base.
+1. **Customization & Specialization**: These methods act as access points for specialization. You can override them to implement specific functionalities without changing the entire code base. This allows each subclass to be a specialized version of the base `Agent` class, extending or modifying its behaviors.
 
-2. **Default Behavior**: The methods also act as the default behavior for agents. Creating a new SubAgent can be as simple as defining a new SubAgent class and its prompts, without necessarily modifying the default behavior inherited from the agent super class.
+2. **Default Behavior & Streamlining**: The methods also serve as the default behavior for any agent, making the creation of new agents incredibly streamlined. Just create a new subclass of the `Agent` class, add its prompts, and you're good to go!
 
-For more details on how to create and customize SubAgents, see [SubAgents Documentation](SubAgentCreation.md).
+In other words, The `Agent` base class serves as a generic agent, while each subclass is a specialized agent.
+
+For more details on how to create and specialize agents, see [Custom Agents](CustomAgents.md).
 
 ---
 
@@ -151,13 +153,12 @@ def load_agent_data(self, **kwargs):
 
 **Workflow**:
 1. Adds an `objective` to the internal `data` attribute, fetched from `self.agent_data.get('objective')`.
-2. Adds a `task` to the internal `data` attribute, obtained from `self.functions.get_current_task()['document']`.
+
 
 ```python
 def load_main_data(self):
-    """Loads the main data for the Agent, by default it's the Objective and Current Task"""
+    """Loads the main data for the Agent, by default it's the Objective"""
     self.data['objective'] = self.agent_data.get('objective')
-    self.data['task'] = self.functions.get_current_task()['document']
 ```
 
 ---
@@ -166,7 +167,7 @@ def load_main_data(self):
 
 ### `load_additional_data(data)`
 
-**Purpose**: By default, this method is a placeholder waiting for SubAgents to override it. It provides an access point to modify the data going into the agent.
+**Purpose**: By default, this method is a placeholder waiting for [Custom Agents](CustomAgents.md) to override it. It provides an access point to modify the data going into the agent.
 
 **Arguments**: None
 
@@ -175,12 +176,12 @@ def load_main_data(self):
 
 ```python
 def load_additional_data(self):
-    """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
+    """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
     pass
 
 ```
 
-**Note**: This method is designed to be overridden by [SubAgents](SubAgentCreation.md) for loading any additional data depending on their specific requirements.
+>**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md) for loading any additional data depending on their specific requirements.
 
 ---
 
@@ -195,11 +196,11 @@ def load_additional_data(self):
 
 ```python
 def process_data(self):
-    """This method does nothing by default, it is meant to be overriden by SubAgents if needed"""
+    """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
     pass
 ```
 
-**Note**: This method is designed to be overridden by [SubAgents](SubAgentCreation.md) for custom data processing depending on their specific requirements.
+>**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md)  for custom data processing depending on their specific requirements.
 
 ---
 
@@ -238,7 +239,9 @@ def generate_prompt(self, **kwargs):
     ]
 ```
 
-**Note**: The prompt templates come from the persona data, which is loaded from the [Persona JSON File](../Persona/Persona.md).
+> **Note**: The prompt templates for each agent come from a corresponding `JSON` file found in the `.agentforge/agents/` folder, the `JSON` file name must match the custom agent class name.
+> 
+> **Example**: If you have a custom agent class named `NewAgent`, the corresponding `JSON` file should be named `NewAgent.json`.
 
 ---
 
@@ -279,11 +282,11 @@ def run_llm(self):
 
 ```python
 def parse_result(self):
-    """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
+    """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
     pass
 ```
 
-**Note**: This method is intended to be overridden by [SubAgents](SubAgentCreation.md) who may require custom parsing of the result.
+>**Note**: This method is intended to be overriden by [Custom Agents](CustomAgents.md) who may require custom parsing of the result.
 
 ---
 
@@ -296,7 +299,7 @@ def parse_result(self):
 **Arguments**: None
 
 **Workflow**:
-1. Constructs a parameter dictionary with the LLM-generated `self.result` and a collection name 'Results'.
+1. Constructs a parameter dictionary with the LLM-generated `self.result` and a collection name `Results`.
 2. Calls `self.storage.save_memory(params)` to save the result to memory.
 
 ```python
@@ -325,12 +328,12 @@ def build_output(self):
     self.output = self.result
 ```
 
-**Note**: Like other methods in this class, `build_output` is ripe for an override by [SubAgents](SubAgentCreation.md) who might want to customize the final output.
+>**Note**: Like other methods in this class, `build_output` is ripe for an override by [Custom Agents](CustomAgents.md) who might want to customize the final output.
 
 ---
 
 ## Note: Additional Functions
 
-While the key methods relevant for agent creation have been covered in this section, the `Agent` class imports additional methods from a `Functions` utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Function Utils](../Utils/FunctionUtils.md) Page.
+While the key methods relevant for [Custom Agent](CustomAgents.md) creation have been covered in this section, the `Agent` class imports additional methods from a `Functions` utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Functions](../Utils/FunctionUtils.md) Page.
 
 ---

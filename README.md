@@ -22,18 +22,19 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 ---
 ## Features
 
-* Rapidly build and test cognitive architectures
-* Directly customize how agents handle memory
-* Open source model support
-* Easily edit prompts
-* Different LLM for each prompt
-* Build Custom Agents
+* Build Custom Agents Easily
+* Customizable Agent Memory Management
+* Default Agents Ready For Use
+* LLM Agnostic Agents (Each Agent can call different LLMs if needed)
+* On-The-Fly Prompt Editing
+* Open-Source Model Support ([Oobabooga](https://github.com/oobabooga/text-generation-webui))
+* Rapidly Build & Test Cognitive Architectures (Multi-Agent Scripts)
 
 ### Coming Soon
 
+* API Implementation
 * Custom Tools/Actions
 * Knowledge Graphs
-* Edit prompts live! (You can even have multiple prompt templates and switch!)
 
 ## Requisites
 
@@ -91,7 +92,7 @@ Set your **User Environment Variables** names to the following:
 pip install agentforge
 ```
 
-2. Navigate to where you want your bot's project folder:
+2. Navigate to where you want your architecture's (bot) project folder:
 
 ```shell
 cd c:\bot
@@ -131,14 +132,15 @@ pip install -e .
 
 ## Usage
 
-Each bot or architecture you create should contain an `.agentforge` folder that holds its [Persona](docs/Persona/) folder along with other configuration files.
+Each Cognitive Architecture (bot) you create should contain an `.agentforge` folder which contains everything pertaining to its agents and personas along with other configuration files.
 
-**Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [SubAgents](docs/Agents/SubAgents/), as they can override these settings and call different models if needed.
+**Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [Agents](docs/Agents/CustomAgents.md) as they can override these settings and call different models if needed.
 
+>**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent scrips!  
 
 ### For Custom Agents
 
-To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `Agent` folder which contains an example of a custom [SubAgent](docs/Agents/SubAgents/). To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
+To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `agents` folder which contains an example of a custom [Agent](/docs/Agents/AgentClass.md). To know more about how to use and create your own agents, check out the [Agent Customization Page](docs/Agents/CustomAgents.md).
 
 ### For SalienceBot Example
 
@@ -150,11 +152,11 @@ To run the SalienceBot demo, go to `Examples/SalienceBot/` in your console and r
 python salience.py
 ```
 
-This will execute a simple bot script that uses our default [SubAgents](docs/Agents/SubAgents/) to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
+This will execute a simple bot script that uses our default [Custom Agents](docs/Agents/CustomAgents/) to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
 
 For a more detailed break-down of our `Salience` example please refer to the [Salience Page]()
 
-**Important** : Whenever a bot or architecture runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models.
+**Important** : Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.
 
 ---
 
@@ -162,15 +164,16 @@ For a more detailed break-down of our `Salience` example please refer to the [Sa
 
 For more in-depth documentation, please refer to the following sections:
 
-**Note**: The documentation outlined in this section is a work in progress, some links and files may not be correctly linked nor available yet.
-
-- **[Agent](docs/Config/AgentSuperClass.md)**: Comprehensive guides on how Agents work.
-- **[Config](docs/Config/)**: Documentation on system related configurations.
+- **[Agent](docs/Agents/AgentClass.md)**: Comprehensive guides on how agents work.
+- **[Custom Agents](docs/Agents/CustomAgents.md)**: Creating and customizing agents.
+- **[Config](docs/Config/Config.md)**: Documentation on system related configurations.
+- **[Functions](docs/Utils/FunctionUtils.md)**: Function utilities available for agents, can also be imported by other scripts.
 - **[LLM](docs/LLM/)**: All you need to know about integrating LLM models.
-- **[Persona](docs/Persona/)**: How to configure and use personas.
-- **[SubAgents](docs/Agents/SubAgents/)**: Creating and customizing SubAgents.
-- **[Tools & Actions](docs/Tools&Actions/)**: How tools and actions are defined and executed by Agents.
+- **[Persona](docs/Personas/Personas.md)**: How to configure and use personas. (Note: Personas have not been implemented yet)
+- **[Tools & Actions](docs/Tools&Actions/ToolsActions.md)**: How tools and actions are defined and executed by agents.
 - **[Utils](docs/Utils/)**: Miscellaneous utilities.
+
+> **Note**: The documentation outlined in this section is a work in progress, some links and files may not be correct nor available yet.
 
 ---
 
