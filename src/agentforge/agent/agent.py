@@ -2,14 +2,8 @@ from ..llm import LLM
 from ..logs.logger_config import Logger
 from ..utils.function_utils import Functions
 
-from termcolor import cprint
-from colorama import init
-init(autoreset=True)
-
 
 class Agent:
-
-    _agent_name = None
 
     def __init__(self, log_level="info"):
         """This function Initializes the Agent, it loads the relevant data depending on it's name as well as setting
@@ -18,7 +12,6 @@ class Agent:
         self.data = None
         self.prompt = None
         self.result = None
-        self.parsed_result = None
         self.output = None
 
         self.functions = Functions()
