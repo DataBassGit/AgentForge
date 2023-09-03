@@ -28,6 +28,6 @@
     "persist_directory" : "./DB/ChromaDB",
     "collection_name" : "collection-test",
     "DBFreshStart" : "True",
-    "embedding" : "None"
+    "embedding" : "all-distilroberta-v1"
   }
 }
