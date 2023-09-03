@@ -105,19 +105,19 @@ class Functions:
                                                            'include': ["documents", "metadatas"]})
 
     def load_agent_data(self, agent_name):
-        self.config.reload()
+        self.config.load_agent(agent_name)
 
         persona_data = self.config.persona
         defaults = persona_data['Defaults']
 
-        agent = self.config.agents[agent_name]
+        agent = self.config.agent
         api = agent.get('API', defaults['API'])
         params = agent.get('Params', defaults['Params'])
 
         # Initialize agent data
         agent_data: Dict[str, Any] = dict(
             name=agent_name,
-            llm=self.config.get_llm(api, agent_name),
+            llm=self.config.get_llm(api),
             objective=persona_data['Objective'],
             prompts=agent['Prompts'],
             params=params,

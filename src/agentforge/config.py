@@ -18,7 +18,7 @@ class Config:
         self.config = {}
         self.persona = {}
         self.actions = {}
-        self.agents = {}
+        self.agent = {}
         self.tools = {}
         self.load()
 
@@ -44,8 +44,8 @@ class Config:
     def get_file_path(self, file_name):
         return pathlib.Path(self.config_path) / file_name
 
-    def get_llm(self, api, agent_name):
-        model_name = self.agents[agent_name].get('Model', self.persona['Defaults']['Model'])
+    def get_llm(self, api):
+        model_name = self.agent.get('Model', self.persona['Defaults']['Model'])
         model_name = self.config['ModelLibrary'].get(model_name)
 
         models = {
@@ -95,15 +95,14 @@ class Config:
     def load(self):
         self.load_config()
         self.load_persona()
-        self.load_agents()
         self.load_actions()
         self.load_tools()
 
     def load_actions(self):
         self.actions = self.get_json_data("actions.json")
 
-    def load_agents(self):
-        self.agents = self.get_json_data("agents.json")
+    def load_agent(self, agent_name):
+        self.agent = self.get_json_data(f"agents/{agent_name}.json")
 
     def load_config(self):
         self.config = self.get_json_data("config.json")
@@ -115,10 +114,8 @@ class Config:
     def load_tools(self):
         self.tools = self.get_json_data("tools.json")
 
-    def reload(self):
-        objective = self.persona['Objective']
-        self.load()
-        self.persona['Objective'] = objective
+    # def reload(self):
+    #     self.load_agent()
 
     def storage_api(self):
         return self.get('StorageAPI', 'selected')
