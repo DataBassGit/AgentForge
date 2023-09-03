@@ -27,6 +27,7 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 * Default Agents Ready For Use
 * LLM Agnostic Agents (Each Agent can call different LLMs if needed)
 * On-The-Fly Prompt Editing
+* OpenAI & Anthropic API Support
 * Open-Source Model Support ([Oobabooga](https://github.com/oobabooga/text-generation-webui))
 * Rapidly Build & Test Cognitive Architectures (Multi-Agent Scripts)
 
