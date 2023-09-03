@@ -3,7 +3,7 @@
 ---
 
 ## Overview
-The `Agent` class serves as the superclass for all agent types in the framework. It handles core functionalities such as data loading, prompt generation, prompt execution, and more.
+The `Agent` class serves as the **Super Class** for all agents in the framework. It handles core functionalities such as data loading, prompt generation, LLM execution, and more.
 
 ### Agent as a Default Template
 
@@ -12,7 +12,7 @@ The `Agent` super class serves as a default template for creating new agents. By
 ---
 
 ## Attributes
-- `_agent_name`: Holds the name of the agent. If not explicitly provided, it defaults to the class name.
+- `agent_name`: Holds the name of the agent. If not explicitly provided, it defaults to the class name.
 - `agent_data`: Contains data specific to the agent, loaded from storage.
 - `storage`: Interface to the data storage component.
 

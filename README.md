@@ -116,18 +116,18 @@ pip install -e .
 
 ## Usage
 
-Each bot or architecture you create should contain an `.agentforge` folder that holds its configuration files.
+Each bot or architecture you create should contain an `.agentforge` folder that holds its [Persona](docs/Persona/) folder along with other configuration files.
 
-**Important**: Before running any bot, make sure the `.agentforge` folder's configuration files, including `default.json`, have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [SubAgents](docs/Agents/SubAgents/), as they can override these settings and call different models if needed.
+**Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [SubAgents](docs/Agents/SubAgents/), as they can override these settings and call different models if needed.
 
 
 ### For Custom Agents
 
-To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
+To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `Agent` folder which contains an example of a custom [SubAgent](docs/Agents/SubAgents/). To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
 
 ### For SalienceBot Example
 
-If you've installed our Salience example, head over to `Examples/SalienceBot/.agentforge/` to find its `default.json` and other configuration files.
+If you've installed our Salience example, head over to `Examples/SalienceBot/.agentforge/` to find its configuration files.
 
 To run the SalienceBot demo, go to `Examples/SalienceBot/` in your console and run:
 
@@ -135,13 +135,11 @@ To run the SalienceBot demo, go to `Examples/SalienceBot/` in your console and r
 python salience.py
 ```
 
-This will execute a simple bot script that uses our default SubAgents to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
+This will execute a simple bot script that uses our default [SubAgents](docs/Agents/SubAgents/) to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
 
 For a more detailed break-down of our `Salience` example please refer to the [Salience Page]()
 
-**Important** : Whenever a bot or architecture runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to turn the first time. Any subsequent runs will not have this issue as long as chroma has previously downloaded the models.
-
-**Note**: We're planning to expand how personas work to offer more flexibility in future releases.
+**Important** : Whenever a bot or architecture runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models.
 
 ---
 
