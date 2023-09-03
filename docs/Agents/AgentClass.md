@@ -59,7 +59,7 @@ def __init__(self, log_level="info"):
 
 ---
 
-## For Main Agent Methods
+## Main Agent Methods
 
 For a detailed walkthrough of the main methods in the `Agent` class that are essential for creating [Custom Agents](CustomAgents.md), please refer to the [Agent Methods](AgentMethods.md) Page.
 

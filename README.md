@@ -141,13 +141,13 @@ Each Cognitive Architecture (bot) you create should contain an `.agentforge` fol
 
 ### For Custom Agents
 
-To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `agents` folder which contains an example of a custom [Agent](/docs/Agents/AgentClass.md). To know more about how to use and create your own agents, check out the [Agent Customization Page](docs/Agents/CustomAgents.md).
+To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `agents` folder which contains an example of a custom [Agent](/docs/Agents/AgentClass.md). To know more about how to use and create your own agents, check out the [Custom Agents](docs/Agents/CustomAgents.md) page.
 
-### For SalienceBot Example
+### For Salience Bot Example
 
 If you've installed our Salience example, head over to `Examples/SalienceBot/.agentforge/` to find its configuration files.
 
-To run the SalienceBot demo, go to `Examples/SalienceBot/` in your console and run:
+To run the Salience Bot demo, go to `Examples/SalienceBot/` in your console and run:
 
 ```shell
 python salience.py
