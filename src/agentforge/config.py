@@ -5,6 +5,14 @@ import pathlib
 
 
 class Config:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
+            cls._instance.__init__()
+        return cls._instance
+
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
         self.config = {}
@@ -106,6 +114,11 @@ class Config:
 
     def load_tools(self):
         self.tools = self.get_json_data("tools.json")
+
+    def reload(self):
+        objective = self.persona['Objective']
+        self.load()
+        self.persona['Objective'] = objective
 
     def storage_api(self):
         return self.get('StorageAPI', 'selected')

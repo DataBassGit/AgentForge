@@ -107,8 +107,9 @@ class Functions:
                                                            'include': ["documents", "metadatas"]})
 
     def load_agent_data(self, agent_name):
-        self.config.load()
-        persona_data = self.config.persona  # Load persona data
+        self.config.reload()
+
+        persona_data = self.config.persona
         defaults = persona_data['Defaults']
 
         agent = self.config.agents[agent_name]

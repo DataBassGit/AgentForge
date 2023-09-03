@@ -67,7 +67,7 @@ class Action:
 
                 tool_result = dyna_tool(tool_name.lower(), payload)
 
-                self.functions.print_result(tool_result, 'Action Agent - TOOL RESULTS')
+                self.functions.print_result(tool_result, 'Action Agent - TOOLS')
 
                 # do something with payload here if needed
                 payloads[tool_name] = payload

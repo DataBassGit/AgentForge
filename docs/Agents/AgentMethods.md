@@ -48,7 +48,7 @@ def run(self, bot_id=None, **kwargs):
     prompt = self.generate_prompt(**data)
     result = self.run_llm(prompt)
     parsed_result = self.parse_result(result=result, data=data)
-    self.save_parsed_result(parsed_result)
+    self.save_result(parsed_result)
     output = self.build_output(parsed_result)
 
     cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
@@ -161,21 +161,19 @@ def load_additional_data(self, data):
 
 ### `process_data(data)`
 
-**Purpose**: This method allows for processing the agent's data, it provides an access point for customization.
+**Purpose**: This method serves as a placeholder for processing agent data before being rendered. By default, it does nothing.
 
 **Arguments**:
-- `data` (`dict`): The existing data dictionary that's about to get some last-minute adjustments.
+- `data` (`dict`): The existing data dictionary to process.
 
-**Workflow**:
-1. Calls `self.functions.set_task_order(data)` to possibly rearrange the tasks in the data.
-2. Invokes `self.functions.show_task(data)` to display the current task's details.
 
 ```python
 def process_data(self, data):
-    """This function is for processing the data before rendering the prompt"""
-    self.functions.set_task_order(data)
-    self.functions.show_task(data)
+    """This function does nothing by default, it is meant to be overriden by SubAgents if needed"""
+    pass
 ```
+
+**Note**: This method is designed to be overridden by [SubAgents](SubAgentCreation.md) for custom data processing depending on their specific requirements.
 
 ---
 
@@ -317,7 +315,7 @@ def build_output(self, parsed_result):
     return parsed_result
 ```
 
-**Note**: This method is designed to be overridden by [SubAgents](SubAgentCreation.md) for custom output generation, depending on their specific requirements.
+**Note**: This method is designed to be overridden by [SubAgents](SubAgentCreation.md) for custom output generation depending on their specific requirements.
 
 ---
 

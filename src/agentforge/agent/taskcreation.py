@@ -4,28 +4,26 @@ import uuid
 
 class TaskCreationAgent(Agent):
 
-    # def load_additional_data(self, data):
-    #     if data['goal'] is None:
-    #         data['goal'] = self.agent_data.get('objective')
-
-    def parse_result(self, result, **kwargs):
-        new_tasks = result.split("\n")
+    def parse_result(self):
+        new_tasks = self.result.split("\n")
 
         result = [{"Description": task_desc} for task_desc in new_tasks]
         filtered_results = [task for task in result if task['Description'] and task['Description'][0].isdigit()]
 
         try:
-            order_tasks = [{
+            ordered_tasks = [{
                 'Order': int(task['Description'].split('. ', 1)[0]),
                 'Description': task['Description'].split('. ', 1)[1]
             } for task in filtered_results]
         except Exception as e:
             raise ValueError(f"\n\nError ordering tasks. Error: {e}")
 
-        return order_tasks
+        # return order_tasks
 
-    def save_parsed_result(self, parsed_data):
-        self.save_tasks(parsed_data)
+        self.result = ordered_tasks
+
+    def save_result(self):
+        self.save_tasks(self.result)
 
     def save_tasks(self, task_list):
         collection_name = "Tasks"
@@ -50,7 +48,7 @@ class TaskCreationAgent(Agent):
 
         self.storage.save_memory(params)
 
-    def build_output(self, parsed_data):
+    def build_output(self):
         pass
 
 

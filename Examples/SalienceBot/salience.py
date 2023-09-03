@@ -28,6 +28,8 @@ class Salience:
         self.frustration_step = 0.1
         self.max_frustration = 0.5
 
+        self.set_objective()
+
     def run(self, context=None, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
@@ -96,12 +98,6 @@ class Salience:
         return ordered_results
 
     def loop(self):
-        # Add a variable to set the mode
-
-        goal = self.functions.prepare_objective()
-        if goal is not None:
-            self.task_creation_agent.run(goal=goal)
-
         status_results = None
 
         while True:
@@ -127,6 +123,11 @@ class Salience:
                 self.action.run(data['reason'], frustration=self.frustration)
             else:
                 self.frustration = 0
+
+    def set_objective(self):
+        objective = self.functions.prepare_objective()
+        if objective is not None:
+            self.task_creation_agent.run()
 
 
 if __name__ == '__main__':

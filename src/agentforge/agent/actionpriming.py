@@ -15,24 +15,24 @@ def extract_metadata(results):
 
 class ActionPrimingAgent(Agent):
 
-    def build_output(self, result, **kwargs):
-        formatted_result = result.replace('\n', '').replace('\t', '')
-        payload = ast.literal_eval(formatted_result)
+    def build_output(self):
+        formatted_result = self.result.replace('\n', '').replace('\t', '')
+        self.output = ast.literal_eval(formatted_result)
 
-        return payload
+        # return payload
 
-    def load_tool(self, tool):
-        params = {
-            "collection_name": 'Tools',
-            "query": tool,
-            "include": ["documents", "metadatas"]
-        }
+    # def load_tool(self, tool):
+    #     params = {
+    #         "collection_name": 'Tools',
+    #         "query": tool,
+    #         "include": ["documents", "metadatas"]
+    #     }
+    #
+    #     results = self.storage.query_memory(params)
+    #     filtered = extract_metadata(results)
+    #
+    #     return filtered
 
-        results = self.storage.query_memory(params)
-        filtered = extract_metadata(results)
-
-        return filtered
-
-    def save_parsed_result(self, parsed_data):
+    def save_result(self):
         pass
 
