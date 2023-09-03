@@ -16,22 +16,11 @@ def extract_metadata(results):
 class ActionPrimingAgent(Agent):
 
     def build_output(self):
-        formatted_result = self.result.replace('\n', '').replace('\t', '')
-        self.output = ast.literal_eval(formatted_result)
-
-        # return payload
-
-    # def load_tool(self, tool):
-    #     params = {
-    #         "collection_name": 'Tools',
-    #         "query": tool,
-    #         "include": ["documents", "metadatas"]
-    #     }
-    #
-    #     results = self.storage.query_memory(params)
-    #     filtered = extract_metadata(results)
-    #
-    #     return filtered
+        try:
+            formatted_result = self.result.replace('\n', '').replace('\t', '')
+            self.output = ast.literal_eval(formatted_result)
+        except Exception as e:
+            raise ValueError(f"\n\nError while building output for agent: {e}")
 
     def save_result(self):
         pass

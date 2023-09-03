@@ -12,9 +12,8 @@ class ActionSelectionAgent(Agent):
         threshold = 0.3 + frustration
         threshold = min(threshold, max_threshold)
 
-        threshold = 0.99
-
-        print(f'\nFrustration Threshold: {threshold}')
+        # threshold = 0.99
+        # print(f'\nFrustration Threshold: {threshold}')
 
         params = {
             "collection_name": 'Actions',
@@ -24,8 +23,6 @@ class ActionSelectionAgent(Agent):
         }
 
         self.result = self.storage.search_storage_by_threshold(params)
-
-        # return search
 
     def save_result(self):
         pass

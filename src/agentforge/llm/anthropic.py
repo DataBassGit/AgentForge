@@ -7,10 +7,9 @@ from termcolor import cprint
 from colorama import init
 init(autoreset=True)
 
-# API_KEY = os.environ.get('ANTHROPIC_API_KEY')
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
 client = anthropic.Client(API_KEY)
-_level = 'debug'
+_level = 'info'
 
 
 def parse_prompts(prompts):

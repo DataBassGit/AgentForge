@@ -1,14 +1,12 @@
 import os
-from datetime import datetime
-from pynput import keyboard
-from typing import Dict, Any
 
 from .storage_interface import StorageInterface
 from ..logs.logger_config import Logger
-
-from .. import config
 from ..config import Config
 
+from datetime import datetime
+from pynput import keyboard
+from typing import Dict, Any
 from termcolor import colored, cprint
 from colorama import init
 
@@ -32,14 +30,14 @@ class Functions:
 
     def check_auto_mode(self, feedback_from_status=None):
         context = None
+        msg = "\nPress Enter to Continue | Type 'auto' for Auto Mode | Type 'exit' to Exit | Or Provide Feedback: "
 
         # Check if the mode is manual
         if self.mode == 'manual':
-            user_input = input("\nAllow AI to continue? (y/n/auto) or provide feedback: ")
-            if user_input.lower() == 'y':
+            user_input = input(msg)
+            if user_input.lower() == '':
                 context = feedback_from_status
-                pass
-            elif user_input.lower() == 'n':
+            elif user_input.lower() == 'exit':
                 quit()
             elif user_input.lower() == 'auto':
                 self.mode = 'auto'
@@ -135,7 +133,7 @@ class Functions:
                 cprint("\nSwitching to Manual Mode...", 'green', attrs=['bold'])
                 self.mode = 'manual'
         except AttributeError:
-            pass  # Handle a special key that we don't care about
+            pass
 
     def prepare_objective(self):
         while True:
@@ -145,6 +143,32 @@ class Functions:
             else:
                 self.config.persona['Objective'] = user_input
                 return user_input
+
+    def print_primed_tool(self, tool_name, payload):
+        tool_name = tool_name.replace('_', ' ')
+        speak = payload['thoughts']['speak']
+        reasoning = payload['thoughts']['reasoning']
+
+        # Format command arguments
+        command_args = ", ".join(
+            [f"{k}='{v}'" if isinstance(v, str) else f"{k}={v}" for k, v in payload['command']['args'].items()]
+        )
+
+        command = f"{payload['command']['name']}({command_args})"
+
+        # Create the final output string
+        formatted_string = f"{speak}\n\n" \
+                           f"Tool: {tool_name}\n" \
+                           f"Command: {command}\n" \
+                           f"Reasoning: {reasoning}"
+
+        self.print_result(formatted_string, 'Primed Tool')
+
+    def print_tool_results(self, tool_name, tool_result):
+        # Parse tool result into a single string
+        final_output = self.parse_tool_results(tool_result)
+
+        self.print_result(final_output, f"{tool_name} Result")
 
     def show_task_list(self, desc):
         objective = self.config.persona['Objective']
@@ -197,11 +221,27 @@ class Functions:
             file.write(tasks)
 
     @staticmethod
+    def parse_tool_results(tool_result):
+        if isinstance(tool_result, list):
+            # Format each search result
+            formatted_results = [f"URL: {url}\nDescription: {desc}\n---" for url, desc in tool_result]
+            # Join all results into a single string
+            final_output = "\n".join(formatted_results)
+        else:
+            final_output = tool_result
+
+        return final_output
+
+    @staticmethod
+    def print_message(msg):
+        cprint(f"{msg}", 'red', attrs=['bold'])
+
+    @staticmethod
     def print_result(result, desc):
         # Print the task result
-        cprint(f"***** {desc} - RESULT *****\n", 'green', attrs=['bold'])
+        cprint(f"***** {desc} *****", 'green', attrs=['bold'])
         print(result)
-        cprint(f"\n*****", 'green', attrs=['bold'])
+        cprint(f"*****", 'green', attrs=['bold'])
 
         # Save the result to a log.txt file in the /Logs/ folder
         log_folder = "Logs"

@@ -11,24 +11,15 @@ class Agent:
 
     _agent_name = None
 
-    def __init__(self, agent_name=None, log_level="info"):
+    def __init__(self, log_level="info"):
         """This function Initializes the Agent, it loads the relevant data depending on it's name as well as setting
         up the storage and logger"""
+        self.agent_name = self.__class__.__name__
         self.data = None
         self.prompt = None
         self.result = None
         self.parsed_result = None
         self.output = None
-
-        # if agent_name is None:
-        #     self.agent_name = self.__class__.__name__
-        # else:
-        #     self.agent_name = agent_name
-
-        if agent_name:
-            self.agent_name = agent_name
-        else:
-            self.agent_name = self.__class__.__name__
 
         self.functions = Functions()
         self.agent_data = self.functions.load_agent_data(self.agent_name)
@@ -39,7 +30,7 @@ class Agent:
 
     def run(self, bot_id=None, **kwargs):
         """This function is the heart of all Agents, it defines how Agents receive and process data"""
-        cprint(f"\n{self.agent_name} - Running Agent...", 'red', attrs=['bold'])
+        self.status("Running ...")
 
         self.load_data(**kwargs)
         self.process_data()
@@ -48,8 +39,6 @@ class Agent:
         self.parse_result()
         self.save_result()
         self.build_output()
-
-        cprint(f"\n{self.agent_name} - Agent Done...\n", 'red', attrs=['bold'])
 
         return self.output
 
@@ -79,8 +68,6 @@ class Agent:
             self.functions.render_template(template, variables, data=self.data)
             for template, variables in templates
         ]
-
-        self.logger.log(f"Prompt:\n{self.prompt}", 'debug')
 
     def load_additional_data(self):
         """This function does nothing by default, it is meant to be overriden by SubAgents if needed"""
@@ -126,3 +113,6 @@ class Agent:
         """This function saves the LLM Result to memory"""
         params = {'data': [self.result], 'collection_name': 'Results'}
         self.storage.save_memory(params)
+
+    def status(self, msg):
+        self.functions.print_message(f"\n{self.agent_name} - {msg}")

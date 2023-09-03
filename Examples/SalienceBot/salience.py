@@ -62,9 +62,9 @@ class Salience:
         if self.frustration < self.max_frustration:
             self.frustration += self.frustration_step
             self.frustration = min(self.frustration, self.max_frustration)
-            print(f"\nIncreased Frustration Level: {self.frustration}\n")
+            print(f"\nIncreased Frustration Level: {self.frustration}")
         else:
-            print(f"\nMax Frustration Level Reached: {self.frustration}\n")
+            print(f"\nMax Frustration Level Reached: {self.frustration}")
 
     def load_data_from_storage(self):
         # Load Results
@@ -116,7 +116,7 @@ class Salience:
             data['reason'] = status_results['reason']
 
             result = f"Status: {data['status']}\n\nReason: {data['reason']}"
-            self.functions.print_result(result, 'Status Agent')
+            self.functions.print_result(result, 'Status Result')
 
             if data['status'] != 'completed':
                 self.frustrate()

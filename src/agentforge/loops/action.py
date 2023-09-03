@@ -12,10 +12,9 @@ init(autoreset=True)
 def dyna_tool(tool, payload):
     command = payload['command']['name']  # Hard code the command
     args = payload['command']['args']
+    tool = f"agentforge.tools.{tool}"
 
-    msg = f"agentforge.tools.{tool}"
-
-    module = importlib.import_module(msg)
+    module = importlib.import_module(tool)
     command_func = getattr(module, command)
 
     result = command_func(**args)
@@ -31,7 +30,8 @@ def extract_metadata(data):
 
 
 def parse_tools_data(tool_info):
-    tool = '\n'.join([f'{key}: {value}' for key, value in tool_info.items()])
+    tool_name = tool_info.pop('Name').replace('_', ' ')
+    tool = f"Tool: {tool_name}\n" + '\n'.join([f'{key}: {value}' for key, value in tool_info.items()])
     return tool
 
 
@@ -52,28 +52,27 @@ class Action:
         if 'documents' in action_results:
             action = extract_metadata(action_results)
             selection = action['Description']
-            self.functions.print_result(selection, 'Action Selection Agent')
+            self.functions.print_result(selection, 'Action Selected')
 
             tool_data = action['Tools'].split(', ')
             tools = {tool: self.load_tool(tool) for tool in tool_data}
 
-            payloads = {}
             tool_result = None
-            for tool_name, tool_info in tools.items():
+            for tool_call, tool_info in tools.items():
+                tool_name = tool_call.replace('_', ' ')
                 tool = parse_tools_data(tool_info)
+
                 payload = self.priming_agent.run(tool=tool, results=tool_result)
+                self.functions.print_primed_tool(tool_name, payload)
 
-                self.functions.print_result(payload, 'Action Agent - PAYLOAD')
+                self.functions.print_message(f"\nRunning {tool_name} ...")
 
-                tool_result = dyna_tool(tool_name.lower(), payload)
-
-                self.functions.print_result(tool_result, 'Action Agent - TOOLS')
-
-                # do something with payload here if needed
-                payloads[tool_name] = payload
+                tool_result = dyna_tool(tool_call.lower(), payload)
+                self.functions.print_tool_results(tool_name, tool_result)
 
         else:
-            self.functions.print_result(f'No Relevant Action Found with Frustration Level: {frustration}', 'Action Selection Agent')
+            self.functions.print_result(f'No Relevant Action Found with Frustration: {frustration}',
+                                        'Action Selection Agent')
 
     def load_tool(self, tool):
         params = {
