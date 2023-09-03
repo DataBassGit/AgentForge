@@ -2,137 +2,123 @@ import importlib
 import json
 import os
 import pathlib
-from typing import Dict
-
-_config: Dict | None = None
-_persona: Dict | None = None
-_actions: Dict | None = None
-_tools: Dict | None = None
 
 
-def _load():
-    # global _parser
-    global _config
-    global _persona
-    global _actions
-    global _tools
+class Config:
+    _instance = None
 
-    _path = pathlib.Path(
-        os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
-    )
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
+            cls._instance.__init__()
+        return cls._instance
 
-    _config_path = _path / "config.json"  # Add the path to the Config JSON file
+    def __init__(self, config_path=None):
+        self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
+        self.config = {}
+        self.persona = {}
+        self.actions = {}
+        self.agents = {}
+        self.tools = {}
+        self.load()
 
-    with open(_config_path, 'r') as json_file:  # Open the Config JSON file
-        _config = json.load(json_file)  # Load the data from the Config JSON file
+    def chromadb(self):
+        db_path = self.get('ChromaDB', 'persist_directory', default=None)
+        db_embed = self.get('ChromaDB', 'embedding', default=None)
+        return db_path, db_embed
 
-    persona_name = _config['Persona']['default']
-    persona_path = _path / f"{persona_name}.json"  # Add the path to the Persona JSON file
+    def get(self, section, key, default=None):
+        if self.config is None:
+            self.load()
 
-    with open(persona_path, 'r') as json_file:  # Open the Persona JSON file
-        _persona = json.load(json_file)  # Load the data from the Persona JSON file
+        return self.config.get(section, {}).get(key, default)
 
-    actions_path = _path / "actions.json"  # Add the path to the Actions JSON file
+    def get_config_element(self, case):
+        switch = {
+            "Persona": self.persona,
+            "Tools": self.tools,
+            "Actions": self.actions
+        }
+        return switch.get(case, "Invalid case")
 
-    with open(actions_path, 'r') as json_file:  # Open the Actions JSON file
-        _actions = json.load(json_file)  # Load the data from the Actions JSON file
+    def get_file_path(self, file_name):
+        return pathlib.Path(self.config_path) / file_name
 
-    tools_path = _path / "tools.json"  # Add the path to the Tools JSON file
+    def get_llm(self, api, agent_name):
+        model_name = self.agents[agent_name].get('Model', self.persona['Defaults']['Model'])
+        model_name = self.config['ModelLibrary'].get(model_name)
 
-    with open(tools_path, 'r') as json_file:  # Open the Tools JSON file
-        _tools = json.load(json_file)  # Load the data from the Tools JSON file
+        models = {
+            "claude_api": {
+                "module": "anthropic",
+                "class": "Claude",
+                "args": [model_name],
+            },
+            "oobabooga_api": {
+                "module": "oobabooga",
+                "class": "Oobabooga",
+            },
+            "oobabooga_v2_api": {
+                "module": "oobabooga",
+                "class": "OobaboogaV2",
+            },
+            "openai_api": {
+                "module": "openai",
+                "class": "GPT",
+                "args": [model_name],
+            },
+        }
 
+        model = models.get(api)
+        if not model:
+            raise ValueError(f"Unsupported Language Model API library: {api}")
 
-def get_llm(api, agent_name):
+        module_name = model["module"]
+        module = importlib.import_module(f".llm.{module_name}", package=__package__)
+        class_name = model["class"]
+        model_class = getattr(module, class_name)
+        args = model.get("args", [])
+        return model_class(*args)
 
-    model_name = _persona[agent_name].get('Model', _persona['Defaults']['Model'])
-    model_name = _config['ModelLibrary'].get(model_name)
+    def get_json_data(self, file_name):
+        file_path = self.get_file_path(file_name)
+        try:
+            with open(file_path, 'r') as json_file:
+                return json.load(json_file)
+        except FileNotFoundError:
+            print(f"File {file_path} not found.")
+            return {}
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from {file_path}")
+            return {}
 
-    models = {
-        "claude_api": {
-            "module": "anthropic",
-            "class": "Claude",
-            "args": [model_name],
-        },
-        "oobabooga_api": {
-            "module": "oobabooga",
-            "class": "Oobabooga",
-        },
-        "oobabooga_v2_api": {
-            "module": "oobabooga",
-            "class": "OobaboogaV2",
-        },
-        "openai_api": {
-            "module": "openai",
-            "class": "GPT",
-            "args": [model_name],
-        },
-    }
+    def load(self):
+        self.load_config()
+        self.load_persona()
+        self.load_agents()
+        self.load_actions()
+        self.load_tools()
 
-    model = models.get(api)
-    if not model:
-        raise ValueError(f"Unsupported Language Model API library: {api}")
+    def load_actions(self):
+        self.actions = self.get_json_data("actions.json")
 
-    module_name = model["module"]
-    module = importlib.import_module(f".llm.{module_name}", package=__package__)
-    class_name = model["class"]
-    model_class = getattr(module, class_name)
-    args = model.get("args", [])
-    return model_class(*args)
+    def load_agents(self):
+        self.agents = self.get_json_data("agents.json")
 
+    def load_config(self):
+        self.config = self.get_json_data("config.json")
 
-def get(section, key, default=None):
-    if _config is None:
-        _load()
+    def load_persona(self):
+        persona_name = self.config.get('Persona', {}).get('selected', "")
+        self.persona = self.get_json_data(f"personas/{persona_name}.json")
 
-    return _config.get(section, {}).get(key, default)
+    def load_tools(self):
+        self.tools = self.get_json_data("tools.json")
 
+    def reload(self):
+        objective = self.persona['Objective']
+        self.load()
+        self.persona['Objective'] = objective
 
-def storage_api():
-    return get('StorageAPI', 'selected')
-
-
-def chromadb():
-    db_path = get('ChromaDB', 'persist_directory', default=None)
-    db_embed = get('ChromaDB', 'embedding', default=None)
-    return db_path, db_embed
-
-
-def persona():
-    if not _persona:
-        _load()
-
-    return _persona
-
-
-def tasks():
-    if not _persona:
-        _load()
-
-    return _persona['Tasks']
-
-
-def tools():
-    if not _tools:
-        _load()
-
-    return _tools
-
-
-def actions():
-    if not _actions:
-        _load()
-
-    return _actions
-
-
-switch = {
-    "Persona": persona,
-    "Tasks": tasks,
-    "Tools": tools,
-    "Actions": actions
-}
-
-
-def data(case):
-    return switch.get(case, lambda: "Invalid case")
+    def storage_api(self):
+        return self.get('StorageAPI', 'selected')

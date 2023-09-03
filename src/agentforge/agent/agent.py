@@ -11,115 +11,108 @@ class Agent:
 
     _agent_name = None
 
-    def __init__(self, agent_name=None, log_level="info"):
+    def __init__(self, log_level="info"):
         """This function Initializes the Agent, it loads the relevant data depending on it's name as well as setting
         up the storage and logger"""
-        if agent_name is None:
-            self._agent_name = self.__class__.__name__
+        self.agent_name = self.__class__.__name__
+        self.data = None
+        self.prompt = None
+        self.result = None
+        self.parsed_result = None
+        self.output = None
 
         self.functions = Functions()
-        self.agent_data = self.functions.load_agent_data(self._agent_name)
+        self.agent_data = self.functions.load_agent_data(self.agent_name)
         self.storage = self.agent_data['storage']
 
-        self.logger = Logger(name=self._agent_name)
+        self.logger = Logger(name=self.agent_name)
         self.logger.set_level(log_level)
 
     def run(self, bot_id=None, **kwargs):
         """This function is the heart of all Agents, it defines how Agents receive and process data"""
-        agent_name = self.__class__.__name__
+        self.status("Running ...")
 
-        cprint(f"\n{agent_name} - Running Agent...", 'red', attrs=['bold'])
+        self.load_data(**kwargs)
+        self.process_data()
+        self.generate_prompt()
+        self.run_llm()
+        self.parse_result()
+        self.save_result()
+        self.build_output()
 
-        data = self.load_data(**kwargs)
-        self.process_data(data)
-        prompt = self.generate_prompt(**data)
-        result = self.run_llm(prompt)
-        parsed_result = self.parse_result(result=result, data=data)
-        self.save_parsed_result(parsed_result)
-        output = self.build_output(parsed_result)
+        return self.output
 
-        cprint(f"\n{agent_name} - Agent Done...\n", 'red', attrs=['bold'])
-
-        return output
-
-    def build_output(self, parsed_result):
-        """This function returns the parsed_result by default, it is meant to be overriden by SubAgents if needed"""
-        return parsed_result
+    def build_output(self):
+        """This function set the output as the result by default"""
+        self.output = self.result
 
     def generate_prompt(self, **kwargs):
-        """This function takes the data previously loaded and process it to render the prompt"""
-        # Load Prompts from Persona Data
-        prompts = kwargs['prompts']
+        """This function takes the data previously loaded and processes it to render the prompt"""
+        # Prompt Template for Rendering
         templates = []
 
         # Handle system prompt
-        system_prompt = prompts['System']
+        system_prompt = self.data['prompts']['System']
         templates.append((system_prompt["template"], system_prompt["vars"]))
 
-        # Remove prompts if there's no corresponding data in kwargs
-        self.functions.remove_prompt_if_none(prompts, kwargs)
+        # Remove prompts if there's no corresponding data
+        self.functions.remove_prompt_if_none(self.data['prompts'], self.data)
 
         # Handle other types of prompts
-        other_prompt_types = [prompt_type for prompt_type in prompts.keys() if prompt_type != 'System']
+        other_prompt_types = [prompt_type for prompt_type in self.data['prompts'].keys() if prompt_type != 'System']
         for prompt_type in other_prompt_types:
-            templates.extend(self.functions.handle_prompt_type(prompts, prompt_type))
+            templates.extend(self.functions.handle_prompt_type(self.data['prompts'], prompt_type))
 
         # Render Prompts
-        prompts = [
-            self.functions.render_template(template, variables, data=kwargs)
+        self.prompt = [
+            self.functions.render_template(template, variables, data=self.data)
             for template, variables in templates
         ]
 
-        self.logger.log(f"Prompt:\n{prompts}", 'debug')
-
-        return prompts
-
-    def load_additional_data(self, data):
+    def load_additional_data(self):
         """This function does nothing by default, it is meant to be overriden by SubAgents if needed"""
         pass
 
     def load_agent_data(self, **kwargs):
         """This function loads the Agent data and any additional data given to it"""
-        self.agent_data = self.functions.load_agent_data(self._agent_name)  # Is this needed if it's called in INIT?
+        self.agent_data = self.functions.load_agent_data(self.agent_name)
 
         # The data dict will contain all the data that the agent requires
-        data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
+        self.data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
 
         # Add any other data needed by the agent from kwargs
         for key in kwargs:
-            data[key] = kwargs[key]
-
-        return data
+            self.data[key] = kwargs[key]
 
     def load_data(self, **kwargs):
         """This function is in charge of calling all the relevant load data methods"""
-        data = self.load_agent_data(**kwargs)
-        self.load_main_data(data)
-        self.load_additional_data(data)
+        self.load_agent_data(**kwargs)
+        self.load_main_data()
+        self.load_additional_data()
 
-        return data
-
-    def load_main_data(self, data):
+    def load_main_data(self):
         """This function loads the main data for the Agent, by default it's the Objective and Current Task"""
-        data['objective'] = self.agent_data.get('objective')
-        data['task'] = self.functions.get_current_task()['document']
+        self.data['objective'] = self.agent_data.get('objective')
+        self.data['task'] = self.functions.get_current_task()['document']
 
-    def parse_result(self, result, **kwargs):
+    def parse_result(self):
         """This function simply returns the result by default, it is meant to be overriden by SubAgents if needed"""
-        return result
+        pass
 
-    def process_data(self, data):
-        """This function is for processing the data before rendering the prompt"""
-        self.functions.set_task_order(data)
-        self.functions.show_task(data)
+    def process_data(self):
+        """This function does nothing by default, it is meant to be overriden by SubAgents if needed"""
+        pass
 
-    def run_llm(self, prompt):
+    def run_llm(self):
         """This function sends the rendered prompt to the LLM and returns the model response"""
         model: LLM = self.agent_data['llm']
         params = self.agent_data.get("params", {})
-        return model.generate_text(prompt, **params,).strip()
+        self.result = model.generate_text(self.prompt, **params,).strip()
 
-    def save_parsed_result(self, parsed_result):
+    def save_result(self):
         """This function saves the LLM Result to memory"""
-        params = {'data': [parsed_result], 'collection_name': 'Results'}
+        params = {'data': [self.result], 'collection_name': 'Results'}
         self.storage.save_memory(params)
+
+    def status(self, msg):
+        self.functions.print_message(f"\n{self.agent_name} - {msg}")

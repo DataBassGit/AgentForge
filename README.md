@@ -123,7 +123,7 @@ git clone https://github.com/DataBassGit/AgentForge.git
 
 Install the required dependencies:
 
-```shell
+```shell+
 pip install -e .
 ```
 
@@ -138,7 +138,7 @@ Each bot or architecture you create should contain an `.agentforge` folder that 
 
 ### For Custom Agents
 
-To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find a several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
+To get started with custom agents, navigate to `Examples/CustomAgents/.agentforge/`. Inside, you'll find several configuration files, including the `default.json` file where which currently represents the persona configuration. To know more about how to use and create your own agents, check out the [Agents Page](/docs/Agents/AgentSuperClass.md).
 
 ### For SalienceBot Example
 
@@ -153,6 +153,8 @@ python salience.py
 This will execute a simple bot script that uses our default SubAgents to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
 
 For a more detailed break-down of our `Salience` example please refer to the [Salience Page]()
+
+**Important** : Whenever a bot or architecture runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to turn the first time. Any subsequent runs will not have this issue as long as chroma has previously downloaded the models.
 
 **Note**: We're planning to expand how personas work to offer more flexibility in future releases.
 

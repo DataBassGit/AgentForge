@@ -15,7 +15,7 @@ select_agent = ActionSelectionAgent()
 prime = ActionPrimingAgent()
 status = StatusAgent()
 summ = SummarizationAgent()
-execu = ExecutionAgent()
+exec = ExecutionAgent()
 task = TaskCreationAgent()
 reflex = ReflexionAgent()
 
@@ -51,7 +51,7 @@ def summarize():
 def execute():
     data = request.get_json()
     context = data.get('context')
-    result = execu_agent.execute(context)  # Replace with appropriate method call
+    result = exec_agent.execute(context)  # Replace with appropriate method call
     return jsonify(result=result)
 
 @app.route('/task', methods=['POST'])

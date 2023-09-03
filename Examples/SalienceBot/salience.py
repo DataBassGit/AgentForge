@@ -28,6 +28,8 @@ class Salience:
         self.frustration_step = 0.1
         self.max_frustration = 0.5
 
+        self.set_objective()
+
     def run(self, context=None, feedback=None):
 
         self.logger.log(f"Running Agent...", 'info')
@@ -60,9 +62,9 @@ class Salience:
         if self.frustration < self.max_frustration:
             self.frustration += self.frustration_step
             self.frustration = min(self.frustration, self.max_frustration)
-            print(f"\nIncreased Frustration Level: {self.frustration}\n")
+            print(f"\nIncreased Frustration Level: {self.frustration}")
         else:
-            print(f"\nMax Frustration Level Reached: {self.frustration}\n")
+            print(f"\nMax Frustration Level Reached: {self.frustration}")
 
     def load_data_from_storage(self):
         # Load Results
@@ -96,12 +98,6 @@ class Salience:
         return ordered_results
 
     def loop(self):
-        # Add a variable to set the mode
-
-        goal = self.functions.prepare_objective()
-        if goal is not None:
-            self.task_creation_agent.run(goal=goal)
-
         status_results = None
 
         while True:
@@ -120,13 +116,18 @@ class Salience:
             data['reason'] = status_results['reason']
 
             result = f"Status: {data['status']}\n\nReason: {data['reason']}"
-            self.functions.print_result(result, 'Status Agent')
+            self.functions.print_result(result, 'Status Result')
 
             if data['status'] != 'completed':
                 self.frustrate()
                 self.action.run(data['reason'], frustration=self.frustration)
             else:
                 self.frustration = 0
+
+    def set_objective(self):
+        objective = self.functions.prepare_objective()
+        if objective is not None:
+            self.task_creation_agent.run()
 
 
 if __name__ == '__main__':

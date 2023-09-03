@@ -1,13 +1,12 @@
 import os
-from datetime import datetime
-from pynput import keyboard
-from typing import Dict, Any
 
 from .storage_interface import StorageInterface
 from ..logs.logger_config import Logger
+from ..config import Config
 
-from .. import config
-
+from datetime import datetime
+from pynput import keyboard
+from typing import Dict, Any
 from termcolor import colored, cprint
 from colorama import init
 
@@ -22,21 +21,23 @@ class Functions:
 
     def __init__(self):
         self.mode = 'manual'
+        self.config = Config()
         self.storage = StorageInterface()
+
         # Start the listener for 'Esc' key press
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
 
     def check_auto_mode(self, feedback_from_status=None):
         context = None
+        msg = "\nPress Enter to Continue | Type 'auto' for Auto Mode | Type 'exit' to Exit | Or Provide Feedback: "
 
         # Check if the mode is manual
         if self.mode == 'manual':
-            user_input = input("\nAllow AI to continue? (y/n/auto) or provide feedback: ")
-            if user_input.lower() == 'y':
+            user_input = input(msg)
+            if user_input.lower() == '':
                 context = feedback_from_status
-                pass
-            elif user_input.lower() == 'n':
+            elif user_input.lower() == 'exit':
                 quit()
             elif user_input.lower() == 'auto':
                 self.mode = 'auto'
@@ -103,6 +104,28 @@ class Functions:
         return self.storage.storage_utils.load_collection({'collection_name': "Tasks",
                                                            'include': ["documents", "metadatas"]})
 
+    def load_agent_data(self, agent_name):
+        self.config.reload()
+
+        persona_data = self.config.persona
+        defaults = persona_data['Defaults']
+
+        agent = self.config.agents[agent_name]
+        api = agent.get('API', defaults['API'])
+        params = agent.get('Params', defaults['Params'])
+
+        # Initialize agent data
+        agent_data: Dict[str, Any] = dict(
+            name=agent_name,
+            llm=self.config.get_llm(api, agent_name),
+            objective=persona_data['Objective'],
+            prompts=agent['Prompts'],
+            params=params,
+            storage=StorageInterface().storage_utils,
+        )
+
+        return agent_data
+
     def on_press(self, key):
         try:
             # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
@@ -110,10 +133,45 @@ class Functions:
                 cprint("\nSwitching to Manual Mode...", 'green', attrs=['bold'])
                 self.mode = 'manual'
         except AttributeError:
-            pass  # Handle a special key that we don't care about
+            pass
+
+    def prepare_objective(self):
+        while True:
+            user_input = input("\nDefine Objective (leave empty to use defaults):")
+            if user_input.lower() == '':
+                return None
+            else:
+                self.config.persona['Objective'] = user_input
+                return user_input
+
+    def print_primed_tool(self, tool_name, payload):
+        tool_name = tool_name.replace('_', ' ')
+        speak = payload['thoughts']['speak']
+        reasoning = payload['thoughts']['reasoning']
+
+        # Format command arguments
+        command_args = ", ".join(
+            [f"{k}='{v}'" if isinstance(v, str) else f"{k}={v}" for k, v in payload['command']['args'].items()]
+        )
+
+        command = f"{payload['command']['name']}({command_args})"
+
+        # Create the final output string
+        formatted_string = f"{speak}\n\n" \
+                           f"Tool: {tool_name}\n" \
+                           f"Command: {command}\n" \
+                           f"Reasoning: {reasoning}"
+
+        self.print_result(formatted_string, 'Primed Tool')
+
+    def print_tool_results(self, tool_name, tool_result):
+        # Parse tool result into a single string
+        final_output = self.parse_tool_results(tool_result)
+
+        self.print_result(final_output, f"{tool_name} Result")
 
     def show_task_list(self, desc):
-        objective = config.persona()['Objective']
+        objective = self.config.persona['Objective']
         self.storage.storage_utils.select_collection("Tasks")
 
         task_collection = self.storage.storage_utils.collection.get()
@@ -157,49 +215,33 @@ class Functions:
         return []
 
     @staticmethod
-    def load_agent_data(agent_name):
-        persona_data = config.persona()  # Load persona data
-
-        agent = persona_data[agent_name]
-        defaults = persona_data['Defaults']
-
-        api = agent.get('API', defaults['API'])
-        params = agent.get('Params', defaults['Params'])
-
-        # Initialize agent data
-        agent_data: Dict[str, Any] = dict(
-            name=agent_name,
-            llm=config.get_llm(api, agent_name),
-            objective=persona_data['Objective'],
-            prompts=agent['Prompts'],
-            params=params,
-            storage=StorageInterface().storage_utils,
-        )
-
-        return agent_data
-
-    @staticmethod
     def log_tasks(tasks):
         filename = "./Logs/results.txt"
         with open(filename, "a") as file:
             file.write(tasks)
 
     @staticmethod
-    def prepare_objective():
-        while True:
-            user_input = input("\nDefine Objective (leave empty to use defaults):")
-            if user_input.lower() == '':
-                return None
-            else:
-                config.persona()['Objective'] = user_input
-                return user_input
+    def parse_tool_results(tool_result):
+        if isinstance(tool_result, list):
+            # Format each search result
+            formatted_results = [f"URL: {url}\nDescription: {desc}\n---" for url, desc in tool_result]
+            # Join all results into a single string
+            final_output = "\n".join(formatted_results)
+        else:
+            final_output = tool_result
+
+        return final_output
+
+    @staticmethod
+    def print_message(msg):
+        cprint(f"{msg}", 'red', attrs=['bold'])
 
     @staticmethod
     def print_result(result, desc):
         # Print the task result
-        cprint(f"***** {desc} - RESULT *****\n", 'green', attrs=['bold'])
+        cprint(f"***** {desc} *****", 'green', attrs=['bold'])
         print(result)
-        cprint(f"\n*****", 'green', attrs=['bold'])
+        cprint(f"*****", 'green', attrs=['bold'])
 
         # Save the result to a log.txt file in the /Logs/ folder
         log_folder = "Logs"
