@@ -24,7 +24,7 @@ def get_plain_text(url):
     chunk_text = intelligent_chunk(plain_text, chunk_size=1)
     chunk_save(chunk_text, url)
 
-    return "Webpage saved to memory."
+    return f"Webpage saved to memory!\nURL: {url}"
 
 
 def chunk_save(chunks, url):
@@ -35,4 +35,4 @@ def chunk_save(chunks, url):
             'collection_name': 'Results',
             'metadata': [{"source_url": url}]
         }
-        storage_instance.save_memory(params)  # Call save_memory on the instance
+        storage_instance.save_memory(params)

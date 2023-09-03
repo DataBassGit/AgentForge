@@ -1,4 +1,4 @@
-from agentforge.agent.taskcreation import TaskCreationAgent
+from agentforge.agent.TaskCreationAgent import TaskCreationAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 

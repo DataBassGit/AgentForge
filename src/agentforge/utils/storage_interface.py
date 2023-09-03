@@ -63,7 +63,7 @@ class StorageInterface:
 
         if self.config.get('ChromaDB', 'DBFreshStart') == 'True':
             self.storage_utils.reset_memory()
-            storage = self.config.persona['Storage']
+            storage = self.config.data['Storage']
 
             [self.prefill_storage(key, value) for key, value in storage.items()]
 
@@ -76,9 +76,7 @@ class StorageInterface:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
     def prefill_storage(self, storage, data):
-        """
-        Initializes a collection with provided data source and metadata builder.
-        """
+        """Initializes a collection with provided data source and metadata builder."""
 
         if not data:
             data = self.config.get_config_element(storage)

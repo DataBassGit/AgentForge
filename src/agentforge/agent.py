@@ -1,6 +1,6 @@
-from ..llm import LLM
-from ..logs.logger_config import Logger
-from ..utils.function_utils import Functions
+from agentforge.llm import LLM
+from agentforge.logs.logger_config import Logger
+from agentforge.utils.function_utils import Functions
 
 
 class Agent:
@@ -67,8 +67,6 @@ class Agent:
     def load_agent_data(self, **kwargs):
         """Loads the Agent data and any additional data given to it"""
         self.agent_data = self.functions.load_agent_data(self.agent_name)
-
-        # The data dict will contain all the data that the agent requires
         self.data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
 
         # Add any other data needed by the agent from kwargs
@@ -84,7 +82,7 @@ class Agent:
     def load_main_data(self):
         """Loads the main data for the Agent, by default it's the Objective and Current Task"""
         self.data['objective'] = self.agent_data.get('objective')
-        self.data['task'] = self.functions.get_current_task()['document']
+        # self.data['task'] = self.functions.get_current_task()['document']
 
     def parse_result(self):
         """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""

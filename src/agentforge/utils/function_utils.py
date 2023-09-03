@@ -105,10 +105,10 @@ class Functions:
                                                            'include': ["documents", "metadatas"]})
 
     def load_agent_data(self, agent_name):
-        self.config.load_agent(agent_name)
+        self.config.reload(agent_name)
 
-        persona_data = self.config.persona
-        defaults = persona_data['Defaults']
+        defaults = self.config.data['Defaults']
+        objective = self.config.data['Objective']
 
         agent = self.config.agent
         api = agent.get('API', defaults['API'])
@@ -118,7 +118,7 @@ class Functions:
         agent_data: Dict[str, Any] = dict(
             name=agent_name,
             llm=self.config.get_llm(api),
-            objective=persona_data['Objective'],
+            objective=objective,
             prompts=agent['Prompts'],
             params=params,
             storage=StorageInterface().storage_utils,
@@ -137,11 +137,11 @@ class Functions:
 
     def prepare_objective(self):
         while True:
-            user_input = input("\nDefine Objective (leave empty to use defaults):")
+            user_input = input("\nDefine Objective (leave empty to use defaults): ")
             if user_input.lower() == '':
                 return None
             else:
-                self.config.persona['Objective'] = user_input
+                self.config.data['Objective'] = user_input
                 return user_input
 
     def print_primed_tool(self, tool_name, payload):
@@ -164,14 +164,8 @@ class Functions:
 
         self.print_result(formatted_string, 'Primed Tool')
 
-    def print_tool_results(self, tool_name, tool_result):
-        # Parse tool result into a single string
-        final_output = self.parse_tool_results(tool_result)
-
-        self.print_result(final_output, f"{tool_name} Result")
-
     def show_task_list(self, desc):
-        objective = self.config.persona['Objective']
+        objective = self.config.data['Objective']
         self.storage.storage_utils.select_collection("Tasks")
 
         task_collection = self.storage.storage_utils.collection.get()
@@ -181,7 +175,7 @@ class Functions:
         task_list.sort(key=lambda x: x["Order"])
         result = f"Objective: {objective}\n\nTasks:\n"
 
-        cprint(f"\n***** {desc} - TASK LIST *****\n\nObjective: {objective}", 'blue', attrs=['bold'])
+        cprint(f"\n***** {desc} - TASK LIST *****\nObjective: {objective}", 'blue', attrs=['bold'])
 
         for task in task_list:
             task_order = task["Order"]
@@ -196,7 +190,7 @@ class Functions:
             print(f"{task_order}: {task_desc} - {status_text}")
             result = result + f"\n{task_order}: {task_desc}"
 
-        cprint(f"\n*****\n", 'blue', attrs=['bold'])
+        cprint(f"*****", 'blue', attrs=['bold'])
 
         self.log_tasks(result)
 

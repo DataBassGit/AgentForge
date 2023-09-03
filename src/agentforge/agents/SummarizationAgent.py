@@ -1,4 +1,4 @@
-from .agent import Agent
+from agentforge.agent import Agent
 
 
 class SummarizationAgent(Agent):

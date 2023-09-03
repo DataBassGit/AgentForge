@@ -1,7 +1,11 @@
-from .agent import Agent
+from agentforge.agent import Agent
 
 
 class StatusAgent(Agent):
+
+    def load_additional_data(self):
+        self.data['task'] = self.functions.get_current_task()['document']
+
     def parse_result(self, **kwargs):
         status = self.result.split("Status: ")[1].split("\n")[0].lower().strip()
         reason = self.result.split("Reason: ")[1].rstrip()

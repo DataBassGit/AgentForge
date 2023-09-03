@@ -1,4 +1,4 @@
-from agentforge.agent.agent import Agent
+from agentforge.agent import Agent
 
 
 class PrioritizationAgent(Agent):

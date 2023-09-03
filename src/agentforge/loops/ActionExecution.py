@@ -1,5 +1,5 @@
-from agentforge.agent.actionselection import ActionSelectionAgent
-from agentforge.agent.actionpriming import ActionPrimingAgent
+from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
+from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 
@@ -66,13 +66,11 @@ class Action:
                 self.functions.print_primed_tool(tool_name, payload)
 
                 self.functions.print_message(f"\nRunning {tool_name} ...")
-
                 tool_result = dyna_tool(tool_call.lower(), payload)
-                self.functions.print_tool_results(tool_name, tool_result)
+                self.functions.print_result(tool_result, f"{tool_name} Result")
 
         else:
-            self.functions.print_result(f'No Relevant Action Found with Frustration: {frustration}',
-                                        'Action Selection Agent')
+            self.functions.print_result(f'No Relevant Action Found! - Frustration: {frustration}', 'Selection Results')
 
     def load_tool(self, tool):
         params = {

@@ -1,4 +1,4 @@
-from .agent import Agent
+from agentforge.agent import Agent
 import uuid
 
 
@@ -19,7 +19,6 @@ class TaskCreationAgent(Agent):
             raise ValueError(f"\n\nError ordering tasks. Error: {e}")
 
         # return order_tasks
-
         self.result = ordered_tasks
 
     def save_result(self):

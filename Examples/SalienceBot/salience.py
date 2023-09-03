@@ -1,10 +1,8 @@
-from agentforge.loops.action import Action
-from agentforge.agent.execution import ExecutionAgent
-from agentforge.agent.taskcreation import TaskCreationAgent
-from agentforge.agent.status import StatusAgent
-from agentforge.agent.summarization import SummarizationAgent
-from agentforge.agent.actionselection import ActionSelectionAgent
-from agentforge.agent.actionpriming import ActionPrimingAgent
+from agentforge.loops.ActionExecution import Action
+from agentforge.agents.ExecutionAgent import ExecutionAgent
+from agentforge.agents.TaskCreationAgent import TaskCreationAgent
+from agentforge.agents.StatusAgent import StatusAgent
+from agentforge.agents.SummarizationAgent import SummarizationAgent
 from agentforge.logs.logger_config import Logger
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
@@ -19,8 +17,6 @@ class Salience:
         self.exec_agent = ExecutionAgent()
         self.task_creation_agent = TaskCreationAgent()
         self.status_agent = StatusAgent()
-        self.action_agent = ActionSelectionAgent()
-        self.priming_agent = ActionPrimingAgent()
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
         self.functions = Functions()
@@ -32,7 +28,7 @@ class Salience:
 
     def run(self, context=None, feedback=None):
 
-        self.logger.log(f"Running Agent...", 'info')
+        self.logger.log(f"Running Agent ...", 'info')
         # Load Last Results and Current Task as Data
         data = self.load_data_from_storage()
 
@@ -62,7 +58,7 @@ class Salience:
         if self.frustration < self.max_frustration:
             self.frustration += self.frustration_step
             self.frustration = min(self.frustration, self.max_frustration)
-            print(f"\nIncreased Frustration Level: {self.frustration}")
+            print("\nIncreased Frustration Level!")
         else:
             print(f"\nMax Frustration Level Reached: {self.frustration}")
 

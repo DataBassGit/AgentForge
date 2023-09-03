@@ -15,7 +15,7 @@ class Config:
 
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
-        self.config = {}
+        self.data = {}
         self.persona = {}
         self.actions = {}
         self.agent = {}
@@ -28,10 +28,10 @@ class Config:
         return db_path, db_embed
 
     def get(self, section, key, default=None):
-        if self.config is None:
+        if self.data is None:
             self.load()
 
-        return self.config.get(section, {}).get(key, default)
+        return self.data.get(section, {}).get(key, default)
 
     def get_config_element(self, case):
         switch = {
@@ -45,8 +45,8 @@ class Config:
         return pathlib.Path(self.config_path) / file_name
 
     def get_llm(self, api):
-        model_name = self.agent.get('Model', self.persona['Defaults']['Model'])
-        model_name = self.config['ModelLibrary'].get(model_name)
+        model_name = self.agent.get('Model', self.data['Defaults']['Model'])
+        model_name = self.data['ModelLibrary'].get(model_name)
 
         models = {
             "claude_api": {
@@ -94,9 +94,9 @@ class Config:
 
     def load(self):
         self.load_config()
-        self.load_persona()
         self.load_actions()
         self.load_tools()
+        self.load_persona()
 
     def load_actions(self):
         self.actions = self.get_json_data("actions.json")
@@ -105,17 +105,20 @@ class Config:
         self.agent = self.get_json_data(f"agents/{agent_name}.json")
 
     def load_config(self):
-        self.config = self.get_json_data("config.json")
+        self.data = self.get_json_data("config.json")
 
     def load_persona(self):
-        persona_name = self.config.get('Persona', {}).get('selected', "")
+        persona_name = self.data.get('Persona', {}).get('selected', "")
         self.persona = self.get_json_data(f"personas/{persona_name}.json")
 
     def load_tools(self):
         self.tools = self.get_json_data("tools.json")
 
-    # def reload(self):
-    #     self.load_agent()
+    def reload(self, agent_name):
+        self.load_agent(agent_name)
+        self.load_actions()
+        self.load_tools()
+        self.load_persona()
 
     def storage_api(self):
         return self.get('StorageAPI', 'selected')
