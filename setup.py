@@ -25,7 +25,7 @@ setup(
         "requests~=2.28.2",
         "spacy~=3.5.2",
         "termcolor~=2.3.0",
-        "openai~=0.27.4",
+        "openai~=0.28.0",
         "chromadb~=0.4.8",
         "sentence_transformers==2.2.2",
         "anthropic==0.3.11"

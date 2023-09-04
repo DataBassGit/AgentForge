@@ -1,3 +1,9 @@
+[![GitHub - License](https://img.shields.io/github/license/DataBassGit/AgentForge?logo=github&style=plastic&color=green)](https://github.com/DataBassGit/AgentForge/blob/dev/LICENSE)[![PyPI](https://img.shields.io/pypi/v/agentforge?logo=pypi&style=plastic&color=orange)](https://pypi.org/project/agentforge/)[![Documentation](https://img.shields.io/badge/Docs-GitHub-blue?logo=github&style=plastic&color=green)](https://github.com/DataBassGit/AgentForge/tree/dev/docs)
+
+[![Homepage](https://img.shields.io/badge/Homepage-agentforge.org-green?style=plastic&logo=google-chrome)](https://agentforge.org/)
+
+
+
 # AgentForge
 AgentForge is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents. Compatible with a range of LLM models — currently supporting OpenAI, Anthropic's Claude, and Oobabooga — it offers the flexibility to run different models for different agents based on your specific needs.
 
