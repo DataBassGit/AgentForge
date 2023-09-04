@@ -22,6 +22,22 @@ In this example, `NewAgent` will behave exactly like its `Agent` base class sinc
 
 ---
 
+## Examples of Custom Agents
+
+For a deeper understanding of how you can take advantage of method overriding to implement custom behaviors, we've provided some examples from our default custom agents. These examples showcase how a custom agent can override the default methods to perform specialized tasks.
+
+- [Action Priming Agent](CustomAgents/ActionPrimingAgent.md)
+- [Action Selection Agent](CustomAgents/ActionSelectionAgent.md)
+- [Execution Agent](CustomAgents/ExecutionAgent.md)
+- [Reflexion Agent](CustomAgents/ReflexionAgent.md)
+- [Status Agent](CustomAgents/StatusAgent.md)
+- [Summarization Agent](CustomAgents/SummarizationAgent.md)
+- [Task Creation Agent](CustomAgents/TaskCreationAgent.md)
+
+Feel free to explore these examples to get inspired and learn more about the flexibility and power of our agent framework.
+
+---
+
 ## Persona Files
 
 Each bot or architecture is associated with a persona, which is defined in a `Persona JSON file` located in the `./agentforge/personas` folder. The persona file contains all the data related to the persona of the Cognitive Architecture (bot). For more details on how to structure the `Persona JSON File`, check out the [Persona Documentation](../Personas/Personas.md).
@@ -59,16 +75,5 @@ class NewAgent(Agent):
 ```
 
 In this example, `NewAgent` overrides the `process_data` and `save_result` methods to implement custom behavior. When a method is overridden, the agent's `run` method will automatically call the new version instead of the default one. Want the best of both worlds? You can actually call the default method within your overridden version using the `super()` function. This way, you can extend the default behavior while adding your own special sauce.
-
----
-
-## Examples of Custom Agents
-
-For a deeper understanding of how you can take advantage of method overriding to implement custom behaviors, we've provided some examples from our default custom agents. These examples showcase how a custom agent can override the default methods to perform specialized tasks.
-
-- [Action Priming Agent](SubAgents/ActionPrimingAgent.md)
-- (NOTE TO DEVS: NEED TO DOCUMENT THE REST)
-
-Feel free to explore these examples to get inspired and learn more about the flexibility and power of our agent framework.
 
 ---
