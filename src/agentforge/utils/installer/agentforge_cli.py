@@ -53,12 +53,12 @@ def copy_salience():
 
 def main():
     parser = argparse.ArgumentParser(description="AgentForge CLI")
-    parser.add_argument("command", choices=["init"], help="The command to run")
+    parser.add_argument("command", choices=["init","salience"], help="The command to run")
     args = parser.parse_args()
 
     if args.command == "init":
         copy_files()
-    if args.command == "salience":
+    elif args.command == "salience":
         copy_salience()
 
 if __name__ == "__main__":
