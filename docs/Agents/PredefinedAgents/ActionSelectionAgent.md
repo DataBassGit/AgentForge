@@ -4,6 +4,8 @@
 
 The `ActionSelectionAgent` is another specialized agent that derives its capabilities from the foundational `Agent` class. This agent is primarily responsible for selecting actions based on the current task and other parameters. It also overrides some default methods to tailor its behavior to this specific purpose.
 
+Each agent, including the `ActionSelectionAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ActionSelectionAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/ActionSelectionAgent.json).
+
 ---
 
 ## Import Statements
@@ -106,6 +108,7 @@ def save_result(self):
 To use `ActionSelectionAgent`, you first need to initialize it:
 
 ```python
+from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 action_selection_agent = ActionSelectionAgent()
 ```
 
@@ -120,7 +123,5 @@ selected_action = action_selection_agent.run(task=current_task, frustration=curr
 Here, `current_task` and `current_frustration` are variables that contain the task to be performed and the current frustration level, respectively. The agent will return a selected action to accomplish the task.
 
 > **Note**: For a more detailed explanation of actions and how they play a role in this architecture, please refer to our [Actions Documentation](../../Tools&Actions/ToolsActions.md).
-
->For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ActionSelectionAgent.json)
 
 ---

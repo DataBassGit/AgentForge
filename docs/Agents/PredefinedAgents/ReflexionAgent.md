@@ -2,7 +2,9 @@
 
 ## Introduction
 
-The `ReflexionAgent` is a specialized agent designed to review responses for accuracy and safety relevant to a given objective. Despite its specialized role, it doesn't override any of the base `Agent` class methods, making it a straightforward extension of the general `Agent` class.
+The `ReflexionAgent` is a specialized agent designed to review responses for accuracy and safety relevant to a given objective. Despite its specialized role, it doesn't override any of the base `Agent` class methods, making it a straightforward extension of the base `Agent` class.
+
+Each agent, including the `ReflexionAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ReflexionAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/ReflexionAgent.json).
 
 ---
 
@@ -33,6 +35,7 @@ The `ReflexionAgent` class inherits from the `Agent` base class, utilizing all i
 To make use of the `ReflexionAgent`, it first needs to be initialized:
 
 ```python
+from agentforge.agents.ReflexionAgent import ReflexionAgent
 reflexion_agent = ReflexionAgent()
 ```
 
@@ -55,5 +58,3 @@ reflection_result = reflexion_agent.run()
 ```
 
 The `ReflexionAgent` is streamlined and flexible, capable of performing its review tasks with or without additional context.
-
-> **Note:** For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ReflexionAgent.json)
