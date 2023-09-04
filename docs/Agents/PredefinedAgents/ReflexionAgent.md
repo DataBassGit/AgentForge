@@ -55,3 +55,5 @@ reflection_result = reflexion_agent.run()
 ```
 
 The `ReflexionAgent` is streamlined and flexible, capable of performing its review tasks with or without additional context.
+
+> **Note:** For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ReflexionAgent.json)

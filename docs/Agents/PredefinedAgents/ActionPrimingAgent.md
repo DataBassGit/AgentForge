@@ -9,7 +9,7 @@
 ## Import Statements
 ```python
 from agentforge.agent import Agent
-import ast
+from ast import literal_eval as eval
 ```
 
 In this section, the necessary libraries and modules are imported for the functionality of the `ActionPrimingAgent`. The `Agent` class is imported from the `.agentforge/` directory, serving as the base class from which `ActionPrimingAgent` will inherit its core features. Additionally, the Python standard library `ast` (Abstract Syntax Trees) is imported to assist in specific parsing operations.
@@ -72,7 +72,7 @@ def load_additional_data(self):
 def build_output(self):
     try:
         formatted_result = self.result.replace('\n', '').replace('\t', '')
-        self.output = ast.literal_eval(formatted_result)
+        self.output = eval(formatted_result)
     except Exception as e:
         self.logger.log(self.result, 'error')
         raise ValueError(f"\n\nError while building output for agent: {e}")
@@ -121,6 +121,6 @@ payload = action_priming_agent.run(tool=tool, results=tool_result)
 
 In this example, the `ActionPrimingAgent` receives a tool and the previous tool results, it will then return a `payload` which contains the tool in it's primed state ready to be executed.
 
-> **Note**: For a more detailed explanation on how we use actions to string tools together in a sequence, please refer to our [Actions Documentation](../../Tools&Actions/ToolsActions.md).
+> **Note**: For a more detailed explanation on how we use actions to string tools together in a sequence, please refer to our [Actions Documentation](../../Tools&Actions/ToolsActions.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ActionPrimingAgent.json)
 
 ---

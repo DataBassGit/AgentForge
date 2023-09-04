@@ -121,4 +121,6 @@ Here, `current_task` and `current_frustration` are variables that contain the ta
 
 > **Note**: For a more detailed explanation of actions and how they play a role in this architecture, please refer to our [Actions Documentation](../../Tools&Actions/ToolsActions.md).
 
+>For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ActionSelectionAgent.json)
+
 ---

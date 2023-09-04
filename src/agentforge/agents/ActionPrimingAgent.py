@@ -1,5 +1,5 @@
 from agentforge.agent import Agent
-import ast
+from ast import literal_eval as eval
 
 
 class ActionPrimingAgent(Agent):
@@ -7,7 +7,7 @@ class ActionPrimingAgent(Agent):
     def build_output(self):
         try:
             formatted_result = self.result.replace('\n', '').replace('\t', '')
-            self.output = ast.literal_eval(formatted_result)
+            self.output = eval(formatted_result)
         except Exception as e:
             self.logger.log(self.result, 'error')
             raise ValueError(f"\n\nError while building output for agent: {e}")

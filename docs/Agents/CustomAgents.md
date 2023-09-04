@@ -26,13 +26,13 @@ In this example, `NewAgent` will behave exactly like its `Agent` base class sinc
 
 For a deeper understanding of how you can take advantage of method overriding to implement custom behaviors, we've provided some examples from our default custom agents. These examples showcase how a custom agent can override the default methods to perform specialized tasks.
 
-- [Action Priming Agent](CustomAgents/ActionPrimingAgent.md)
-- [Action Selection Agent](CustomAgents/ActionSelectionAgent.md)
-- [Execution Agent](CustomAgents/ExecutionAgent.md)
-- [Reflexion Agent](CustomAgents/ReflexionAgent.md)
-- [Status Agent](CustomAgents/StatusAgent.md)
-- [Summarization Agent](CustomAgents/SummarizationAgent.md)
-- [Task Creation Agent](CustomAgents/TaskCreationAgent.md)
+- [Action Priming Agent](PredefinedAgents/ActionPrimingAgent.md)
+- [Action Selection Agent](PredefinedAgents/ActionSelectionAgent.md)
+- [Execution Agent](PredefinedAgents/ExecutionAgent.md)
+- [Reflexion Agent](PredefinedAgents/ReflexionAgent.md)
+- [Status Agent](PredefinedAgents/StatusAgent.md)
+- [Summarization Agent](PredefinedAgents/SummarizationAgent.md)
+- [Task Creation Agent](PredefinedAgents/TaskCreationAgent.md)
 
 Feel free to explore these examples to get inspired and learn more about the flexibility and power of our agent framework.
 

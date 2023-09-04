@@ -68,7 +68,7 @@ The `ExecutionAgent` can be run with varying levels of contextual information. Y
 task_result = execution_agent.run(summary=summary, context=context, feedback=feedback)
 ```
 
-These additional parameters match the variables used in the prompt templates. For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md).
+These additional parameters match the variables used in the prompt templates. For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ExecutionAgent.json)
 
 Even without these additional parameters, the agent can still attempt to execute the current task:
 

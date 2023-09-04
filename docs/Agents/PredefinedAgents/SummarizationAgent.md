@@ -66,3 +66,5 @@ To utilize the `SummarizationAgent`, do this:
 ```python
 summarization_agent = SummarizationAgent()
 ```
+> **Note:** For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/SummarizationAgent.json)
+> >This documentation is incomplete

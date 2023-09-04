@@ -119,3 +119,7 @@ To make use of `StatusAgent`, simply instantiate it:
 ```python
 status_agent = StatusAgent()
 ```
+
+> **Note:** This documentation is incomplete.
+
+> **Note:** For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/StatusAgent.json)
