@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.3",
+    version="0.1.5",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -25,8 +25,10 @@ setup(
         "requests~=2.28.2",
         "spacy~=3.5.2",
         "termcolor~=2.3.0",
-        "openai~=0.27.4",
-        "chromadb~=0.3.25",
+        "openai~=0.28.0",
+        "chromadb~=0.4.8",
+        "sentence_transformers==2.2.2",
+        "anthropic==0.3.11"
     ],
     extras_require={
         "pinecone": [
@@ -41,7 +43,6 @@ setup(
             "Flask~=2.3.1",
             "matplotlib~=3.7.1",
             "numpy~=1.24.3",
-            "sentence_transformers==2.2.2",
             "torch==2.0.0",
             "termcolor~=2.3.0",
             "umap~=0.1.1",

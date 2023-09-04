@@ -4,7 +4,8 @@
   },
   "LanguageModelAPI" : {
     "library" : "openai_api",
-    "oobabooga" : "oobabooga_api"
+    "oobabooga" : "oobabooga_api",
+    "oobaboogaV2" : "oobabooga_v2_api"
   },
   "ModelLibrary" : {
     "claude" : "claude-1",
@@ -12,7 +13,7 @@
     "smart_model" : "gpt-4"
   },
   "Persona" : {
-    "default" : "default"
+    "selected" : "persona"
   },
   "StorageAPI" : {
     "selected" : "chroma"
@@ -24,7 +25,7 @@
   },
   "ChromaDB" : {
     "chroma_db_impl" : "duckdb+parquet",
-    "persist_directory" : "../DB/ChromaDB",
+    "persist_directory" : "./DB/ChromaDB",
     "collection_name" : "collection-test",
     "DBFreshStart" : "True",
     "embedding" : "None"

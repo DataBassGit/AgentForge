@@ -1,4 +1,4 @@
-from agents.testagent import TestAgent
+from agents.TestAgent import TestAgent
 from agentforge.utils.function_utils import Functions
 
 var = TestAgent()

@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify
 
-from agentforge.agent.actionselection import ActionSelectionAgent
-from agentforge.agent.actionpriming import ActionPrimingAgent
-from agentforge.agent.status import StatusAgent
-from agentforge.agent.summarization import SummarizationAgent
-from agentforge.agent.execution import ExecutionAgent
-from agentforge.agent.taskcreation import TaskCreationAgent
-from agentforge.agent.reflexion import ReflexionAgent
+from agentforge.agent.ActionSelectionAgent import ActionSelectionAgent
+from agentforge.agent.ActionPrimingAgent import ActionPrimingAgent
+from agentforge.agent.StatusAgent import StatusAgent
+from agentforge.agent.SummarizationAgent import SummarizationAgent
+from agentforge.agent.ExecutionAgent import ExecutionAgent
+from agentforge.agent.TaskCreationAgent import TaskCreationAgent
+from agentforge.agent.ReflexionAgent import ReflexionAgent
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ select_agent = ActionSelectionAgent()
 prime = ActionPrimingAgent()
 status = StatusAgent()
 summ = SummarizationAgent()
-execu = ExecutionAgent()
+exec = ExecutionAgent()
 task = TaskCreationAgent()
 reflex = ReflexionAgent()
 
@@ -51,7 +51,7 @@ def summarize():
 def execute():
     data = request.get_json()
     context = data.get('context')
-    result = execu_agent.execute(context)  # Replace with appropriate method call
+    result = exec_agent.execute(context)  # Replace with appropriate method call
     return jsonify(result=result)
 
 @app.route('/task', methods=['POST'])

@@ -7,10 +7,9 @@ from termcolor import cprint
 from colorama import init
 init(autoreset=True)
 
-# API_KEY = os.environ.get('ANTHROPIC_API_KEY')
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
-client = anthropic.Client(API_KEY)
-_level = 'debug'
+client = anthropic.Anthropic(api_key=API_KEY)
+_level = 'info'
 
 
 def parse_prompts(prompts):
@@ -36,9 +35,9 @@ class Claude:
         for attempt in range(self.num_retries):
             backoff = 2 ** (attempt + 2)
             try:
-                response = client.completion(
+                response = client.completions.create(
                     prompt=prompt,
-                    stop_sequences=[anthropic.HUMAN_PROMPT],
+                    # stop_sequences=[anthropic.HUMAN_PROMPT],
                     model=self._model,
                     max_tokens_to_sample=params["max_new_tokens"],
                     temperature=params["temperature"],
@@ -54,4 +53,4 @@ class Claude:
         if reply is None:
             raise RuntimeError("\n\nError: Failed to get Anthropic Response")
 
-        return reply['completion']
+        return reply.completion
