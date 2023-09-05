@@ -2,7 +2,9 @@
 
 ## Introduction
 
-The `ExecutionAgent` is a specialized but straightforward agent that extends from the general `Agent` class. Its primary role is to take a task and attempt to execute it. This agent closely resembles the behavior of the base `Agent` class, with some specific overrides to suit its particular needs.
+The `ExecutionAgent` is a specialized but straightforward agent that extends from the base `Agent` class. Its primary role is to take a task and attempt to execute it. This agent closely resembles the behavior of the base `Agent` class, with some specific overrides to suit its particular needs.
+
+Each agent, including the `ExecutionAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ExecutionAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/ExecutionAgent.json).
 
 ---
 
@@ -25,6 +27,7 @@ class ExecutionAgent(Agent):
 ```
 
 The `ExecutionAgent` class inherits from the `Agent` base class. It makes use of the core features and methods of the `Agent` class, while overriding the `load_additional_data` method to include the current task in its data dictionary.
+
 
 ---
 
@@ -53,6 +56,7 @@ def load_additional_data(self):
 To use the `ExecutionAgent`, you first need to initialize it:
 
 ```python
+from agentforge.agents.ExecutionAgent import ExecutionAgent
 execution_agent = ExecutionAgent()
 ```
 
@@ -68,7 +72,7 @@ The `ExecutionAgent` can be run with varying levels of contextual information. Y
 task_result = execution_agent.run(summary=summary, context=context, feedback=feedback)
 ```
 
-These additional parameters match the variables used in the prompt templates. For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ExecutionAgent.json)
+These additional parameters match the variables used in the prompt templates. For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../Prompts/AgentPrompts.md)
 
 Even without these additional parameters, the agent can still attempt to execute the current task:
 

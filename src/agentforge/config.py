@@ -15,11 +15,15 @@ class Config:
 
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
-        self.data = {}
+        self.data = {}  # This is the attribute that will contain the configuration data in config.json file
+
+        # the following are placeholders for each of the respective json information the agent needs
         self.persona = {}
         self.actions = {}
         self.agent = {}
         self.tools = {}
+
+        # here is where we load the information from the JSON files to their corresponding arrtibutes
         self.load()
 
     def chromadb(self):

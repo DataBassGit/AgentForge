@@ -16,7 +16,7 @@ class SummarizationAgent(Agent):
         if search_results == 'No Results!':
             search_results = self.storage.peek(params['collection_name'])['documents']
 
-        text = None
+        # text = None
         if search_results != 'No Results!':
             text = "\n".join(search_results[0])
 

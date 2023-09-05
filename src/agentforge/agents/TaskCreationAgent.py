@@ -18,7 +18,6 @@ class TaskCreationAgent(Agent):
         except Exception as e:
             raise ValueError(f"\n\nError ordering tasks. Error: {e}")
 
-        # return order_tasks
         self.result = ordered_tasks
 
     def save_result(self):

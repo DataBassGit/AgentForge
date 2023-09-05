@@ -2,7 +2,9 @@
 
 ## Introduction
 
-`ActionPrimingAgent` is a specialized agent that extends the generic `Agent` class. This agent is specifically designed for priming tools based on defined actions, it also performs customized loading of additional data, output building, and skips the saving of results to memory.
+`ActionPrimingAgent` is a specialized agent that extends the base `Agent` class. This agent is specifically designed for priming tools based on defined actions, it also performs customized loading of additional data, output building, and skips the saving of results to memory.
+
+Each agent, including the `ActionPrimingAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ActionPrimingAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/ActionPrimingAgent.json).
 
 ---
 
@@ -101,6 +103,7 @@ def save_result(self):
 To utilize the `ActionPrimingAgent`, you first need to initialize it. This is done using the following line of code:
 
 ```python
+from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
 action_priming_agent = ActionPrimingAgent()
 ```
 
@@ -121,6 +124,6 @@ payload = action_priming_agent.run(tool=tool, results=tool_result)
 
 In this example, the `ActionPrimingAgent` receives a tool and the previous tool results, it will then return a `payload` which contains the tool in it's primed state ready to be executed.
 
-> **Note**: For a more detailed explanation on how we use actions to string tools together in a sequence, please refer to our [Actions Documentation](../../Tools&Actions/ToolsActions.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/ActionPrimingAgent.json)
+> **Note**: For a more detailed explanation on how we use actions to string tools together in a sequence, please refer to our [Actions Documentation](../../Tools&Actions/ToolsActions.md)
 
 ---

@@ -4,7 +4,7 @@
 
 ## Creating Custom Agents
 
-Creating a Custom Agent is pretty straightforward. A  class only needs to inherit from the `Agent` superclass. By doing so, it gains access to all the default behaviors defined in the `Agent` class.
+Creating a Custom Agent is pretty straightforward. A  class only needs to inherit from the base `Agent` class. By doing so, it gains access to all the default behaviors defined in the `Agent` class.
 
 Creating a Custom Agent from the base class is pretty straightforward. All you need to do is create a new `Python` class that inherits from the base `Agent` class. 
 
