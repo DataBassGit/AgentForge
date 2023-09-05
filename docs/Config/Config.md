@@ -15,6 +15,8 @@ The `Config` class plays a pivotal role in the system, orchestrating the seamles
 - **data**: A dictionary that contains the configuration data loaded from the `config.json` file.
 - **persona, actions, agent, tools**: Attributes for specific configuration data subsets, populated from their respective `JSON` files.
 
+---
+
 ## Initialization:
 
 The `Config` class leverages the `__new__` method to implement the Singleton pattern. This ensures that only one instance of the `Config` class is created, even if multiple instantiation attempts are made.
@@ -47,10 +49,6 @@ class Config:
         self.tools = {}
         self.load()
 ```
-
----
-
-Certainly! Let's set it up following your format:
 
 ---
 
