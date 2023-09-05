@@ -1,88 +1,102 @@
 # Task Creation Agent
 
-## Overview
+## Introduction
 
-The `TaskCreationAgent` is your go-to subagent for task management. From creating to saving tasks, it's got you covered. This agent inherits from the [Agent](./Agent.md) superclass.
+The `TaskCreationAgent` is a specialized agent that extends from the base `Agent` class. It's designed with a primary role of creating and managing task lists based on given objectives. These tasks are then stored in memory, ready for other agents, forming part of the same cognitive architecture, to pick up and execute. The agent retrieves its objective from memory, ensuring a seamless integration with other parts of the system.
 
-Learn more about SubAgents [here](./SubAgents.md).
+Each agent, including the `TaskCreationAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompt templates that guide the agent's behavior during its execution. For a comprehensive understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `TaskCreationAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/TaskCreationAgent.json).
+
+---
+
+## Import Statements
+
+```python
+from agentforge.agent import Agent
+import uuid
+```
+
+For the `TaskCreationAgent` to function correctly, it imports the foundational `Agent` class from the `.agentforge/` directory. This gives it access to the core features and methods provided by the `Agent` class. Moreover, the `uuid` library is imported to generate unique identifiers for the created tasks.
 
 ---
 
 ## Class Definition
 
 ```python
-from .agent import Agent
-
 class TaskCreationAgent(Agent):
 
-    def load_additional_data(self, data):
+    def parse_result(self):
         # ...
         
-    def parse_result(self, result, **kwargs):
+    def save_result(self):
         # ...
-        
-    def save_parsed_data(self, parsed_data):
-        # ...
-        
+    
     def save_tasks(self, task_list):
         # ...
-        
-    def build_output(self, parsed_data):
-        pass
+    
+    def build_output(self):
+        # ...
 ```
 
-## Overridden Methods
-
-### `load_additional_data(self, data)`
-
-Sets the 'goal' in data if not already present.
-
-```python
-def load_additional_data(self, data):
-    if data['goal'] is None:
-        data['goal'] = self.agent_data.get('objective')
-```
+The `TaskCreationAgent` class is an extension of the `Agent` base class. While it capitalizes on the foundational features of the `Agent` class, it also introduces specific methods to handle task creation, parsing, storage, and output building. This makes it adept at crafting task lists and ensuring they're stored appropriately.
 
 ---
 
-### `parse_result(self, result, **kwargs)`
+## Agent Methods
 
-Parses the result to create a list of tasks.
+### Parse Result
+#### `parse_result()`
+
+**Purpose**: Parses the result to extract and format tasks.
+
+**Workflow**:
+1. Splits the result into individual tasks.
+2. Filters and orders tasks based on their description.
+3. Returns the ordered tasks.
 
 ```python
-def parse_result(self, result, **kwargs):
-    new_tasks = result.split("\n")
+def parse_result(self):
+    new_tasks = self.result.split("\n")
 
     result = [{"Description": task_desc} for task_desc in new_tasks]
     filtered_results = [task for task in result if task['Description'] and task['Description'][0].isdigit()]
 
     try:
-        order_tasks = [{
+        ordered_tasks = [{
             'Order': int(task['Description'].split('. ', 1)[0]),
             'Description': task['Description'].split('. ', 1)[1]
         } for task in filtered_results]
     except Exception as e:
         raise ValueError(f"\n\nError ordering tasks. Error: {e}")
 
-    return order_tasks
+    self.result = ordered_tasks
 ```
 
 ---
 
-### `save_parsed_data(self, parsed_data)`
+### Save Result
+#### `save_result()`
 
-Saves the parsed tasks.
+**Purpose**: Saves the parsed tasks to memory.
+
+**Workflow**:
+1. Calls the `save_tasks` method with the parsed task list.
 
 ```python
-def save_parsed_data(self, parsed_data):
-    self.save_tasks(parsed_data)
+def save_result(self):
+    self.save_tasks(self.result)
 ```
 
 ---
 
-### `save_tasks(self, task_list)`
+### Save Tasks
+#### `save_tasks(task_list)`
 
-Clears the existing tasks and saves the new ones.
+**Purpose**: Stores a list of tasks in memory with unique identifiers.
+
+**Workflow**:
+1. Deletes any existing tasks from memory.
+2. Generates metadata for each task.
+3. Constructs and saves each task to memory with its metadata.
 
 ```python
 def save_tasks(self, task_list):
@@ -111,24 +125,39 @@ def save_tasks(self, task_list):
 
 ---
 
-### `build_output(self, parsed_data)`
+### Build Output
+#### `build_output()`
 
-Doesn't do anything for this agent as the summarization is saved to memory.
+**Purpose**: Overrides the default behavior to prevent building an output since this agent's primary function is to save tasks to memory.
+
+**Workflow**: Does nothing.
 
 ```python
-    def build_output(self, parsed_data):
-        pass
+def build_output(self):
+    pass
 ```
 
 ---
 
 ## How to Use
 
-Create an instance like so:
+### Initialization
+
+To employ the `TaskCreationAgent`, start by initializing it:
 
 ```python
+from agentforge.agents.TaskCreationAgent import TaskCreationAgent
 task_creation_agent = TaskCreationAgent()
 ```
-> **Note:** For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../../Prompts/Prompts.md) and this specific [Agent's Prompt.](../../../src/agentforge/utils/installer/agents/TaskCreationAgent.json)
-> >This documentation is incomplete.
+
+### Running the Agent
+
+Invoke the `run` method of the `TaskCreationAgent` to allow it to craft and save tasks based on a given objective:
+
+```python
+task_creation_agent.run()
+```
+
+This invocation enables the agent to retrieve an objective from memory, craft a list of tasks, and save them. These stored tasks are then readily available for other agents within the same cognitive architecture to act upon.
+
 ---
