@@ -22,7 +22,7 @@ setup(
         "pynput~=1.7.6",
         "python-dotenv~=1.0.0",
         "PyYAML~=6.0",
-        "requests~=2.28.2",
+        "requests~=2.31.0",
         "spacy~=3.5.2",
         "termcolor~=2.3.0",
         "openai~=0.28.0",

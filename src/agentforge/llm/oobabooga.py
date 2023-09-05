@@ -47,7 +47,7 @@ class OobaboogaV2:
         print(f"prompt: {prompt}")
 
         request = {
-            'prompt': prompt,
+            'prompt': str(prompt),
             'max_new_tokens': params['max_new_tokens'],
             'do_sample': params['do_sample'],
             'temperature': params['temperature'],
@@ -68,11 +68,12 @@ class OobaboogaV2:
             'skip_special_tokens': True,
             'stopping_strings': []
         }
+        # with requests as session:
         with requests.Session() as session:
             response = session.post(self._uri, json=request)
 
             if response.status_code == 200:
-                reply = response.json()['Results'][0]['text']
-                print(prompt + reply)
+                reply = response.json()['results'][0]['text']
+                print(str(prompt) + reply)
 
         return reply
