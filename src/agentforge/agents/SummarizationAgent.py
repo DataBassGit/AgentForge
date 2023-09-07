@@ -18,7 +18,7 @@ class SummarizationAgent(Agent):
         params = {'collection_name': "Results", 'query': query}
         search_results = self.storage.query_memory(params, 5)['documents']
 
-        if search_results == 'No Results!':
+        if search_results == 'No Results!':  # Note, ChromaDB updated how their collections work breaking this code
             search_results = self.storage.peek(params['collection_name'])['documents']
 
         text = None

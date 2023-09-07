@@ -96,7 +96,7 @@ def get_search_results(self, query):
     params = {'collection_name': "Results", 'query': query}
     search_results = self.storage.query_memory(params, 5)['documents']
 
-    if search_results == 'No Results!':  # Note, ChromaDB updatded how their collections work breaking this code
+    if search_results == 'No Results!':  # Note, ChromaDB updated how their collections work breaking this code
         search_results = self.storage.peek(params['collection_name'])['documents']
 
     text = None
