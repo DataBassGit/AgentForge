@@ -18,8 +18,10 @@ class SummarizationAgent(Agent):
         params = {'collection_name': "Results", 'query': query}
         search_results = self.storage.query_memory(params, 5)['documents']
 
-        if search_results == 'No Results!':  # Note, ChromaDB updated how their collections work breaking this code
-            search_results = self.storage.peek(params['collection_name'])['documents']
+        # Rework Pending: ChromaDB updated how their collections work breaking this code,
+        # it used to look at most recent items now it always looks at the first 5
+        # if search_results == 'No Results!': search_results =
+        # self.storage.peek(params['collection_name'])['documents']
 
         text = None
         if search_results != 'No Results!':

@@ -88,7 +88,7 @@ def run_query(self, query):
 
 **Workflow**:
 1. Sets up the search parameters for the "Results" collection with the given text.
-2. If no results are found, retrieves the most recent entries from the memory.
+2. *If no results are found, retrieves the most recent entries from the memory.* (Not Implemented due to pending rework)
 3. Returns the retrieved text.
 
 ```python
@@ -96,8 +96,10 @@ def get_search_results(self, query):
     params = {'collection_name': "Results", 'query': query}
     search_results = self.storage.query_memory(params, 5)['documents']
 
-    if search_results == 'No Results!':  # Note, ChromaDB updated how their collections work breaking this code
-        search_results = self.storage.peek(params['collection_name'])['documents']
+    # Rework Pending: ChromaDB updated how their collections work breaking this code, 
+    # it used to look at most recent items now it always looks at the first 5
+    # if search_results == 'No Results!': search_results = 
+    # self.storage.peek(params['collection_name'])['documents']
 
     text = None
     if search_results != 'No Results!':
@@ -105,6 +107,8 @@ def get_search_results(self, query):
 
     return text
 ```
+
+ >**NOTE**: This method currently does not retrieve any memories if no results are found due to recent Chroma DB update, a rework is pending.
 
 ---
 
