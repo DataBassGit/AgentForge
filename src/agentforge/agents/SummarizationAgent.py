@@ -14,8 +14,8 @@ class SummarizationAgent(Agent):
         if text:
             return self.summarize(text)
 
-    def get_search_results(self, text):
-        params = {'collection_name': "Results", 'query': text}
+    def get_search_results(self, query):
+        params = {'collection_name': "Results", 'query': query}
         search_results = self.storage.query_memory(params, 5)['documents']
 
         if search_results == 'No Results!':
