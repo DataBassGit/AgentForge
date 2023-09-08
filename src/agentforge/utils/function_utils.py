@@ -248,12 +248,6 @@ class Functions:
         # Save the result to the log file
         # self.write_file(log_folder, log_file, result)
 
-    # @staticmethod
-    # def read_file(file_path):
-    #     with open(file_path, 'r') as file:
-    #         text = file.read()
-    #     return text
-
     @staticmethod
     def remove_prompt_if_none(prompts, kwargs):
         prompts_copy = prompts.copy()
