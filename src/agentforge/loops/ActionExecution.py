@@ -49,15 +49,15 @@ class Action:
 
         if 'documents' in action_results:
             action = extract_metadata(action_results)
-            selection = action['Description']
-            self.functions.print_result(selection, 'Action Selected')
+            self.functions.print_result(action['Description'], 'Action Selected')
 
             tool_data = action['Tools'].split(', ')
             tools = {tool: self.load_tool(tool) for tool in tool_data}
 
             tool_result = None
-            for tool_call, tool_info in tools.items():
-                tool_name = tool_call.replace('_', ' ')
+            for tool_name, tool_info in tools.items():
+                tool_info['Name'] = tool_name.replace('_', ' ')
+                tool_call = tool_info.pop('Script')
                 tool = parse_tools_data(tool_info)
 
                 payload = self.priming_agent.run(tool=tool, results=tool_result)
@@ -66,6 +66,18 @@ class Action:
                 self.functions.print_message(f"\nRunning {tool_name} ...")
                 tool_result = dyna_tool(tool_call.lower(), payload)
                 self.functions.print_result(tool_result, f"{tool_name} Result")
+
+
+            # for tool_call, tool_info in tools.items():
+            #     tool_name = tool_call.replace('_', ' ')
+            #     tool = parse_tools_data(tool_info)
+            #
+            #     payload = self.priming_agent.run(tool=tool, results=tool_result)
+            #     self.functions.print_primed_tool(tool_name, payload)
+            #
+            #     self.functions.print_message(f"\nRunning {tool_name} ...")
+            #     tool_result = dyna_tool(tool_call.lower(), payload)
+            #     self.functions.print_result(tool_result, f"{tool_name} Result")
 
         else:
             self.functions.print_result(f'No Relevant Action Found! - Frustration: {frustration}', 'Selection Results')

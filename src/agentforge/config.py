@@ -23,7 +23,7 @@ class Config:
         self.agent = {}
         self.tools = {}
 
-        # here is where we load the information from the JSON files to their corresponding arrtibutes
+        # here is where we load the information from the JSON files to their corresponding attributes
         self.load()
 
     def chromadb(self):

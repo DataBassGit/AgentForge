@@ -248,11 +248,11 @@ class Functions:
         # Save the result to the log file
         # self.write_file(log_folder, log_file, result)
 
-    @staticmethod
-    def read_file(file_path):
-        with open(file_path, 'r') as file:
-            text = file.read()
-        return text
+    # @staticmethod
+    # def read_file(file_path):
+    #     with open(file_path, 'r') as file:
+    #         text = file.read()
+    #     return text
 
     @staticmethod
     def remove_prompt_if_none(prompts, kwargs):
@@ -286,8 +286,8 @@ class Functions:
         if 'task' in data:
             cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
 
-    @staticmethod
-    def write_file(folder, file, result):
-        with open(os.path.join(folder, file), "a", encoding="utf-8") as f:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
+    # @staticmethod
+    # def write_result(folder, file, result):
+    #     with open(os.path.join(folder, file), "a", encoding="utf-8") as f:
+    #         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #         f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
