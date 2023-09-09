@@ -2,25 +2,6 @@ from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
-import importlib
-
-
-def dyna_tool(tool, payload):
-    command = payload['command']['name']  # Hard code the command
-    args = payload['command']['args']
-    tool = f"agentforge.tools.{tool}"
-
-    module = importlib.import_module(tool)
-    command_func = getattr(module, command)
-
-    result = command_func(**args)
-
-    return result
-
-
-def extract_metadata(data):
-    # extract the 'metadatas' key from results
-    return data['metadatas'][0][0]
 
 
 def parse_tools_data(tool_name, tool_info):
@@ -37,31 +18,37 @@ class Action:
         self.functions = Functions()
 
     def run(self, context, **kwargs):
-
         frustration = kwargs.get('frustration', 0)
-
         action_results = self.action_agent.run(context=context, frustration=frustration)
 
         if 'documents' in action_results:
-            action = extract_metadata(action_results)
-            self.functions.print_result(action['Description'], 'Action Selected')
-
-            tool_data = action['Tools'].split(', ')
-            tools = {tool: self.load_tool(tool) for tool in tool_data}
-
-            tool_result = None
-            for tool_name, tool_info in tools.items():
-                tool_call = tool_info.pop('Script')
-
-                tool = parse_tools_data(tool_name, tool_info)
-                payload = self.priming_agent.run(tool=tool, results=tool_result)
-                self.functions.print_primed_tool(tool_name, payload)
-
-                self.functions.print_message(f"\nRunning {tool_name} ...")
-                tool_result = dyna_tool(tool_call.lower(), payload)
-                self.functions.print_result(tool_result, f"{tool_name} Result")
+            self.handle_action_selected(action_results)
         else:
-            self.functions.print_result(f'No Relevant Action Found! - Frustration: {frustration}', 'Selection Results')
+            self.handle_no_relevant_action(frustration)
+
+    def handle_action_selected(self, action_results):
+        action = self.functions.extract_metadata(action_results)
+        self.functions.print_result(action['Description'], 'Action Selected')
+
+        tool_data = action['Tools'].split(', ')
+        tools = {tool: self.load_tool(tool) for tool in tool_data}
+
+        self.run_tools_in_sequence(tools)
+
+    def run_tools_in_sequence(self, tools):
+        tool_result = None
+        for tool_name, tool_info in tools.items():
+            tool_call = tool_info.pop('Script')
+            tool = parse_tools_data(tool_name, tool_info)
+            payload = self.priming_agent.run(tool=tool, results=tool_result)
+            self.functions.print_primed_tool(tool_name, payload)
+
+            self.functions.print_message(f"\nRunning {tool_name} ...")
+            tool_result = self.functions.dyna_tool(tool_call.lower(), payload)
+            self.functions.print_result(tool_result, f"{tool_name} Result")
+
+    def handle_no_relevant_action(self, frustration):
+        self.functions.print_result(f'No Relevant Action Found! - Frustration: {frustration}', 'Selection Results')
 
     def load_tool(self, tool):
         params = {
@@ -71,7 +58,7 @@ class Action:
         }
 
         results = self.storage.query_memory(params)
-        filtered = extract_metadata(results)
+        filtered = self.functions.extract_metadata(results)
         filtered.pop('timestamp', None)
 
         return filtered

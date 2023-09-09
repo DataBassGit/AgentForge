@@ -280,6 +280,25 @@ class Functions:
         if 'task' in data:
             cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
 
+    @staticmethod
+    def dyna_tool(tool, payload):
+        import importlib
+        command = payload['command']['name']  # Hard code the command
+        args = payload['command']['args']
+        tool = f"agentforge.tools.{tool}"
+
+        module = importlib.import_module(tool)
+        command_func = getattr(module, command)
+
+        result = command_func(**args)
+
+        return result
+
+    @staticmethod
+    def extract_metadata(data):
+        # extract the 'metadatas' key from results
+        return data['metadatas'][0][0]
+
     # @staticmethod
     # def write_result(folder, file, result):
     #     with open(os.path.join(folder, file), "a", encoding="utf-8") as f:
