@@ -102,21 +102,42 @@ class Config:
         self.load_tools()
         self.load_persona()
 
-    def load_actions(self):
-        self.actions = self.get_json_data("actions.json")
-
     def load_agent(self, agent_name):
         self.agent = self.get_json_data(f"agents/{agent_name}.json")
 
     def load_config(self):
         self.data = self.get_json_data("config.json")
 
+    def load_from_folder(self, folder_and_attr_name):
+        # Get the path for the provided folder name
+        folder_path = self.get_file_path(folder_and_attr_name)
+
+        # Initialize the attribute as an empty dictionary
+        setattr(self, folder_and_attr_name, {})
+
+        # Iterate over each file in the specified folder
+        for file in os.listdir(folder_path):
+            # Only process files with a .json extension
+            if file.endswith(".json"):
+                # Load the JSON data from the current file
+                data = self.get_json_data(os.path.join(folder_and_attr_name, file))
+
+                # Extract the name and remove it from the data
+                item_name = data.pop('Name', None)
+
+                # If the name exists, store the data under that name in the specified attribute
+                if item_name:
+                    getattr(self, folder_and_attr_name)[item_name] = data
+
+    def load_actions(self):
+        self.load_from_folder("actions")
+
+    def load_tools(self):
+        self.load_from_folder("tools")
+
     def load_persona(self):
         persona_name = self.data.get('Persona', {}).get('selected', "")
         self.persona = self.get_json_data(f"personas/{persona_name}.json")
-
-    def load_tools(self):
-        self.tools = self.get_json_data("tools.json")
 
     def reload(self, agent_name):
         self.load_agent(agent_name)

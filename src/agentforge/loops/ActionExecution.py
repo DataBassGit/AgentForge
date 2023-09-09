@@ -28,7 +28,6 @@ def extract_metadata(data):
 
 
 def parse_tools_data(tool_name, tool_info):
-    # tool_name = tool_info.pop('Name')
     tool = f"Tool: {tool_name}\n" + '\n'.join([f'{key}: {value}' for key, value in tool_info.items()])
     return tool
 
