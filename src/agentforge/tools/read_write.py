@@ -7,6 +7,11 @@ def read_file(file_path):
     return text
 
 
-def write_file(folder, file, text):
-    with open(os.path.join(folder, file), "a", encoding="utf-8") as f:
+def write_file(folder, file, text, mode='a'):
+    # Check if the folder exists. If not, create it.
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    with open(os.path.join(folder, file), mode, encoding="utf-8") as f:
         f.write(text)
+

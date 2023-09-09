@@ -2,11 +2,7 @@ from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
-
 import importlib
-from termcolor import cprint
-from colorama import init
-init(autoreset=True)
 
 
 def dyna_tool(tool, payload):
