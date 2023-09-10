@@ -100,8 +100,8 @@ class Salience:
             self.functions.show_task_list('Salience')
 
             # Allow for feedback if auto mode is disabled
-            status_result = self.functions.check_status(status_results)
-            feedback = self.functions.check_auto_mode()
+            status_result = self.functions.get_feedback_from_status_results(status_results)
+            feedback = self.functions.get_user_input()
             data = self.run(context=status_result, feedback=feedback)
 
             self.logger.log(f"Data: {data}", 'debug')

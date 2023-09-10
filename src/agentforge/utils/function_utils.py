@@ -28,36 +28,36 @@ class Functions:
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
 
-    def check_auto_mode(self, feedback_from_status=None):
-        context = None
+    def get_user_input(self):
+        feedback = None
         msg = "\nPress Enter to Continue | Type 'auto' for Auto Mode | Type 'exit' to Exit | Or Provide Feedback: "
 
         # Check if the mode is manual
         if self.mode == 'manual':
             user_input = input(msg)
             if user_input.lower() == '':
-                context = feedback_from_status
+                pass
             elif user_input.lower() == 'exit':
                 quit()
             elif user_input.lower() == 'auto':
                 self.mode = 'auto'
                 cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
             else:
-                context = user_input
+                feedback = user_input
 
-        return context
+        return feedback
 
-    def check_status(self, status):
+    @staticmethod
+    def get_feedback_from_status_results(status):
         if status is not None:
-            if self.mode != 'auto':
-                completed = status['status']
+            completed = status['status']
 
-                if 'not completed' in completed:
-                    result = status['reason']
-                else:
-                    result = None
+            if 'not completed' in completed:
+                result = status['reason']
+            else:
+                result = None
 
-                return result
+            return result
 
     def get_auto_mode(self):
         return self.mode

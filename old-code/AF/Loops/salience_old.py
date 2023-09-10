@@ -134,11 +134,11 @@ class Salience:
             self.logger.log(f"Collection List: {collection_list}", 'debug')
 
             # Allow for feedback if auto mode is disabled
-            status_result = self.functions.check_status(status)
+            status_result = self.functions.get_feedback_from_status_results(status)
             if status_result is not None:
-                feedback = self.functions.check_auto_mode(status_result)
+                feedback = self.functions.get_user_input(status_result)
             else:
-                feedback = self.functions.check_auto_mode()
+                feedback = self.functions.get_user_input()
 
             data = self.run(feedback=feedback)
 

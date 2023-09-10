@@ -6,7 +6,7 @@ class StatusAgent(Agent):
     def load_additional_data(self):
         self.data['task'] = self.functions.get_current_task()['document']
 
-    def parse_result(self, **kwargs):
+    def parse_result(self):
         status = self.result.split("Status: ")[1].split("\n")[0].lower().strip()
         reason = self.result.split("Reason: ")[1].rstrip()
 

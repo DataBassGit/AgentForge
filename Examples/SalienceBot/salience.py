@@ -11,7 +11,15 @@ from agentforge.utils.storage_interface import StorageInterface
 class Salience:
 
     def __init__(self):
-        # Summarize the Search Results
+        self.data = {}
+        self.task = {}
+        self.context = {}
+        self.feedback = {}
+
+        self.frustration = 0
+        self.frustration_step = 0.1
+        self.max_frustration = 0.5
+
         self.summarization_agent = SummarizationAgent()
         self.action = Action()
         self.exec_agent = ExecutionAgent()
@@ -20,32 +28,25 @@ class Salience:
         self.storage = StorageInterface().storage_utils
         self.logger = Logger(name="Salience")
         self.functions = Functions()
-
-        self.data = {}
-
-        self.frustration = 0
-        self.frustration_step = 0.1
-        self.max_frustration = 0.5
-
         self.set_objective()
 
-    def run(self, context=None, feedback=None):
+    def run(self):
         self.log_start()
         self.load_data_from_storage()
-        summary = self.summarize_task(self.data['current_task']['document'])
-        execution_results = self.execute_task(summary, context, feedback, self.data)
-        self.log_results(execution_results)
-        return execution_results
+        self.summarize_task()
+        self.execute_task()
+        self.log_results()
 
     def loop(self):
-        status_results = None
         while True:
             self.display_task_list()
-            status_result, feedback = self.fetch_status_and_feedback(status_results)
-            data = self.run_agent(status_result, feedback)
-            self.display_execution_results(data['task_result'])
-            status_results = self.determine_status(data)
-            self.handle_frustration(data['status'], data['reason'])
+            self.fetch_context()
+            self.fetch_feedback()
+            self.run()
+            self.display_execution_results()
+            self.determine_status()
+            self.display_status_result()
+            self.handle_frustration()
 
     def determine_current_task(self):
         self.data['current_task'] = self.functions.get_current_task()
@@ -53,36 +54,42 @@ class Salience:
             self.logger.log("Task list has been completed!!!", 'info')
             quit()
 
-    def determine_status(self, data):
-        status_results = self.status_agent.run(**data)
-        data['status'] = status_results['status']
-        data['reason'] = status_results['reason']
-        result = f"Status: {data['status']}\n\nReason: {data['reason']}"
-        self.functions.print_result(result, 'Status Result')
-        return status_results
+    def determine_status(self):
+        self.task['status_result'] = self.status_agent.run(**self.task['execution_results'])
 
-    def display_execution_results(self, task_result):
+    def display_status_result(self):
+        status = self.task['status_result']['status']
+        reason = self.task['status_result']['reason']
+        result = f"Status: {status}\n\nReason: {reason}"
+        self.functions.print_result(result, 'Status Result')
+
+    def display_execution_results(self):
+        task_result = self.task['execution_results']['task_result']
         self.functions.print_result(task_result, "Execution Results")
 
     def display_task_list(self):
         self.functions.show_task_list('Salience')
 
-    def execute_task(self, summary, context, feedback, data):
-        task_result = self.exec_agent.run(summary=summary, context=context, feedback=feedback)
-        return {
+    def execute_task(self):
+        task_result = self.exec_agent.run(summary=self.data['summary'],
+                                          context=self.context,
+                                          feedback=self.feedback)
+
+        self.task['execution_results'] = {
             "task_result": task_result,
-            "current_task": data['current_task'],
-            "context": context,
-            "Order": data['Order']
+            "current_task": self.data['current_task'],
+            "context": self.context,
+            "Order": self.data['Order']
         }
 
     def fetch_ordered_task_list(self):
         self.data['ordered_list'] = self.functions.get_ordered_task_list()
 
-    def fetch_status_and_feedback(self, status_results):
-        status_result = self.functions.check_status(status_results)
-        feedback = self.functions.check_auto_mode()
-        return status_result, feedback
+    def fetch_context(self):
+        self.context = self.functions.get_feedback_from_status_results(self.task.get('status_result'))
+
+    def fetch_feedback(self):
+        self.feedback = self.functions.get_user_input()
 
     # noinspection PyTypeChecker
     def frustrate(self):
@@ -93,7 +100,9 @@ class Salience:
         else:
             print(f"\nMax Frustration Level Reached: {self.frustration}")
 
-    def handle_frustration(self, status, reason):
+    def handle_frustration(self):
+        status = self.task['status_result']['status']
+        reason = self.task['status_result']['reason']
         if status != 'completed':
             self.frustrate()
             self.action.run(reason, frustration=self.frustration)
@@ -110,8 +119,8 @@ class Salience:
         results = self.storage.load_collection({'collection_name': "Results", 'include': ["documents"]})
         self.data['result'] = results['documents'][0] if results['documents'] else "No results found"
 
-    def log_results(self, execution_results):
-        self.logger.log(f"Execution Results: {execution_results}", 'debug')
+    def log_results(self):
+        self.logger.log(f"Execution Results: {self.task['execution_results']}", 'debug')
         self.logger.log(f"Agent Done!", 'info')
 
     def log_start(self):
@@ -121,21 +130,17 @@ class Salience:
         self.data['task_ids'] = self.data['ordered_list']['ids']
         self.data['Order'] = self.data['current_task']["metadata"]["Order"]
 
-    def run_agent(self, status_result, feedback):
-        data = self.run(context=status_result, feedback=feedback)
-        self.logger.log(f"Data: {data}", 'debug')
-        return data
-
     def set_objective(self):
         objective = self.functions.prepare_objective()
         if objective is not None:
             self.task_creation_agent.run()
 
-    def summarize_task(self, task_document):
-        summary = self.summarization_agent.run(query=task_document)
-        if summary is not None:
-            self.functions.print_result(result=summary, desc="Summary Agent results")
-        return summary
+    def summarize_task(self):
+        task = self.data['current_task']['document']
+        self.data['summary'] = self.summarization_agent.run(query=task)
+        if self.data['summary'] is not None:
+            self.functions.print_result(result=self.data['summary'], desc="Summary Agent results")
+        return self.data['summary']
 
 
 if __name__ == '__main__':
