@@ -10,22 +10,17 @@ Logs/log.txt
 AgentForge.log
 
 src/agentforge.egg-info/
-
 src/agentforge/persona/chatbot.json
-
 src/agentforge/salience.py
 
-Examples/DB/
-
 build/
-
 dist/
 
 Examples/API/Logs/
-
 Examples/CustomAgents/Logs/
-
+Examples/DB/
 Examples/SalienceBot/Logs/
 Examples/SalienceBot/db_path/
 /Examples/SalienceBot/DB/
 /Examples/tests/
+
