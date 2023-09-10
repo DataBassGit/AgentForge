@@ -1,4 +1,5 @@
 from agentforge.loops.ActionExecution import Action
+from agentforge.agents.ActionAgent import ActionAgent
 from agentforge.agents.ExecutionAgent import ExecutionAgent
 from agentforge.agents.TaskCreationAgent import TaskCreationAgent
 from agentforge.agents.StatusAgent import StatusAgent
@@ -22,6 +23,7 @@ class Salience:
 
         self.summarization_agent = SummarizationAgent()
         self.action = Action()
+        self.action_agent = ActionAgent()
         self.exec_agent = ExecutionAgent()
         self.task_creation_agent = TaskCreationAgent()
         self.status_agent = StatusAgent()
@@ -34,6 +36,7 @@ class Salience:
         self.log_start()
         self.load_data_from_storage()
         self.summarize_task()
+        self.action_agent.run()
         self.execute_task()
         self.log_results()
 

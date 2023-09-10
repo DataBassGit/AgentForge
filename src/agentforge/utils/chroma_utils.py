@@ -175,10 +175,11 @@ class ChromaUtils:
     def reset_memory(self):
         self.client.reset()
 
-    def search_storage_by_threshold(self, parameters, num_results=1):
+    def search_storage_by_threshold(self, parameters):
         from scipy.spatial import distance
 
         collection_name = parameters.pop('collection_name', None)
+        num_results = parameters.pop('num_results', 1)
         threshold = parameters.pop('threshold', 0.7)
         query_text = parameters.pop('query', None)
 

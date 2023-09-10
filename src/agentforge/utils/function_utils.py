@@ -37,11 +37,10 @@ class Functions:
             user_input = input(msg)
             if user_input.lower() == '':
                 pass
+            elif user_input.lower() == 'auto':
+                self.set_auto_mode()
             elif user_input.lower() == 'exit':
                 quit()
-            elif user_input.lower() == 'auto':
-                self.mode = 'auto'
-                cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
             else:
                 feedback = user_input
 
@@ -163,6 +162,10 @@ class Functions:
                            f"Reasoning: {reasoning}"
 
         self.print_result(formatted_string, 'Primed Tool')
+
+    def set_auto_mode(self):
+        self.mode = 'auto'
+        cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
 
     def show_task_list(self, desc):
         objective = self.config.data['Objective']
@@ -299,8 +302,32 @@ class Functions:
         # extract the 'metadatas' key from results
         return data['metadatas'][0][0]
 
-    # @staticmethod
-    # def write_result(folder, file, result):
-    #     with open(os.path.join(folder, file), "a", encoding="utf-8") as f:
-    #         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    #         f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
+    @staticmethod
+    def extract_outermost_brackets(string):
+        count = 0
+        start_idx = None
+        end_idx = None
+
+        for idx, char in enumerate(string):
+            if char == '{':
+                count += 1
+                if count == 1:
+                    start_idx = idx
+            elif char == '}':
+                count -= 1
+                if count == 0 and start_idx is not None:
+                    end_idx = idx
+                    break
+
+        if start_idx is not None and end_idx is not None:
+            return string[start_idx:end_idx + 1]
+        else:
+            return None
+
+    @staticmethod
+    def string_to_dictionary(string):
+        from ast import literal_eval as leval
+        try:
+            return leval(string)
+        except Exception as e:
+            raise ValueError(f"\n\nError while building parsing string to dictionary: {e}")
