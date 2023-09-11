@@ -29,7 +29,8 @@ setup(
         "chromadb~=0.4.8",
         "sentence_transformers==2.2.2",
         "anthropic==0.3.11",
-        "google-api-python-client"
+        "google-api-python-client",
+        "beautifulsoup4~=4.12.2",
     ],
     extras_require={
         "pinecone": [
@@ -37,7 +38,6 @@ setup(
         ],
         "search": [
             "browse~=1.0.1",
-            "beautifulsoup4~=4.12.2",
         ],
         "other": [
             "Flask~=2.3.1",
