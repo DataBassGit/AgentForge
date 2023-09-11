@@ -159,7 +159,7 @@ Here's an example of how the `StatusAgent` is used to check and update tasks sta
 
 ```python
 # The StatusAgent is invoked with the task result obtained from a previous agent's execution
-status_results = self.status_agent.run(task_result)
+status_results = self.status_agent.run()
 task['status'] = status_results['status']
 task['reason'] = status_results['reason']
 ```

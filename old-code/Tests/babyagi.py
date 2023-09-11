@@ -14,9 +14,9 @@ task_creation_agent = TaskCreationAgent()
 
 while True:
     functions.show_task_list('Salience')
-    feedback = functions.check_auto_mode()
+    feedback = functions.get_user_input()
 
-    data = task_creation_agent.run(goal=result)
+    data = task_creation_agent.run()
     functions.print_result(data, "Task Creation Results")
 
 

@@ -5,33 +5,14 @@ from .chroma_utils import ChromaUtils
 
 def metadata_builder(collection_name, name, details):
     if collection_name == 'Tasks':
-        metadata = {
+        return {
             "Status": "not completed",
             "Description": details,
             "List_ID": str(uuid.uuid4()),
-            "Order": name + 1
+            "Order": name + 1  # assuming Name is passed in details for Tasks
         }
-
-    if collection_name == 'Tools':
-        metadata = {
-            'Name': name,
-            'Args': details['Args'],
-            'Command': details['Command'],
-            'Description': details['Description'],
-            'Example': details['Example'],
-            'Instruction': details['Instruction']
-        }
-
-    if collection_name == 'Actions':
-        metadata = {
-            'Name': name,
-            'Description': details['Description'],
-            'Example': details['Example'],
-            'Instruction': details['Instruction'],
-            'Tools': ', '.join(details['Tools'])
-        }
-
-    return metadata
+    else:
+        return details
 
 
 def description_extractor(metadata):

@@ -28,36 +28,35 @@ class Functions:
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
 
-    def check_auto_mode(self, feedback_from_status=None):
-        context = None
+    def get_user_input(self):
+        feedback = None
         msg = "\nPress Enter to Continue | Type 'auto' for Auto Mode | Type 'exit' to Exit | Or Provide Feedback: "
 
         # Check if the mode is manual
         if self.mode == 'manual':
             user_input = input(msg)
             if user_input.lower() == '':
-                context = feedback_from_status
+                pass
+            elif user_input.lower() == 'auto':
+                self.set_auto_mode()
             elif user_input.lower() == 'exit':
                 quit()
-            elif user_input.lower() == 'auto':
-                self.mode = 'auto'
-                cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
             else:
-                context = user_input
+                feedback = user_input
 
-        return context
+        return feedback
 
-    def check_status(self, status):
+    @staticmethod
+    def get_feedback_from_status_results(status):
         if status is not None:
-            if self.mode != 'auto':
-                completed = status['status']
+            completed = status['status']
 
-                if 'not completed' in completed:
-                    result = status['reason']
-                else:
-                    result = None
+            if 'not completed' in completed:
+                result = status['reason']
+            else:
+                result = None
 
-                return result
+            return result
 
     def get_auto_mode(self):
         return self.mode
@@ -164,6 +163,10 @@ class Functions:
 
         self.print_result(formatted_string, 'Primed Tool')
 
+    def set_auto_mode(self):
+        self.mode = 'auto'
+        cprint(f"\nAuto Mode Set - Press 'Esc' to return to Manual Mode!", 'yellow', attrs=['bold'])
+
     def show_task_list(self, desc):
         objective = self.config.data['Objective']
         self.storage.storage_utils.select_collection("Tasks")
@@ -249,12 +252,6 @@ class Functions:
         # self.write_file(log_folder, log_file, result)
 
     @staticmethod
-    def read_file(file_path):
-        with open(file_path, 'r') as file:
-            text = file.read()
-        return text
-
-    @staticmethod
     def remove_prompt_if_none(prompts, kwargs):
         prompts_copy = prompts.copy()
         for prompt_type, prompt_data in prompts_copy.items():
@@ -286,8 +283,65 @@ class Functions:
         if 'task' in data:
             cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
 
+    def dyna_tool(self, tool_class, payload):
+        import importlib
+        self.print_message(f"\nRunning {tool_class} ...")
+
+        command = payload['command']['name']
+        args = payload['command']['args']
+        tool_module = f"agentforge.tools.{tool_class}"
+
+        try:
+            tool = importlib.import_module(tool_module)
+        except ModuleNotFoundError:
+            raise ValueError(
+                f"No tool module named '{tool_class}' found. Ensure the module name matches the Script name exactly.")
+
+        # Check if the tool has a class named FileWriter (or any other tool name)
+        # If it does, instantiate it, and then use the command method
+        # Else, use the standalone function
+        if hasattr(tool, tool_class):
+            tool_instance = getattr(tool, tool_class)()
+            command_func = getattr(tool_instance, command)
+        else:
+            command_func = getattr(tool, command)
+
+        result = command_func(**args)
+
+        self.print_result(result, f"{tool_class} Result")
+        return result
+
     @staticmethod
-    def write_file(folder, file, result):
-        with open(os.path.join(folder, file), "a", encoding="utf-8") as f:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"{timestamp} - TASK RESULT:\n{result}\n\n")
+    def extract_metadata(data):
+        # extract the 'metadatas' key from results
+        return data['metadatas'][0][0]
+
+    @staticmethod
+    def extract_outermost_brackets(string):
+        count = 0
+        start_idx = None
+        end_idx = None
+
+        for idx, char in enumerate(string):
+            if char == '{':
+                count += 1
+                if count == 1:
+                    start_idx = idx
+            elif char == '}':
+                count -= 1
+                if count == 0 and start_idx is not None:
+                    end_idx = idx
+                    break
+
+        if start_idx is not None and end_idx is not None:
+            return string[start_idx:end_idx + 1]
+        else:
+            return None
+
+    @staticmethod
+    def string_to_dictionary(string):
+        from ast import literal_eval as leval
+        try:
+            return leval(string)
+        except Exception as e:
+            raise ValueError(f"\n\nError while building parsing string to dictionary: {e}")

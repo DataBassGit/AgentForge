@@ -117,7 +117,7 @@ action_selection_agent = ActionSelectionAgent()
 To invoke the agent's specific tasks, call its `run` method:
 
 ```python
-selected_action = action_selection_agent.run(task=current_task, frustration=current_frustration)
+selected_action = action_selection_agent.run()
 ```
 
 Here, `current_task` and `current_frustration` are variables that contain the task to be performed and the current frustration level, respectively. The agent will return a selected action to accomplish the task.
