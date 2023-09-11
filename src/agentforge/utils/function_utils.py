@@ -291,7 +291,11 @@ class Functions:
         args = payload['command']['args']
         tool_module = f"agentforge.tools.{tool_class}"
 
-        tool = importlib.import_module(tool_module)
+        try:
+            tool = importlib.import_module(tool_module)
+        except ModuleNotFoundError:
+            raise ValueError(
+                f"No tool module named '{tool_class}' found. Ensure the module name matches the Script name exactly.")
 
         # Check if the tool has a class named FileWriter (or any other tool name)
         # If it does, instantiate it, and then use the command method
@@ -306,19 +310,6 @@ class Functions:
 
         self.print_result(result, f"{tool_class} Result")
         return result
-
-    # def dyna_tool(tool, payload):
-    #     import importlib
-    #     command = payload['command']['name']  # Hard code the command
-    #     args = payload['command']['args']
-    #     tool = f"agentforge.tools.{tool}"
-    #
-    #     module = importlib.import_module(tool)
-    #     command_func = getattr(module, command)
-    #
-    #     result = command_func(**args)
-    #
-    #     return result
 
     @staticmethod
     def extract_metadata(data):

@@ -8,13 +8,14 @@ class StopExecution(Exception):
 class ActionSelectionAgent(Agent):
 
     actions = {}
-    threshold = 0.3
+    threshold = 0.6
     num_results = 10
 
     def run(self, **kwargs):
         try:
-            return super().run()
+            return super().run(**kwargs)
         except StopExecution:
+            self.functions.print_result('No Relevant Action Found', 'Selection Results')
             return None
 
     def set_threshold(self, new_threshold):
@@ -31,8 +32,8 @@ class ActionSelectionAgent(Agent):
         params = {
             "collection_name": 'Actions',
             "query": self.data['task'],
-            "threshold": 0.0,
-            "num_results": 10
+            "threshold": self.threshold,
+            "num_results": self.num_results
         }
 
         self.actions = self.storage.search_storage_by_threshold(params)

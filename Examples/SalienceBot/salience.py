@@ -18,10 +18,11 @@ class Salience:
         self.task = {}
         self.context = {}
         self.feedback = {}
+        self.reason = {}
         self.selected_action = {}
 
         self.frustration_step = 0.1
-        self.min_frustration = 0.5
+        self.min_frustration = 0.6
         self.max_frustration = 0.9
         self.frustration = self.min_frustration
 
@@ -35,9 +36,11 @@ class Salience:
         self.task_creation_agent = TaskCreationAgent()
         self.status_agent = StatusAgent()
 
-        # self.action_selection.set_threshold(self.frustration)
-        # self.action_selection.set_number_of_results(10)
+        self.init_settings_and_objectives()
 
+    def init_settings_and_objectives(self):
+        self.action_selection.set_threshold(self.frustration)
+        self.action_selection.set_number_of_results(10)
         self.set_objective()
 
     def run(self):
@@ -53,9 +56,7 @@ class Salience:
             self.fetch_context()
             self.fetch_feedback()
             self.run()
-            self.display_execution_results()
             self.determine_status()
-            self.display_status_result()
             self.handle_frustration()
 
     def check_for_actions(self):
@@ -67,7 +68,7 @@ class Salience:
             self.execute_task()
 
     def execute_action(self):
-        action_results = self.action_execution.run(action=self.selected_action)
+        action_results = self.action_execution.run(action=self.selected_action, context=self.reason)
         formatted_results = self.format_action_results(action_results)
 
         self.task['execution_results'] = {
@@ -102,6 +103,7 @@ class Salience:
 
     def determine_status(self):
         self.task['status_result'] = self.status_agent.run(**self.task['execution_results'])
+        self.display_status_result()
 
     def display_status_result(self):
         status = self.task['status_result']['status']
@@ -128,6 +130,8 @@ class Salience:
             "Order": self.data['Order']
         }
 
+        self.display_execution_results()
+
     def fetch_ordered_task_list(self):
         self.data['ordered_list'] = self.functions.get_ordered_task_list()
 
@@ -148,12 +152,11 @@ class Salience:
             print(f"\nMax Frustration Level Reached: {self.frustration}")
 
     def handle_frustration(self):
+        self.reason = None
         status = self.task['status_result']['status']
-        reason = self.task['status_result']['reason']
+        self.reason = self.task['status_result']['reason']
         if status != 'completed':
             self.frustrate()
-            self.select_action()
-            self.execute_action()
         else:
             self.frustration = self.min_frustration
             self.action_selection.set_threshold(self.frustration)

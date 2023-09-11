@@ -15,11 +15,14 @@ class Action:
         self.functions = Functions()
         self.priming_agent = ActionPrimingAgent()
         self.action = {}
+        self.tool = {}
         self.tools = {}
         self.results = {}
+        self.context = {}
 
-    def run(self, action):
+    def run(self, action, context=None):
         if action:
+            self.context = context
             self.action = action
             self.load_action_tools()
             self.run_tools_in_sequence()
@@ -33,13 +36,25 @@ class Action:
     def run_tools_in_sequence(self):
         tool_result = None
         for tool_name, tool_info in self.tools.items():
-            tool_script = tool_info.pop('Script')
-            tool = parse_tools_data(tool_info)
-            payload = self.priming_agent.run(tool=tool, results=tool_result)
-            self.functions.print_primed_tool(tool_name, payload)
-
-            tool_result = self.functions.dyna_tool(tool_script, payload)
+            tool_script = self.get_tool_script(tool_info)
+            tool = self.process_tool_data(tool_info)
+            payload = self.prime_tool(tool, tool_name, tool_result)
+            tool_result = self.execute_tool(tool_script, payload)
             self.results[tool_name] = tool_result
+
+    def get_tool_script(self, tool_info):
+        return tool_info.pop('Script')
+
+    def process_tool_data(self, tool_info):
+        return parse_tools_data(tool_info)
+
+    def prime_tool(self, tool, tool_name, tool_result):
+        payload = self.priming_agent.run(tool=tool, results=tool_result, context=self.context)
+        self.functions.print_primed_tool(tool_name, payload)
+        return payload
+
+    def execute_tool(self, tool_script, payload):
+        return self.functions.dyna_tool(tool_script, payload)
 
     def save_action_results(self):
         for key, result in self.results.items():
