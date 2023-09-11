@@ -37,12 +37,12 @@ class Salience:
         if search_results == 'No Results!':
             context = None
         else:
-            context = self.summarization_agent.run(text="\n".join(search_results[0]))
+            context = self.summarization_agent.run()
             self.functions.print_result(result=context['result'], desc="Summary Agent results")
 
         # self.logger.log(f"Summary of Results: {context}", 'info')
 
-        task_result = self.exec_agent.run(task=data['current_task']['document'], context=context, feedback=feedback)
+        task_result = self.exec_agent.run()
 
         # Return Execution Results to the Job Agent to determine Frustration
 
@@ -144,7 +144,7 @@ class Salience:
 
             self.logger.log(f"Data: {data}", 'debug')
             self.functions.print_result(data['task_result']['result'], "Execution Results")
-            status = self.status_agent.run(**data)
+            status = self.status_agent.run()
 
             result = f"Status: {status['status']}\n\nReason: {status['reason']}"
 

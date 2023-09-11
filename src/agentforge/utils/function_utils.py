@@ -283,19 +283,42 @@ class Functions:
         if 'task' in data:
             cprint(f'\nTask: {data["task"]}', 'green', attrs=['dark'])
 
-    @staticmethod
-    def dyna_tool(tool, payload):
+    def dyna_tool(self, tool_class, payload):
         import importlib
-        command = payload['command']['name']  # Hard code the command
-        args = payload['command']['args']
-        tool = f"agentforge.tools.{tool}"
+        self.print_message(f"\nRunning {tool_class} ...")
 
-        module = importlib.import_module(tool)
-        command_func = getattr(module, command)
+        command = payload['command']['name']
+        args = payload['command']['args']
+        tool_module = f"agentforge.tools.{tool_class}"
+
+        tool = importlib.import_module(tool_module)
+
+        # Check if the tool has a class named FileWriter (or any other tool name)
+        # If it does, instantiate it, and then use the command method
+        # Else, use the standalone function
+        if hasattr(tool, tool_class):
+            tool_instance = getattr(tool, tool_class)()
+            command_func = getattr(tool_instance, command)
+        else:
+            command_func = getattr(tool, command)
 
         result = command_func(**args)
 
+        self.print_result(result, f"{tool_class} Result")
         return result
+
+    # def dyna_tool(tool, payload):
+    #     import importlib
+    #     command = payload['command']['name']  # Hard code the command
+    #     args = payload['command']['args']
+    #     tool = f"agentforge.tools.{tool}"
+    #
+    #     module = importlib.import_module(tool)
+    #     command_func = getattr(module, command)
+    #
+    #     result = command_func(**args)
+    #
+    #     return result
 
     @staticmethod
     def extract_metadata(data):

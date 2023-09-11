@@ -69,7 +69,7 @@ The `ExecutionAgent` can be run with varying levels of contextual information. Y
 - `feedback`: User feedback.
 
 ```python
-task_result = execution_agent.run(summary=summary, context=context, feedback=feedback)
+task_result = execution_agent.run()
 ```
 
 These additional parameters match the variables used in the prompt templates. For more details on how to structure your agent's prompts, please refer to our [Prompts Documentation](../Prompts/AgentPrompts.md)

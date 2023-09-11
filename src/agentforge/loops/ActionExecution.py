@@ -1,54 +1,50 @@
-from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 
 
-def parse_tools_data(tool_name, tool_info):
+def parse_tools_data(tool_info):
+    tool_name = tool_info.pop('Name')
     tool = f"Tool: {tool_name}\n" + '\n'.join([f'{key}: {value}' for key, value in tool_info.items()])
     return tool
 
 
 class Action:
     def __init__(self):
-        # Summarize the Search Results
-        self.action_agent = ActionSelectionAgent()
-        self.priming_agent = ActionPrimingAgent()
         self.storage = StorageInterface().storage_utils
         self.functions = Functions()
+        self.priming_agent = ActionPrimingAgent()
+        self.action = {}
+        self.tools = {}
+        self.results = {}
 
-    def run(self, context, **kwargs):
-        frustration = kwargs.get('frustration', 0)
-        action_results = self.action_agent.run(context=context, frustration=frustration)
+    def run(self, action):
+        if action:
+            self.action = action
+            self.load_action_tools()
+            self.run_tools_in_sequence()
+            self.save_action_results()
+            return self.results
 
-        if 'documents' in action_results:
-            self.handle_action_selected(action_results)
-        else:
-            self.handle_no_relevant_action(frustration)
+    def load_action_tools(self):
+        tool_data = self.action['Tools'].split(', ')
+        self.tools = {tool: self.load_tool(tool) for tool in tool_data}
 
-    def handle_action_selected(self, action_results):
-        action = self.functions.extract_metadata(action_results)
-        self.functions.print_result(action['Description'], 'Action Selected')
-
-        tool_data = action['Tools'].split(', ')
-        tools = {tool: self.load_tool(tool) for tool in tool_data}
-
-        self.run_tools_in_sequence(tools)
-
-    def run_tools_in_sequence(self, tools):
+    def run_tools_in_sequence(self):
         tool_result = None
-        for tool_name, tool_info in tools.items():
-            tool_call = tool_info.pop('Script')
-            tool = parse_tools_data(tool_name, tool_info)
+        for tool_name, tool_info in self.tools.items():
+            tool_script = tool_info.pop('Script')
+            tool = parse_tools_data(tool_info)
             payload = self.priming_agent.run(tool=tool, results=tool_result)
             self.functions.print_primed_tool(tool_name, payload)
 
-            self.functions.print_message(f"\nRunning {tool_name} ...")
-            tool_result = self.functions.dyna_tool(tool_call.lower(), payload)
-            self.functions.print_result(tool_result, f"{tool_name} Result")
+            tool_result = self.functions.dyna_tool(tool_script, payload)
+            self.results[tool_name] = tool_result
 
-    def handle_no_relevant_action(self, frustration):
-        self.functions.print_result(f'No Relevant Action Found! - Frustration: {frustration}', 'Selection Results')
+    def save_action_results(self):
+        for key, result in self.results.items():
+            params = {'data': [result], 'collection_name': 'Results'}
+            self.storage.save_memory(params)
 
     def load_tool(self, tool):
         params = {

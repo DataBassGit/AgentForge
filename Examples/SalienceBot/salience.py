@@ -1,5 +1,5 @@
 from agentforge.loops.ActionExecution import Action
-from agentforge.agents.ActionAgent import ActionAgent
+from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ExecutionAgent import ExecutionAgent
 from agentforge.agents.TaskCreationAgent import TaskCreationAgent
 from agentforge.agents.StatusAgent import StatusAgent
@@ -12,32 +12,39 @@ from agentforge.utils.storage_interface import StorageInterface
 class Salience:
 
     def __init__(self):
+        self.logger = Logger(name="Salience")
+
         self.data = {}
         self.task = {}
         self.context = {}
         self.feedback = {}
+        self.selected_action = {}
 
-        self.frustration = 0
         self.frustration_step = 0.1
-        self.max_frustration = 0.5
+        self.min_frustration = 0.5
+        self.max_frustration = 0.9
+        self.frustration = self.min_frustration
+
+        self.storage = StorageInterface().storage_utils
+        self.functions = Functions()
 
         self.summarization_agent = SummarizationAgent()
-        self.action = Action()
-        self.action_agent = ActionAgent()
+        self.action_execution = Action()
+        self.action_selection = ActionSelectionAgent()
         self.exec_agent = ExecutionAgent()
         self.task_creation_agent = TaskCreationAgent()
         self.status_agent = StatusAgent()
-        self.storage = StorageInterface().storage_utils
-        self.logger = Logger(name="Salience")
-        self.functions = Functions()
+
+        # self.action_selection.set_threshold(self.frustration)
+        # self.action_selection.set_number_of_results(10)
+
         self.set_objective()
 
     def run(self):
         self.log_start()
         self.load_data_from_storage()
         self.summarize_task()
-        self.action_agent.run()
-        self.execute_task()
+        self.check_for_actions()
         self.log_results()
 
     def loop(self):
@@ -50,6 +57,42 @@ class Salience:
             self.determine_status()
             self.display_status_result()
             self.handle_frustration()
+
+    def check_for_actions(self):
+        self.select_action()
+
+        if self.selected_action:
+            self.execute_action()
+        else:
+            self.execute_task()
+
+    def execute_action(self):
+        action_results = self.action_execution.run(action=self.selected_action)
+        formatted_results = self.format_action_results(action_results)
+
+        self.task['execution_results'] = {
+            "task_result": formatted_results,
+            "current_task": self.data['current_task'],
+            "context": self.context,
+            "Order": self.data['Order']
+        }
+
+    @staticmethod
+    def format_action_results(action_results):
+        formatted_strings = []
+        for key, value in action_results.items():
+            formatted_string = f"{key}: {value}\n\n---\n"
+            formatted_strings.append(formatted_string)
+
+        return "\n".join(formatted_strings).strip('---\n')
+
+    def select_action(self):
+        self.selected_action = None
+        self.selected_action = self.action_selection.run()
+
+        if self.selected_action:
+            result = f"{self.selected_action['Name']}: {self.selected_action['Description']}"
+            self.functions.print_result(result, 'Action Selected')
 
     def determine_current_task(self):
         self.data['current_task'] = self.functions.get_current_task()
@@ -99,6 +142,7 @@ class Salience:
         if self.frustration < self.max_frustration:
             self.frustration += self.frustration_step
             self.frustration = min(self.frustration, self.max_frustration)
+            self.action_selection.set_threshold(self.frustration)
             print("\nIncreased Frustration Level!")
         else:
             print(f"\nMax Frustration Level Reached: {self.frustration}")
@@ -108,9 +152,11 @@ class Salience:
         reason = self.task['status_result']['reason']
         if status != 'completed':
             self.frustrate()
-            self.action.run(reason, frustration=self.frustration)
+            self.select_action()
+            self.execute_action()
         else:
-            self.frustration = 0
+            self.frustration = self.min_frustration
+            self.action_selection.set_threshold(self.frustration)
 
     def load_data_from_storage(self):
         self.load_results()

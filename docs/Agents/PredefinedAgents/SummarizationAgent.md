@@ -147,13 +147,13 @@ The `SummarizationAgent` can be run in two modes:
 1. Direct Summarization:
 
 ```python
-summary = summarization_agent.run(text="Your text here...")
+summary = summarization_agent.run()
 ```
 
 2. Summarization based on Query:
 
 ```python
-summary = summarization_agent.run(query="Your query here...")
+summary = summarization_agent.run()
 ```
 
 Whether you're providing a direct text or a query, the `SummarizationAgent` is engineered to deliver precise and relevant summaries, making it a versatile tool in the framework.

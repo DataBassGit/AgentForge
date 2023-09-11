@@ -48,7 +48,7 @@ The `ReflexionAgent` can be invoked with optional parameters to cater to its spe
 - `Feedback`: The respondent's answer to reflect upon.
 
 ```python
-reflection_result = reflexion_agent.run(Context=context, Instruction=instruction, Feedback=feedback)
+reflection_result = reflexion_agent.run()
 ```
 
 Even in the absence of these optional parameters, the agent will attempt to review the responses based on its inherited methods from the `Agent` class:

@@ -119,7 +119,7 @@ The `tool_result` parameter is particularly versatile. In the context of an acti
 Here's how you would call the agent:
 
 ```python
-payload = action_priming_agent.run(tool=tool, results=tool_result)
+payload = action_priming_agent.run()
 ```
 
 In this example, the `ActionPrimingAgent` receives a tool and the previous tool results, it will then return a `payload` which contains the tool in it's primed state ready to be executed.

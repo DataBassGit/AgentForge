@@ -121,8 +121,8 @@ class ChromaUtils:
 
             if ids is None:
                 ids = [str(uuid.uuid4()) for _ in documents]
-
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
             for m in meta:
                 m['timestamp'] = timestamp
 
