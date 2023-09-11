@@ -31,14 +31,13 @@ setup(
         "anthropic==0.3.11",
         "google-api-python-client",
         "beautifulsoup4~=4.12.2",
+        "browse~=1.0.1",
     ],
     extras_require={
         "pinecone": [
             "pinecone-client==2.2.1",
         ],
-        "search": [
-            "browse~=1.0.1",
-        ],
+        
         "other": [
             "Flask~=2.3.1",
             "matplotlib~=3.7.1",
