@@ -123,7 +123,10 @@ class Config:
                 data = self.get_json_data(os.path.join(folder_and_attr_name, file))
 
                 # Extract the name and remove it from the data
-                item_name = data.get('Name', None)
+                if folder_and_attr_name == 'tools':
+                    item_name = data.pop('Name', None)
+                else:
+                    item_name = data.get('Name', None)
 
                 # If the name exists, store the data under that name in the specified attribute
                 if item_name:

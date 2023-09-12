@@ -63,7 +63,10 @@ class ActionSelectionAgent(Agent):
 
     def build_output(self):
         selected_action = self.result['action']
-        self.output = self.actions[selected_action]
+        if selected_action in self.actions:
+            self.output = self.actions[selected_action]
+        else:
+            self.output = f"The '{selected_action}' action does not exist. It is very likely the agent did not correctly choose an action from the given list."
 
     def parse_actions(self):
         parsed_actions = {}

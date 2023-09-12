@@ -3,20 +3,14 @@ from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 
 
-def parse_tools_data(tool_info):
-    tool_name = tool_info.pop('Name')
-    tool = f"Tool: {tool_name}\n" + '\n'.join([f'{key}: {value}' for key, value in tool_info.items()])
-    return tool
-
-
 class Action:
     def __init__(self):
         self.storage = StorageInterface().storage_utils
         self.functions = Functions()
         self.priming_agent = ActionPrimingAgent()
         self.action = {}
-        self.tool = {}
         self.tools = {}
+        self.tool = {}
         self.results = {}
         self.context = {}
 
@@ -30,31 +24,36 @@ class Action:
             return self.results
 
     def load_action_tools(self):
-        tool_data = self.action['Tools'].split(', ')
-        self.tools = {tool: self.load_tool(tool) for tool in tool_data}
+        tools = self.action['Tools'].split(', ')
+        self.tools = {tool: self.load_tool(tool) for tool in tools}
 
     def run_tools_in_sequence(self):
-        tool_result = None
-        for tool_name, tool_info in self.tools.items():
-            tool_script = self.get_tool_script(tool_info)
-            tool = self.process_tool_data(tool_info)
-            payload = self.prime_tool(tool, tool_name, tool_result)
-            tool_result = self.execute_tool(tool_script, payload)
-            self.results[tool_name] = tool_result
+        self.tool['Result'] = None
+        for self.tool['Name'], self.tool['Data'] in self.tools.items():
+            self.get_tool_script()
+            self.process_tool_data()
+            self.prime_tool()
+            self.execute_tool()
+            self.parse_tool_result()
 
-    def get_tool_script(self, tool_info):
-        return tool_info.pop('Script')
+    def get_tool_script(self):
+        self.tool['Script'] = self.tool['Data'].pop('Script')
 
-    def process_tool_data(self, tool_info):
-        return parse_tools_data(tool_info)
+    def process_tool_data(self):
+        tool_info = '\n'.join([f'{key}: {value}' for key, value in self.tool['Data'].items()])
+        self.tool['Prompt'] = f"Tool: {self.tool['Name']}\n{tool_info}"
 
-    def prime_tool(self, tool, tool_name, tool_result):
-        payload = self.priming_agent.run(tool=tool, results=tool_result, context=self.context)
-        self.functions.print_primed_tool(tool_name, payload)
-        return payload
+    def prime_tool(self):
+        self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
+                                                      results=self.tool['Result'],
+                                                      context=self.context)
+        self.functions.print_primed_tool(self.tool['Name'], self.tool['Payload'])
 
-    def execute_tool(self, tool_script, payload):
-        return self.functions.dyna_tool(tool_script, payload)
+    def execute_tool(self):
+        self.tool['Result'] = self.functions.dyna_tool(self.tool['Script'], self.tool['Payload'])
+
+    def parse_tool_result(self):
+        self.results[self.tool['Name']] = self.tool['Result']
 
     def save_action_results(self):
         for key, result in self.results.items():

@@ -144,7 +144,7 @@ Each Cognitive Architecture (bot) you create should contain an `.agentforge` fol
 
 **Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [Agents](docs/Agents/CustomAgents.md) as they can override these settings and call different models if needed.
 
->**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent scrips!  
+>**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent Scripts!  
 
 ### For Custom Agents
 

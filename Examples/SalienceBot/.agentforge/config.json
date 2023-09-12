@@ -13,6 +13,7 @@
     "Tools": "",
     "Actions": ""
   },
+  "Workspace": "./Workspace",
   "ChromaDB" : {
     "chroma_db_impl" : "duckdb+parquet",
     "persist_directory" : "./DB/ChromaDB",
