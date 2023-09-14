@@ -82,12 +82,12 @@ def run(self, bot_id=None, **kwargs):
 
 **Workflow**:
 1. Formats the message by appending the `agent_name` and the provided `msg`.
-2. Calls `self.functions.print_message()` to display the formatted message.
+2. Calls `self.functions.printing.print_message()` to display the formatted message.
 
 ```python
 def status(self, msg):
-	"""Prints a formatted status message to the console"""
-	self.functions.print_message(f"\n{self.agent_name} - {msg}")
+    """Prints a formatted status message to the console"""
+    self.functions.printing.print_message(f"\n{self.agent_name} - {msg}")
 ```
 
 ---

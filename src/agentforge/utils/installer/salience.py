@@ -6,6 +6,7 @@ from agentforge.agents.StatusAgent import StatusAgent
 from agentforge.agents.SummarizationAgent import SummarizationAgent
 from agentforge.logs.logger_config import Logger
 from agentforge.utils.function_utils import Functions
+from agentforge.utils.functions.TaskHandling import get_current_task
 from agentforge.utils.storage_interface import StorageInterface
 
 
@@ -93,10 +94,10 @@ class Salience:
 
         if self.selected_action:
             result = f"{self.selected_action['Name']}: {self.selected_action['Description']}"
-            self.functions.print_result(result, 'Action Selected')
+            self.functions.printing.print_result(result, 'Action Selected')
 
     def determine_current_task(self):
-        self.data['current_task'] = self.functions.get_current_task()
+        self.data['current_task'] = get_current_task()
         if self.data['current_task'] is None:
             self.logger.log("Task list has been completed!!!", 'info')
             quit()
@@ -109,14 +110,14 @@ class Salience:
         status = self.task['status_result']['status']
         reason = self.task['status_result']['reason']
         result = f"Status: {status}\n\nReason: {reason}"
-        self.functions.print_result(result, 'Status Result')
+        self.functions.printing.print_result(result, 'Status Result')
 
     def display_execution_results(self):
         task_result = self.task['execution_results']['task_result']
-        self.functions.print_result(task_result, "Execution Results")
+        self.functions.printing.print_result(task_result, "Execution Results")
 
     def display_task_list(self):
-        self.functions.show_task_list('Salience')
+        self.functions.task_handling.show_task_list('Salience')
 
     def execute_task(self):
         task_result = self.exec_agent.run(summary=self.data['summary'],
@@ -133,13 +134,13 @@ class Salience:
         self.display_execution_results()
 
     def fetch_ordered_task_list(self):
-        self.data['ordered_list'] = self.functions.get_ordered_task_list()
+        self.data['ordered_list'] = self.functions.task_handling.get_ordered_task_list()
 
     def fetch_context(self):
         self.context = self.functions.get_feedback_from_status_results(self.task.get('status_result'))
 
     def fetch_feedback(self):
-        self.feedback = self.functions.get_user_input()
+        self.feedback = self.functions.user_interface.get_user_input()
 
     # noinspection PyTypeChecker
     def frustrate(self):
@@ -191,7 +192,7 @@ class Salience:
         task = self.data['current_task']['document']
         self.data['summary'] = self.summarization_agent.run(query=task)
         if self.data['summary'] is not None:
-            self.functions.print_result(result=self.data['summary'], desc="Summary Agent results")
+            self.functions.printing.print_result(result=self.data['summary'], desc="Summary Agent results")
         return self.data['summary']
 
 

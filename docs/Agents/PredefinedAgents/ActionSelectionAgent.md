@@ -1,3 +1,5 @@
+from agentforge.utils.functions.TaskHandling import get_current_task
+
 # Action Selection Agent
 
 ## Introduction
@@ -49,7 +51,7 @@ The `ActionSelectionAgent` class inherits from the `Agent` base class. This enab
 
 ```python
 def load_additional_data(self):
-    self.data['task'] = self.functions.get_current_task()['document']
+    self.data['task'] = get_current_task()['document']
 ```
 
 >**Note:** In this case the `['document']` attribute is the text describing the task to be done as the actual task object has additional metadata attributes.

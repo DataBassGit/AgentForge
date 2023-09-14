@@ -47,7 +47,7 @@ class Action:
         self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
                                                       results=self.tool['Result'],
                                                       context=self.context)
-        self.functions.print_primed_tool(self.tool['Name'], self.tool['Payload'])
+        self.functions.printing.print_primed_tool(self.tool['Name'], self.tool['Payload'])
 
     def execute_tool(self):
         self.tool['Result'] = self.functions.dyna_tool(self.tool['Script'], self.tool['Payload'])

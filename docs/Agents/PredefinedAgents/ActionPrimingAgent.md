@@ -1,3 +1,5 @@
+from agentforge.utils.functions.TaskHandling import get_current_task
+
 # Action Priming Agent
 
 ## Introduction
@@ -51,7 +53,7 @@ The `ActionPrimingAgent` is a specialized agent that inherits its core functiona
 
 ```python
 def load_additional_data(self):
-    self.data['task'] = self.functions.get_current_task()['document']
+    self.data['task'] = get_current_task()['document']
 ```
 
 >**Note:** In this case the `['document']` attribute is the text describing the task to be done as the actual task object has additional metadata attributes.

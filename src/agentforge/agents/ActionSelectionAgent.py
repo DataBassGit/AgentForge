@@ -15,7 +15,7 @@ class ActionSelectionAgent(Agent):
         try:
             return super().run(**kwargs)
         except StopExecution:
-            self.functions.print_result('No Relevant Action Found', 'Selection Results')
+            self.functions.printing.print_result('No Relevant Action Found', 'Selection Results')
             return None
 
     def set_threshold(self, new_threshold):
@@ -25,7 +25,7 @@ class ActionSelectionAgent(Agent):
         self.num_results = new_num_results
 
     def load_additional_data(self):
-        self.data['task'] = self.functions.get_current_task()['document']
+        self.data['task'] = self.functions.task_handling.get_current_task()['document']
         self.load_actions()
 
     def load_actions(self):

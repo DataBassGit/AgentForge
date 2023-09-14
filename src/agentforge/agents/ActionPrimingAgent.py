@@ -15,7 +15,7 @@ class ActionPrimingAgent(Agent):
         return self.functions.extract_outermost_brackets(result)
 
     def load_additional_data(self):
-        self.data['task'] = self.functions.get_current_task()['document']
+        self.data['task'] = self.functions.task_handling.get_current_task()['document']
 
     def save_result(self):
         pass

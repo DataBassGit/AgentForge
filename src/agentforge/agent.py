@@ -105,4 +105,4 @@ class Agent:
 
     def status(self, msg):
         """Prints a formatted status message to the console"""
-        self.functions.print_message(f"\n{self.agent_name} - {msg}")
+        self.functions.printing.print_message(f"\n{self.agent_name} - {msg}")
