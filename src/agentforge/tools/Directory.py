@@ -48,7 +48,12 @@ class DirectoryTool:
 
         return dir_structure
 
-    def print_directory(self, directory, indent=0):
+    def print_directory(self, directory, indent=0, max_depth=5):
+        if indent >= max_depth:
+            padding = '|   ' * (indent - 1)
+            print(f"{padding}| ... More Files ... ")
+            return
+
         for name, sub_structure in directory.items():
             padding = '|   ' * (indent - 1)
             if indent > 0:
@@ -57,13 +62,13 @@ class DirectoryTool:
             if sub_structure is not None:
                 print(f"{padding}{name}/")
                 if sub_structure:
-                    self.print_directory(sub_structure, indent + 1)
+                    self.print_directory(sub_structure, indent + 1, max_depth)
             else:
                 print(f"{padding}{name}")
 
 
-dir_tool = DirectoryTool('../../../..')
-dir_tool.set_excluded_file_types(['.exe', '.dll', '.pyc'])
+dir_tool = DirectoryTool('../../../src')
+dir_tool.set_excluded_file_types(['.exe', '.dll', '.pyc', '.pyd', '.pth'])
 dir_tool.set_excluded_files(['__init__.py', '__pycache__'])
 dir_structure = dir_tool.list_directory()
 dir_tool.print_directory(dir_structure)
