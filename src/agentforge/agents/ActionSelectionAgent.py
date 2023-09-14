@@ -59,7 +59,7 @@ class ActionSelectionAgent(Agent):
         self.format_actions()
 
     def parse_result(self):
-        self.result = self.functions.string_to_dictionary(self.result)
+        self.result = self.functions.parsing.string_to_dictionary(self.result)
 
     def build_output(self):
         selected_action = self.result['action']

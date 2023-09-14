@@ -87,6 +87,18 @@ class Salience:
 
         return "\n".join(formatted_strings).strip('---\n')
 
+    @staticmethod
+    def get_feedback_from_status_results(status):
+        if status is not None:
+            completed = status['status']
+
+            if 'not completed' in completed:
+                result = status['reason']
+            else:
+                result = None
+
+            return result
+
     def select_action(self):
         self.selected_action = None
         self.selected_action = self.action_selection.run()
@@ -136,7 +148,7 @@ class Salience:
         self.data['ordered_list'] = self.functions.task_handling.get_ordered_task_list()
 
     def fetch_context(self):
-        self.context = self.functions.get_feedback_from_status_results(self.task.get('status_result'))
+        self.context = self.get_feedback_from_status_results(self.task.get('status_result'))
 
     def fetch_feedback(self):
         self.feedback = self.functions.user_interface.get_user_input()
@@ -183,7 +195,7 @@ class Salience:
         self.data['Order'] = self.data['current_task']["metadata"]["Order"]
 
     def set_objective(self):
-        objective = self.functions.prepare_objective()
+        objective = self.functions.agent_utils.prepare_objective()
         if objective is not None:
             self.task_creation_agent.run()
 

@@ -102,14 +102,14 @@ def status(self, msg):
 - `**kwargs`: Additional keyword arguments that may be used by `load_agent_data` for fetching the agent-specific data.
 
 **Workflow**:
-1. Calls `self.load_agent_data(**kwargs)` to populate agent-specific data. The data is stored internally.
+1. Calls `self.agent_utils.load_agent_data(**kwargs)` to populate agent-specific data. The data is stored internally.
 2. Invokes `self.load_main_data()` to add core data required for the agent's operation. The data is added to the internal `data` attribute.
 3. Executes `self.load_additional_data()` to include any extra data. Again, this is added to the internal `data` attribute.
 
 ```python
 def load_data(self, **kwargs):
     """This method is in charge of calling all the relevant load data methods"""
-    self.load_agent_data(**kwargs)
+    self.agent_utils.load_agent_data(**kwargs)
     self.load_main_data()
     self.load_additional_data()
 ```
@@ -126,7 +126,7 @@ def load_data(self, **kwargs):
 - `**kwargs`: Additional keyword arguments that can be used to supplement the agent's data.
 
 **Workflow**:
-1. Initialized the agent-specific data `self.agent_data` by calling `self.functions.load_agent_data(self.agent_name)`.
+1. Initialized the agent-specific data `self.agent_data` by calling `self.functions.agent_utils.load_agent_data(self.agent_name)`.
 2. Initializes the agent's internal `data` attribute with two keys:
   - `params`: A copy of the parameters from `self.agent_data`.
   - `prompts`: A copy of the prompts from `self.agent_data`.
@@ -135,7 +135,7 @@ def load_data(self, **kwargs):
 ```python
 def load_agent_data(self, **kwargs):
     """Loads the Agent data and any additional data given to it"""
-    self.agent_data = self.functions.load_agent_data(self.agent_name)
+    self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
     self.data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
     for key in kwargs:
         self.data[key] = kwargs[key]
@@ -216,7 +216,7 @@ def process_data(self):
 **Workflow**:
 1. Initialize an empty list named `templates` for storing prompt templates.
 2. Handle the system prompt by fetching it from the internal `data['prompts']['System']` and add it to `templates`.
-3. Remove any prompts for which there's no corresponding data in the internal `data` attribute by calling `self.functions.remove_prompt_if_none`.
+3. Remove any prompts for which there's no corresponding data in the internal `data` attribute by calling `self.functions.prompt_handling.remove_prompt_if_none`.
 4. Handle other types of prompts that are not the system prompt. Extend `templates` with these other types.
 5. Render the prompts using the templates and variables. Store the rendered prompts directly in the agent's internal `prompt` attribute.
 
@@ -227,14 +227,14 @@ def generate_prompt(self, **kwargs):
     system_prompt = self.data['prompts']['System']
     templates.append((system_prompt["template"], system_prompt["vars"]))
 
-    self.functions.remove_prompt_if_none(self.data['prompts'], self.data)
+    self.functions.prompt_handling.remove_prompt_if_none(self.data['prompts'], self.data)
 
     other_prompt_types = [prompt_type for prompt_type in self.data['prompts'].keys() if prompt_type != 'System']
     for prompt_type in other_prompt_types:
-        templates.extend(self.functions.handle_prompt_type(self.data['prompts'], prompt_type))
+        templates.extend(self.functions.prompt_handling.handle_prompt_type(self.data['prompts'], prompt_type))
 
     self.prompt = [
-        self.functions.render_template(template, variables, data=self.data)
+        self.functions.prompt_handling.render_template(template, variables, data=self.data)
         for template, variables in templates
     ]
 ```

@@ -10,26 +10,6 @@ class Printing:
     def print_message(msg):
         cprint(f"{msg}", 'red', attrs=['bold'])
 
-    def print_primed_tool(self, tool_name, payload):
-        tool_name = tool_name.replace('_', ' ')
-        speak = payload['thoughts']['speak']
-        reasoning = payload['thoughts']['reasoning']
-
-        # Format command arguments
-        command_args = ", ".join(
-            [f"{k}='{v}'" if isinstance(v, str) else f"{k}={v}" for k, v in payload['command']['args'].items()]
-        )
-
-        command = f"{payload['command']['name']}({command_args})"
-
-        # Create the final output string
-        formatted_string = f"{speak}\n\n" \
-                           f"Tool: {tool_name}\n" \
-                           f"Command: {command}\n" \
-                           f"Reasoning: {reasoning}"
-
-        self.print_result(formatted_string, 'Primed Tool')
-
     @staticmethod
     def print_result(result, desc):
         # Print the task result

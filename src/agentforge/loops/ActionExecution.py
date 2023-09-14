@@ -47,10 +47,10 @@ class Action:
         self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
                                                       results=self.tool['Result'],
                                                       context=self.context)
-        self.functions.printing.print_primed_tool(self.tool['Name'], self.tool['Payload'])
+        self.functions.tool_utils.show_primed_tool(self.tool['Name'], self.tool['Payload'])
 
     def execute_tool(self):
-        self.tool['Result'] = self.functions.dyna_tool(self.tool['Script'], self.tool['Payload'])
+        self.tool['Result'] = self.functions.tool_utils.dynamic_tool(self.tool['Script'], self.tool['Payload'])
 
     def parse_tool_result(self):
         self.results[self.tool['Name']] = self.tool['Result']
@@ -68,7 +68,7 @@ class Action:
         }
 
         results = self.storage.query_memory(params)
-        filtered = self.functions.extract_metadata(results)
+        filtered = self.functions.parsing.extract_metadata(results)
         filtered.pop('timestamp', None)
 
         return filtered
