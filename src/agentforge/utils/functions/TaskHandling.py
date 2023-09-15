@@ -1,3 +1,4 @@
+import os
 from ..storage_interface import StorageInterface
 from ...config import Config
 
@@ -53,6 +54,10 @@ class TaskHandling:
     @staticmethod
     def log_tasks(tasks):
         filename = "./Logs/results.txt"
+
+        if not os.path.exists("./Logs"):
+            os.makedirs("./Logs")
+
         with open(filename, "a") as file:
             file.write(tasks)
 

@@ -1,4 +1,4 @@
-from agentforge.loops.ActionExecution import Action
+from agentforge.modules.ActionExecution import Action
 from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ExecutionAgent import ExecutionAgent
 from agentforge.agents.TaskCreationAgent import TaskCreationAgent
