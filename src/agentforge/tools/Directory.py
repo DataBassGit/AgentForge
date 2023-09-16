@@ -48,7 +48,7 @@ class DirectoryTool:
 
         return dir_structure
 
-    def print_directory(self, directory, indent=0, max_depth=5):
+    def print_directory(self, directory, indent=0, max_depth=2):
         if indent >= max_depth:
             padding = '|   ' * (indent - 1)
             print(f"{padding}| ... More Files ... ")
@@ -67,8 +67,8 @@ class DirectoryTool:
                 print(f"{padding}{name}")
 
 
-dir_tool = DirectoryTool('../../../src')
-dir_tool.set_excluded_file_types(['.exe', '.dll', '.pyc', '.pyd', '.pth'])
+dir_tool = DirectoryTool('../../agentforge')
+dir_tool.set_excluded_file_types(['.dll', '.pyc', '.pyd', '.pth'])
 dir_tool.set_excluded_files(['__init__.py', '__pycache__'])
 dir_structure = dir_tool.list_directory()
 dir_tool.print_directory(dir_structure)
