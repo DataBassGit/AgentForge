@@ -137,7 +137,7 @@ class Config:
 
     def load_tools(self):
         self.load_from_folder("tools")
-
+        
     def load_persona(self):
         persona_name = self.data.get('Persona', {}).get('selected', "")
         self.persona = self.get_json_data(f"personas/{persona_name}.json")

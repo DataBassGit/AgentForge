@@ -12,10 +12,11 @@ class ToolUtils:
 
         command = payload['command']['name']
         args = payload['command']['args']
-        tool_module = f"agentforge.tools.{tool_class}"
+        # tool_module = f"{tool_class}"
 
         try:
-            tool = importlib.import_module(tool_module)
+            # tool = importlib.import_module(tool_module)
+            tool = importlib.import_module(tool_class)
         except ModuleNotFoundError:
             raise ValueError(
                 f"No tool module named '{tool_class}' found. Ensure the module name matches the Script name exactly.")

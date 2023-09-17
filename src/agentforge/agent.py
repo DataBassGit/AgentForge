@@ -20,7 +20,7 @@ class Agent:
         self.logger = Logger(name=self.agent_name)
         self.logger.set_level(log_level)
 
-    def run(self, bot_id=None, **kwargs):
+    def run(self, **kwargs):
         """This is the heart of all Agents, orchestrating the entire workflow from data loading to output generation."""
         self.status("Running ...")
         self.load_data(**kwargs)
@@ -82,7 +82,6 @@ class Agent:
     def load_main_data(self):
         """Loads the main data for the Agent, by default it's the Objective and Current Task"""
         self.data['objective'] = self.agent_data.get('objective')
-        # self.data['task'] = self.functions.get_current_task()['document']
 
     def parse_result(self):
         """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
