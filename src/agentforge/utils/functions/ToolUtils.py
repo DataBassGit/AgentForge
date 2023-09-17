@@ -1,3 +1,4 @@
+import importlib
 from .Printing import Printing
 
 
@@ -6,22 +7,21 @@ class ToolUtils:
     def __init__(self):
         self.printing = Printing()
 
-    def dynamic_tool(self, tool_class, payload):
-        import importlib
+    def dynamic_tool(self, tool_module, payload):
+        # Extract the actual class name from the tool_class path
+        tool_class = tool_module.split('.')[-1]
+        command = payload['command']
+        args = payload['args']
+
         self.printing.print_message(f"\nRunning {tool_class} ...")
 
-        command = payload['command']['name']
-        args = payload['command']['args']
-        # tool_module = f"{tool_class}"
-
         try:
-            # tool = importlib.import_module(tool_module)
-            tool = importlib.import_module(tool_class)
+            tool = importlib.import_module(tool_module)
         except ModuleNotFoundError:
             raise ValueError(
-                f"No tool module named '{tool_class}' found. Ensure the module name matches the Script name exactly.")
+                f"No tool module named '{tool_module}' found. Ensure the Module name matches the Script name exactly.")
 
-        # Check if the tool has a class named FileWriter (or any other tool name)
+        # Check if the tool has a class named
         # If it does, instantiate it, and then use the command method
         # Else, use the standalone function
         if hasattr(tool, tool_class):
@@ -42,15 +42,15 @@ class ToolUtils:
 
         # Format command arguments
         command_args = ", ".join(
-            [f"{k}='{v}'" if isinstance(v, str) else f"{k}={v}" for k, v in payload['command']['args'].items()]
+            [f"{k}='{v}'" if isinstance(v, str) else f"{k}={v}" for k, v in payload['args'].items()]
         )
 
-        command = f"{payload['command']['name']}({command_args})"
+        command = f"{command_args}"
 
         # Create the final output string
         formatted_string = f"{speak}\n\n" \
                            f"Tool: {tool_name}\n" \
-                           f"Command: {command}\n" \
+                           f"Command Args: {command}\n" \
                            f"Reasoning: {reasoning}"
 
         self.printing.print_result(formatted_string, 'Primed Tool')
