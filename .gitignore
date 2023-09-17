@@ -24,3 +24,6 @@ Examples/SalienceBot/db_path/
 /Examples/SalienceBot/DB/
 /Examples/SalienceBot/Tests/
 
+/Examples/Dyn/DB/
+/Examples/Dyn/Logs/
+/Examples/Dyn/Tests/

@@ -58,7 +58,7 @@ def copy_files():
     shutil.copyfile(personas_src_path, personas_dest_path)
 
 def copy_salience():
-    src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
+    src_path = pkg_resources.resource_filename("agentforge.utils.installer", "dyn.py")
     shutil.copyfile(src_path, "salience.py")
 
 def main():

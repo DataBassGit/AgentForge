@@ -157,7 +157,7 @@ If you've installed our Salience example, head over to `Examples/SalienceBot/.ag
 To run the Salience Bot demo, go to `Examples/SalienceBot/` in your console and run:
 
 ```shell
-python salience.py
+python dyn.py
 ```
 
 This will execute a simple bot script that uses our default [Custom Agents](docs/Agents/PredefinedAgents/) to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
