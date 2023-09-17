@@ -9,10 +9,10 @@ from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 
 
-class Salience:
+class Dyn:
 
     def __init__(self):
-        self.logger = Logger(name="Salience")
+        self.logger = Logger(name="Dyn")
 
         self.data = {}
         self.task = {}

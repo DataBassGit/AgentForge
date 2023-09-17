@@ -9,7 +9,7 @@ init(autoreset=True)
 
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
 client = anthropic.Anthropic(api_key=API_KEY)
-_level = ''
+_level = 'debug'
 
 
 def parse_prompts(prompts):
