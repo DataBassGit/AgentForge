@@ -50,6 +50,7 @@ class Action:
         self.functions.tool_utils.show_primed_tool(self.tool['Name'], self.tool['Payload'])
 
     def execute_tool(self):
+        self.tool['Payload']['command'] = self.tool['Data']['Command']
         self.tool['Result'] = self.functions.tool_utils.dynamic_tool(self.tool['Script'], self.tool['Payload'])
 
     def parse_tool_result(self):

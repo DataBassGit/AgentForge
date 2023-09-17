@@ -1,7 +1,7 @@
 import os
 
 
-class DirectoryTool:
+class Directory:
     def __init__(self, path="."):
         """
         Initialize the DirectoryTool with the given directory path.
@@ -48,8 +48,13 @@ class DirectoryTool:
 
         return path_structure
 
-    def read_directory(self, directory, indent=0, max_depth=2):
+    def read_directory(self, directory_path, indent=0, max_depth=2):
         output = ""
+
+        directory = self.list_directory(directory_path)
+
+        if directory:
+            return f"{directory_path}/"
 
         if indent >= max_depth:
             padding = '|   ' * (indent - 1)
@@ -72,7 +77,6 @@ class DirectoryTool:
                 output += line
 
         print(output)
-
         return output
 
     # def read_directory(self, directory, indent=0, max_depth=2):
