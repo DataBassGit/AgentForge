@@ -30,7 +30,7 @@ class DirectoryTool:
         if path is None:
             path = self.path
 
-        dir_structure = {}
+        path_structure = {}
 
         for item in os.listdir(path):
             if item in self.excluded_files:
@@ -42,17 +42,20 @@ class DirectoryTool:
                 continue
 
             if os.path.isdir(full_path):
-                dir_structure[item] = self.list_directory(full_path)
+                path_structure[item] = self.list_directory(full_path)
             else:
-                dir_structure[item] = None
+                path_structure[item] = None
 
-        return dir_structure
+        return path_structure
 
-    def print_directory(self, directory, indent=0, max_depth=2):
+    def read_directory(self, directory, indent=0, max_depth=2):
+        output = ""
+
         if indent >= max_depth:
             padding = '|   ' * (indent - 1)
-            print(f"{padding}| ... More Files ... ")
-            return
+            line = f"{padding}| ... More Files ... \n"
+            output += line
+            return output
 
         for name, sub_structure in directory.items():
             padding = '|   ' * (indent - 1)
@@ -60,15 +63,39 @@ class DirectoryTool:
                 padding += '|-- '
 
             if sub_structure is not None:
-                print(f"{padding}{name}/")
+                line = f"{padding}{name}/\n"
+                output += line
                 if sub_structure:
-                    self.print_directory(sub_structure, indent + 1, max_depth)
+                    output += self.read_directory(sub_structure, indent + 1, max_depth)
             else:
-                print(f"{padding}{name}")
+                line = f"{padding}{name}\n"
+                output += line
+
+        print(output)
+
+        return output
+
+    # def read_directory(self, directory, indent=0, max_depth=2):
+    #     if indent >= max_depth:
+    #         padding = '|   ' * (indent - 1)
+    #         print(f"{padding}| ... More Files ... ")
+    #         return
+    #
+    #     for name, sub_structure in directory.items():
+    #         padding = '|   ' * (indent - 1)
+    #         if indent > 0:
+    #             padding += '|-- '
+    #
+    #         if sub_structure is not None:
+    #             print(f"{padding}{name}/")
+    #             if sub_structure:
+    #                 self.read_directory(sub_structure, indent + 1, max_depth)
+    #         else:
+    #             print(f"{padding}{name}")
 
 
-dir_tool = DirectoryTool('../../agentforge')
-dir_tool.set_excluded_file_types(['.dll', '.pyc', '.pyd', '.pth'])
-dir_tool.set_excluded_files(['__init__.py', '__pycache__'])
-dir_structure = dir_tool.list_directory()
-dir_tool.print_directory(dir_structure)
+# dir_tool = DirectoryTool('../../agentforge')
+# dir_tool.set_excluded_file_types(['.dll', '.pyc', '.pyd', '.pth'])
+# dir_tool.set_excluded_files(['__init__.py', '__pycache__'])
+# dir_structure = dir_tool.list_directory()
+# dir_tool.read_directory(dir_structure)

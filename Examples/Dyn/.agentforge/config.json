@@ -13,7 +13,6 @@
     "Tools": "",
     "Actions": ""
   },
-  "WorkspacePath": "./Workspace",
   "ChromaDB" : {
     "chroma_db_impl" : "duckdb+parquet",
     "persist_directory" : "./DB/ChromaDB",
@@ -72,7 +71,5 @@
       "seed": -1
     }
   },
-  "CustomAgentsPath": "./CustomAgents",
-  "CustomModulesPath": "./CustomModules",
-  "CustomToolsPath": "./CustomTools"
+  "WorkspacePath": "./Workspace"
 }
