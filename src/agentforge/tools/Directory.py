@@ -52,7 +52,6 @@ class Directory:
         output = ""
 
         directory = self.list_directory(directory_path)
-
         if directory:
             return f"{directory_path}/"
 
@@ -78,25 +77,6 @@ class Directory:
 
         print(output)
         return output
-
-    # def read_directory(self, directory, indent=0, max_depth=2):
-    #     if indent >= max_depth:
-    #         padding = '|   ' * (indent - 1)
-    #         print(f"{padding}| ... More Files ... ")
-    #         return
-    #
-    #     for name, sub_structure in directory.items():
-    #         padding = '|   ' * (indent - 1)
-    #         if indent > 0:
-    #             padding += '|-- '
-    #
-    #         if sub_structure is not None:
-    #             print(f"{padding}{name}/")
-    #             if sub_structure:
-    #                 self.read_directory(sub_structure, indent + 1, max_depth)
-    #         else:
-    #             print(f"{padding}{name}")
-
 
 # dir_tool = DirectoryTool('../../agentforge')
 # dir_tool.set_excluded_file_types(['.dll', '.pyc', '.pyd', '.pth'])
