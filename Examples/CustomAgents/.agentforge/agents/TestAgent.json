@@ -2,22 +2,15 @@
   "Prompts": {
     "System": {
       "vars": [
-        "task",
         "objective"
       ],
-      "template": "You are a tool priming agent who's been asked to prepare a tool for the following task:\n\n{task}\n\n---\n\nThe task outlined above has been curated to achieve the following core objective: {objective}\n\n"
+      "template": "You are an AI who performs one task based on the following objective: {objective}\n\n"
     },
-    "Tool": {
+    "Summary": {
       "vars": [
-        "tool"
+        "summary"
       ],
-      "template": "Instructions breaking down the tool you are required to prime are as follows:\n\n{tool}\n\n---\n\n"
-    },
-    "Results": {
-      "vars": [
-        "results"
-      ],
-      "template": "Use the following data in order to prime the tool outlined above:\n\n{results}\n\n---\n\n"
+      "template": "Take into account this summary of your previous actions:\n\n{summary}\n\n---\n\n"
     },
     "Context": {
       "vars": [
@@ -25,11 +18,17 @@
       ],
       "template": "Take into consideration the following critique from the last action taken:\n\n{context}\n\n---\n\n"
     },
+    "Feedback": {
+      "vars": [
+        "feedback"
+      ],
+      "template": "Take into consideration the following feedback from the user:\n\n{feedback}\n\n---\n\n"
+    },
     "Instruction": {
       "vars": [
-        ""
+        "task"
       ],
-      "template": "Your job requires you to prime the tool you've been provided by taking into consideration the context you've been given.\n\nYou must prime the given tool using ONLY the RESPONSE FORMAT provided below.\n\nIMPORTANT!!!: DO NOT PROVIDE ANY COMMENTARY OUTSIDE OF THE RESPONSE FORMAT REQUESTED!!!\n\nRESPONSE FORMAT:\n{{\n\t\"command\": {{\n\t\t\"name\": <command name>,\n\t\t\"args\": {{\"arg name\": <value>}}\n\t}},\n\t\"thoughts\": {{\n\t\t\"reasoning\": <your reasoning>,\n\t\t\"speak\": <thoughts summary to say to user>\n\t}}\n}}"
+      "template": "Please complete the following task: {task}\n\nResponse: {{your response}}"
     }
   }
 }
