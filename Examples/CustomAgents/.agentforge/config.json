@@ -8,7 +8,7 @@
     "oobaboogaV2" : "oobabooga_v2_api"
   },
   "ModelLibrary" : {
-    "claude" : "claude-1",
+    "claude" : "claude-2",
     "fast_model" : "gpt-3.5-turbo",
     "smart_model" : "gpt-4"
   },

@@ -53,6 +53,12 @@ class StorageInterface:
             storage_api = self.config.storage_api()
             if storage_api == 'chroma':
                 self.initialize_chroma()
+            elif storage_api == 'rabbitmq':
+                # self.initialize_rabbitmq()
+                pass
+            elif storage_api == 'pinecone':
+                pass
+                # self.initialize_pinecone()
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
@@ -87,3 +93,23 @@ class StorageInterface:
 
         self.storage_utils.select_collection(collection_name)
         self.storage_utils.save_memory(save_params)
+
+    def initialize_rabbitmq(self):
+        try:
+            # Start the RabbitMQ server
+            import subprocess
+            subprocess.run(["sudo", "rabbitmq-server", "-detached"])
+            print("RabbitMQ server started")
+            from agentforge.utils.amqp_utils import AMQPUtils
+            self.storage_utils = AMQPUtils()
+            self.storage_utils.init_storage()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    def initialize_pinecone(self):
+        try:
+            from agentforge.utils.pinecone_utils import PineconeUtils
+            self.storage_utils = PineconeUtils()
+            self.storage_utils.init_storage()
+        except Exception as e:
+            print(f"An error occurred: {e}")
