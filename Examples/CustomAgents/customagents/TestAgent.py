@@ -2,4 +2,5 @@ from agentforge.agent import Agent
 
 
 class TestAgent(Agent):
-    pass
+    def save_result(self):
+        pass
