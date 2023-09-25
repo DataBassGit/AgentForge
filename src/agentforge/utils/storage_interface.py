@@ -1,6 +1,6 @@
 import uuid
 from ..config import Config
-from .chroma_utils import ChromaUtils
+
 
 
 def metadata_builder(collection_name, name, details):
@@ -39,6 +39,7 @@ class StorageInterface:
         pass
 
     def initialize_chroma(self):
+        from .chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
 
@@ -96,10 +97,6 @@ class StorageInterface:
 
     def initialize_rabbitmq(self):
         try:
-            # Start the RabbitMQ server
-            import subprocess
-            subprocess.run(["sudo", "rabbitmq-server", "-detached"])
-            print("RabbitMQ server started")
             from agentforge.utils.amqp_utils import AMQPUtils
             self.storage_utils = AMQPUtils()
             self.storage_utils.init_storage()

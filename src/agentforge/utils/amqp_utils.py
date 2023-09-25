@@ -3,7 +3,7 @@ import amqp
 class AMQPUtils:
 
     @staticmethod
-    def simple_producer(broker='broker.example.com', routing_key='test', message='Hello World'):
+    def simple_producer(broker='127.0.0.1', routing_key='test', message='Hello World'):
         """
         Simple producer that publishes messages to a specified routing key.
         """
@@ -12,7 +12,7 @@ class AMQPUtils:
             ch.basic_publish(amqp.Message(message), routing_key=routing_key)
 
     @staticmethod
-    def producer_with_exchange(broker='broker.example.com', exchange='test_exchange', routing_key='test',
+    def producer_with_exchange(broker='127.0.0.1', exchange='test_exchange', routing_key='test',
                                message='Hello World', confirm_publish=True, virtual_host='test_vhost'):
         """
         Producer with exchange that publishes messages to a specified routing key and exchange.
@@ -22,7 +22,7 @@ class AMQPUtils:
             ch.basic_publish(amqp.Message(message), routing_key=routing_key)
 
     @staticmethod
-    def consumer_with_ack(broker='broker.example.com', queue='test'):
+    def consumer_with_ack(broker='127.0.0.1', queue='test'):
         """
         Consumer with acknowledgment.
         """
@@ -38,7 +38,7 @@ class AMQPUtils:
                 c.drain_events()
 
     @staticmethod
-    def consumer_no_ack(broker='broker.example.com', queue='test'):
+    def consumer_no_ack(broker='127.0.0.1', queue='test'):
         """
         Consumer without acknowledgment.
         """
