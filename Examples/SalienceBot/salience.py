@@ -22,8 +22,8 @@ class Salience:
         self.selected_action = {}
 
         self.frustration_step = 0.1
-        self.min_frustration = 0.6
-        self.max_frustration = 0.9
+        self.min_frustration = 0.9
+        self.max_frustration = 1
         self.frustration = self.min_frustration
 
         self.storage = StorageInterface().storage_utils
@@ -101,7 +101,7 @@ class Salience:
 
     def select_action(self):
         self.selected_action = None
-        self.selected_action = self.action_selection.run()
+        self.selected_action = self.action_selection.run(feedback=self.feedback)
 
         if self.selected_action:
             result = f"{self.selected_action['Name']}: {self.selected_action['Description']}"
