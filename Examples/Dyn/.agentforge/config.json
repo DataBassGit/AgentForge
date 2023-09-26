@@ -42,8 +42,8 @@
     "dimension" : "768"
   },
   "Defaults" : {
-    "API" : "claude_api",
-    "Model": "claude",
+    "API" : "openai_api",
+    "Model": "fast_model",
     "Params": {
       "max_new_tokens": 2000,
       "temperature": 0.5,

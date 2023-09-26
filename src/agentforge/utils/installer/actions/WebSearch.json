@@ -5,3 +5,4 @@
   "Instruction": "First, use the 'Google Search' tool to perform a Google search and retrieve a list of search results. Choose a URL from the search results, then use the 'Web Scrape' tool to scrape the text from that URL.",
   "Tools": "Google Search, Web Scrape"
 }
+
