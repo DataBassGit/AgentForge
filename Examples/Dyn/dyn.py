@@ -208,4 +208,4 @@ class Dyn:
 
 
 if __name__ == '__main__':
-    Salience().loop()
+    Dyn().loop()
