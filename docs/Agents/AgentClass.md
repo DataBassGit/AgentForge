@@ -36,7 +36,7 @@ The `Agent` base class serves as a default template for creating new agents. By 
 1. Set `agent_name` to the class name.
 2. Initialize placeholders for `data`, `prompt`, `result`, `parsed_result`, and `output`.
 3. Initialize `Function` Utilities.
-4. Load agent data using `self.functions.load_agent_data`.
+4. Load agent data using `self.functions.agent_utils.load_agent_data`.
 5. Initialize data storage from `self.agent_data['storage']`.
 6. Create a `Logger` instance and set its log level.
 
@@ -50,7 +50,7 @@ def __init__(self, log_level="info"):
     self.output = None
 
     self.functions = Functions()
-    self.agent_data = self.functions.load_agent_data(self.agent_name)
+    self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
     self.storage = self.agent_data['storage']
 
     self.logger = Logger(name=self.agent_name)

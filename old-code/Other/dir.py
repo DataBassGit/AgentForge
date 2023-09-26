@@ -7,7 +7,7 @@ def exclude_path(item, path):
     exclusion_patterns = [
         ".egg-info",
         "venv",
-        os.path.join("Examples", "DB"),
+        os.path.join("../../Examples", "DB"),
         "build",
     ]
 

@@ -126,7 +126,7 @@ class Salience:
 
     def loop(self):
         # Add a variable to set the mode
-        self.functions.set_auto_mode()
+        self.functions.user_interface.set_auto_mode()
         status = None
 
         while True:

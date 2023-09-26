@@ -8,14 +8,14 @@ class StopExecution(Exception):
 class ActionSelectionAgent(Agent):
 
     actions = {}
-    threshold = 0.6
+    threshold = 0.9
     num_results = 10
 
     def run(self, **kwargs):
         try:
             return super().run(**kwargs)
         except StopExecution:
-            self.functions.print_result('No Relevant Action Found', 'Selection Results')
+            self.functions.printing.print_result('No Relevant Action Found', 'Selection Results')
             return None
 
     def set_threshold(self, new_threshold):
@@ -25,7 +25,7 @@ class ActionSelectionAgent(Agent):
         self.num_results = new_num_results
 
     def load_additional_data(self):
-        self.data['task'] = self.functions.get_current_task()['document']
+        self.data['task'] = self.functions.task_handling.get_current_task()['document']
         self.load_actions()
 
     def load_actions(self):
@@ -59,11 +59,14 @@ class ActionSelectionAgent(Agent):
         self.format_actions()
 
     def parse_result(self):
-        self.result = self.functions.string_to_dictionary(self.result)
+        self.result = self.functions.parsing.string_to_dictionary(self.result)
 
     def build_output(self):
         selected_action = self.result['action']
-        self.output = self.actions[selected_action]
+        if selected_action in self.actions:
+            self.output = self.actions[selected_action]
+        else:
+            self.output = f"The '{selected_action}' action does not exist. It is very likely the agent did not correctly choose an action from the given list."
 
     def parse_actions(self):
         parsed_actions = {}

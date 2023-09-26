@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.7",
+    version="0.1.12",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -28,17 +28,16 @@ setup(
         "openai~=0.28.0",
         "chromadb~=0.4.8",
         "sentence_transformers==2.2.2",
-        "anthropic==0.3.11"
+        "anthropic==0.3.11",
+        "google-api-python-client",
+        "beautifulsoup4~=4.12.2",
+        "browse~=1.0.1",
     ],
     extras_require={
         "pinecone": [
             "pinecone-client==2.2.1",
         ],
-        "search": [
-            "google-api-python-client",
-            "browse~=1.0.1",
-            "beautifulsoup4~=4.12.2",
-        ],
+        
         "other": [
             "Flask~=2.3.1",
             "matplotlib~=3.7.1",
@@ -62,7 +61,7 @@ setup(
     python_requires=">=3.9",
     package_data={
         "agentforge.loops": ["*"],
-        "agentforge.utils.installer": ["*"],
+        "agentforge.utils.installer": ["*", "**/*"],
     },
     entry_points={
         'console_scripts': [

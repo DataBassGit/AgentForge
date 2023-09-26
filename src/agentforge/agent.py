@@ -14,13 +14,13 @@ class Agent:
         self.output = None
 
         self.functions = Functions()
-        self.agent_data = self.functions.load_agent_data(self.agent_name)
+        self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
         self.storage = self.agent_data['storage']
 
         self.logger = Logger(name=self.agent_name)
         self.logger.set_level(log_level)
 
-    def run(self, bot_id=None, **kwargs):
+    def run(self, **kwargs):
         """This is the heart of all Agents, orchestrating the entire workflow from data loading to output generation."""
         self.status("Running ...")
         self.load_data(**kwargs)
@@ -47,16 +47,16 @@ class Agent:
         templates.append((system_prompt["template"], system_prompt["vars"]))
 
         # Remove prompts if there's no corresponding data
-        self.functions.remove_prompt_if_none(self.data['prompts'], self.data)
+        self.functions.prompt_handling.remove_prompt_if_none(self.data['prompts'], self.data)
 
         # Handle other types of prompts
         other_prompt_types = [prompt_type for prompt_type in self.data['prompts'].keys() if prompt_type != 'System']
         for prompt_type in other_prompt_types:
-            templates.extend(self.functions.handle_prompt_type(self.data['prompts'], prompt_type))
+            templates.extend(self.functions.prompt_handling.handle_prompt_type(self.data['prompts'], prompt_type))
 
         # Render Prompts
         self.prompt = [
-            self.functions.render_template(template, variables, data=self.data)
+            self.functions.prompt_handling.render_template(template, variables, data=self.data)
             for template, variables in templates
         ]
 
@@ -66,7 +66,7 @@ class Agent:
 
     def load_agent_data(self, **kwargs):
         """Loads the Agent data and any additional data given to it"""
-        self.agent_data = self.functions.load_agent_data(self.agent_name)
+        self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
         self.data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
 
         # Add any other data needed by the agent from kwargs
@@ -82,7 +82,6 @@ class Agent:
     def load_main_data(self):
         """Loads the main data for the Agent, by default it's the Objective and Current Task"""
         self.data['objective'] = self.agent_data.get('objective')
-        # self.data['task'] = self.functions.get_current_task()['document']
 
     def parse_result(self):
         """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
@@ -105,4 +104,4 @@ class Agent:
 
     def status(self, msg):
         """Prints a formatted status message to the console"""
-        self.functions.print_message(f"\n{self.agent_name} - {msg}")
+        self.functions.printing.print_message(f"\n{self.agent_name} - {msg}")

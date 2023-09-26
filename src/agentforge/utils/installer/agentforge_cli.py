@@ -15,6 +15,8 @@ def copy_files():
     os.makedirs(".agentforge/personas", exist_ok=True)
     os.makedirs("customagents", exist_ok=True)
     os.makedirs("logs", exist_ok=True)
+    os.makedirs(".agentforge/actions", exist_ok=True)
+    os.makedirs(".agentforge/tools", exist_ok=True)
 
     # Create infrastructure files
     with open(os.path.join("logs", "results.txt"), "w") as f:
@@ -24,9 +26,7 @@ def copy_files():
 
     # Define core config files
     files_to_copy = [
-        "actions.json",
         "config.json",
-        "tools.json",
     ]
 
     # Copy core config files to .agentforge
@@ -36,11 +36,21 @@ def copy_files():
         shutil.copyfile(src_path, dest_path)
 
     # Copy all files from the agents subfolder in src_path to .agentforge/agents
-    agents_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "agents/*")
-    for file_path in glob.glob(agents_src_path):
-        file_name = os.path.basename(file_path)
-        dest_path = os.path.join(".agentforge", "agents", file_name)
-        shutil.copyfile(file_path, dest_path)
+    def copy_files_from_src_to_dest(src_folder, dest_folder):
+        src_path = pkg_resources.resource_filename("agentforge.utils.installer", f"{src_folder}/*")
+        for file_path in glob.glob(src_path):
+            file_name = os.path.basename(file_path)
+            dest_path = os.path.join(".agentforge", dest_folder, file_name)
+            shutil.copyfile(file_path, dest_path)
+
+    # Copy from the tools subfolder
+    copy_files_from_src_to_dest("tools", "tools")
+
+    # Copy from the actions subfolder
+    copy_files_from_src_to_dest("actions", "actions")
+
+    # Copy from the agents subfolder
+    copy_files_from_src_to_dest("agents", "agents")
 
     # Copy personas/persona.json to .agentforge/personas
     personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/persona.json")
@@ -48,7 +58,7 @@ def copy_files():
     shutil.copyfile(personas_src_path, personas_dest_path)
 
 def copy_salience():
-    src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
+    src_path = pkg_resources.resource_filename("agentforge.utils.installer", "dyn.py")
     shutil.copyfile(src_path, "salience.py")
 
 def main():

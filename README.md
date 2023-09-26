@@ -144,7 +144,7 @@ Each Cognitive Architecture (bot) you create should contain an `.agentforge` fol
 
 **Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [Agents](docs/Agents/CustomAgents.md) as they can override these settings and call different models if needed.
 
->**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent scrips!  
+>**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent Scripts!  
 
 ### For Custom Agents
 
@@ -157,7 +157,7 @@ If you've installed our Salience example, head over to `Examples/SalienceBot/.ag
 To run the Salience Bot demo, go to `Examples/SalienceBot/` in your console and run:
 
 ```shell
-python salience.py
+python dyn.py
 ```
 
 This will execute a simple bot script that uses our default [Custom Agents](docs/Agents/PredefinedAgents/) to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.

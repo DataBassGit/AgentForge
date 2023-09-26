@@ -1,6 +1,6 @@
 import uuid
 from ..config import Config
-from .chroma_utils import ChromaUtils
+
 
 
 def metadata_builder(collection_name, name, details):
@@ -39,6 +39,7 @@ class StorageInterface:
         pass
 
     def initialize_chroma(self):
+        from .chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
 
@@ -53,6 +54,12 @@ class StorageInterface:
             storage_api = self.config.storage_api()
             if storage_api == 'chroma':
                 self.initialize_chroma()
+            elif storage_api == 'rabbitmq':
+                # self.initialize_rabbitmq()
+                pass
+            elif storage_api == 'pinecone':
+                pass
+                # self.initialize_pinecone()
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
@@ -87,3 +94,19 @@ class StorageInterface:
 
         self.storage_utils.select_collection(collection_name)
         self.storage_utils.save_memory(save_params)
+
+    def initialize_rabbitmq(self):
+        try:
+            from agentforge.utils.amqp_utils import AMQPUtils
+            self.storage_utils = AMQPUtils()
+            self.storage_utils.init_storage()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    def initialize_pinecone(self):
+        try:
+            from agentforge.utils.pinecone_utils import PineconeUtils
+            self.storage_utils = PineconeUtils()
+            self.storage_utils.init_storage()
+        except Exception as e:
+            print(f"An error occurred: {e}")

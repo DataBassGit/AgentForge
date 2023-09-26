@@ -1,3 +1,5 @@
+from agentforge.utils.functions.TaskHandling import get_current_task
+
 # Execution Agent
 
 ## Introduction
@@ -44,7 +46,7 @@ The `ExecutionAgent` class inherits from the `Agent` base class. It makes use of
 
 ```python
 def load_additional_data(self):
-    self.data['task'] = self.functions.get_current_task()['document']
+    self.data['task'] = get_current_task()['document']
 ```
 
 ---

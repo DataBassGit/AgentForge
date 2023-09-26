@@ -1,3 +1,5 @@
+from agentforge.utils.functions.TaskHandling import get_current_task
+
 # Status Agent
 
 ## Introduction
@@ -52,7 +54,7 @@ The `StatusAgent` class is derived from the `Agent` base class. By doing so, it 
 
 ```python
 def load_additional_data(self):
-    self.data['task'] = self.functions.get_current_task()['document']
+    self.data['task'] = get_current_task()['document']
 ```
 
 ---

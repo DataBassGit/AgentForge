@@ -7,7 +7,6 @@ from termcolor import cprint
 from colorama import init
 init(autoreset=True)
 
-# openai.api_key = os.environ.get('OPENAI_API_KEY')
 openai.api_key = os.getenv('OPENAI_API_KEY')
 _level = 'debug'
 
