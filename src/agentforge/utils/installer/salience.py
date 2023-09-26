@@ -1,4 +1,4 @@
-from agentforge.loops.ActionExecution import Action
+from agentforge.modules.ActionExecution import Action
 from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ExecutionAgent import ExecutionAgent
 from agentforge.agents.TaskCreationAgent import TaskCreationAgent
@@ -6,7 +6,6 @@ from agentforge.agents.StatusAgent import StatusAgent
 from agentforge.agents.SummarizationAgent import SummarizationAgent
 from agentforge.logs.logger_config import Logger
 from agentforge.utils.function_utils import Functions
-from agentforge.utils.functions.TaskHandling import get_current_task
 from agentforge.utils.storage_interface import StorageInterface
 
 
@@ -23,8 +22,8 @@ class Salience:
         self.selected_action = {}
 
         self.frustration_step = 0.1
-        self.min_frustration = 0.6
-        self.max_frustration = 0.9
+        self.min_frustration = 0.9
+        self.max_frustration = 1
         self.frustration = self.min_frustration
 
         self.storage = StorageInterface().storage_utils
@@ -88,16 +87,28 @@ class Salience:
 
         return "\n".join(formatted_strings).strip('---\n')
 
+    @staticmethod
+    def get_feedback_from_status_results(status):
+        if status is not None:
+            completed = status['status']
+
+            if 'not completed' in completed:
+                result = status['reason']
+            else:
+                result = None
+
+            return result
+
     def select_action(self):
         self.selected_action = None
-        self.selected_action = self.action_selection.run()
+        self.selected_action = self.action_selection.run(feedback=self.feedback)
 
         if self.selected_action:
             result = f"{self.selected_action['Name']}: {self.selected_action['Description']}"
             self.functions.printing.print_result(result, 'Action Selected')
 
     def determine_current_task(self):
-        self.data['current_task'] = get_current_task()
+        self.data['current_task'] = self.functions.task_handling.get_current_task()
         if self.data['current_task'] is None:
             self.logger.log("Task list has been completed!!!", 'info')
             quit()
