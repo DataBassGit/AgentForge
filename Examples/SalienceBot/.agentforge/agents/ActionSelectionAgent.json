@@ -13,6 +13,12 @@
       ],
       "template": "Take into consideration the following critique from the last action taken:\n\n{context}\n\n---\n\n"
     },
+    "Feedback": {
+      "vars": [
+        "feedback"
+      ],
+      "template": "Take into consideration the following feedback from the user:\n\n{feedback}\n\n---\n\n"
+    },
     "Actions": {
       "vars": [
         "action_list"
