@@ -68,6 +68,7 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
+
     def delete_collection(self, collection_name):
         try:
             self.client.delete_collection(collection_name)
