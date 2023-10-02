@@ -16,7 +16,7 @@ class Config:
 
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
-        self.data = {}  # This is the attribute that will contain the configuration data in config.json file
+        # self.data = {}  # This is the attribute that will contain the configuration data in config.json file
 
         # the following are placeholders for each of the respective json information the agent needs
         self.persona = {}
@@ -24,31 +24,27 @@ class Config:
         self.agent = {}
         self.tools = {}
 
-        self.models = {}
-        self.directives = {}
-        self.memories = {}
-        self.storage = {}
+        self.settings = {}
 
         # here is where we load the information from the JSON files to their corresponding attributes
         self.load()
 
     def load(self):
-        self.load_config()
-        self.load_settings()
+        self.load_configs()
         self.load_actions()
         self.load_tools()
         self.load_persona()
 
     def chromadb(self):
-        db_path = self.get('ChromaDB', 'persist_directory', default=None)
-        db_embed = self.get('ChromaDB', 'embedding', default=None)
+        db_path = self.get_info('ChromaDB', 'persist_directory', default=None)
+        db_embed = self.get_info('ChromaDB', 'embedding', default=None)
         return db_path, db_embed
 
-    def get(self, section, key, default=None):
-        if self.data is None:
+    def get_info(self, section, key, default=None):
+        if 'storage' in self.settings is None:
             self.load()
 
-        return self.data.get(section, {}).get(key, default)
+        return self.settings['storage'].get(section, {}).get(key, default)
 
     def get_config_element(self, case):
         switch = {
@@ -62,8 +58,8 @@ class Config:
         return pathlib.Path(self.config_path) / file_name
 
     def get_llm(self, api):
-        model_name = self.agent.get('Model', self.data['Defaults']['Model'])
-        model_name = self.data['ModelLibrary'].get(model_name)
+        model_name = self.agent.get('Model', self.settings['models']['Defaults']['Model'])
+        model_name = self.settings['models']['ModelLibrary'].get(model_name)
 
         models = {
             "claude_api": {
@@ -110,18 +106,21 @@ class Config:
             return {}
 
     def load_agent(self, agent_name):
-        # self.agent = self.get_json_data(f"agents/{agent_name}.json")
         self.agent['Prompts'] = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
-    def load_config(self):
-        self.data = self.get_json_data("settings/config.json")
-
-    def load_settings(self):
+    def load_configs(self):
         self.load_from_folder_yaml("settings")
 
     def load_from_folder_yaml(self, folder):
         # Get the path for the provided folder name
         folder_path = self.get_file_path(folder)
+
+        # If the folder attribute doesn't exist, initialize it as an empty dictionary
+        if not hasattr(self, folder):
+            setattr(self, folder, {})
+
+        # Reference to the folder's dictionary
+        folder_dict = getattr(self, folder)
 
         # Iterate over each file in the specified folder
         for file in os.listdir(folder_path):
@@ -133,16 +132,19 @@ class Config:
                 # Get the filename without the extension
                 filename = os.path.splitext(file)[0]
 
-                # Ensure the attribute exists
-                if not hasattr(self, filename):
-                    setattr(self, filename, {})
+                # Check if filename exists under the folder's dictionary, if not, initialize it as a dict
+                if filename not in folder_dict:
+                    folder_dict[filename] = {}
 
-                attribute_data = getattr(self, filename)
+                # Reference to the file name's dictionary
+                file_dict = folder_dict[filename]
+
                 for item_name, data_item in data.items():
+                    # Extract the name and store the data under that name in the file name's dictionary
                     if item_name:
-                        attribute_data[item_name] = data_item
+                        file_dict[item_name] = data_item
 
-    def load_from_folder(self, folder_and_attr_name):
+    def load_tools_folder(self, folder_and_attr_name):
         # Get the path for the provided folder name
         folder_path = self.get_file_path(folder_and_attr_name)
 
@@ -167,14 +169,13 @@ class Config:
                     getattr(self, folder_and_attr_name)[item_name] = data
 
     def load_actions(self):
-        self.load_from_folder("actions")
+        self.load_from_folder_yaml("actions")
 
     def load_tools(self):
-        self.load_from_folder("tools")
+        self.load_tools_folder("tools")
         
     def load_persona(self):
-        persona_name = self.data.get('Persona', {}).get('selected', "")
-        # self.persona = self.get_json_data(f"personas/{persona_name}.json")
+        persona_name = self.settings.get('directives', None).get('Persona', None)
         self.persona = self.get_yaml_data(f"personas/{persona_name}.yaml")
 
     def get_yaml_data(self, file_name):
@@ -195,5 +196,6 @@ class Config:
         self.load_tools()
         self.load_persona()
 
-    def storage_api(self):
-        return self.get('StorageAPI', 'selected')
+    def get_storage_api(self):
+
+        return self.settings['storage']['StorageAPI']

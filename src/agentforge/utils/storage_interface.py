@@ -2,17 +2,23 @@ import uuid
 from ..config import Config
 
 
-
-def metadata_builder(collection_name, name, details):
+def metadata_builder(collection_name, order, details):
     if collection_name == 'Tasks':
         return {
             "Status": "not completed",
-            "Description": details,
+            "Description": details.strip(),
             "List_ID": str(uuid.uuid4()),
-            "Order": name + 1  # assuming Name is passed in details for Tasks
+            "Order": order + 1  # assuming Name is passed in details for Tasks
         }
     else:
         return details
+
+
+def metadata_list_builder(order, details):
+    return {
+        "Description": details.strip(),
+        "Order": order  # assuming Name is passed in details for Tasks
+    }
 
 
 def description_extractor(metadata):
@@ -43,23 +49,27 @@ class StorageInterface:
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
 
-        if self.config.get('ChromaDB', 'DBFreshStart') == 'True':
+        # if self.config.get_info('ChromaDB', 'DBFreshStart') == 'True':
+        if self.config.settings['storage']['ChromaDB']['DBFreshStart'] == 'True':
             self.storage_utils.reset_memory()
-            storage = self.config.data['Storage']
+            storage = self.config.settings['memories']
 
             [self.prefill_storage(key, value) for key, value in storage.items()]
 
     def initialize_storage(self):
         if self.storage_utils is None:
-            storage_api = self.config.storage_api()
-            if storage_api == 'chroma':
+            # storage_api = self.config.get_storage_api()
+            storage_api = self.config.settings['storage']['StorageAPI']
+
+            if storage_api == 'ChromaDB':
                 self.initialize_chroma()
-            elif storage_api == 'rabbitmq':
+                return
+            if storage_api == 'rabbitmq':
                 # self.initialize_rabbitmq()
-                pass
-            elif storage_api == 'pinecone':
-                pass
+                return
+            if storage_api == 'Pinecone':
                 # self.initialize_pinecone()
+                return
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
@@ -78,30 +88,37 @@ class StorageInterface:
         generator = id_generator
         ids = generator(data)
 
-        if isinstance(data, list):
-            metadatas = [builder(collection_name, i, item) for i, item in enumerate(data)]
-        else:
-            metadatas = [builder(collection_name, key, value) for key, value in data.items()]
+        # metadata = None
+        #
+        # if isinstance(data, list):
+        #     description = [item for item in data]
 
-        description = [extractor(metadata) for metadata in metadatas]
+        # metadata = [builder(collection_name, key, value) for key, value in data.items()]
+
+        if isinstance(data, list):
+            metadata = [builder(collection_name, i, item) for i, item in enumerate(data)]
+        else:
+            metadata = [builder(collection_name, key, value) for key, value in data.items()]
+
+        description = [extractor(meta) for meta in metadata]
 
         save_params = {
             "collection_name": collection_name,
             "ids": ids,
             "data": description,
-            "metadata": metadatas,
+            "metadata": metadata,
         }
 
         self.storage_utils.select_collection(collection_name)
         self.storage_utils.save_memory(save_params)
 
-    def initialize_rabbitmq(self):
-        try:
-            from agentforge.utils.amqp_utils import AMQPUtils
-            self.storage_utils = AMQPUtils()
-            self.storage_utils.init_storage()
-        except Exception as e:
-            print(f"An error occurred: {e}")
+    # def initialize_rabbitmq(self):
+    #     try:
+    #         from agentforge.utils.amqp_utils import AMQPUtils
+    #         self.storage_utils = AMQPUtils()
+    #         self.storage_utils.init_storage()
+    #     except Exception as e:
+    #         print(f"An error occurred: {e}")
 
     def initialize_pinecone(self):
         try:

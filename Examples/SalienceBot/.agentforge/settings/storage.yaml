@@ -1,3 +1,5 @@
+StorageAPI: ChromaDB
+
 ChromaDB:
   chroma_db_impl: duckdb+parquet
   persist_directory: ./DB/ChromaDB

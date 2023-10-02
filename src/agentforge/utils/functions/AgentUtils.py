@@ -13,11 +13,8 @@ class AgentUtils:
     def load_agent_data(self, agent_name):
         self.config.reload(agent_name)
 
-        # defaults = self.config.data['Defaults']
-        # objective = self.config.data['Objective']
-
-        defaults = self.config.models['Defaults']
-        objective = self.config.directives['Objective']
+        defaults = self.config.settings['models']['Defaults']
+        objective = self.config.settings['directives']['Objective']
 
         agent = self.config.agent
         api = agent.get('API', defaults['API'])
@@ -41,5 +38,5 @@ class AgentUtils:
             if user_input.lower() == '':
                 return None
             else:
-                self.config.data['Objective'] = user_input
+                self.config.settings['directive']['Objective'] = user_input
                 return user_input

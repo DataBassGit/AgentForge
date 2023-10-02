@@ -1,5 +1,3 @@
-Persona: default
-StorageAPI: ChromaDB
 CustomAgentsPath: ./CustomAgents
 CustomModulesPath: ./CustomModules
 CustomToolsPath: ./CustomTools
