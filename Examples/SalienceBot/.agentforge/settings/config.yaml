@@ -1,0 +1,15 @@
+Persona: default
+
+Objective: Create a batch file that can update a pip library as a test build, separate from the main distribution.
+
+CustomAgentsPath: ./CustomAgents
+CustomModulesPath: ./CustomModules
+CustomToolsPath: ./CustomTools
+WorkspacePath: ./Workspace
+
+
+
+
+
+
+

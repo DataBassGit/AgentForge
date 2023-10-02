@@ -1,5 +1,6 @@
 import importlib
 import json
+import yaml
 import os
 import pathlib
 
@@ -22,6 +23,7 @@ class Config:
         self.actions = {}
         self.agent = {}
         self.tools = {}
+        self.models = {}
 
         # here is where we load the information from the JSON files to their corresponding attributes
         self.load()
@@ -96,6 +98,18 @@ class Config:
             print(f"Error decoding JSON from {file_path}")
             return {}
 
+    def get_yaml_data(self, file_name):
+        file_path = self.get_file_path(file_name)
+        try:
+            with open(file_path, 'r') as yaml_file:
+                return yaml.safe_load(yaml_file)
+        except FileNotFoundError:
+            print(f"File {file_path} not found.")
+            return {}
+        except yaml.YAMLError:
+            print(f"Error decoding YAML from {file_path}")
+            return {}
+
     def load(self):
         self.load_config()
         self.load_actions()
@@ -103,10 +117,12 @@ class Config:
         self.load_persona()
 
     def load_agent(self, agent_name):
-        self.agent = self.get_json_data(f"agents/{agent_name}.json")
+        # self.agent = self.get_json_data(f"agents/{agent_name}.json")
+        self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
     def load_config(self):
         self.data = self.get_json_data("config.json")
+        # self.data = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
     def load_from_folder(self, folder_and_attr_name):
         # Get the path for the provided folder name

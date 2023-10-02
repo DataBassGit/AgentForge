@@ -52,9 +52,9 @@ def copy_files():
     # Copy from the agents subfolder
     copy_files_from_src_to_dest("agents", "agents")
 
-    # Copy personas/persona.json to .agentforge/personas
-    personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/persona.json")
-    personas_dest_path = os.path.join(".agentforge", "personas", "persona.json")
+    # Copy personas/persona.yaml to .agentforge/personas
+    personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/persona.yaml")
+    personas_dest_path = os.path.join(".agentforge", "personas", "persona.yaml")
     shutil.copyfile(personas_src_path, personas_dest_path)
 
 def copy_salience():
