@@ -23,10 +23,21 @@ class Config:
         self.actions = {}
         self.agent = {}
         self.tools = {}
+
         self.models = {}
+        self.directives = {}
+        self.memories = {}
+        self.storage = {}
 
         # here is where we load the information from the JSON files to their corresponding attributes
         self.load()
+
+    def load(self):
+        self.load_config()
+        self.load_settings()
+        self.load_actions()
+        self.load_tools()
+        self.load_persona()
 
     def chromadb(self):
         db_path = self.get('ChromaDB', 'persist_directory', default=None)
@@ -98,31 +109,38 @@ class Config:
             print(f"Error decoding JSON from {file_path}")
             return {}
 
-    def get_yaml_data(self, file_name):
-        file_path = self.get_file_path(file_name)
-        try:
-            with open(file_path, 'r') as yaml_file:
-                return yaml.safe_load(yaml_file)
-        except FileNotFoundError:
-            print(f"File {file_path} not found.")
-            return {}
-        except yaml.YAMLError:
-            print(f"Error decoding YAML from {file_path}")
-            return {}
-
-    def load(self):
-        self.load_config()
-        self.load_actions()
-        self.load_tools()
-        self.load_persona()
-
     def load_agent(self, agent_name):
         # self.agent = self.get_json_data(f"agents/{agent_name}.json")
-        self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
+        self.agent['Prompts'] = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
     def load_config(self):
-        self.data = self.get_json_data("config.json")
-        # self.data = self.get_yaml_data(f"agents/{agent_name}.yaml")
+        self.data = self.get_json_data("settings/config.json")
+
+    def load_settings(self):
+        self.load_from_folder_yaml("settings")
+
+    def load_from_folder_yaml(self, folder):
+        # Get the path for the provided folder name
+        folder_path = self.get_file_path(folder)
+
+        # Iterate over each file in the specified folder
+        for file in os.listdir(folder_path):
+            # Only process files with a .yaml or .yml extension
+            if file.endswith(".yaml") or file.endswith(".yml"):
+                # Load the YAML data from the current file
+                data = self.get_yaml_data(os.path.join(folder, file))
+
+                # Get the filename without the extension
+                filename = os.path.splitext(file)[0]
+
+                # Ensure the attribute exists
+                if not hasattr(self, filename):
+                    setattr(self, filename, {})
+
+                attribute_data = getattr(self, filename)
+                for item_name, data_item in data.items():
+                    if item_name:
+                        attribute_data[item_name] = data_item
 
     def load_from_folder(self, folder_and_attr_name):
         # Get the path for the provided folder name
@@ -156,7 +174,20 @@ class Config:
         
     def load_persona(self):
         persona_name = self.data.get('Persona', {}).get('selected', "")
-        self.persona = self.get_json_data(f"personas/{persona_name}.json")
+        # self.persona = self.get_json_data(f"personas/{persona_name}.json")
+        self.persona = self.get_yaml_data(f"personas/{persona_name}.yaml")
+
+    def get_yaml_data(self, file_name):
+        file_path = self.get_file_path(file_name)
+        try:
+            with open(file_path, 'r') as yaml_file:
+                return yaml.safe_load(yaml_file)
+        except FileNotFoundError:
+            print(f"File {file_path} not found.")
+            return {}
+        except yaml.YAMLError:
+            print(f"Error decoding YAML from {file_path}")
+            return {}
 
     def reload(self, agent_name):
         self.load_agent(agent_name)
