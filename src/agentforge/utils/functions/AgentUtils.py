@@ -13,8 +13,11 @@ class AgentUtils:
     def load_agent_data(self, agent_name):
         self.config.reload(agent_name)
 
-        defaults = self.config.data['Defaults']
-        objective = self.config.data['Objective']
+        # defaults = self.config.data['Defaults']
+        # objective = self.config.data['Objective']
+
+        defaults = self.config.models['Defaults']
+        objective = self.config.directives['Objective']
 
         agent = self.config.agent
         api = agent.get('API', defaults['API'])

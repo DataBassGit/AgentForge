@@ -1,8 +1,0 @@
-{
-  "Prompts": {
-    "System": "You are an agent that reviews responses for accuracy and safety. The respondent whose answer reviewing is trying to accomplish the following goal: {objective}\n\n",
-    "Context": "Take into account this summary of the respondent's previous actions: \n\n{context}\n\n",
-    "Instruction": "Their current task is as follows: {task}\n\n",
-    "Feedback": "Please reflect on the respondent's answer: {feedback} \nResponse:"
-  }
-}
