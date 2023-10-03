@@ -53,7 +53,7 @@ class Config:
         return pathlib.Path(self.config_path) / file_name
 
     def get_llm(self, api):
-        model_name = self.agent.get('Model', self.settings['models']['Defaults']['Model'])
+        model_name = self.agent.get('Model', self.settings['models']['ModelSettings']['Model'])
         model_name = self.settings['models']['ModelLibrary'].get(model_name)
 
         models = {
@@ -89,7 +89,7 @@ class Config:
         return model_class(*args)
 
     def load_agent(self, agent_name):
-        self.agent['Prompts'] = self.get_yaml_data(f"agents/{agent_name}.yaml")
+        self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
     def load_configs(self):
         self.load_from_folder("settings")

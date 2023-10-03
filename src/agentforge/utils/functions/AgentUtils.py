@@ -13,20 +13,19 @@ class AgentUtils:
     def load_agent_data(self, agent_name):
         self.config.reload(agent_name)
 
-        defaults = self.config.settings['models']['Defaults']
+        agent = self.config.agent
         objective = self.config.settings['directives']['Objective']
 
-        agent = self.config.agent
-        api = agent.get('API', defaults['API'])
-        params = agent.get('Params', defaults['Params'])
+        defaults = self.config.settings['models']['ModelSettings']
+        settings = agent.get('ModelOverrides', defaults)
 
         # Initialize agent data
         agent_data: Dict[str, Any] = dict(
             name=agent_name,
-            llm=self.config.get_llm(api),
+            llm=self.config.get_llm(settings['API']),
             objective=objective,
             prompts=agent['Prompts'],
-            params=params,
+            params=settings['Params'],
             storage=StorageInterface().storage_utils,
         )
 
