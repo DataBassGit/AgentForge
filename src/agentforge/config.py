@@ -36,15 +36,10 @@ class Config:
         self.load_persona()
 
     def chromadb(self):
-        db_path = self.get_info('ChromaDB', 'persist_directory', default=None)
-        db_embed = self.get_info('ChromaDB', 'embedding', default=None)
+        db_path = self.settings['storage'].get('ChromaDB', {}).get('persist_directory', None)
+        db_embed = self.settings['storage'].get('ChromaDB', {}).get('embedding', None)
+
         return db_path, db_embed
-
-    def get_info(self, section, key, default=None):
-        if 'storage' in self.settings is None:
-            self.load()
-
-        return self.settings['storage'].get(section, {}).get(key, default)
 
     def get_config_element(self, case):
         switch = {
@@ -93,25 +88,13 @@ class Config:
         args = model.get("args", [])
         return model_class(*args)
 
-    def get_json_data(self, file_name):
-        file_path = self.get_file_path(file_name)
-        try:
-            with open(file_path, 'r') as json_file:
-                return json.load(json_file)
-        except FileNotFoundError:
-            print(f"File {file_path} not found.")
-            return {}
-        except json.JSONDecodeError:
-            print(f"Error decoding JSON from {file_path}")
-            return {}
-
     def load_agent(self, agent_name):
         self.agent['Prompts'] = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
     def load_configs(self):
-        self.load_from_folder_yaml("settings")
+        self.load_from_folder("settings")
 
-    def load_from_folder_yaml(self, folder):
+    def load_from_folder(self, folder):
         # Get the path for the provided folder name
         folder_path = self.get_file_path(folder)
 
@@ -144,36 +127,12 @@ class Config:
                     if item_name:
                         file_dict[item_name] = data_item
 
-    def load_tools_folder(self, folder_and_attr_name):
-        # Get the path for the provided folder name
-        folder_path = self.get_file_path(folder_and_attr_name)
-
-        # Initialize the attribute as an empty dictionary
-        setattr(self, folder_and_attr_name, {})
-
-        # Iterate over each file in the specified folder
-        for file in os.listdir(folder_path):
-            # Only process files with a .json extension
-            if file.endswith(".json"):
-                # Load the JSON data from the current file
-                data = self.get_json_data(os.path.join(folder_and_attr_name, file))
-
-                # Extract the name and remove it from the data
-                if folder_and_attr_name == 'tools':
-                    item_name = data.pop('Name', None)
-                else:
-                    item_name = data.get('Name', None)
-
-                # If the name exists, store the data under that name in the specified attribute
-                if item_name:
-                    getattr(self, folder_and_attr_name)[item_name] = data
-
     def load_actions(self):
-        self.load_from_folder_yaml("actions")
+        self.load_from_folder("actions")
 
     def load_tools(self):
-        self.load_tools_folder("tools")
-        
+        self.load_from_folder("tools")
+
     def load_persona(self):
         persona_name = self.settings.get('directives', None).get('Persona', None)
         self.persona = self.get_yaml_data(f"personas/{persona_name}.yaml")

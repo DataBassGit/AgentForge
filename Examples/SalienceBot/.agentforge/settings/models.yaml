@@ -1,11 +1,6 @@
 EmbeddingLibrary:
   library: sentence_transformers
 
-#LanguageModelAPI:
-#  library: openai_api
-#  oobabooga: oobabooga_api
-#  oobaboogaV2: oobabooga_v2_api
-
 ModelLibrary:
   claude: claude-2
   fast_model: gpt-3.5-turbo-0613
