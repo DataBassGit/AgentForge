@@ -11,10 +11,10 @@ thou = ThoughtAgent()
 class Chatbot:
 
     def __init__(self):
-        inbound = ListenForUI().BotApi()
+
         pass
     def run(self):
         pass
 
 if __name__ == '__main__':
-    api = listenforui.BotApi(callback=Chatbot().run)
+    api = ListenForUI.BotApi(callback=Chatbot().run)
