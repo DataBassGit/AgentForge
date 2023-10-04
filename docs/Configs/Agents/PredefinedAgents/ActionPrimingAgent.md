@@ -126,6 +126,6 @@ payload = action_priming_agent.run()
 
 In this example, the `ActionPrimingAgent` receives a tool and the previous tool results, it will then return a `payload` which contains the tool in it's primed state ready to be executed.
 
-> **Note**: For a more detailed explanation on how we use actions to string tools together in a sequence, please refer to our [Actions Documentation](../../Tools&Actions/ToolsActions.md)
+> **Note**: For a more detailed explanation on how we use actions to string tools together in a sequence, please refer to our [Actions Documentation](../../Tools/ToolsActions.md)
 
 ---

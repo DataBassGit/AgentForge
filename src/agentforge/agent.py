@@ -73,7 +73,7 @@ class Agent:
         self.data['objective'] = self.agent_data.get('objective')
 
     def parse_result(self):
-        """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
+        """This method does nothing by default, it is meant to be overridden by Custom Agents if needed"""
         pass
 
     def process_data(self):
@@ -84,7 +84,7 @@ class Agent:
         """Sends the rendered prompt to the LLM and stores the response in the internal result attribute"""
         model: LLM = self.agent_data['llm']
         params = self.agent_data.get("params", {})
-        self.result = model.generate_text(self.prompt, **params,).strip()
+        self.result = model.generate_text(self.prompt, **params).strip()
 
     def save_result(self):
         """This method saves the LLM Result to memory"""

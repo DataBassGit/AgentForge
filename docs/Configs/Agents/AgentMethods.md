@@ -37,26 +37,26 @@ For more details on how to create and specialize agents, see [Custom Agents](Cus
 
 ## Run
 
-### `run(bot_id=None, **kwargs)`
+### `run(**kwargs)`
 
 **Purpose**: This method is the main orchestrator for the agent's workflow. It sequentially calls other methods to load and process data, generate prompts, run the LLM, parse results, save them, and finally build the output.
 
 **Arguments**:
-- `bot_id`: An optional identifier for the bot. Defaults to `None`. (Note: There is no implementation for this variable yet)
 - `**kwargs`: Additional keyword arguments that may be passed to `load_data`.
 
 **Workflow**:
 1. Display the running status.
-2. Load data using `self.load_data()`.
+2. Load data using `self.load_data(**kwargs)`.
 3. Process the loaded data using `self.process_data()`.
 4. Generate the prompt using `self.generate_prompt()`.
 5. Execute the LLM using `self.run_llm()`.
 6. Parse the result using `self.parse_result()`.
 7. Save the parsed result using `self.save_result()`.
 8. Build the final output using `self.build_output()`.
+9. Return the built output
 
 ```python
-def run(self, bot_id=None, **kwargs):
+def run(self, **kwargs):
     """This is the heart of all Agents, orchestrating the entire workflow from data loading to output generation."""
     self.status("Running ...")
     self.load_data(**kwargs)
@@ -102,14 +102,14 @@ def status(self, msg):
 - `**kwargs`: Additional keyword arguments that may be used by `load_agent_data` for fetching the agent-specific data.
 
 **Workflow**:
-1. Calls `self.agent_utils.load_agent_data(**kwargs)` to populate agent-specific data. The data is stored internally.
+1. Calls `self.load_agent_data(**kwargs)` to populate agent-specific data. The data is stored internally.
 2. Invokes `self.load_main_data()` to add core data required for the agent's operation. The data is added to the internal `data` attribute.
 3. Executes `self.load_additional_data()` to include any extra data. Again, this is added to the internal `data` attribute.
 
 ```python
 def load_data(self, **kwargs):
     """This method is in charge of calling all the relevant load data methods"""
-    self.agent_utils.load_agent_data(**kwargs)
+    self.load_agent_data(**kwargs)
     self.load_main_data()
     self.load_additional_data()
 ```
@@ -206,42 +206,35 @@ def process_data(self):
 
 ## Generate Prompt
 
-### `generate_prompt(self, **kwargs)`
+### `generate_prompt(self)`
 
-**Purpose**: This method is in charge of generating the prompts needed for the LLM to operate. It constructs a list of prompts based on predefined templates and variables. These prompts are stored directly in the agent's internal `prompt` attribute.
-
-**Arguments**:
-- `**kwargs`: Additional keyword arguments that can be used to provide extra data or override existing prompt data.
+**Purpose**: This method is responsible for generating the prompts required for the LLM to operate. It constructs the prompts based on predefined templates and the available data. The generated prompts are stored directly in the agent's internal `prompt` attribute.
 
 **Workflow**:
-1. Initialize an empty list named `templates` for storing prompt templates.
-2. Handle the system prompt by fetching it from the internal `data['prompts']['System']` and add it to `templates`.
-3. Remove any prompts for which there's no corresponding data in the internal `data` attribute by calling `self.functions.prompt_handling.remove_prompt_if_none`.
-4. Handle other types of prompts that are not the system prompt. Extend `templates` with these other types.
-5. Render the prompts using the templates and variables. Store the rendered prompts directly in the agent's internal `prompt` attribute.
+1. Initialize an empty list named `rendered_prompts` for storing the generated prompts.
+2. Iterate over each `prompt_template` in the agent's internal `data['prompts']` attribute.
+3. Handle each prompt template by fetching it and validating it using the `handle_prompt_template` function.
+4. If the returned template is valid, render the template using the agent's data.
+5. Add the rendered prompt to the `rendered_prompts` list.
+6. Store the `rendered_prompts` directly in the agent's internal `prompt` attribute.
 
 ```python
-def generate_prompt(self, **kwargs):
-    """Takes the data previously loaded and processes it to render the prompt being fed to the LLM"""
-    templates = []
-    system_prompt = self.data['prompts']['System']
-    templates.append((system_prompt["template"], system_prompt["vars"]))
+def generate_prompt(self):
+    """Takes the data previously loaded and processes it to render the prompt being fed to the LLM."""
+    rendered_prompts = []
 
-    self.functions.prompt_handling.remove_prompt_if_none(self.data['prompts'], self.data)
+    for prompt_template in self.data['prompts'].values():
+        template = self.functions.prompt_handling.handle_prompt_template(prompt_template, self.data)
+        if template:  # If the template is valid (i.e., not None)
+            rendered_prompt = self.functions.prompt_handling.render_prompt_template(template, self.data)
+            rendered_prompts.append(rendered_prompt)
 
-    other_prompt_types = [prompt_type for prompt_type in self.data['prompts'].keys() if prompt_type != 'System']
-    for prompt_type in other_prompt_types:
-        templates.extend(self.functions.prompt_handling.handle_prompt_type(self.data['prompts'], prompt_type))
-
-    self.prompt = [
-        self.functions.prompt_handling.render_prompt(template, variables, data=self.data)
-        for template, variables in templates
-    ]
+    self.prompt = rendered_prompts
 ```
 
-> **Note**: The prompt templates for each agent come from a corresponding `JSON` file found in the `.agentforge/agents/` folder, the `JSON` file name must match the custom agent class name.
+> **Note**: The prompt templates for each agent come from a corresponding `YAML` file found in the `.agentforge/agents/` folder. The `YAML` file name must match the custom agent class name.
 > 
-> **Example**: If you have a custom agent class named `NewAgent`, the corresponding `JSON` file should be named `NewAgent.json`.
+> **Example**: If you have a custom agent class named `NewAgent`, the corresponding `YAML` file should be named `NewAgent.yaml`.
 
 ---
 
@@ -264,7 +257,7 @@ def run_llm(self):
     """Sends the rendered prompt to the LLM and stores the response in the internal result attribute"""
     model: LLM = self.agent_data['llm']
     params = self.agent_data.get("params", {})
-    self.result = model.generate_text(self.prompt, **params,).strip()
+    self.result = model.generate_text(self.prompt, **params).strip()
 ```
 
 ---
@@ -334,6 +327,6 @@ def build_output(self):
 
 ## Note: Additional Functions
 
-While the key methods relevant for [Custom Agent](CustomAgents.md) creation have been covered in this section, the `Agent` class imports additional methods from a `Functions` utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Functions](../Utils/FunctionUtils.md) Page.
+While the key methods relevant for [Custom Agent](CustomAgents.md) creation have been covered in this section, the `Agent` class imports additional methods from a `Functions` utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Functions](../../Utils/FunctionUtils.md) Page.
 
 ---

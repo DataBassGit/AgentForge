@@ -11,7 +11,7 @@ class TaskHandling:
 
     def __init__(self):
         self.storage = StorageInterface()
-        # self.config = Config()
+        # self.config = Configs()
 
     def get_current_task(self):
         ordered_list = self.get_ordered_task_list()

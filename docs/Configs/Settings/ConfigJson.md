@@ -9,7 +9,7 @@ The `config.json` file serves as the primary configuration source for the system
 
 For specialized tasks or requirements, each agent in the system can autonomously override the default LLM (Large Language Model) configurations that are set in the `config.json` file. This capability ensures that agents can operate with specific models or parameters that are best suited for their individual roles.
 
-To understand the format and usage of overriding defaults for agents, refer to the [**Overriding Default Configurations Documentation**](./OverridingConfig.md).
+To understand the format and usage of overriding defaults for agents, refer to the [**Overriding Default Configurations Documentation**](../Overrides/OverridingConfig.md).
 
 ---
 >**Note**: The breakdown below represents a sample configuration. The actual settings might vary based on user needs and system requirements.

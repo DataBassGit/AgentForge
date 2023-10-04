@@ -1,5 +1,4 @@
 import importlib
-import json
 import yaml
 import os
 import pathlib
@@ -16,21 +15,19 @@ class Config:
 
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
-        # self.data = {}  # This is the attribute that will contain the configuration data in config.json file
 
-        # the following are placeholders for each of the respective json information the agent needs
+        # Placeholders for the data the agent needs which is located in each respective YAML file
         self.persona = {}
         self.actions = {}
         self.agent = {}
         self.tools = {}
-
         self.settings = {}
 
-        # here is where we load the information from the JSON files to their corresponding attributes
+        # Here is where we load the information from the YAML files to their corresponding attributes
         self.load()
 
     def load(self):
-        self.load_configs()
+        self.load_settings()
         self.load_actions()
         self.load_tools()
         self.load_persona()
@@ -91,7 +88,7 @@ class Config:
     def load_agent(self, agent_name):
         self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
-    def load_configs(self):
+    def load_settings(self):
         self.load_from_folder("settings")
 
     def load_from_folder(self, folder):
