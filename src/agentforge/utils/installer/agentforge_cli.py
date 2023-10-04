@@ -18,6 +18,7 @@ def copy_files():
     os.makedirs("logs", exist_ok=True)
     os.makedirs(".agentforge/actions", exist_ok=True)
     os.makedirs(".agentforge/tools", exist_ok=True)
+    os.makedirs(".agentforge/settings", exist_ok=True)
 
     # Create infrastructure files
     with open(os.path.join("logs", "results.txt"), "w") as f:
@@ -25,16 +26,16 @@ def copy_files():
     with open(os.path.join("customagents", "__init__.py"), "w") as f:
         f.write("Results log file\n")
 
-    # Define core config files
-    files_to_copy = [
-        "config.json",
-    ]
-
-    # Copy core config files to .agentforge
-    for file_name in files_to_copy:
-        src_path = pkg_resources.resource_filename("agentforge.utils.installer", file_name)
-        dest_path = os.path.join(".agentforge", file_name)
-        shutil.copyfile(src_path, dest_path)
+    # # Define core config files
+    # files_to_copy = [
+    #     "config.json",
+    # ]
+    #
+    # # Copy core config files to .agentforge
+    # for file_name in files_to_copy:
+    #     src_path = pkg_resources.resource_filename("agentforge.utils.installer", file_name)
+    #     dest_path = os.path.join(".agentforge", file_name)
+    #     shutil.copyfile(src_path, dest_path)
 
     # Copy all files from the agents subfolder in src_path to .agentforge/agents
     def copy_files_from_src_to_dest(src_folder, dest_folder):
@@ -52,6 +53,9 @@ def copy_files():
 
     # Copy from the agents subfolder
     copy_files_from_src_to_dest("agents", "agents")
+
+    # Copy from the settings subfolder
+    copy_files_from_src_to_dest("settings", "settings")
 
     # Copy personas/default.yaml to .agentforge/personas
     personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/default.yaml")

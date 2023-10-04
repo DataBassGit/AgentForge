@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.15",
+    version="0.1.17",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -32,6 +32,7 @@ setup(
         "google-api-python-client",
         "beautifulsoup4~=4.12.2",
         "browse~=1.0.1",
+        "kivy~=2.2.1",
     ],
     extras_require={
         "pinecone": [
