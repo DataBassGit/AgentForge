@@ -8,7 +8,7 @@ class StopExecution(Exception):
 class ActionSelectionAgent(Agent):
 
     actions = {}
-    threshold = 0.9
+    threshold = 0.6
     num_results = 10
 
     def run(self, **kwargs):

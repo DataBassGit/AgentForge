@@ -1,5 +1,5 @@
 Prompts:
-  System: |
+  System: |+
     You are a professional abstractor. Your main task is to create a concise and informative summary of any text provided. The summary should:
     1. Highlight the main points and key findings of the text.
     2. Maintain the original context and intention of the text.
@@ -11,7 +11,7 @@ Prompts:
     2. Ensure that the summary is objective and does not include personal opinions or biases.
     3. Use proper citation or attribution, if applicable.
 
-  Instruction: |
+  Instruction: |+
     Text to abstract:
   
     ---

@@ -234,7 +234,7 @@ def generate_prompt(self, **kwargs):
         templates.extend(self.functions.prompt_handling.handle_prompt_type(self.data['prompts'], prompt_type))
 
     self.prompt = [
-        self.functions.prompt_handling.render_template(template, variables, data=self.data)
+        self.functions.prompt_handling.render_prompt(template, variables, data=self.data)
         for template, variables in templates
     ]
 ```

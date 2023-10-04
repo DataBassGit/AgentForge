@@ -2,41 +2,35 @@ import re
 
 
 class PromptHandling:
+    # Define a pattern to find all occurrences of {variable_name}
+    pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
 
-    def handle_prompt_type(self, prompts, prompt_type):
-        """Handle each type of prompt and return template and vars."""
-        prompt_data = prompts.get(prompt_type, {})
-        required_vars = self.extract_prompt_variables(prompt_data)
-        if prompt_data:
-            return [(prompt_data, required_vars)]
-        return []
-
-    def remove_prompt_if_none(self, prompts, kwargs):
-        prompts_copy = prompts.copy()
-
-        for prompt_type, prompt_data in prompts_copy.items():
-            required_vars = self.extract_prompt_variables(prompt_data)
-
-            # If there are no required vars we keep the prompt and skip to the next iteration
-            if not required_vars:
-                continue
-
-            # Remove the prompt if the required vars don't exist or if any is empty
-            for var in required_vars:
-                if not kwargs.get(var):
-                    prompts.pop(prompt_type)
-                    break  # Exit this loop, the dictionary has been changed
-
-    @staticmethod
-    def render_template(template, variables, data):
-        temp = template.format(
-            **{k: v for k, v in data.items() if k in variables}
-        )
-
-        return temp
-
-    @staticmethod
-    def extract_prompt_variables(template):
+    def extract_prompt_variables(self, template):
         # Regular expression to match valid Python variable names inside {}
-        pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
-        return re.findall(pattern, template)
+        return re.findall(self.pattern, template)
+
+    def handle_prompt_template(self, prompt_template, data):
+        """Return the template if all its required variables are present in the data and are not empty."""
+        required_vars = self.extract_prompt_variables(prompt_template)
+
+        # If there are no required variables, return the template as is
+        if not required_vars:
+            return prompt_template
+
+        # Check if all required_vars are in data and not empty
+        if all(data.get(var) for var in required_vars):  # This will fail for empty strings, None, etc.
+            return prompt_template
+        return None
+
+    def render_prompt_template(self, template, data):
+        """Replace each variable in the template with its value from data"""
+        variable_pattern = re.compile(self.pattern)
+        prompt = variable_pattern.sub(self.replacement_function, template, data)
+
+        return prompt
+
+    @staticmethod
+    def replacement_function(match, data):
+        variable_name = match.group(1)  # Extract the variable name from the match
+        result = data.get(variable_name, match.group(0))  # Fetch the data or return the original if not found
+        return str(result)

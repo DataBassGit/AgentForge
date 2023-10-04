@@ -34,10 +34,10 @@ Prompts:
     Strictly adhere to the response format below.
     
     RESPONSE FORMAT:
-    {{
+    {
       "action": <selected action>,
-      "thoughts": {{
+      "thoughts": {
         "reasoning": <reasoning for the selected action>,
         "say": <thoughts summary to say to user>
-      }}
-    }}
+      }
+    }

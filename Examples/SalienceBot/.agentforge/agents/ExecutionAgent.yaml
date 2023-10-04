@@ -1,31 +1,34 @@
 Prompts:
-  System: |
-    You are an AI who performs one task based on the following objective: {objective}
+  System: |+
+    You are an AI who performs one task based on the following objective: 
+    
+      {objective}
 
-  Summary: |
+  Summary: |+
     Take into account this summary of your previous actions:
     
-    {summary}
+      {summary}
     
     ---
 
-  Context: |
+  Context: |+
     Take into consideration the following critique from the last action taken:
     
-    {context}
+      {context}
     
     ---
 
-  Feedback: |
+  Feedback: |+
     Take into consideration the following feedback from the user:
     
-    {feedback}
+      {feedback}
     
     ---
 
-  Instruction: |
-    Please complete the following task: {task}
+  Instruction: |+
+    Please complete the following task:
     
-    Response: {{
-      your response
-    }}
+      {task}
+
+  Response: |+
+    Response: {your response}
