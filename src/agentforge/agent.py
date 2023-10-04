@@ -37,25 +37,6 @@ class Agent:
         """Sets the internal 'output' attribute as the internal 'result' attribute by default"""
         self.output = self.result
 
-    # def generate_prompt(self):
-    #     """Takes the data previously loaded and processes it to render the prompt being fed to the LLM"""
-    #     # Prompt Template for Rendering
-    #     templates = []
-    #
-    #     # Remove prompts if there's no corresponding data
-    #     self.functions.prompt_handling.remove_prompts_if_none(self.data['prompts'], self.data)
-    #
-    #     # Handle prompts
-    #     prompts = [prompt_type for prompt_type in self.data['prompts'].keys()]
-    #     for prompt_type in prompts:
-    #         templates.extend(self.functions.prompt_handling.handle_prompt_type(self.data['prompts'], prompt_type))
-    #
-    #     # Render Prompts
-    #     self.prompt = [
-    #         self.functions.prompt_handling.render_prompt(template, variables, data=self.data)
-    #         for template, variables in templates
-    #     ]
-
     def generate_prompt(self):
         """Takes the data previously loaded and processes it to render the prompt being fed to the LLM."""
         rendered_prompts = []
