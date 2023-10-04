@@ -69,7 +69,7 @@ class Agent:
         self.load_additional_data()
 
     def load_main_data(self):
-        """Loads the main data for the Agent, by default it's the Objective and Current Task"""
+        """Loads the main data for the Agent, by default it's the Objective"""
         self.data['objective'] = self.agent_data.get('objective')
 
     def parse_result(self):

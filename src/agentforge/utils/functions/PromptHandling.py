@@ -24,13 +24,13 @@ class PromptHandling:
 
     def render_prompt_template(self, template, data):
         """Replace each variable in the template with its value from data"""
+
+        def replacement_function(match):
+            variable_name = match.group(1)  # Extract the variable name from the match
+            result = data.get(variable_name, match.group(0))  # Fetch the data or return the original if not found
+            return str(result)
+
         variable_pattern = re.compile(self.pattern)
-        prompt = variable_pattern.sub(self.replacement_function, template, data)
+        prompt = variable_pattern.sub(replacement_function, template)
 
         return prompt
-
-    @staticmethod
-    def replacement_function(match, data):
-        variable_name = match.group(1)  # Extract the variable name from the match
-        result = data.get(variable_name, match.group(0))  # Fetch the data or return the original if not found
-        return str(result)

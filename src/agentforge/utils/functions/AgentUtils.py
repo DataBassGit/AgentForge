@@ -7,7 +7,6 @@ from ..storage_interface import StorageInterface
 class AgentUtils:
 
     def __init__(self):
-        self.storage = StorageInterface()
         self.config = Config()
 
     def load_agent_data(self, agent_name):
@@ -37,5 +36,5 @@ class AgentUtils:
             if user_input.lower() == '':
                 return None
             else:
-                self.config.settings['directive']['Objective'] = user_input
+                self.config.settings['directives']['Objective'] = user_input
                 return user_input

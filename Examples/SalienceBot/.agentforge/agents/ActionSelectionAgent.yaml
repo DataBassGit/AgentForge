@@ -1,30 +1,30 @@
 Prompts:
-  System: |
+  System: |+
     Your job is to decide whether the following task requires the use of an action: {task}
     
     This task was curated to achieve the core objective: {objective}
 
-  Context: |
+  Context: |+
     Take into consideration the following critique from the last action taken:
     
     {context}
     
     ---
 
-  Feedback: |
+  Feedback: |+
     Take into consideration the following feedback from the user:
     
     {feedback}
     
     ---
 
-  Actions: |
+  Actions: |+
     Take into consideration the following actions available:
     
     {action_list}
     ---
 
-  Instruction: |
+  Instruction: |+
     Your job requires you to review the forthcoming task in the light of the main objective and context you've been given.
     
     You must then recommend an action from the list of actions given, which is expected to most effectively fulfill the upcoming task.
