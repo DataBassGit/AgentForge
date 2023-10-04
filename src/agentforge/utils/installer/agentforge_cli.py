@@ -5,6 +5,7 @@ import shutil
 import argparse
 import pkg_resources
 import glob
+import subprocess
 
 
 def copy_files():
@@ -61,15 +62,21 @@ def copy_salience():
     src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
     shutil.copyfile(src_path, "salience.py")
 
+def gui():
+    guipath = pkg_resources.resource_filename("agentforge.utils.guiutils", "gui.py")
+    subprocess.run(["python", guipath])
+
 def main():
     parser = argparse.ArgumentParser(description="AgentForge CLI")
-    parser.add_argument("command", choices=["init","salience"], help="The command to run")
+    parser.add_argument("command", choices=["init","salience","gui"], help="The command to run")
     args = parser.parse_args()
 
     if args.command == "init":
         copy_files()
     elif args.command == "salience":
         copy_salience()
+    elif args.command == "gui":
+        gui()
 
 if __name__ == "__main__":
     main()
