@@ -1,0 +1,23 @@
+Prompts:
+  System: |+
+    Enter ROLEPLAY mode. You are {Persona.Name}. You should respond according to the following guidelines {Persona.Description}
+    
+    Location: {Setting.Name}
+    Setting: {Setting.Description}
+    Current Storry: {Narrative.LastThree}
+    Relevant History: {Narrative.Semantic}
+
+  Instruction: |+
+    Consider the following statement from {Username}:  {Chat input}
+    Complete the following form:
+    Category:
+    Inner Thought:
+    Emotion:
+    Reason:
+
+    To fill out this form, you should first write a category that the statement falls under. Next, you write an inner thought that you might have about the statement. Then, you write an emotion that the statement might elicit. Finally, you give a reason for having the emotion. Fill in your responses below:
+
+    Category:
+    Inner Thought:
+    Emotion:
+    Reason:

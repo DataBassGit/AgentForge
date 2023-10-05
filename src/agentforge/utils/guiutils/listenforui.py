@@ -6,6 +6,7 @@ class BotApi:
         self.app = Flask(__name__)
         self.callback = callback
         self.setup_routes()
+        self.run()
 
     def setup_routes(self):
         @self.app.route('/bot', methods=['POST'])
@@ -19,5 +20,5 @@ class BotApi:
 
             return jsonify({"received_message": message})
 
-    def run(self, host='127.0.0.1', port=1337):
+    def run(self, host='127.0.0.1', port=5001):
         self.app.run(host=host, port=port)

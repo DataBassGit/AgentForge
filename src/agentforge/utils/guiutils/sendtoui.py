@@ -1,5 +1,3 @@
-# api_client.py
-
 import requests
 
 
@@ -8,37 +6,32 @@ class ApiClient:
 
     def __init__(self):
         pass
-        # self.endpoints = {
-        #     'api1': 'api1',
-        #     'api2': 'api2',
-        #     'api3': 'api3'
-        # }
 
-    def send_message(self, target, message):
-        # if target not in self.endpoints:
-        #     raise ValueError(f"Invalid target: {target}. Valid targets are: {', '.join(self.endpoints.keys())}")
-
-        # url = self.BASE_URL + self.endpoints[target]
-        url = self.BASE_URL + target
+    def send_message(self, target, layer, message):
+        url = self.BASE_URL + str(target)
         print(f"\nSending message to {url}: {message}")
-        response = requests.post(url, json={'message': message})
-        print(f"\nResponse: {response}")
+        response = requests.post(url, json={'layer_number': layer,'message': message})
 
-        return response.json()
+        if response.status_code == 200:
+            try:
+                data = response.json()
+                print(f"\nResponse: {data}")
+                return data
+            except ValueError as e:
+                print(f"\nError parsing JSON response: {e}")
+                return None
+        else:
+            print(f"\nHTTP Error: {response.status_code}")
+            return None
 
 
 # Example usage:
 if __name__ == "__main__":
     client = ApiClient()
 
-    # Send a message to api1
-    response = client.send_message('api1', 'Hello to API 1!')
-    print(response)
+    # Send a message to 'chat' endpoint
+    response = client.send_message('chat', 'Hello, Chat!')
 
-    # Send a message to api2
-    response = client.send_message('api2', 'Hello to API 2!')
-    print(response)
-
-    # Send a message to api3
-    response = client.send_message('api3', 'Hello to API 3!')
-    print(response)
+    if response is not None:
+        # Process the response if it's not None
+        print(response)
