@@ -6,7 +6,7 @@ from agentforge.utils.functions.TaskHandling import get_current_task
 
 `ActionPrimingAgent` is a specialized agent that extends the base `Agent` class. This agent is specifically designed for priming tools based on defined actions, it also performs customized loading of additional data, output building, and skips the saving of results to memory.
 
-Each agent, including the `ActionPrimingAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ActionPrimingAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/ActionPrimingAgent.json).
+Each agent, including the `ActionPrimingAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ActionPrimingAgent`, see its [YAML File](../../../../src/agentforge/utils/installer/agents/ActionPrimingAgent.yaml).
 
 ---
 

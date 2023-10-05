@@ -6,7 +6,7 @@ from agentforge.utils.functions.TaskHandling import get_current_task
 
 The `ExecutionAgent` is a specialized but straightforward agent that extends from the base `Agent` class. Its primary role is to take a task and attempt to execute it. This agent closely resembles the behavior of the base `Agent` class, with some specific overrides to suit its particular needs.
 
-Each agent, including the `ExecutionAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ExecutionAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/ExecutionAgent.json).
+Each agent, including the `ExecutionAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ExecutionAgent`, see its [YAML File](../../../../src/agentforge/utils/installer/agents/ExecutionAgent.yaml).
 
 ---
 

@@ -4,7 +4,7 @@
 
 The `SummarizationAgent` is a specialized agent that extends from the base `Agent` class. Its primary function is to generate concise summaries based on provided text or to retrieve and summarize search results from stored memories. Building upon the foundation provided by the base `Agent` class, it augments the core functionalities to cater to the specific requirements of summarization.
 
-Each agent, including the `SummarizationAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompt templates that guide the agent's behavior during its execution. For a comprehensive understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `SummarizationAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/SummarizationAgent.json).
+Each agent, including the `SummarizationAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompt templates that guide the agent's behavior during its execution. For a comprehensive understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `SummarizationAgent`, see its [YAML File](../../../../src/agentforge/utils/installer/agents/SummarizationAgent.yaml).
 
 ---
 

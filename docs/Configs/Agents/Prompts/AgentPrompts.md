@@ -43,7 +43,7 @@ A typical prompt `YAML` file is structured into various sections, each represent
 
 1. **Optionality**: Each subprompt is treated as optional. Its rendering depends on the presence of its required variables. If a necessary variable is absent, the sub-prompt won't be rendered, allowing for dynamic adaptability based on available data.
 
-2. **Default Text**: If a subprompt contains no variables (i.e., it's static text), it will always be rendered as-is. This ensures flexibility in crafting prompts that have a mix of dynamic and static sections.
+2. **Default Text**: If a sub-prompt contains no variables (i.e., it's static text), it will always be rendered as-is. This ensures flexibility in crafting prompts that have a mix of dynamic and static sections.
 
 ### **Common Sub Prompts**
 
@@ -58,6 +58,8 @@ While the prompts can be tailored for specific needs, there are common sub-promp
 ... (and so on for other prompts)
 
 Each of these sub-prompts has its own unique purpose and is rendered based on the data available. By decoupling the sub-prompts from a fixed structure, the AgentForge framework ensures a level of dynamism and adaptability previously unseen, allowing for on-the-fly edits without needing system restarts.
+
+>**Note:** While the name of a sub-prompt can technically be any valid Python variable name, its actual name doesn't influence functionality. Still, choosing a descriptive and relevant name can be a game-changer, offering invaluable context to anyone crafting or modifying the prompt.
 
 ---
 
