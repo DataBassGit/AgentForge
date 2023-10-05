@@ -174,7 +174,7 @@ For more in-depth documentation, please refer to the following sections:
 
 - **[Agent](docs/Configs/Agents/AgentClass.md)**: Comprehensive guides on how agents work.
 - **[Custom Agents](docs/Configs/Agents/CustomAgents.md)**: Creating and customizing agents.
-- **[Settings](docs/Configs/ConfigClass.md)**: Documentation on system related to settings and configurations.
+- **[Settings](docs/Configs/ConfigClass.md)**: Documentation on system related settings and configurations.
 - **[Functions](docs/Utils/FunctionUtils.md)**: Function utilities available for agents, can also be imported by other scripts.
 - **[LLM](docs/LLM/)**: All you need to know about integrating LLM models.
 - **[Persona](docs/Configs/Personas/Personas.md)**: How to configure and use personas. (Note: Personas have not been implemented yet)

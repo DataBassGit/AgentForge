@@ -2,7 +2,7 @@
 
 ### **Overview**
 
-The `memories.yaml` file is essential for initializing memory collections and pre-loading them with initial data. It aids in managing and setting up memory repositories for the system's operations.
+The `memories.yaml` file is essential for initializing memory collections and preloading them with initial data. It aids in managing and setting up memory repositories for the system's operations.
 
 ### **Formatting Guidelines**
 
