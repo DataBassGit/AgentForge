@@ -72,7 +72,7 @@ Before you get started with AgentForge, there are a few things you should know:
 - **Cloud-Based:** To use cloud-based LLM models like OpenAI, you'll need to obtain and set up API keys in your user environment variables.
 
 ### LLM API Keys
-- You don't need API keys for both Claude and OpenAI if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Configuration](/docs/Configs/ConfigClass.md) file.
+- You don't need API keys for both Claude and OpenAI if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Model Configuration](/docs/Configs/Settings/Models.md) file.
 
 ### Other Services
 - If you're planning to use Google Search functionalities, you'll need both a Google API key and a Google Search Engine ID key.
