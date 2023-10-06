@@ -176,9 +176,7 @@ Welcome to the AgentForge framework documentation. Whether you're just getting s
 
 - **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
 
-- **[Configurations Overview](docs/Configs/Configurations.md)**: Start here for a high-level overview of the system's configurations. This section provides a bird's-eye view of how everything fits together.
-
-- **[Large Language Models (LLM)](docs/LLM/)**: Understand the integration and flexibility offered by LLMs in the ecosystem.
+- **[Configurations](docs/Configs/Configurations.md)**: Start here for a high-level overview of the system's configurations. This section provides a bird's-eye view of how everything fits together.
 
 - **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.
 
