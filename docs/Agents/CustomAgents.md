@@ -22,22 +22,6 @@ In this example, `NewAgent` will behave exactly like its `Agent` base class sinc
 
 ---
 
-## Examples of Custom Agents
-
-For a deeper understanding of how you can take advantage of method overriding to implement custom behaviors, we've provided some examples from our default custom agents. These examples showcase how a custom agent can override the default methods to perform specialized tasks.
-
-- [Action Priming Agent](PredefinedAgents/ActionPrimingAgent.md)
-- [Action Selection Agent](PredefinedAgents/ActionSelectionAgent.md)
-- [Execution Agent](PredefinedAgents/ExecutionAgent.md)
-- [Reflexion Agent](PredefinedAgents/ReflexionAgent.md)
-- [Status Agent](PredefinedAgents/StatusAgent.md)
-- [Summarization Agent](PredefinedAgents/SummarizationAgent.md)
-- [Task Creation Agent](PredefinedAgents/TaskCreationAgent.md)
-
-Feel free to explore these examples to get inspired and learn more about the flexibility and power of our agent framework.
-
----
-
 ## Persona Files
 
 Each bot or architecture is associated with a persona, which is defined in a `Persona YAML file` located in the `./agentforge/personas` folder. The persona file contains all the data related to the persona of the Cognitive Architecture (bot). For more details on how to structure the `Persona YAML File`, check out the [Persona Documentation](../Personas/Personas.md).

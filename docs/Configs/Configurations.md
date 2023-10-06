@@ -20,6 +20,6 @@ Welcome to the central hub for system configurations. Below, you'll find specifi
 
 - **[Tools & Actions](../Tools/ToolsActions.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
-- **[Overriding LLM Defaults](../Overrides/OverridingConfig.md)**: Learn the flexibility of having agents override default LLM settings when needed.
+- **[Overriding LLM Defaults](../Agents/Overrides/Overriding.md)**: Learn the flexibility of having agents override default LLM settings when needed.
 
 ---

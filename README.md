@@ -142,7 +142,7 @@ pip install -e .
 
 Each Cognitive Architecture (bot) you create should contain an `.agentforge` folder which contains everything pertaining to its agents and personas along with other configuration files.
 
-**Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [Agents](docs/Agents/CustomAgents.md) as they can override these settings and call different models if needed.
+**Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [Custom Agents](docs/Agents/CustomAgents.md) as they can override these settings and call different models if needed.
 
 >**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent Scripts!  
 
@@ -174,7 +174,7 @@ Welcome to the AgentForge framework documentation. Whether you're just getting s
 
 ### **Core Concepts:**
 
-- **[Agents](docs/Agents/AgentClass.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
+- **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
 
 - **[Configurations Overview](docs/Configs/Configurations.md)**: Start here for a high-level overview of the system's configurations. This section provides a bird's-eye view of how everything fits together.
 
