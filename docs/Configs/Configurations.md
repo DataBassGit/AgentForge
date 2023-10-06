@@ -1,63 +1,25 @@
 # Configuration Overview
 
-Welcome to the central hub of configurations for our system. This guide will walk you through each category, highlighting their significance and directing you to dedicated documentation for detailed insights.
+## Getting Started with Configurations
 
----
+Welcome to the central hub for system configurations. Below, you'll find specific areas of interest that dictate how the system behaves. Each section has dedicated documentation to provide in-depth insights.
 
-## `Config` Class
+### **Foundation:**
 
-The `Config` class serves as the backbone, ensuring that the system's settings are in harmony. It's designed to manage a plethora of configurations that dictate how the system behaves.
+- **[Config Class](ConfigClass.md)**: The heart of configurations. Understand the class responsible for harmonizing the system's settings.
 
-📖 Dive deeper into its inner workings with the [**Config Class Documentation**](ConfigClass.md).
+- **[Settings](../Settings/Settings.md)**: A deep dive into directives, memories, models, paths, and storage. Think of these as the fine-tuned engine settings that keep the system humming.
 
----
+### **Advanced Customizations:**
 
-## General Settings
+- **[Agent Prompts](../Agents/AgentPrompts.md)**: Craft dynamic prompts to guide agent actions. 
 
-Within the `settings` folder, you'll find an assortment of configurations that set the general tone and behavior of the system. These settings play a foundational role, establishing the baseline for the system's operations.
+- **[Custom Agents](../Agents/CustomAgents.md)**: Empower your system with tailor-made agents fitting specific needs.
 
-📖 Explore the intricacies with the [**Settings Documentation**](Configurations.md).
+- **[Personas](../Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable. (Note: Feature in development)
 
----
+- **[Tools & Actions](../Tools/ToolsActions.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
-## Agent Configuration
-
-Agents are the system's operatives, each having a distinct role. Their behaviors, interactions, and capabilities are defined by specific configurations, ensuring they act in accordance with their designated tasks.
-
-📖 Learn more about building your own agent prompts in the [**Agent Prompts Documentation**](Agents/Prompts/AgentPrompts.md).
-
----
-
-## Personas
-
-Personas add flair and character to the system. They dictate how the system interacts, bringing a touch of personality and making engagements more relatable.
-
-📖 Discover the art of crafting personas in the [**Personas Documentation**](Personas/Personas.md).
-
-> **Important Note:** The magic of personas is still in the making, and documentation will be available once implemented.
-
----
-
-## Tools
-
-Tools are the system's utility belt. They comprise a set of functionalities that enhance the system's capabilities, allowing it to perform a variety of tasks efficiently.
-
-📖 Delve into the toolbox with the [**Tools Documentation**](Tools/Tools.md).
-
----
-
-## Actions
-
-Actions represent a choreographed sequence of tools, each executed in succession to fulfill a specific task. Picture them as a roadmap, guiding the system on how to weave various tools together to reach its desired goals effectively.
-
-📖 Discover the art of combining tools in our [**Actions Documentation**](Actions/Actions.md).
-
----
-
-## Overriding Default LLM Settings on Agents
-
-Flexibility is key. While there's a default setting for the LLMs, agents have the autonomy to deviate if needed. This ensures they can function optimally, especially when unique requirements arise.
-
-📖 Get acquainted with the nuances of overriding in the [**Overriding Default Configurations Documentation**](Overrides/OverridingConfig.md).
+- **[Overriding LLM Defaults](../Overrides/OverridingConfig.md)**: Learn the flexibility of having agents override default LLM settings when needed.
 
 ---

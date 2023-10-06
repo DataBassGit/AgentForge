@@ -52,7 +52,7 @@ Each custom agent has its own `YAML` file located in the `./agentforge/agents/` 
 
 By adhering to this naming convention and populating your `YAML` file with prompt templates, you can create a unique custom agent that inherits default behaviors from the `Agent` base class but also has its own tailored interactions. This approach greatly simplifies and streamlines the agent creation process, making it easier for you to focus on what your agent should do, rather than how it should do it.
 
-For more details on how to structure your agent's prompts, you can refer to the [Agent Prompts Documentation](Prompts/AgentPrompts.md).
+For more details on how to structure your agent's prompts, you can refer to the [Agent Prompts Documentation](AgentPrompts.md).
 
 ---
 

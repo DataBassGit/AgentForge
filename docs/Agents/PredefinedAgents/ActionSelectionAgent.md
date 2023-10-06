@@ -6,7 +6,7 @@ from agentforge.utils.functions.TaskHandling import get_current_task
 
 The `ActionSelectionAgent` is another specialized agent that derives its capabilities from the foundational `Agent` class. This agent is primarily responsible for selecting actions based on the current task and other parameters. It also overrides some default methods to tailor its behavior to this specific purpose.
 
-Each agent, including the `ActionSelectionAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ActionSelectionAgent`, see its [YAML File](../../../../src/agentforge/utils/installer/agents/ActionSelectionAgent.yaml).
+Each agent, including the `ActionSelectionAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../AgentPrompts.md). To view the specific prompts associated with the `ActionSelectionAgent`, see its [YAML File](../../../src/agentforge/utils/installer/agents/ActionSelectionAgent.yaml).
 
 ---
 

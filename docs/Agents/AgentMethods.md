@@ -327,6 +327,6 @@ def build_output(self):
 
 ## Note: Additional Functions
 
-While the key methods relevant for [Custom Agent](CustomAgents.md) creation have been covered in this section, the `Agent` class imports additional methods from a `Functions` utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Functions](../../Utils/FunctionUtils.md) Page.
+While the key methods relevant for [Custom Agent](CustomAgents.md) creation have been covered in this section, the `Agent` class imports additional methods from a `Functions` utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Functions](../Utils/FunctionUtils.md) Page.
 
 ---

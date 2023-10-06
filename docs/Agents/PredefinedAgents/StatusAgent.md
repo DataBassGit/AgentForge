@@ -6,7 +6,7 @@ from agentforge.utils.functions.TaskHandling import get_current_task
 
 The `StatusAgent` is a specialized agent that inherits from the base `Agent` class. It focuses on managing and updating the status of tasks based on the results obtained. This agent provides methods to load task data, parse the result for status and reasons, log completed tasks, and save the updated status to memory.
 
-As with other agents, the `StatusAgent` is associated with a specific prompt `YAML` file which guides its interactions. This file contains a set of pre-defined prompt templates that dictate the agent's behavior. For an in-depth understanding of how these prompts are structured and used, refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `StatusAgent`, see its [YAML File](../../../src/agentforge/utils/installer/agents/StatusAgent.yaml).
+As with other agents, the `StatusAgent` is associated with a specific prompt `YAML` file which guides its interactions. This file contains a set of pre-defined prompt templates that dictate the agent's behavior. For an in-depth understanding of how these prompts are structured and used, refer to our [Prompts Documentation](../AgentPrompts.md). To view the specific prompts associated with the `StatusAgent`, see its [YAML File](../../../src/agentforge/utils/installer/agents/StatusAgent.yaml).
 
 ---
 

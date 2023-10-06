@@ -24,12 +24,25 @@ Here, `{current_task}` is a placeholder variable, which will be replaced by actu
 
 ## Dynamic Variable Detection
 
-The AgentForge framework now boasts a dynamic variable detection mechanism, courtesy of the `PromptHandling` class. This class ensures that only valid Python variable names enclosed within `{}` are treated as variables. Any other usage of curly braces, especially in nested structures like JSON, remains unaffected.
+AgentForge brings to the table a seamless variable detection mechanism through its `PromptHandling` class. This savvy class ensures that only strings enclosed within `{}` and conforming to valid Python variable naming conventions are interpreted as variables. Any other occurrence of curly braces, even in intricate structures like JSON, is left undisturbed.
 
-This means that if your prompt contains JSON structures or other text within curly braces that shouldn't be treated as variables, there's no need to worry; the system will handle it smartly.
+So, if you have prompts with JSON structures or other textual content within curly braces that you don't want interpreted as variables, you're in safe hands. The system discerns between them smartly.
 
->**Important Note:** When crafting prompts, it's essential to ensure that any variable wrapped in curly braces—like `{current_task}` or `{feedback}`—matches the data you're feeding to the agent. Remember, only valid Python variable names pass muster. Anything that doesn't conform to Python's variable naming rules won't be recognized by the system, and thus, won't be replaced with the intended data.
+### **Important Note:** 
+When designing prompts, always ensure that variables enclosed in curly braces, such as `{current_task}` or `{feedback}`, align with the data you plan to provide to the agent. Only strings adhering to Python's variable naming conventions will be detected as variables. Anything else will be treated as regular text, ensuring it won't be substituted with data.
 
+### Example:
+
+Here's a simple demonstration of how the dynamic variable detection works:
+
+```python
+from agentforge.agent import Agent as NewAgent
+
+feedback = "This is feedback"
+# The agent's run method is invoked with feedback as an argument. 
+# If the agent's prompt has a {feedback} variable, it will be replaced with the provided feedback string.
+response = NewAgent().run(feedback=feedback)
+```
 ---
 
 ## Crafting Dynamic Prompts: The Power of Sub-Prompts
@@ -41,7 +54,7 @@ The AgentForge framework introduces a unique and powerful approach to crafting p
 
 A typical prompt `YAML` file is structured into various sections, each representing a different subprompt. The beauty of these sub-prompts lies in their optionality and adaptability:
 
-1. **Optionality**: Each subprompt is treated as optional. Its rendering depends on the presence of its required variables. If a necessary variable is absent, the sub-prompt won't be rendered, allowing for dynamic adaptability based on available data.
+1. **Optionality**: Each sub-prompt is treated as optional. Its rendering depends on the presence of its required variables. If a necessary variable is absent, the sub-prompt won't be rendered, allowing for dynamic adaptability based on available data.
 
 2. **Default Text**: If a sub-prompt contains no variables (i.e., it's static text), it will always be rendered as-is. This ensures flexibility in crafting prompts that have a mix of dynamic and static sections.
 
