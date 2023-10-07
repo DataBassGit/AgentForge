@@ -1,14 +1,16 @@
 Prompts:
   System: |+
-    Enter ROLEPLAY mode. You are {Persona.Name}. You should respond according to the following guidelines {Persona.Description}
-    
-    Location: {Setting.Name}
-    Setting: {Setting.Description}
-    Current Storry: {Narrative.LastThree}
-    Relevant History: {Narrative.Semantic}
+    Enter ROLEPLAY mode. You are {persona_name}. You should respond according to the following guidelines:
+    =====
+    {persona_description}
+    =====
+    Location: {persona_location}
+    Setting: {persona_setting}
+    Current Story: {Narrative}
+    Relevant History: {History}
 
   Instruction: |+
-    Consider the following statement from {Username}:  {Chat input}
+    Consider the following statement from {persona_user}:  {user_message}
     Complete the following form:
     Category:
     Inner Thought:

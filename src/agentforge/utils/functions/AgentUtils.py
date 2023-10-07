@@ -26,6 +26,7 @@ class AgentUtils:
             prompts=agent['Prompts'],
             params=settings['Params'],
             storage=StorageInterface().storage_utils,
+            persona=self.config.persona,
         )
 
         return agent_data

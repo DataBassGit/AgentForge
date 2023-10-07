@@ -17,7 +17,10 @@ class Chatbot:
         pass
     def run(self,message):
         print(message)
+        # save message to chat history
         ApiClient().send_message("layer_update", 0, message)
+        results = thou.run(user_message=message)
+        ApiClient().send_message("layer_update", 1, f"{results}")
 
 if __name__ == '__main__':
     print("Starting")

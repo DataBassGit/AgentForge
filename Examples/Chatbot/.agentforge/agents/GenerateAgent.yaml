@@ -4,7 +4,7 @@ Prompts:
     
     Location: {Setting.Name}
     Setting: {Setting.Description}
-    Current Storry: {Narrative.LastThree}
+    Current Story: {Narrative.LastThree}
     Relevant History: {Narrative.Semantic}
 
   Instruction: |+
