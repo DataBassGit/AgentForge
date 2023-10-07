@@ -7,7 +7,7 @@ Prompts:
     Location: {persona_location}
     Setting: {persona_setting}
     Current Story: {Narrative}
-    Relevant History: {History}
+    Relevant Chat History: {history}
 
   Instruction: |+
     Consider the following statement from {persona_user}:  {user_message}

@@ -202,3 +202,7 @@ class ChromaUtils:
 
     def return_embedding(self, text_to_embed):
         return self.embedding([text_to_embed])
+
+    def count_collection(self, collection_name):
+        self.select_collection(collection_name)
+        return self.collection.count()

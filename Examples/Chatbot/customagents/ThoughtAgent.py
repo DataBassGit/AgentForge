@@ -10,10 +10,8 @@ class ThoughtAgent(Agent):
         self.data['persona_setting'] = self.agent_data['persona']['Persona']['Setting']
         self.data['persona_user'] = self.agent_data['persona']['Persona']['Username']
         self.data['Narrative'] = "none"
-        self.data['History'] = "none"
 
     def parse_result(self):
-
         # Initialize an empty dictionary to store the parsed data
         parsed_data = {}
         current_heading = None
@@ -43,11 +41,4 @@ class ThoughtAgent(Agent):
         # Store the last section
         store_current_section()
 
-        # Now, 'parsed_data' contains the data as a dictionary
-        # You can access it using the headings as keys
-        category = parsed_data.get('Category', '')
-        inner_thought = parsed_data.get('Inner Thought', '')
-        emotion = parsed_data.get('Emotion', '')
-        reason = parsed_data.get('Reason', '')
-
-        return self.results
+        return parsed_data
