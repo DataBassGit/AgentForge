@@ -7,26 +7,24 @@ from ..storage_interface import StorageInterface
 class AgentUtils:
 
     def __init__(self):
-        self.storage = StorageInterface()
         self.config = Config()
 
     def load_agent_data(self, agent_name):
         self.config.reload(agent_name)
 
-        defaults = self.config.data['Defaults']
-        objective = self.config.data['Objective']
-
         agent = self.config.agent
-        api = agent.get('API', defaults['API'])
-        params = agent.get('Params', defaults['Params'])
+        objective = self.config.settings['directives']['Objective']
+
+        defaults = self.config.settings['models']['ModelSettings']
+        settings = agent.get('ModelOverrides', defaults)
 
         # Initialize agent data
         agent_data: Dict[str, Any] = dict(
             name=agent_name,
-            llm=self.config.get_llm(api),
+            llm=self.config.get_llm(settings['API']),
             objective=objective,
             prompts=agent['Prompts'],
-            params=params,
+            params=settings['Params'],
             storage=StorageInterface().storage_utils,
         )
 
@@ -38,5 +36,5 @@ class AgentUtils:
             if user_input.lower() == '':
                 return None
             else:
-                self.config.data['Objective'] = user_input
+                self.config.settings['directives']['Objective'] = user_input
                 return user_input

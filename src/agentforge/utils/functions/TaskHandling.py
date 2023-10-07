@@ -11,7 +11,7 @@ class TaskHandling:
 
     def __init__(self):
         self.storage = StorageInterface()
-        self.config = Config()
+        # self.config = Configs()
 
     def get_current_task(self):
         ordered_list = self.get_ordered_task_list()
@@ -62,7 +62,7 @@ class TaskHandling:
             file.write(tasks)
 
     def show_task_list(self, desc):
-        objective = self.config.data['Objective']
+        objective = self.storage.config.settings['directives']['Objective']
         self.storage.storage_utils.select_collection("Tasks")
 
         task_collection = self.storage.storage_utils.collection.get()

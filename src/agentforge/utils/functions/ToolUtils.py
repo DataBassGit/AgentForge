@@ -37,7 +37,7 @@ class ToolUtils:
 
     def show_primed_tool(self, tool_name, payload):
         tool_name = tool_name.replace('_', ' ')
-        speak = payload['thoughts']['speak']
+        say = payload['thoughts']['say']
         reasoning = payload['thoughts']['reasoning']
 
         # Format command arguments
@@ -48,7 +48,7 @@ class ToolUtils:
         command = f"{command_args}"
 
         # Create the final output string
-        formatted_string = f"{speak}\n\n" \
+        formatted_string = f"{say}\n\n" \
                            f"Tool: {tool_name}\n" \
                            f"Command Args: {command}\n" \
                            f"Reasoning: {reasoning}"

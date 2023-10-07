@@ -8,7 +8,7 @@ Creating a Custom Agent is pretty straightforward. A  class only needs to inheri
 
 Creating a Custom Agent from the base class is pretty straightforward. All you need to do is create a new `Python` class that inherits from the base `Agent` class. 
 
-Once that's set up, you have the freedom to override any of the default methods to fit your specific needs. Don't forget to create a corresponding `JSON` file for your agent's prompts; it should be named after your agent class and is case-sensitive. And just like that, you've got yourself a fully customized agent ready to tackle whatever tasks you throw its way!
+Once that's set up, you have the freedom to override any of the default methods to fit your specific needs. Don't forget to create a corresponding `YAML` file for your agent's prompts; it should be named after your agent class and is case-sensitive. And just like that, you've got yourself a fully customized agent ready to tackle whatever tasks you throw its way!
 
 ### Example
 ```python
@@ -22,25 +22,9 @@ In this example, `NewAgent` will behave exactly like its `Agent` base class sinc
 
 ---
 
-## Examples of Custom Agents
-
-For a deeper understanding of how you can take advantage of method overriding to implement custom behaviors, we've provided some examples from our default custom agents. These examples showcase how a custom agent can override the default methods to perform specialized tasks.
-
-- [Action Priming Agent](PredefinedAgents/ActionPrimingAgent.md)
-- [Action Selection Agent](PredefinedAgents/ActionSelectionAgent.md)
-- [Execution Agent](PredefinedAgents/ExecutionAgent.md)
-- [Reflexion Agent](PredefinedAgents/ReflexionAgent.md)
-- [Status Agent](PredefinedAgents/StatusAgent.md)
-- [Summarization Agent](PredefinedAgents/SummarizationAgent.md)
-- [Task Creation Agent](PredefinedAgents/TaskCreationAgent.md)
-
-Feel free to explore these examples to get inspired and learn more about the flexibility and power of our agent framework.
-
----
-
 ## Persona Files
 
-Each bot or architecture is associated with a persona, which is defined in a `Persona JSON file` located in the `./agentforge/personas` folder. The persona file contains all the data related to the persona of the Cognitive Architecture (bot). For more details on how to structure the `Persona JSON File`, check out the [Persona Documentation](../Personas/Personas.md).
+Each bot or architecture is associated with a persona, which is defined in a `Persona YAML file` located in the `./agentforge/personas` folder. The persona file contains all the data related to the persona of the Cognitive Architecture (bot). For more details on how to structure the `Persona YAML File`, check out the [Persona Documentation](../Personas/Personas.md).
 
 > **Note**: Personas are **NOT** currently implemented, right now it is simply setting the groundwork for future implementation. Soon, you'll be able to select from multiple persona files, define specific personality traits, and possibly more. So, keep an eye out for that; exciting stuff is on the way!
 
@@ -48,11 +32,11 @@ Each bot or architecture is associated with a persona, which is defined in a `Pe
 
 ## Agent Prompt Templates
 
-Each custom agent has its own `JSON` file located in the `./agentforge/agents/` folder. This file contains the specific prompt templates used by that agent. The naming convention is crucial here: the filename must match the class name of your agent, and is case-sensitive. So, if you've got a custom agent class named `NewAgent`, your `JSON` file should be `NewAgent.json`.
+Each custom agent has its own `YAML` file located in the `./agentforge/agents/` folder. This file contains the specific prompt templates used by that agent. The naming convention is crucial here: the filename must match the class name of your agent, and is case-sensitive. So, if you've got a custom agent class named `NewAgent`, your `YAML` file should be `NewAgent.yaml`.
 
-By adhering to this naming convention and populating your `JSON` file with prompt templates, you can create a unique custom agent that inherits default behaviors from the `Agent` base class but also has its own tailored interactions. This approach greatly simplifies and streamlines the agent creation process, making it easier for you to focus on what your agent should do, rather than how it should do it.
+By adhering to this naming convention and populating your `YAML` file with prompt templates, you can create a unique custom agent that inherits default behaviors from the `Agent` base class but also has its own tailored interactions. This approach greatly simplifies and streamlines the agent creation process, making it easier for you to focus on what your agent should do, rather than how it should do it.
 
-For more details on how to structure your agent's prompts, you can refer to the [Agent Prompts Documentation](Prompts/AgentPrompts.md).
+For more details on how to structure your agent's prompts, you can refer to the [Agent Prompts Documentation](AgentPrompts.md).
 
 ---
 

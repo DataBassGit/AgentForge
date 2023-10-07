@@ -1,0 +1,19 @@
+Prompts:
+  System: |+
+    Enter ROLEPLAY mode. You are {Persona.Name}. You should respond according to the following guidelines {Persona.Description}
+
+    Location: {Setting.Name}
+    Setting: {Setting.Description}
+    Current Story: {Narrative.LastThree}
+    Relevant History: {Narrative.Semantic}
+
+  Instruction: |+
+    Consider the following statement from {Username}: {ChatInput}
+
+    You think to yourself, {Thought} This is because {Reason}. 
+    You think they are thinking {Mind} because {Why} 
+    Your emotional state is {Emotion}
+    You want to say {Response}, but you could also say nothing or think of something else to say. Please complete the following form:
+
+    Choice: (Respond, Nothing, Change)
+    Reason:

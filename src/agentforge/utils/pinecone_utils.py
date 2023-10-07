@@ -3,7 +3,7 @@ import pinecone
 
 # Read configuration file
 config = configparser.ConfigParser()
-config.read('Config/config.ini')
+config.read('Configs/config.ini')
 storage_api_key = config.get('Pinecone', 'api_key')
 storage_environment = config.get('Pinecone', 'environment')
 table_name = config.get('Pinecone', 'index_name')

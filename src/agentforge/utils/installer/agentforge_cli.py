@@ -5,6 +5,7 @@ import shutil
 import argparse
 import pkg_resources
 import glob
+import subprocess
 
 
 def copy_files():
@@ -17,6 +18,7 @@ def copy_files():
     os.makedirs("logs", exist_ok=True)
     os.makedirs(".agentforge/actions", exist_ok=True)
     os.makedirs(".agentforge/tools", exist_ok=True)
+    os.makedirs(".agentforge/settings", exist_ok=True)
 
     # Create infrastructure files
     with open(os.path.join("logs", "results.txt"), "w") as f:
@@ -24,16 +26,16 @@ def copy_files():
     with open(os.path.join("customagents", "__init__.py"), "w") as f:
         f.write("Results log file\n")
 
-    # Define core config files
-    files_to_copy = [
-        "config.json",
-    ]
-
-    # Copy core config files to .agentforge
-    for file_name in files_to_copy:
-        src_path = pkg_resources.resource_filename("agentforge.utils.installer", file_name)
-        dest_path = os.path.join(".agentforge", file_name)
-        shutil.copyfile(src_path, dest_path)
+    # # Define core config files
+    # files_to_copy = [
+    #     "config.json",
+    # ]
+    #
+    # # Copy core config files to .agentforge
+    # for file_name in files_to_copy:
+    #     src_path = pkg_resources.resource_filename("agentforge.utils.installer", file_name)
+    #     dest_path = os.path.join(".agentforge", file_name)
+    #     shutil.copyfile(src_path, dest_path)
 
     # Copy all files from the agents subfolder in src_path to .agentforge/agents
     def copy_files_from_src_to_dest(src_folder, dest_folder):
@@ -52,24 +54,33 @@ def copy_files():
     # Copy from the agents subfolder
     copy_files_from_src_to_dest("agents", "agents")
 
-    # Copy personas/persona.json to .agentforge/personas
-    personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/persona.json")
-    personas_dest_path = os.path.join(".agentforge", "personas", "persona.json")
+    # Copy from the settings subfolder
+    copy_files_from_src_to_dest("settings", "settings")
+
+    # Copy personas/default.yaml to .agentforge/personas
+    personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/default.yaml")
+    personas_dest_path = os.path.join(".agentforge", "personas", "default.yaml")
     shutil.copyfile(personas_src_path, personas_dest_path)
 
 def copy_salience():
-    src_path = pkg_resources.resource_filename("agentforge.utils.installer", "dyn.py")
+    src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
     shutil.copyfile(src_path, "salience.py")
+
+def gui():
+    guipath = pkg_resources.resource_filename("agentforge.utils.guiutils", "gui.py")
+    subprocess.run(["python", guipath])
 
 def main():
     parser = argparse.ArgumentParser(description="AgentForge CLI")
-    parser.add_argument("command", choices=["init","salience"], help="The command to run")
+    parser.add_argument("command", choices=["init","salience","gui"], help="The command to run")
     args = parser.parse_args()
 
     if args.command == "init":
         copy_files()
     elif args.command == "salience":
         copy_salience()
+    elif args.command == "gui":
+        gui()
 
 if __name__ == "__main__":
     main()

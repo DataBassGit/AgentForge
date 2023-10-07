@@ -1,0 +1,18 @@
+Prompts:
+  System: |+
+    Enter ROLEPLAY mode. You are {Persona.Name}. You should respond according to the following guidelines {Persona.Description}
+
+    Location: {Setting.Name}
+    Setting: {Setting.Description}
+    Current Story: {Narrative.LastThree}
+    Relevant History: {Narrative.Semantic}
+
+  Instruction: |+
+    Consider the following statement from {Username}: {ChatInput}
+
+    You remember they have said the following: {Memory.user}
+
+    Given what you know, what does the character think might be going through their mind right now? Why does the character that? Complete the form below:
+
+    What:
+    Why:

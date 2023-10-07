@@ -30,7 +30,7 @@ The `Agent` base class serves as a default template for creating new agents. By 
 **Purpose**: Initializes an instance of the `Agent` class. It sets up essential attributes and initializes data storage and logging.
 
 **Arguments**:
-- `log_level`: Optional. Specifies the logging level. Defaults to `info`.
+- `log_level`: Optional. Specify the logging level. Defaults to `info`.
 
 **Initialization Steps**:
 1. Set `agent_name` to the class name.

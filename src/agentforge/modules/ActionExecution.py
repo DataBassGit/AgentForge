@@ -40,7 +40,7 @@ class Action:
         self.tool['Script'] = self.tool['Data'].pop('Script')
 
     def process_tool_data(self):
-        tool_info = '\n'.join([f'{key}: {value}' for key, value in self.tool['Data'].items()])
+        tool_info = '\n'.join([f'{key}: {value}' for key, value in self.tool['Data'].items() if key != 'Name'])
         self.tool['Prompt'] = f"Tool: {self.tool['Name']}\n{tool_info}"
 
     def prime_tool(self):

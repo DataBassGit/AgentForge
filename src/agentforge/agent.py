@@ -38,23 +38,16 @@ class Agent:
         self.output = self.result
 
     def generate_prompt(self):
-        """Takes the data previously loaded and processes it to render the prompt being fed to the LLM"""
-        # Prompt Template for Rendering
-        templates = []
+        """Takes the data previously loaded and processes it to render the prompt being fed to the LLM."""
+        rendered_prompts = []
 
-        # Remove prompts if there's no corresponding data
-        self.functions.prompt_handling.remove_prompt_if_none(self.data['prompts'], self.data)
+        for prompt_template in self.data['prompts'].values():
+            template = self.functions.prompt_handling.handle_prompt_template(prompt_template, self.data)
+            if template:  # If the template is valid (i.e., not None)
+                rendered_prompt = self.functions.prompt_handling.render_prompt_template(template, self.data)
+                rendered_prompts.append(rendered_prompt)
 
-        # Handle prompts
-        prompts = [prompt_type for prompt_type in self.data['prompts'].keys()]
-        for prompt_type in prompts:
-            templates.extend(self.functions.prompt_handling.handle_prompt_type(self.data['prompts'], prompt_type))
-
-        # Render Prompts
-        self.prompt = [
-            self.functions.prompt_handling.render_template(template, variables, data=self.data)
-            for template, variables in templates
-        ]
+        self.prompt = rendered_prompts
 
     def load_additional_data(self):
         """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
@@ -76,11 +69,11 @@ class Agent:
         self.load_additional_data()
 
     def load_main_data(self):
-        """Loads the main data for the Agent, by default it's the Objective and Current Task"""
+        """Loads the main data for the Agent, by default it's the Objective"""
         self.data['objective'] = self.agent_data.get('objective')
 
     def parse_result(self):
-        """This method does nothing by default, it is meant to be overridden by SubAgents if needed"""
+        """This method does nothing by default, it is meant to be overridden by Custom Agents if needed"""
         pass
 
     def process_data(self):
@@ -91,7 +84,7 @@ class Agent:
         """Sends the rendered prompt to the LLM and stores the response in the internal result attribute"""
         model: LLM = self.agent_data['llm']
         params = self.agent_data.get("params", {})
-        self.result = model.generate_text(self.prompt, **params,).strip()
+        self.result = model.generate_text(self.prompt, **params).strip()
 
     def save_result(self):
         """This method saves the LLM Result to memory"""

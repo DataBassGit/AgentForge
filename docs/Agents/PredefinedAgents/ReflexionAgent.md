@@ -4,7 +4,7 @@
 
 The `ReflexionAgent` is a specialized agent designed to review responses for accuracy and safety relevant to a given objective. Despite its specialized role, it doesn't override any of the base `Agent` class methods, making it a straightforward extension of the base `Agent` class.
 
-Each agent, including the `ReflexionAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `ReflexionAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/ReflexionAgent.json).
+Each agent, including the `ReflexionAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../AgentPrompts.md). To view the specific prompts associated with the `ReflexionAgent`, see its [YAML File](../../../src/agentforge/utils/installer/agents/ReflexionAgent.yaml).
 
 ---
 

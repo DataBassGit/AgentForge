@@ -1,5 +1,5 @@
 import importlib
-import json
+import yaml
 import os
 import pathlib
 
@@ -15,27 +15,28 @@ class Config:
 
     def __init__(self, config_path=None):
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
-        self.data = {}  # This is the attribute that will contain the configuration data in config.json file
 
-        # the following are placeholders for each of the respective json information the agent needs
+        # Placeholders for the data the agent needs which is located in each respective YAML file
         self.persona = {}
         self.actions = {}
         self.agent = {}
         self.tools = {}
+        self.settings = {}
 
-        # here is where we load the information from the JSON files to their corresponding attributes
+        # Here is where we load the information from the YAML files to their corresponding attributes
         self.load()
 
+    def load(self):
+        self.load_settings()
+        self.load_actions()
+        self.load_tools()
+        self.load_persona()
+
     def chromadb(self):
-        db_path = self.get('ChromaDB', 'persist_directory', default=None)
-        db_embed = self.get('ChromaDB', 'embedding', default=None)
+        db_path = self.settings['storage'].get('ChromaDB', {}).get('persist_directory', None)
+        db_embed = self.settings['storage'].get('ChromaDB', {}).get('embedding', None)
+
         return db_path, db_embed
-
-    def get(self, section, key, default=None):
-        if self.data is None:
-            self.load()
-
-        return self.data.get(section, {}).get(key, default)
 
     def get_config_element(self, case):
         switch = {
@@ -49,8 +50,8 @@ class Config:
         return pathlib.Path(self.config_path) / file_name
 
     def get_llm(self, api):
-        model_name = self.agent.get('Model', self.data['Defaults']['Model'])
-        model_name = self.data['ModelLibrary'].get(model_name)
+        model_name = self.agent.get('Model', self.settings['models']['ModelSettings']['Model'])
+        model_name = self.settings['models']['ModelLibrary'].get(model_name)
 
         models = {
             "claude_api": {
@@ -84,63 +85,66 @@ class Config:
         args = model.get("args", [])
         return model_class(*args)
 
-    def get_json_data(self, file_name):
-        file_path = self.get_file_path(file_name)
-        try:
-            with open(file_path, 'r') as json_file:
-                return json.load(json_file)
-        except FileNotFoundError:
-            print(f"File {file_path} not found.")
-            return {}
-        except json.JSONDecodeError:
-            print(f"Error decoding JSON from {file_path}")
-            return {}
-
-    def load(self):
-        self.load_config()
-        self.load_actions()
-        self.load_tools()
-        self.load_persona()
-
     def load_agent(self, agent_name):
-        self.agent = self.get_json_data(f"agents/{agent_name}.json")
+        self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
-    def load_config(self):
-        self.data = self.get_json_data("config.json")
+    def load_settings(self):
+        self.load_from_folder("settings")
 
-    def load_from_folder(self, folder_and_attr_name):
+    def load_from_folder(self, folder):
         # Get the path for the provided folder name
-        folder_path = self.get_file_path(folder_and_attr_name)
+        folder_path = self.get_file_path(folder)
 
-        # Initialize the attribute as an empty dictionary
-        setattr(self, folder_and_attr_name, {})
+        # If the folder attribute doesn't exist, initialize it as an empty dictionary
+        if not hasattr(self, folder):
+            setattr(self, folder, {})
+
+        # Reference to the folder's dictionary
+        folder_dict = getattr(self, folder)
 
         # Iterate over each file in the specified folder
         for file in os.listdir(folder_path):
-            # Only process files with a .json extension
-            if file.endswith(".json"):
-                # Load the JSON data from the current file
-                data = self.get_json_data(os.path.join(folder_and_attr_name, file))
+            # Only process files with a .yaml or .yml extension
+            if file.endswith(".yaml") or file.endswith(".yml"):
+                # Load the YAML data from the current file
+                data = self.get_yaml_data(os.path.join(folder, file))
 
-                # Extract the name and remove it from the data
-                if folder_and_attr_name == 'tools':
-                    item_name = data.pop('Name', None)
-                else:
-                    item_name = data.get('Name', None)
+                # Get the filename without the extension
+                filename = os.path.splitext(file)[0]
 
-                # If the name exists, store the data under that name in the specified attribute
-                if item_name:
-                    getattr(self, folder_and_attr_name)[item_name] = data
+                # Check if filename exists under the folder's dictionary, if not, initialize it as a dict
+                if filename not in folder_dict:
+                    folder_dict[filename] = {}
+
+                # Reference to the file name's dictionary
+                file_dict = folder_dict[filename]
+
+                for item_name, data_item in data.items():
+                    # Extract the name and store the data under that name in the file name's dictionary
+                    if item_name:
+                        file_dict[item_name] = data_item
 
     def load_actions(self):
         self.load_from_folder("actions")
 
     def load_tools(self):
         self.load_from_folder("tools")
-        
+
     def load_persona(self):
-        persona_name = self.data.get('Persona', {}).get('selected', "")
-        self.persona = self.get_json_data(f"personas/{persona_name}.json")
+        persona_name = self.settings.get('directives', None).get('Persona', None)
+        self.persona = self.get_yaml_data(f"personas/{persona_name}.yaml")
+
+    def get_yaml_data(self, file_name):
+        file_path = self.get_file_path(file_name)
+        try:
+            with open(file_path, 'r') as yaml_file:
+                return yaml.safe_load(yaml_file)
+        except FileNotFoundError:
+            print(f"File {file_path} not found.")
+            return {}
+        except yaml.YAMLError:
+            print(f"Error decoding YAML from {file_path}")
+            return {}
 
     def reload(self, agent_name):
         self.load_agent(agent_name)
@@ -148,5 +152,6 @@ class Config:
         self.load_tools()
         self.load_persona()
 
-    def storage_api(self):
-        return self.get('StorageAPI', 'selected')
+    def get_storage_api(self):
+
+        return self.settings['storage']['StorageAPI']

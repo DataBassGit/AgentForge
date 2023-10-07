@@ -4,7 +4,7 @@
 
 The `TaskCreationAgent` is a specialized agent that extends from the base `Agent` class. It's designed with a primary role of creating and managing task lists based on given objectives. These tasks are then stored in memory, ready for other agents, forming part of the same cognitive architecture, to pick up and execute. The agent retrieves its objective from memory, ensuring a seamless integration with other parts of the system.
 
-Each agent, including the `TaskCreationAgent`, is associated with a specific prompt `JSON` file which determines its interactions. This file contains a set of pre-defined prompt templates that guide the agent's behavior during its execution. For a comprehensive understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../Prompts/AgentPrompts.md). To view the specific prompts associated with the `TaskCreationAgent`, see its [JSON File](../../../src/agentforge/utils/installer/agents/TaskCreationAgent.json).
+Each agent, including the `TaskCreationAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompt templates that guide the agent's behavior during its execution. For a comprehensive understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../AgentPrompts.md). To view the specific prompts associated with the `TaskCreationAgent`, see its [YAML File](../../../src/agentforge/utils/installer/agents/TaskCreationAgent.yaml).
 
 ---
 
