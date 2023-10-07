@@ -152,13 +152,13 @@ def load_agent_data(self, **kwargs):
 **Arguments**: None
 
 **Workflow**:
-1. Adds an `objective` to the internal `data` attribute, fetched from `self.agent_data.get('objective')`.
+1. Adds an `objective` to the internal `data` attribute, fetched from `self.agent_data['settings']['directives'].get('Objective', None)`.
 
 
 ```python
 def load_main_data(self):
     """Loads the main data for the Agent, by default it's the Objective"""
-    self.data['objective'] = self.agent_data.get('objective')
+    self.data['objective'] = self.agent_data['settings']['directives'].get('Objective', None)
 ```
 
 ---
