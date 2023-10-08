@@ -69,8 +69,8 @@ class Agent:
         self.load_additional_data()
 
     def load_main_data(self):
-        """Loads the main data for the Agent, by default it's the Objective"""
-        self.data['objective'] = self.agent_data.get('objective')
+        """Loads the main data for the Agent; by default, it's the Objective"""
+        self.data['objective'] = self.agent_data['settings']['directives'].get('Objective', None)
 
     def parse_result(self):
         """This method does nothing by default, it is meant to be overridden by Custom Agents if needed"""

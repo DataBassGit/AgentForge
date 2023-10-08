@@ -71,7 +71,7 @@ def reflex():
 
 @app.route('/test', methods=['GET'])
 def test():
-    return jsonify(message="Test endpoint is working!")
+    return jsonify(message="PredefinedAgents endpoint is working!")
 
 if __name__ == '__main__':
     app.run()

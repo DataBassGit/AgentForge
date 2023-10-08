@@ -6,4 +6,4 @@ string = "testing 123"
 functions = Functions()
 
 result = var.run(context=string)
-functions.printing.print_result(result, "Test Results")
+functions.printing.print_result(result, "PredefinedAgents Results")

@@ -12,7 +12,7 @@ Welcome to the central hub for system configurations. Below, you'll find specifi
 
 ### **Advanced Customizations:**
 
-- **[Agent Prompts](../Agents/AgentPrompts.md)**: Craft dynamic prompts to guide agent actions. 
+- **[Agents Prompts](../Agents/AgentPrompts.md)**: Craft dynamic prompts to guide agent actions. 
 
 - **[Custom Agents](../Agents/CustomAgents.md)**: Empower your system with tailor-made agents fitting specific needs.
 

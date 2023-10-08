@@ -8,6 +8,33 @@ In the realm of the AgentForge framework, the agent's behavior and interaction a
 
 ---
 
+## Location and Organization of Agent Prompts
+
+All agent prompts are housed within the `.agentforge/agents` folder, which serves as the root directory for these configurations. This centralized structure ensures that the system can effortlessly access and manage the prompts.
+
+For organizational purposes, prompts can be nested inside additional subfolders within the `agents` root folder. This nesting allows for better categorization and management of agent prompts, especially when dealing with a multitude of agents. Regardless of how deep the nesting goes, the system is designed to automatically search for and locate any `YAML` files in the root `agents` folder as well as in its nested subfolders.
+
+**Example Structure**:
+```
+agents/
+│
+├── Agent1.yaml
+│
+├── category1/
+│   ├── Agent2.yaml
+│   └── Agent3.yaml
+│
+└── category2/
+    ├── subcategory1/
+    │   └── Agent4.yaml
+    │
+    └── Agent5.yaml
+```
+
+This structure offers flexibility in organizing agent prompts while ensuring that they remain easily accessible to the system.
+
+---
+
 ## How Prompts Work
 
 Every agent in the system is accompanied by a dedicated `YAML` file that dictates its prompt templates. These templates are written in a straightforward manner, using curly braces `{}` to encapsulate variables that need to be dynamically replaced during execution.

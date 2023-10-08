@@ -38,7 +38,7 @@ string = "testing 123"
 functions = Functions()
 
 result = var.run(context=string)
-functions.printing.print_result(result, "Test Results")
+functions.printing.print_result(result, "PredefinedAgents Results")
 ```
 
 This main script imports our custom `TestAgent`, sets up a context ("testing 123"), and then runs the agent with this context. The results are then printed out.

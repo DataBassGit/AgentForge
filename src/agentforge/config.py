@@ -38,6 +38,21 @@ class Config:
 
         return db_path, db_embed
 
+    def find_file_in_directory(self, directory, filename):
+        """
+        Recursively searches for a filename in a directory and its subdirectories.
+        Returns the full path if found, or None otherwise.
+        """
+        directory = self.get_file_path(directory)
+
+        for root, dirs, files in os.walk(directory):
+
+            for file in files:
+                path = os.path.join(root, file)
+                if filename == file:
+                    return path.replace(".agentforge\\", "").strip()
+        return None
+
     def get_config_element(self, case):
         switch = {
             "Persona": self.persona,
@@ -86,7 +101,11 @@ class Config:
         return model_class(*args)
 
     def load_agent(self, agent_name):
-        self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
+        path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
+        if path_to_file:
+            self.agent = self.get_yaml_data(path_to_file)
+        else:
+            raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
 
     def load_settings(self):
         self.load_from_folder("settings")
