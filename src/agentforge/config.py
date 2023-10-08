@@ -38,7 +38,6 @@ class Config:
 
         return db_path, db_embed
 
-
     def find_file_in_directory(self, directory, filename):
         """
         Recursively searches for a filename in a directory and its subdirectories.
@@ -100,9 +99,6 @@ class Config:
         model_class = getattr(module, class_name)
         args = model.get("args", [])
         return model_class(*args)
-
-    # def load_agent(self, agent_name):
-    #     self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
 
     def load_agent(self, agent_name):
         path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
