@@ -21,7 +21,9 @@ Prompts:
     
     {persona_name} wants to say {response}, but they could also say nothing or think of something else to say. 
     
-    To fill out this form, you should first choose respond, nothing, or change. If you choose respond, the character will say the statement above. If you choose nothing, the character will say nothing. If you choose change, the character will say something else to say based on the reason given. Then, you write a reason for your choice. You must always give a reason for your choice. Be sure to follow the form template. Fill in your responses below: 
+    To fill out this form, you should first choose if the character will respond, change, or nothing. Then, you write a reason for your choice. You must always give a reason for your choice. The author will decide based on your choice and reason. Be sure to follow the form template. Fill in your responses below. 
 
+    Form Template:
+    
     Choice: 
     Reason:
