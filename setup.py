@@ -61,8 +61,8 @@ setup(
     ],
     python_requires=">=3.9",
     package_data={
-        "agentforge.loops": ["*"],
         "agentforge.utils.installer": ["*", "**/*"],
+        "agentforge.guiutils": ["*"],
     },
     entry_points={
         'console_scripts': [
