@@ -26,12 +26,12 @@ def copy_files():
 
     # Create directories
     os.makedirs(".agentforge", exist_ok=True)
-    # os.makedirs(".agentforge/agents", exist_ok=True)
-    # os.makedirs(".agentforge/agents/PredefinedAgents", exist_ok=True)
-    # os.makedirs(".agentforge/actions", exist_ok=True)
-    # os.makedirs(".agentforge/personas", exist_ok=True)
-    # os.makedirs(".agentforge/settings", exist_ok=True)
-    # os.makedirs(".agentforge/tools", exist_ok=True)
+    os.makedirs(".agentforge/agents", exist_ok=True)
+    os.makedirs(".agentforge/agents/PredefinedAgents", exist_ok=True)
+    os.makedirs(".agentforge/actions", exist_ok=True)
+    os.makedirs(".agentforge/personas", exist_ok=True)
+    os.makedirs(".agentforge/settings", exist_ok=True)
+    os.makedirs(".agentforge/tools", exist_ok=True)
     os.makedirs("CustomAgents", exist_ok=True)
     os.makedirs("Logs", exist_ok=True)
 
@@ -41,72 +41,18 @@ def copy_files():
     with open(os.path.join("Logs", "results.txt"), "w") as f:
         f.write("Results Log File:\n")
 
-    # Copy folders
-    recursive_copy("actions", ".agentforge/actions")
-    recursive_copy("agents", ".agentforge/agents")
-    recursive_copy("personas", ".agentforge/personas")
-    recursive_copy("settings", ".agentforge/settings")
-    recursive_copy("tools", ".agentforge/tools")
 
     print("All files have been successfully copied!")
 
-    # copy_files_from_src_to_dest("tools", "tools")
-    # copy_files_from_src_to_dest("actions", "actions")
-    # copy_files_from_src_to_dest("agents", "agents")
-    # copy_files_from_src_to_dest("settings", "settings")
+    copy_files_from_src_to_dest("tools", "tools")
+    copy_files_from_src_to_dest("actions", "actions")
+    copy_files_from_src_to_dest("agents", "agents/PredefinedAgents")
+    copy_files_from_src_to_dest("settings", "settings")
 
     # Copy personas/default.yaml to .agentforge/personas
-    # personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/default.yaml")
-    # personas_dest_path = os.path.join(".agentforge", "personas", "default.yaml")
-    # shutil.copyfile(personas_src_path, personas_dest_path)
-
-
-def recursive_copy(src, dest):
-    """
-    Recursively copy an entire directory tree rooted at src to the destination directory.
-    If the destination directory doesn't exist, it will be created.
-    Existing files in the destination directory will NOT be overwritten.
-    """
-    print(f"Starting copy from {src} to {dest}")
-
-    # Check and print absolute paths for clarity
-    src = os.path.abspath(src)
-    dest = os.path.abspath(dest)
-    print(f"Absolute source path: {src}")
-    print(f"Absolute destination path: {dest}")
-
-    # Check permissions
-    if not os.access(src, os.R_OK):
-        print(f"No read permissions on source: {src}")
-    if not os.access(dest, os.W_OK):
-        print(f"No write permissions on destination: {dest}")
-
-    for dir_path, dir_names, filenames in os.walk(src):
-        # Construct the destination directory path
-        dest_dir = os.path.join(dest, os.path.relpath(dir_path, src))
-
-        # Create the directories
-        if not os.path.exists(dest_dir):
-            os.makedirs(dest_dir, exist_ok=True)
-            print(f"Created sub-directory {dest_dir}")
-
-        # Copy all the files in the current directory to the destination directory
-        for filename in filenames:
-            src_file = os.path.join(dir_path, filename)
-            dest_file = os.path.join(dest_dir, filename)
-
-            # Check if the destination file already exists; if it does, skip copying
-            if os.path.exists(dest_file):
-                print(f"File {dest_file} already exists. Skipping.")
-                continue
-
-            print(f"Trying to copy: {src_file} to {dest_file}")
-
-            try:
-                shutil.copy2(src_file, dest_file)  # copy2 also copies metadata
-                print(f"Copied file {src_file} to {dest_file}")
-            except Exception as e:
-                print(f"Error copying {src_file} to {dest_file}. Error: {str(e)}")
+    personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/default.yaml")
+    personas_dest_path = os.path.join(".agentforge", "personas", "default.yaml")
+    shutil.copyfile(personas_src_path, personas_dest_path)
 
 
 # Copy all files from the agents subfolder in src_path to .agentforge/agents
