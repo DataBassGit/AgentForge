@@ -26,12 +26,12 @@ def copy_files():
 
     # Create directories
     os.makedirs(".agentforge", exist_ok=True)
-    os.makedirs(".agentforge/agents", exist_ok=True)
-    os.makedirs(".agentforge/agents/PredefinedAgents", exist_ok=True)
-    os.makedirs(".agentforge/actions", exist_ok=True)
-    os.makedirs(".agentforge/personas", exist_ok=True)
-    os.makedirs(".agentforge/settings", exist_ok=True)
-    os.makedirs(".agentforge/tools", exist_ok=True)
+    # os.makedirs(".agentforge/agents", exist_ok=True)
+    # os.makedirs(".agentforge/agents/PredefinedAgents", exist_ok=True)
+    # os.makedirs(".agentforge/actions", exist_ok=True)
+    # os.makedirs(".agentforge/personas", exist_ok=True)
+    # os.makedirs(".agentforge/settings", exist_ok=True)
+    # os.makedirs(".agentforge/tools", exist_ok=True)
     os.makedirs("CustomAgents", exist_ok=True)
     os.makedirs("Logs", exist_ok=True)
 
@@ -42,11 +42,11 @@ def copy_files():
         f.write("Results Log File:\n")
 
     # Copy folders
-    recursive_copy("actions", "actions")
-    recursive_copy("agents", "agents")
-    recursive_copy("personas", "personas")
-    recursive_copy("settings", "settings")
-    recursive_copy("tools", "tools")
+    recursive_copy("actions", ".agentforge/actions")
+    recursive_copy("agents", ".agentforge/agents")
+    recursive_copy("personas", ".agentforge/personas")
+    recursive_copy("settings", ".agentforge/settings")
+    recursive_copy("tools", ".agentforge/tools")
 
     print("All files have been successfully copied!")
 
@@ -67,21 +67,34 @@ def recursive_copy(src, dest):
     If the destination directory doesn't exist, it will be created.
     If files in the destination directory already exist, they will be overwritten.
     """
+    print(f"\nStarting copy from {src} to {dest}\n")
+
     # Ensure the destination directory exists
-    os.makedirs(dest, exist_ok=True)
+    if not os.path.exists(dest):
+        os.makedirs(dest)
+        print(f"Created directory {dest}")
+    else:
+        print(f"Directory {dest} already exists")
 
     for dir_path, dir_names, filenames in os.walk(src):
         # Construct the destination directory path
         dest_dir = os.path.join(dest, os.path.relpath(dir_path, src))
 
         # Create the directories
-        os.makedirs(dest_dir, exist_ok=True)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir, exist_ok=True)
+            print(f"\nCreated sub-directory {dest_dir}")
 
         # Copy all the files in the current directory to the destination directory
         for filename in filenames:
             src_file = os.path.join(dir_path, filename)
             dest_file = os.path.join(dest_dir, filename)
-            shutil.copy2(src_file, dest_file)  # copy2 also copies metadata
+
+            if not os.path.exists(dest_file):
+                shutil.copy2(src_file, dest_file)  # copy2 also copies metadata
+                print(f"Copied file {src_file} to {dest_file}")
+            else:
+                print(f"File {dest_file} already exists. Skipping.")
 
 
 # Copy all files from the agents subfolder in src_path to .agentforge/agents
@@ -96,13 +109,13 @@ def copy_files_from_src_to_dest(src_folder, dest_folder):
 def copy_salience():
     src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
     shutil.copyfile(src_path, "salience.py")
-    print("Salience.py has been successfully copied!")
+    print("Salience.py has been successfully copied!\n")
 
 
 def gui():
     gui_path = pkg_resources.resource_filename("agentforge.utils.guiutils", "gui.py")
     subprocess.run(["python", gui_path])
-    print("Launching GUI...")
+    print("Launching GUI...\n")
 
 
 def main():
@@ -131,11 +144,11 @@ def main():
         elif args.command == "gui":
             gui()
 
-        print(f"'{args.command}' command executed successfully!")
+        print(f"'{args.command}' command executed successfully!\n")
 
     except Exception as e:
         # Catch any exception and print an error message
-        print(f"An error occurred while executing the '{args.command}' command: {str(e)}")
+        print(f"An error occurred while executing the '{args.command}' command: {str(e)}\n")
 
 
 if __name__ == "__main__":
