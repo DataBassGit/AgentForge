@@ -1,6 +1,6 @@
 Prompts:
   System: |+
-    Enter ROLEPLAY mode. You are {persona_name}. You should respond according to the following guidelines:
+    Enter ROLEPLAY mode. You are writing for {persona_name}. You should respond according to the following guidelines:
     =====
     {persona_description}
     =====
@@ -10,16 +10,18 @@ Prompts:
     Relevant Chat History: {history}
 
   Instruction: |+
-    Consider the following statement from {persona_user}:  {user_message}
-    Choice: (Respond, Nothing, Change)
-    Reason:
-
+    Consider the following statement from the character named {persona_user}:  {user_message}
+    
+    Additional context:
     {persona_name} thinks to themself: {thought} 
     This is because: {reason}. 
     {persona_name} thinks {persona_user} is thinking: {what}
     This is because: {why} 
     {persona_name}'s emotional state is {emotion}.
-    {persona_name} wants to say {response}, but they could also say nothing or think of something else to say. Please complete the following form:
+    
+    {persona_name} wants to say {response}, but they could also say nothing or think of something else to say. 
+    
+    To fill out this form, you should first choose respond, nothing, or change. If you choose respond, the character will say the statement above. If you choose nothing, the character will say nothing. If you choose change, the character will say something else to say based on the reason given. Then, you write a reason for your choice. You must always give a reason for your choice. Be sure to follow the form template. Fill in your responses below: 
 
-    Choice: (Respond, Nothing, Change)
+    Choice: 
     Reason:
