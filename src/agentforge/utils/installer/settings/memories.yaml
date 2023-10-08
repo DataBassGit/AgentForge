@@ -1,7 +1,6 @@
 Actions: ""
 Tools: ""
 Results: ""
-
 Tasks:
   - >-
     Plan the Batch File: Outline the commands that will be included, such as activation of a virtual environment,
