@@ -27,7 +27,7 @@ def copy_files():
     # Create directories
     os.makedirs(".agentforge", exist_ok=True)
     os.makedirs(".agentforge/agents", exist_ok=True)
-    os.makedirs("agentforge/agents/CustomAgents", exist_ok=True)
+    os.makedirs(".agentforge/agents/CustomAgents", exist_ok=True)
     os.makedirs(".agentforge/actions", exist_ok=True)
     os.makedirs(".agentforge/personas", exist_ok=True)
     os.makedirs(".agentforge/settings", exist_ok=True)
