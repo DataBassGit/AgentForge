@@ -65,16 +65,21 @@ def recursive_copy(src, dest):
     """
     Recursively copy an entire directory tree rooted at src to the destination directory.
     If the destination directory doesn't exist, it will be created.
-    If files in the destination directory already exist, they will be overwritten.
+    Existing files in the destination directory will NOT be overwritten.
     """
-    print(f"\nStarting copy from {src} to {dest}\n")
+    print(f"Starting copy from {src} to {dest}")
 
-    # Ensure the destination directory exists
-    if not os.path.exists(dest):
-        os.makedirs(dest)
-        print(f"Created directory {dest}")
-    else:
-        print(f"Directory {dest} already exists")
+    # Check and print absolute paths for clarity
+    src = os.path.abspath(src)
+    dest = os.path.abspath(dest)
+    print(f"Absolute source path: {src}")
+    print(f"Absolute destination path: {dest}")
+
+    # Check permissions
+    if not os.access(src, os.R_OK):
+        print(f"No read permissions on source: {src}")
+    if not os.access(dest, os.W_OK):
+        print(f"No write permissions on destination: {dest}")
 
     for dir_path, dir_names, filenames in os.walk(src):
         # Construct the destination directory path
@@ -83,18 +88,25 @@ def recursive_copy(src, dest):
         # Create the directories
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir, exist_ok=True)
-            print(f"\nCreated sub-directory {dest_dir}")
+            print(f"Created sub-directory {dest_dir}")
 
         # Copy all the files in the current directory to the destination directory
         for filename in filenames:
             src_file = os.path.join(dir_path, filename)
             dest_file = os.path.join(dest_dir, filename)
 
-            if not os.path.exists(dest_file):
+            # Check if the destination file already exists; if it does, skip copying
+            if os.path.exists(dest_file):
+                print(f"File {dest_file} already exists. Skipping.")
+                continue
+
+            print(f"Trying to copy: {src_file} to {dest_file}")
+
+            try:
                 shutil.copy2(src_file, dest_file)  # copy2 also copies metadata
                 print(f"Copied file {src_file} to {dest_file}")
-            else:
-                print(f"File {dest_file} already exists. Skipping.")
+            except Exception as e:
+                print(f"Error copying {src_file} to {dest_file}. Error: {str(e)}")
 
 
 # Copy all files from the agents subfolder in src_path to .agentforge/agents
