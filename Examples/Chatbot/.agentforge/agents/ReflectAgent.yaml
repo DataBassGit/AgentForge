@@ -11,11 +11,15 @@ Prompts:
 
   Instruction: |+
     Consider the following statement from {persona_user}:  {user_message}
+    Choice: (Respond, Nothing, Change)
+    Reason:
 
-    You think to yourself, {thought} This is because {reason}. 
-    You think they are thinking {what} because {why} 
-    Your emotional state is {emotion}
-    You want to say {response}, but you could also say nothing or think of something else to say. Please complete the following form:
+    {persona_name} thinks to themself: {thought} 
+    This is because: {reason}. 
+    {persona_name} thinks {persona_user} is thinking: {what}
+    This is because: {why} 
+    {persona_name}'s emotional state is {emotion}.
+    {persona_name} wants to say {response}, but they could also say nothing or think of something else to say. Please complete the following form:
 
     Choice: (Respond, Nothing, Change)
     Reason:
