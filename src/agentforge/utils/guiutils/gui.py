@@ -6,12 +6,15 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.lang import Builder
 from kivy.uix.scrollview import ScrollView
+from kivy.core.window import Window
 
 from flask import Flask, request, jsonify
 import requests
 import threading
 
 app = Flask(__name__)
+window_width = 650
+label = Label()
 
 @app.route('/layer_update', methods=['POST'])
 def layer_update():
@@ -24,6 +27,7 @@ def layer_update():
 
 def run_flask_app():
     app.run(port=5000, use_reloader=False, threaded=True)
+
 class KivyApp(App):
 
     def __init__(self, **kwargs):
@@ -42,6 +46,18 @@ class KivyApp(App):
         self.views = []
         self.labels = []
 
+    def on_window_resize(self, window, width, height):
+        print(f"Window resized to {width}x{height}")
+        new_width = width - 20
+        for label in self.labels:
+            label.text_size = (new_width, None)
+
+    def adjust_textinput_height(self, instance, value):
+        instance.height = (len(instance._lines_labels) * instance.line_height) + 2
+        max_height = 88  # Set this to your desired maximum height for the TextInput
+        if instance.height > max_height:
+            instance.height = max_height
+
     def build(self):
         self.main_layout = BoxLayout(orientation='vertical')
         self.tab_panel = TabbedPanel(do_default_tab=False)
@@ -49,13 +65,14 @@ class KivyApp(App):
         tab_titles = ['Chat', 'Console']
 
         for i, title in enumerate(tab_titles):
-            self.history[i] = "Listening to Messages...\n"
+            global window_width
+            self.history[i] = f"Listening to Messages...\n"
             view = ScrollView()
             label = Label(
                 text=self.history[i],
                 size_hint_y=None,
                 width=650,
-                text_size=(650, None),
+                text_size=(window_width, None),
                 halign='left',
                 valign='top')
 
@@ -77,6 +94,7 @@ class KivyApp(App):
 
         # Chat and Send button
         self.chat = TextInput(hint_text='Enter a message...')
+        self.chat.bind(text=self.adjust_textinput_height)
         self.send_button = Button(text='Send', size_hint_x=None, width=100)
         self.send_button.bind(on_press=self.send_chat_message)
 
@@ -84,7 +102,10 @@ class KivyApp(App):
         self.bottom_layout.add_widget(self.chat)
         self.bottom_layout.add_widget(self.send_button)
 
+
         self.main_layout.add_widget(self.bottom_layout)
+
+        Window.bind(on_resize=self.on_window_resize)
 
         return self.main_layout
 
@@ -103,9 +124,19 @@ class KivyApp(App):
                 "message": self.chat.text
             }
 
-            self.result = requests.post('http://127.0.0.1:5001/bot', json=data)
+            # Move the requests.post to a separate thread
+            threading.Thread(target=self.send_message_thread, args=(data,)).start()
+
             # Clear the chat box after sending
             self.chat.text = ''
+
+    def send_message_thread(self, data):
+        try:
+            self.result = requests.post('http://127.0.0.1:5001/bot', json=data)
+            # Handle the response if needed
+        except Exception as e:
+            # Handle any exceptions here
+            print(f"Error: {e}")
 
 
 if __name__ == '__main__':

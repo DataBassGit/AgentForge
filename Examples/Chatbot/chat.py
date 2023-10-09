@@ -22,6 +22,7 @@ class Chatbot:
     memories = None
     chat_response = None
     message = None
+    cat = None
 
     def __init__(self):
         params = {
@@ -122,8 +123,8 @@ class Chatbot:
         ApiClient().send_message("layer_update", 1, f"Thought Agent:\n=====\n{self.result}\n=====\n")
         self.thought = self.parse_lines()
         print(f"self.thought: {self.thought}")
-        cat = self.format_string(self.thought["Category"])
-        self.memory_recall(cat, message)
+        self.cat = self.format_string(self.thought["Category"])
+        self.memory_recall(self.cat, message)
 
     def gen_agent(self, message, history):
         self.result = self.gen.run(user_message=message,
