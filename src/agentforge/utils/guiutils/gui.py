@@ -52,11 +52,6 @@ class KivyApp(App):
         for label in self.labels:
             label.text_size = (new_width, None)
 
-    def adjust_textinput_height(self, instance, value):
-        instance.height = (len(instance._lines_labels) * instance.line_height) + 2
-        max_height = 88  # Set this to your desired maximum height for the TextInput
-        if instance.height > max_height:
-            instance.height = max_height
 
     def build(self):
         self.main_layout = BoxLayout(orientation='vertical')
@@ -66,7 +61,7 @@ class KivyApp(App):
 
         for i, title in enumerate(tab_titles):
             global window_width
-            self.history[i] = f"Listening to Messages...\n"
+            self.history[i] = f"Listening to Messages...\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
             view = ScrollView()
             label = Label(
                 text=self.history[i],
@@ -94,14 +89,12 @@ class KivyApp(App):
 
         # Chat and Send button
         self.chat = TextInput(hint_text='Enter a message...')
-        self.chat.bind(text=self.adjust_textinput_height)
         self.send_button = Button(text='Send', size_hint_x=None, width=100)
         self.send_button.bind(on_press=self.send_chat_message)
 
         self.bottom_layout = BoxLayout(size_hint_y=None, height=44)
         self.bottom_layout.add_widget(self.chat)
         self.bottom_layout.add_widget(self.send_button)
-
 
         self.main_layout.add_widget(self.bottom_layout)
 

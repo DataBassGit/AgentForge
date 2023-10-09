@@ -12,8 +12,17 @@
             size: self.size
 
 <Label>:
+    canvas.before:
+
+        # Rectangle for background image (if needed)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'gradient.jpg'
+
     color: GREEN_COLOR
     font_size: 20
+
 
 <TextInput>:
     background_color: BG_COLOR
