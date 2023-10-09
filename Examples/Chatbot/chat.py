@@ -5,9 +5,11 @@ from customagents.ThoughtAgent import ThoughtAgent
 from agentforge.utils.guiutils.listenforui import BotApi as ListenForUI
 from agentforge.utils.guiutils.sendtoui import ApiClient
 from agentforge.utils.storage_interface import StorageInterface
+from agentforge.modules.ActionExecution import Action
+from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
+from agentforge.utils.function_utils import Functions
+
 import re
-
-
 
 
 class Chatbot:
@@ -29,6 +31,14 @@ class Chatbot:
             "collection_name": "chat_history",
         }
         self.chat_history = self.storage.select_collection("chat_history")
+        self.action_execution = Action()
+        self.action_selection = ActionSelectionAgent()
+        self.selected_action = None
+        self.functions = Functions()
+        self.reflection = None
+        self.theory = None
+        self.generate = None
+        self.thought = None
 
     def run(self, message):
         print(message)
@@ -52,11 +62,17 @@ class Chatbot:
     def save_memory(self, bot_response):
         size = self.storage.count_collection("chat_history")
         bot_message = f"Chatbot: {bot_response}"
+        user_chat = f"User: {self.message}"
         params = {
             "collection_name": "chat_history",
-            "data": [bot_message],
+            "data": [user_chat],
             "ids": [str(size + 1)],
-            "metadata": [{"id": size + 1}]
+            "metadata": [{
+                "id": size + 1,
+                "Character Response": bot_message,
+                "EmotionalResponse": self.thought["Emotion"],
+                "Inner_Thought": self.thought["Inner Thought"]
+            }]
         }
         self.storage.save_memory(params)
 
@@ -102,7 +118,8 @@ class Chatbot:
         self.memories = self.storage.query_memory(params, 10)
         return self.memories
 
-    def format_string(self, input_str):
+    @staticmethod
+    def format_string(input_str):
         # Check if the input string length is between 3 and 63 characters
         if 3 <= len(input_str) <= 63:
             # Check if the string starts and ends with an alphanumeric character
@@ -146,6 +163,10 @@ class Chatbot:
         print(f"self.thought: {self.theory}")
 
     def reflect_agent(self, message, history):
+        try:
+            test = self.theory["What"]
+        except KeyError:
+            self.theory = {"What": "Don't Know.", "Why": "Not enough information."}
 
         self.result = self.ref.run(user_message=message,
                                    history=history["documents"],
@@ -173,6 +194,36 @@ class Chatbot:
                                         response=self.chat_response)
             ApiClient().send_message("layer_update", 0, f"Chatbot: {new_response}\n")
             self.save_memory(new_response)
+
+    def check_for_actions(self):
+        self.select_action()
+
+        if self.selected_action:
+            self.execute_action()
+        else:
+            pass
+
+    def execute_action(self):
+        action_results = self.action_execution.run(action=self.selected_action, context=self.message)
+        self.functions.printing.print_result(action_results, 'Action Results')
+
+    def select_action(self):
+        self.selected_action = None
+        self.selected_action = self.action_selection.run(feedback=self.message)
+
+        if self.selected_action:
+            result = f"{self.selected_action['Name']}: {self.selected_action['Description']}"
+            self.functions.printing.print_result(result, 'Action Selected')
+
+    @staticmethod
+    def format_action_results(action_results):
+        formatted_strings = []
+        for key, value in action_results.items():
+            formatted_string = f"{key}: {value}\n\n---\n"
+            formatted_strings.append(formatted_string)
+
+        return "\n".join(formatted_strings).strip('---\n')
+
 
 if __name__ == '__main__':
     print("Starting")
