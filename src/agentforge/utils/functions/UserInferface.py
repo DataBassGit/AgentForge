@@ -1,6 +1,6 @@
 from termcolor import cprint
 from colorama import init
-from pynput import keyboard
+import keyboard
 
 init(autoreset=True)
 
@@ -9,9 +9,7 @@ class UserInterface:
     def __init__(self):
         self.mode = 'manual'
 
-        # Start the listener for 'Esc' key press
-        self.listener = keyboard.Listener(on_press=self.on_key_press)
-        self.listener.start()
+        keyboard.hook(self.on_key_press)
 
     def get_auto_mode(self):
         return self.mode
@@ -34,10 +32,10 @@ class UserInterface:
 
         return feedback
 
-    def on_key_press(self, key):
+    def on_key_press(self, event):
         try:
             # If 'Esc' is pressed and mode is 'auto', switch to 'manual'
-            if key == keyboard.Key.esc and self.mode == 'auto':
+            if event.name == 'esc' and self.mode == 'auto':
                 cprint("\nSwitching to Manual Mode...", 'green', attrs=['bold'])
                 self.mode = 'manual'
         except AttributeError:
