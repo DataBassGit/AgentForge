@@ -115,24 +115,39 @@ class Chatbot:
             "collection_name": category,
             "query": message
         }
+        print(f"Querying Memory: {params}")
         self.memories = self.storage.query_memory(params, 10)
         return self.memories
 
+    import re
+
     @staticmethod
     def format_string(input_str):
-        # Check if the input string length is between 3 and 63 characters
-        if 3 <= len(input_str) <= 63:
-            # Check if the string starts and ends with an alphanumeric character
-            if input_str[0].isalnum() and input_str[-1].isalnum():
-                # Check if the string contains only alphanumeric characters, underscores, or hyphens
-                if re.match("^[a-zA-Z0-9_-]*$", input_str):
-                    # Check if the string contains no two consecutive periods
-                    if ".." not in input_str:
-                        # Check if the string is not a valid IPv4 address
-                        if not re.match(r'^\d+\.\d+\.\d+\.\d+$', input_str):
-                            return input_str  # String meets all criteria
 
-        return None  # String does not meet the criteria
+        # Replace non-alphanumeric, non-underscore, non-hyphen characters with underscores
+        input_str = re.sub("[^a-zA-Z0-9_-]", "_", input_str)
+
+        # Replace consecutive periods with a single period
+        while ".." in input_str:
+            input_str = input_str.replace("..", ".")
+
+        # Ensure it's not a valid IPv4 address
+        if re.match(r'^\d+\.\d+\.\d+\.\d+$', input_str):
+            input_str = "a" + input_str
+
+        # Ensure length is between 3 and 63 characters
+        while len(input_str) < 3:
+            input_str += input_str
+        if len(input_str) > 63:
+            input_str = input_str[:63]
+
+        # Ensure it starts and ends with an alphanumeric character
+        if not input_str[0].isalnum():
+            input_str = "a" + input_str[1:]
+        if not input_str[-1].isalnum():
+            input_str = input_str[:-1] + "a"
+
+        return input_str
 
     def thought_agent(self, message, history):
         self.result = self.thou.run(user_message=message,
@@ -141,6 +156,7 @@ class Chatbot:
         self.thought = self.parse_lines()
         print(f"self.thought: {self.thought}")
         self.cat = self.format_string(self.thought["Category"])
+        print(f"self.cat: {self.cat}")
         self.memory_recall(self.cat, message)
 
     def gen_agent(self, message, history):
@@ -181,10 +197,10 @@ class Chatbot:
         self.reflection = self.parse_lines()
         print(f"self.thought: {self.reflection}")
 
-        if self.reflection["Choice"] == "Respond":
+        if self.reflection["Choice"] == "respond":
             ApiClient().send_message("layer_update", 0, f"Chatbot: {self.chat_response}\n")
             self.save_memory(self.chat_response)
-        elif self.reflection["Choice"] == "Nothing":
+        elif self.reflection["Choice"] == "nothing":
             ApiClient().send_message("layer_update", 0, f"Chatbot: ...\n")
         else:
             new_response = self.gen.run(user_message=message, history=history["documents"], memories=self.memories,

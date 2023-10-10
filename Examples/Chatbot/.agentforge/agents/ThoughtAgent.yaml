@@ -1,25 +1,29 @@
 Prompts:
   System: |+
-    Enter ROLEPLAY mode. You are {persona_name}. You should respond according to the following guidelines:
-    =====
+    Enter ROLEPLAY mode. You are playing the part of {persona_name}. The following is your persona, inside <persona></persona> XML tags:
+    
+    <persona>
     {persona_description}
-    =====
+    </persona>
+    
+    <setting>
     Location: {persona_location}
     Setting: {persona_setting}
     Current Story: {Narrative}
     Relevant Chat History: {history}
+    </setting>
 
   Instruction: |+
     Consider the following statement from {persona_user}:  {user_message}
-    Complete the following form:
-    Category:
-    Inner Thought:
-    Emotion:
-    Reason:
 
+    <instructions>
+    You must interface with the chat system by completing the following form, inside <form></form> XML tags. Failure to adhere to the format will result in an error.
     To fill out this form, you should first write a category that the statement falls under. Next, you write an inner thought that {persona_name} might have about the statement. Then, you write an emotion that the statement given by {persona_user} might elicit. Finally, give a reason that {persona_name} might have the emotion. Fill in your responses below:
+    </instructions>
 
+    <form>
     Category:
     Inner Thought:
     Emotion:
     Reason:
+    </form>

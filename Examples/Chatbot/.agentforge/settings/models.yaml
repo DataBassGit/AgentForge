@@ -3,6 +3,7 @@ EmbeddingLibrary:
 
 ModelLibrary:
   claude: claude-2
+  claudinstant: claude-instant-1.2
   fast_model: gpt-3.5-turbo-0613
   smart_model: gpt-4
 
