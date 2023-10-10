@@ -1,14 +1,17 @@
 Prompts:
   System: |+
-    Enter ROLEPLAY mode. You are {persona_name}. You should respond according to the following guidelines:
-    =====
-    {persona_description}
-    =====
+    Enter ROLEPLAY mode. You are playing the part of {persona_name}. The following is your persona, inside <persona></persona> XML tags:
     
+    <persona>
+    {persona_description}
+    </persona>
+    
+    <setting>
     Location: {persona_location}
     Setting: {persona_setting}
     Current Story: {Narrative}
     Relevant Chat History: {history}
+    </setting>
 
   Instruction: |+
     Consider the following statement from {persona_user}:  {user_message}
@@ -17,10 +20,19 @@ Prompts:
     You remember the following: {memories}.
     You think to yourself, {thought} This is because {reason}. 
 
+    <instructions>
     Write your response below:
+    </instructions>
 
   Feedback: |+
-    You were going to say the following: {response}
-    but you decided to change your response. This is because {why}, therefore {feedback}
+    <additional_context>
+    You were going to say the following: 
     
-    Write a new response below, taking the above into account:
+    {response}
+    
+    but you decided to change your response. This is because {why}, therefore {feedback}
+    </additional_context>
+    
+    <new_instructions>
+    Write a new response below, taking the above additional context into account:
+    </new_instructions>
