@@ -4,6 +4,13 @@
 
  Because this system is built on AgentForge, we can quickly switch between OpenAI and Claude, as well as locally hosted models. You can even assign specific agents in the architecture to specific models such as GPT instruct fine tunings.
 
+## Features
+
+- Advanced memory management
+- Multi-prompt chain-of-thought
+- Theory of mind
+- Single branch tree-of-thought
+
 ## Starting the Chatbot
 
 Go to the commandline and run:
@@ -17,6 +24,10 @@ In a separate terminal, run:
 python chat.py
 ```
 This will start the bot. You will need to give the bot a few seconds to prepare the server. Once it is ready, you can start the chat.
+
+## Using the Chatbot
+
+Bot prompts are stored in the .agentforge/agents folder. The bot uses 4 separate agents to generate the chat. There is a 5th important file in the .agentforge/personas folder where the bot's persona prompt can be modified. This is how you define the personality of the bot. Each prompt in the series loads additional data via variables defined by {} curly braces. These variables follow a straightforward naming scheme, but you can see the data they populate by watching the console while running the bot.
 
 ## File Structure
 
