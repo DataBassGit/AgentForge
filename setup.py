@@ -32,6 +32,7 @@ setup(
         "beautifulsoup4~=4.12.2",
         "browse~=1.0.1",
         "kivy~=2.2.1",
+        "flask~=2.3.2",
     ],
     extras_require={
         "pinecone": [

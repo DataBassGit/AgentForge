@@ -28,9 +28,7 @@ class Chatbot:
     categories = None
 
     def __init__(self):
-        params = {
-            "collection_name": "chat_history",
-        }
+
         self.chat_history = self.storage.select_collection("chat_history")
         self.action_execution = Action()
         self.action_selection = ActionSelectionAgent()
@@ -60,6 +58,73 @@ class Chatbot:
         # run reflect agent
         self.reflect_agent(message, history)
         self.memories = []
+
+    def thought_agent(self, message, history):
+        self.result = self.thou.run(user_message=message,
+                                    history=history["documents"])
+        ApiClient().send_message("layer_update", 1, f"Thought Agent:\n=====\n{self.result}\n=====\n")
+        self.thought = self.parse_lines()
+        print(f"self.thought: {self.thought}")
+        self.categories = self.thought["Categories"].split(",")
+        for category in self.categories:
+            formatted_category = self.format_string(category)
+            print(f"formatted_category: {formatted_category}")
+            self.memory_recall(formatted_category, message)
+
+    def gen_agent(self, message, history):
+        self.result = self.gen.run(user_message=message,
+                                   history=history["documents"],
+                                   memories=self.memories,
+                                   emotion=self.thought["Emotion"],
+                                   reason=self.thought["Reason"],
+                                   thought=self.thought["Inner Thought"])
+        ApiClient().send_message("layer_update", 1, f"Generate Agent:\n=====\n{self.result}\n=====\n")
+        self.generate = self.parse_lines()
+        print(f"self.thought: {self.generate}")
+        self.chat_response = self.result
+
+    def theory_agent(self, message, history):
+        self.result = self.theo.run(user_message=message,
+                                    history=history["documents"])
+        ApiClient().send_message("layer_update", 1, f"Theory Agent:\n=====\n{self.result}\n=====\n")
+        self.theory = self.parse_lines()
+        print(f"self.thought: {self.theory}")
+
+    def reflect_agent(self, message, history):
+        if "What" not in self.theory:
+            self.theory = {"What": "Don't Know.", "Why": "Not enough information."}
+
+        self.result = self.ref.run(user_message=message,
+                                   history=history["documents"],
+                                   memories=self.memories,
+                                   emotion=self.thought["Emotion"],
+                                   reason=self.thought["Reason"],
+                                   thought=self.thought["Inner Thought"],
+                                   what=self.theory["What"],
+                                   why=self.theory["Why"],
+                                   response=self.chat_response)
+        ApiClient().send_message("layer_update", 1, f"Reflect Agent:\n=====\n{self.result}\n=====\n")
+        self.reflection = self.parse_lines()
+        print(f"self.thought: {self.reflection}")
+
+        if self.reflection["Choice"] == "respond":
+            ApiClient().send_message("layer_update", 0, f"Chatbot: {self.chat_response}\n")
+            self.save_memory(self.chat_response)
+        elif self.reflection["Choice"] == "nothing":
+            ApiClient().send_message("layer_update", 0, f"Chatbot: ...\n")
+        else:
+            new_response = self.gen.run(user_message=message,
+                                        history=history["documents"],
+                                        memories=self.memories,
+                                        emotion=self.thought["Emotion"],
+                                        reason=self.thought["Reason"],
+                                        thought=self.thought["Inner Thought"],
+                                        what=self.theory["What"],
+                                        why=self.theory["Why"],
+                                        feedback=self.reflection["Reason"],
+                                        response=self.chat_response)
+            ApiClient().send_message("layer_update", 0, f"Chatbot: {new_response}\n")
+            self.save_memory(new_response)
 
     def save_memory(self, bot_response):
         # Existing chat history saving logic
@@ -148,7 +213,6 @@ class Chatbot:
             self.memories.extend([new_memories])
         return self.memories
 
-
     @staticmethod
     def format_string(input_str):
         # Remove leading and trailing whitespace
@@ -178,70 +242,6 @@ class Chatbot:
             input_str = input_str[:-1] + "a"
 
         return input_str
-
-    def thought_agent(self, message, history):
-        self.result = self.thou.run(user_message=message,
-                                    history=history["documents"])
-        ApiClient().send_message("layer_update", 1, f"Thought Agent:\n=====\n{self.result}\n=====\n")
-        self.thought = self.parse_lines()
-        print(f"self.thought: {self.thought}")
-        self.categories = self.thought["Categories"].split(",")
-        for category in self.categories:
-            formatted_category = self.format_string(category)
-            print(f"formatted_category: {formatted_category}")
-            self.memory_recall(formatted_category, message)
-
-    def gen_agent(self, message, history):
-        self.result = self.gen.run(user_message=message,
-                                   history=history["documents"],
-                                   memories=self.memories,
-                                   emotion=self.thought["Emotion"],
-                                   reason=self.thought["Reason"],
-                                   thought=self.thought["Inner Thought"])
-        ApiClient().send_message("layer_update", 1, f"Generate Agent:\n=====\n{self.result}\n=====\n")
-        self.generate = self.parse_lines()
-        print(f"self.thought: {self.generate}")
-        self.chat_response = self.result
-
-    def theory_agent(self, message, history):
-        self.result = self.theo.run(user_message=message,
-                                    history=history["documents"])
-        ApiClient().send_message("layer_update", 1, f"Theory Agent:\n=====\n{self.result}\n=====\n")
-        self.theory = self.parse_lines()
-        print(f"self.thought: {self.theory}")
-
-    def reflect_agent(self, message, history):
-        try:
-            test = self.theory["What"]
-        except KeyError:
-            self.theory = {"What": "Don't Know.", "Why": "Not enough information."}
-
-        self.result = self.ref.run(user_message=message,
-                                   history=history["documents"],
-                                   memories=self.memories,
-                                   emotion=self.thought["Emotion"],
-                                   reason=self.thought["Reason"],
-                                   thought=self.thought["Inner Thought"],
-                                   what=self.theory["What"],
-                                   why=self.theory["Why"],
-                                   response=self.chat_response)
-        ApiClient().send_message("layer_update", 1, f"Reflect Agent:\n=====\n{self.result}\n=====\n")
-        self.reflection = self.parse_lines()
-        print(f"self.thought: {self.reflection}")
-
-        if self.reflection["Choice"] == "respond":
-            ApiClient().send_message("layer_update", 0, f"Chatbot: {self.chat_response}\n")
-            self.save_memory(self.chat_response)
-        elif self.reflection["Choice"] == "nothing":
-            ApiClient().send_message("layer_update", 0, f"Chatbot: ...\n")
-        else:
-            new_response = self.gen.run(user_message=message, history=history["documents"], memories=self.memories,
-                                        emotion=self.thought["Emotion"], reason=self.thought["Reason"],
-                                        thought=self.thought["Inner Thought"], what=self.theory["What"],
-                                        why=self.theory["Why"], feedback=self.reflection["Reason"],
-                                        response=self.chat_response)
-            ApiClient().send_message("layer_update", 0, f"Chatbot: {new_response}\n")
-            self.save_memory(new_response)
 
     def check_for_actions(self):
         self.select_action()

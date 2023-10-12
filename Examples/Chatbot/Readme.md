@@ -1,8 +1,8 @@
 # ChattyAF
 
- This is a chatbot example using the [AgentForge](https://github.com/AgentForge/agentforge) framework. It has advanced memory management, and leverages reflextion, multi-prompt chain-of-thought, uses theory of mind capabilities, and even has a single branch tree-of-thought. 
+ This is a chatbot example using the [AgentForge](https://github.com/AgentForge/agentforge) framework. It has advanced [active retrieval augmented generation](https://arxiv.org/abs/2305.06983), and leverages [reflextion](https://arxiv.org/abs/2303.11366), multi-prompt [chain-of-thought](https://arxiv.org/abs/2201.11903), uses [theory of mind capabilities](https://arxiv.org/abs/2303.12712), and even has a single branch [tree-of-thought](https://arxiv.org/abs/2305.10601). All of this to generate lucid and liminal conversational character bots. 
 
- Because this system is built on AgentForge, we can quickly switch between OpenAI and Claude, as well as locally hosted models. You can even assign specific agents in the architecture to specific models such as GPT instruct fine tunings.
+ Because this system is built on AgentForge, we can quickly switch between OpenAI and Claude, as well as locally hosted models. You can even assign specific agents in the architecture to specific models such as GPT instruct fine tunings. The 
 
 ## Features
 
