@@ -237,7 +237,7 @@ def get_llm(self, api):
 
 ```python
 def load_agent(self, agent_name):
-    self.agent = self.get_yaml_data(f"agents/{agent_name}.yaml")
+    self.agent = get_yaml_data(f"agents/{agent_name}.yaml")
 ```
 
 ---
@@ -290,7 +290,7 @@ def load_from_folder(self, folder):
         # Only process files with a .yaml or .yml extension
         if file.endswith(".yaml") or file.endswith(".yml"):
             # Load the YAML data from the current file
-            data = self.get_yaml_data(os.path.join(folder, file))
+            data = get_yaml_data(os.path.join(folder, file))
 
             # Get the filename without the extension
             filename = os.path.splitext(file)[0]
@@ -357,7 +357,7 @@ def load_tools(self):
 ```python
 def load_persona(self):
     persona_name = self.settings.get('directives', None).get('Persona', None)
-    self.persona = self.get_yaml_data(f"personas/{persona_name}.yaml")
+    self.persona = get_yaml_data(f"personas/{persona_name}.yaml")
 ```
 
 ---

@@ -17,7 +17,8 @@ class Config:
         self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
 
         # Placeholders for the data the agent needs which is located in each respective YAML file
-        self.persona = {}
+        self.persona_name = {}
+        self.personas = {}
         self.actions = {}
         self.agent = {}
         self.tools = {}
@@ -43,19 +44,15 @@ class Config:
         Recursively searches for a filename in a directory and its subdirectories.
         Returns the full path if found, or None otherwise.
         """
-        directory = self.get_file_path(directory)
+        directory = pathlib.Path(self.get_file_path(directory))
 
-        for root, dirs, files in os.walk(directory):
-
-            for file in files:
-                path = os.path.join(root, file)
-                if filename == file:
-                    return path.replace(".agentforge\\", "").strip()
+        for file_path in directory.rglob(filename):
+            return file_path
         return None
 
     def get_config_element(self, case):
         switch = {
-            "Persona": self.persona,
+            "Persona": self.personas[self.persona_name],
             "Tools": self.tools,
             "Actions": self.actions
         }
@@ -100,15 +97,34 @@ class Config:
         args = model.get("args", [])
         return model_class(*args)
 
+    def get_storage_api(self):
+        return self.settings['storage']['StorageAPI']
+
     def load_agent(self, agent_name):
         path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
         if path_to_file:
-            self.agent = self.get_yaml_data(path_to_file)
+            self.agent = get_yaml_data(path_to_file)
         else:
             raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
 
     def load_settings(self):
         self.load_from_folder("settings")
+
+    def load_actions(self):
+        self.load_from_folder("actions")
+
+    def load_tools(self):
+        self.load_from_folder("tools")
+
+    def load_persona(self):
+        self.persona_name = self.settings.get('directives', None).get('Persona', None)
+        self.load_from_folder("personas")
+
+    def reload(self, agent_name):
+        self.load_agent(agent_name)
+        self.load_actions()
+        self.load_tools()
+        self.load_persona()
 
     def load_from_folder(self, folder):
         # Get the path for the provided folder name
@@ -126,7 +142,8 @@ class Config:
             # Only process files with a .yaml or .yml extension
             if file.endswith(".yaml") or file.endswith(".yml"):
                 # Load the YAML data from the current file
-                data = self.get_yaml_data(os.path.join(folder, file))
+                pathy = os.path.join(folder_path, file)
+                data = get_yaml_data(pathy)
 
                 # Get the filename without the extension
                 filename = os.path.splitext(file)[0]
@@ -143,34 +160,17 @@ class Config:
                     if item_name:
                         file_dict[item_name] = data_item
 
-    def load_actions(self):
-        self.load_from_folder("actions")
 
-    def load_tools(self):
-        self.load_from_folder("tools")
+# -------------------------- FUNCTIONS --------------------------
 
-    def load_persona(self):
-        persona_name = self.settings.get('directives', None).get('Persona', None)
-        self.persona = self.get_yaml_data(f"personas/{persona_name}.yaml")
 
-    def get_yaml_data(self, file_name):
-        file_path = self.get_file_path(file_name)
-        try:
-            with open(file_path, 'r') as yaml_file:
-                return yaml.safe_load(yaml_file)
-        except FileNotFoundError:
-            print(f"File {file_path} not found.")
-            return {}
-        except yaml.YAMLError:
-            print(f"Error decoding YAML from {file_path}")
-            return {}
-
-    def reload(self, agent_name):
-        self.load_agent(agent_name)
-        self.load_actions()
-        self.load_tools()
-        self.load_persona()
-
-    def get_storage_api(self):
-
-        return self.settings['storage']['StorageAPI']
+def get_yaml_data(file_path):
+    try:
+        with open(file_path, 'r') as yaml_file:
+            return yaml.safe_load(yaml_file)
+    except FileNotFoundError:
+        print(f"File {file_path} not found.")
+        return {}
+    except yaml.YAMLError:
+        print(f"Error decoding YAML from {file_path}")
+        return {}

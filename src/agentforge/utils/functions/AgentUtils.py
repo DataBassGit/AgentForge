@@ -14,6 +14,7 @@ class AgentUtils:
 
         agent = self.config.agent
         settings = self.config.settings
+        persona = self.config.personas[self.config.persona_name]
         model = agent.get('ModelOverrides', settings['models']['ModelSettings'])
 
         # Initialize agent data
@@ -24,7 +25,7 @@ class AgentUtils:
             params=model['Params'],
             prompts=agent['Prompts'],
             storage=StorageInterface().storage_utils,
-            persona=self.config.persona,
+            persona=persona,
         )
 
         return agent_data
