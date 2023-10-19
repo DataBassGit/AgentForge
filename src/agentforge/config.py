@@ -61,44 +61,22 @@ class Config:
     def get_file_path(self, file_name):
         return pathlib.Path(self.config_path) / file_name
 
-    def get_llm(self, api):
-        model_name = self.agent.get('Model', self.settings['models']['ModelSettings']['Model'])
-        model_name = self.settings['models']['ModelLibrary'].get(model_name)
+    def get_llm(self):
+        try:
+            api = self.settings['models']['ModelSettings']['API']
+            model = self.settings['models']['ModelSettings']['Model']
+            model_name = self.settings['models']['ModelLibrary'][api]['models'][model]
+            module_name = self.settings['models']['ModelLibrary'][api]['module']
+            class_name = self.settings['models']['ModelLibrary'][api]['class']
 
-        models = {
-            "claude_api": {
-                "module": "anthropic",
-                "class": "Claude",
-                "args": [model_name],
-            },
-            "oobabooga_api": {
-                "module": "oobabooga",
-                "class": "Oobabooga",
-            },
-            "oobabooga_v2_api": {
-                "module": "oobabooga",
-                "class": "OobaboogaV2",
-            },
-            "openai_api": {
-                "module": "openai",
-                "class": "GPT",
-                "args": [model_name],
-            },
-        }
+            module = importlib.import_module(f".llm.{module_name}", package=__package__)
+            model_class = getattr(module, class_name)
+            args = [model_name]
+            return model_class(*args)
 
-        model = models.get(api)
-        if not model:
-            raise ValueError(f"Unsupported Language Model API library: {api}")
-
-        module_name = model["module"]
-        module = importlib.import_module(f".llm.{module_name}", package=__package__)
-        class_name = model["class"]
-        model_class = getattr(module, class_name)
-        args = model.get("args", [])
-        return model_class(*args)
-
-    def get_storage_api(self):
-        return self.settings['storage']['StorageAPI']
+        except Exception as e:
+            print(f"Error Loading Model: {e}")
+            raise
 
     def load_agent(self, agent_name):
         path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")

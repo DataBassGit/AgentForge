@@ -21,7 +21,8 @@ class AgentUtils:
         agent_data: Dict[str, Any] = dict(
             name=agent_name,
             settings=settings,
-            llm=self.config.get_llm(model['API']),
+            # llm=self.config.get_llm(model['API']),
+            llm=self.config.get_llm(),
             params=model['Params'],
             prompts=agent['Prompts'],
             storage=StorageInterface().storage_utils,
