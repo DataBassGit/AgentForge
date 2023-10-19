@@ -16,6 +16,7 @@ app = Flask(__name__)
 window_width = 650
 label = Label()
 
+
 @app.route('/layer_update', methods=['POST'])
 def layer_update():
     data = request.json
@@ -25,8 +26,10 @@ def layer_update():
     kivy_app.update_label(layer_number, message)
     return jsonify({"status": "received"})
 
+
 def run_flask_app():
     app.run(port=5000, use_reloader=False, threaded=True)
+
 
 class KivyApp(App):
 

@@ -1,6 +1,5 @@
 import os
 from ..storage_interface import StorageInterface
-from ...config import Config
 
 from termcolor import colored, cprint
 from colorama import init
