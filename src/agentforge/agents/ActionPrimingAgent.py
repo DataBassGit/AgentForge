@@ -1,7 +1,10 @@
-from agentforge.agent_types.TaskAgent import TaskAgent
+from agentforge.agent import Agent
 
 
-class ActionPrimingAgent(TaskAgent):
+class ActionPrimingAgent(Agent):
+
+    def load_additional_data(self):
+        self.data['task'] = self.functions.task_handling.get_current_task()['document']
 
     def build_output(self):
         try:

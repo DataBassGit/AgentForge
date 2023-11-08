@@ -1,4 +1,4 @@
-from agentforge.agent_types.PersonaAgent import PersonaAgent
+from .PersonaAgent import PersonaAgent
 
 
 class TheoryAgent(PersonaAgent):

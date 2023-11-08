@@ -1,11 +1,11 @@
-from agentforge.agent_types.TaskAgent import TaskAgent
+from agentforge.agent import Agent
 
 
 class StopExecution(Exception):
     pass
 
 
-class ActionSelectionAgent(TaskAgent):
+class ActionSelectionAgent(Agent):
 
     actions = {}
     threshold = 0.6
@@ -25,6 +25,7 @@ class ActionSelectionAgent(TaskAgent):
         self.num_results = new_num_results
 
     def load_additional_data(self):
+        self.data['task'] = self.functions.task_handling.get_current_task()['document']
         self.load_actions()
 
     def load_actions(self):
