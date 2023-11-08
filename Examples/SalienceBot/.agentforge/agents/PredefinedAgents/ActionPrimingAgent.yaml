@@ -15,6 +15,9 @@ Prompts:
     
         ---
 
+    Path: |+
+        Your working directory is: '{path}'
+
     Results: |+
         Use the following data in order to prime the tool outlined above:
     

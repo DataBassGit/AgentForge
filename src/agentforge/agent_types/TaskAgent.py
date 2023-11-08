@@ -1,9 +1,7 @@
 from agentforge.agent import Agent
 
 
-class TestAgent(Agent):
-    def save_result(self):
-        pass
+class TaskAgent(Agent):
 
-    def load_additional_data(self):
+    def load_agent_type_data(self):
         self.data['task'] = self.functions.task_handling.get_current_task()['document']

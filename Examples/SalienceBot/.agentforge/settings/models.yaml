@@ -26,8 +26,8 @@ ModelLibrary:
     models: None
 
 ModelSettings:
-  API: openai_api
-  Model: fast_model
+  API: claude_api
+  Model: claude
   Params:
     max_new_tokens: 2000
     temperature: 0.5

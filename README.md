@@ -200,7 +200,7 @@ We're on the lookout for a UI/UX collaborator who's passionate about open-source
 If you're keen on contributing or just want to reach out to us, here's how to get in touch:
 
 - **Email**: contact@agentforge.net
-- **Discord**: We're evaluating opening our Discord server to the public. For now, we're extending direct invites to community members who are active in the AI and Autonomous Agents space.
+- **Discord**: Feel Free to drop by our [Discord Server](https://discord.gg/ttpXHUtCW6)
 
 ---
 

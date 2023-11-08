@@ -99,7 +99,7 @@ class Config:
         self.load_from_folder("personas")
 
     def reload(self, agent_name):
-        self.load_settings()
+        # self.load_settings() // If we allow refreshing the settings, the main objective will always be rewritten
         self.load_agent(agent_name)
         self.load_actions()
         self.load_tools()

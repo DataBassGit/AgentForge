@@ -1,7 +1,5 @@
-from agentforge.agent import Agent
+from agentforge.agent_types.TaskAgent import TaskAgent
 
 
-class ExecutionAgent(Agent):
-
-    def load_additional_data(self):
-        self.data['task'] = self.functions.task_handling.get_current_task()['document']
+class ExecutionAgent(TaskAgent):
+    pass
