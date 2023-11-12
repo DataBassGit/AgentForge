@@ -61,11 +61,9 @@ class Config:
     def get_file_path(self, file_name):
         return pathlib.Path(self.config_path) / file_name
 
-    def get_llm(self):
+    def get_llm(self, api, model):
         try:
-            api = self.settings['models']['ModelSettings']['API']
-            model = self.settings['models']['ModelSettings']['Model']
-            model_name = self.settings['models']['ModelLibrary'][api]['models'][model]
+            model_name = self.settings['models']['ModelLibrary'][api]['models'][model]['name']
             module_name = self.settings['models']['ModelLibrary'][api]['module']
             class_name = self.settings['models']['ModelLibrary'][api]['class']
 

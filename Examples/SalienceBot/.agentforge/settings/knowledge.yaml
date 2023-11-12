@@ -1,0 +1,14 @@
+# knowledge_graph.yaml
+Categories:
+  Person:
+    - Name: "John Doe"
+      Occupation: "Software Developer"
+      Interests: ["AI", "Machine Learning"]
+  Organization:
+    - Name: "Tech Corp"
+      Industry: "Technology"
+Relationships:
+  WorksAt:
+    - Source: "John Doe"
+      Target: "Tech Corp"
+

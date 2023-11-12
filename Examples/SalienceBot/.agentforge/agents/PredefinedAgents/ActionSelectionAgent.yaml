@@ -41,3 +41,9 @@ Prompts:
         "say": <thoughts summary to say to user>
       }
     }
+
+ModelOverrides:
+  API: openai_api
+  Model: smart_fast_model
+  Params:
+    max_new_tokens: 3500

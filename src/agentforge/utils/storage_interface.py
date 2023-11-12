@@ -88,13 +88,6 @@ class StorageInterface:
         generator = id_generator
         ids = generator(data)
 
-        # metadata = None
-        #
-        # if isinstance(data, list):
-        #     description = [item for item in data]
-
-        # metadata = [builder(collection_name, key, value) for key, value in data.items()]
-
         if isinstance(data, list):
             metadata = [builder(collection_name, i, item) for i, item in enumerate(data)]
         else:
