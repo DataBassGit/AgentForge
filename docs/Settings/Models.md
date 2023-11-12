@@ -16,13 +16,32 @@ EmbeddingLibrary:
   library: sentence_transformers
 
 ModelLibrary:
-  claude: claude-2
-  fast_model: gpt-3.5-turbo-0613
-  smart_model: gpt-4
+  openai_api:
+    module: "openai"
+    class: "GPT"
+    models:
+      fast_model: gpt-3.5-turbo
+      long_fast_model: gpt-3.5-turbo-16k
+      old_fast_model: gpt-3.5-turbo-0613
+      old_long_fast_model: gpt-3.5-turbo-16k-0613
+      smart_model: gpt-4
+  claude_api:
+    module: "anthropic"
+    class: "Claude"
+    models:
+      claude: claude-2
+  oobabooga_api:
+    module: "oobabooga"
+    class: "Oobabooga"
+    models: None
+  oobabooga_v2_api:
+    module: "oobabooga"
+    class: "OobaboogaV2"
+    models: None
 
 ModelSettings:
-  API: openai_api
-  Model: fast_model
+  API: claude_api
+  Model: claude
   Params:
     max_new_tokens: 2000
     temperature: 0.5
