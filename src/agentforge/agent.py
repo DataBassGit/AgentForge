@@ -74,7 +74,7 @@ class Agent:
         self.data['objective'] = self.agent_data['settings']['directives'].get('Objective', None)
 
     def load_agent_type_data(self):
-        """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
+        """Does nothing by default, it is meant to be overriden by Custom Agent Types if needed"""
         pass
 
     def parse_result(self):

@@ -14,6 +14,25 @@ Our database-agnostic framework is designed for seamless extensibility. While [C
 
 In summary, AgentForge is your beta-testing ground and future-proof hub for crafting intelligent, model-agnostic, and database-flexible autonomous agents.
 
+---
+
+## Documentation
+
+Welcome to the AgentForge framework documentation. Whether you're just getting started or diving deep into custom configurations, this roadmap will guide you every step of the way.
+
+### **Core Concepts:**
+
+- **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
+
+- **[Configurations](docs/Configs/Configurations.md)**: Start here for a high-level overview of the system's configurations. This section provides a bird's-eye view of how everything fits together.
+
+- **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.
+
+> **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience!
+
+---
+
+
 ## Table of Contents
 1. [Features](#features)
 2. [Requisites](#requisites)
@@ -21,10 +40,9 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 4. [Installation](#installation)
 5. [Dev-build Installation](#dev-build-installation)
 6. [Usage](#usage)
-7. [Documentation](#documentation)
-8. [Contributing](#contributing)
-9. [Contact Us](#contact-us)
-10. [License](#license)
+7. [Contributing](#contributing)
+8. [Contact Us](#contact-us)
+9. [License](#license)
 
 ---
 ## Features
@@ -167,22 +185,6 @@ to complete an objective by breaking it down into tasks, subsequently executing 
 For a more detailed break-down of our `Salience` example please refer to the [Salience Page]()
 
 **Important** : Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.
-
----
-
-## Documentation
-
-Welcome to the AgentForge framework documentation. Whether you're just getting started or diving deep into custom configurations, this roadmap will guide you every step of the way.
-
-### **Core Concepts:**
-
-- **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
-
-- **[Configurations](docs/Configs/Configurations.md)**: Start here for a high-level overview of the system's configurations. This section provides a bird's-eye view of how everything fits together.
-
-- **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.
-
-> **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience!
 
 ---
 
