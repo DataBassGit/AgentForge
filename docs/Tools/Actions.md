@@ -85,6 +85,5 @@ Our vision includes the development of an 'Action Creation Agent' that can auton
 
 - **Validate Your Actions**: Ensure each action is thoroughly tested to function as intended.
 - **Clear Definitions**: Maintain clarity in your YAML definitions to prevent misunderstandings during execution.
-- **Error Handling**: Utilize robust error handling to identify and address any issues during action execution.
 
 By carefully defining your actions in YAML files and understanding how they are executed, you can leverage the full potential of the Action functionality to automate complex tasks within your system.

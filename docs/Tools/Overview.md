@@ -1,8 +1,6 @@
-# System Documentation
+# **Tools and Actions**
 
-## **Tools and Actions Overview**
-
-### **Tools Overview**
+## **Tools Overview**
 
 Tools are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a YAML file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
 
@@ -24,7 +22,7 @@ Instruction: >-
 Script: agentforge.tools.GoogleSearch
 ```
 
-### **Actions Overview**
+## **Actions Overview**
 
 Actions are structured sequences of one or more Tools, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via YAML files which describe the process flow and inter-tool dynamics.
 
@@ -39,7 +37,7 @@ Instruction: First, use the 'Google Search' tool to perform a Google search and 
 Tools: Google Search, Web Scrape
 ```
 
-### **Integrating Tools and Actions**
+## **Integrating Tools and Actions**
 
 While Tools provide the fundamental functions of our system, Actions blend these functions to automate workflows and complex processes. Through the strategic use of both Tools and Actions, our system can cater to a variety of automation needs, offering users a versatile platform for their operational requirements.
 
