@@ -22,9 +22,7 @@ Here's a full example of a tool definition in YAML format:
 
 ```yaml
 Name: Google Search
-Args: 
-  query: (str), 
-  number_result: (int)
+Args: query (str), number_result (int)
 Command: google_search
 Description: >-
   The 'Google Search' tool searches the web for a specified query and retrieves a set number of results.
