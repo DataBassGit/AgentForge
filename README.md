@@ -1,9 +1,6 @@
 [![GitHub - License](https://img.shields.io/github/license/DataBassGit/AgentForge?logo=github&style=plastic&color=green)](https://github.com/DataBassGit/AgentForge/blob/dev/LICENSE)[![PyPI](https://img.shields.io/pypi/v/agentforge?logo=pypi&style=plastic&color=blue)](https://pypi.org/project/agentforge/)[![Documentation](https://img.shields.io/badge/Docs-GitHub-blue?logo=github&style=plastic&color=green)](https://github.com/DataBassGit/AgentForge/tree/dev/docs)[![Python Version](https://img.shields.io/badge/Python-3.11-blue?style=plastic&logo=python)](https://www.python.org/)
 
-
 [![Homepage](https://img.shields.io/badge/Homepage-agentforge.net-green?style=plastic&logo=google-chrome)](https://agentforge.net/)
-
-
 
 # AgentForge
 AgentForge is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents and Cognitive Architectures. Compatible with a range of LLM models — currently supporting OpenAI, Anthropic's Claude, and Oobabooga (local) — it offers the flexibility to run different models for different agents based on your specific needs.
@@ -16,38 +13,44 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 
 ---
 
+## Table of Contents
+1. [Documentation](#documentation)
+2. [Features](#features)
+3. [Requisites](#requisites)
+4. [Pre-Installation](#pre-installation)
+5. [Installation](#installation)
+6. [Dev-build Installation](#dev-build-installation)
+7. [Usage](#usage)
+8. [Contributing](#contributing)
+9. [Contact Us](#contact-us)
+10. [License](#license)
+
+---
+
 ## Documentation
 
-Welcome to the AgentForge framework documentation. Whether you're just getting started or diving deep into custom configurations, this roadmap will guide you every step of the way.
+Welcome to the AgentForge framework documentation. This comprehensive guide will support you whether you're just getting started or diving deep into custom configurations and advanced features. Here, you'll find detailed insights into the various components that make up our system.
 
 ### **Core Concepts:**
 
 - **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
 
-- **[Configurations](docs/Configs/Configurations.md)**: Start here for a high-level overview of the system's configurations. This section provides a bird's-eye view of how everything fits together.
+- **[Settings](docs/Settings/Settings.md)**: Delve into directives, memories, models, paths, and storage configurations – the fine-tuned engine settings that keep the system humming.
 
-- **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.
+- **[Personas](docs/Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable. 
 
-> **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience!
+- **[Tools & Actions](docs/Tools/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
----
+- **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.  (Note: Documentation not implemented yet)
 
-
-## Table of Contents
-1. [Features](#features)
-2. [Requisites](#requisites)
-3. [Pre-Installation](#pre-installation)
-4. [Installation](#installation)
-5. [Dev-build Installation](#dev-build-installation)
-6. [Usage](#usage)
-7. [Contributing](#contributing)
-8. [Contact Us](#contact-us)
-9. [License](#license)
+> **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience and welcome your feedback to improve the documentation.
 
 ---
+
 ## Features
 
 * Build Custom Agents And Cognitive Architectures Easily
+* Custom Tools/Actions
 * Customizable Agent Memory Management
 * Default Agents Ready For Use
 * LLM Agnostic Agents (Each Agent can call different LLMs if needed)
@@ -59,14 +62,13 @@ Welcome to the AgentForge framework documentation. Whether you're just getting s
 ### Coming Soon
 
 * API Implementation
-* Custom Tools/Actions
 * Knowledge Graphs
 
 ## Requisites
 
 **Note**: If you already have all the requisites below, you can skip ahead to the [Pre-Installation](#pre-installation) section.
 
-Make sure you have the following set up:
+Make sure you have the following set-up:
 
 ### Python
 - Python must be installed, and the PATH variable should be configured accordingly.
@@ -75,7 +77,7 @@ Make sure you have the following set up:
 1. [ChromaDB](https://www.trychroma.com/) requires [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) in order to work with Windows.
 2. Once downloaded, mark the 'Desktop Development with C++' for installation. It should automatically select these optional packages for you.
    ![Cpp_Setup](/docs/Images/Cpp_Setup.png)
-3. When installation is complete, you'll see a message that says 'All installations are up-to-date.'
+3. When the installation is complete, you'll see a message that says, 'All installations are up-to-date.'
    ![Cpp_Completion](/docs/Images/Cpp_Completion.png)
 4. Done! Close the Visual Studio installer.
 
