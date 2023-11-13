@@ -79,7 +79,6 @@ class PersonaAgent(Agent):
         self.data['persona_location'] = persona['Location']
         self.data['persona_setting'] = persona['Setting']
         self.data['persona_user'] = persona['Username']
-        self.data['Narrative'] = "none"
 ```
 
 This subclass method `load_agent_type_data` extracts various persona attributes from the configuration, making them readily available for the agent's operations.
