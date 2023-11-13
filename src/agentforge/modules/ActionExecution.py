@@ -44,7 +44,11 @@ class Action:
         self.tool['Prompt'] = f"Tool: {self.tool['Name']}\n{tool_info}"
 
     def prime_tool(self):
+
+        work_path = self.storage.config.settings['paths']['Workspace']
+
         self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
+                                                      path=work_path,
                                                       results=self.tool['Result'],
                                                       context=self.context)
         self.functions.tool_utils.show_primed_tool(self.tool['Name'], self.tool['Payload'])

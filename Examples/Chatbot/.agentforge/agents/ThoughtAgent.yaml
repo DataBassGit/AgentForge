@@ -9,7 +9,6 @@ Prompts:
     <setting>
     Location: {persona_location}
     Setting: {persona_setting}
-    Current Story: {Narrative}
     Relevant Chat History: {history}
     </setting>
 
@@ -22,7 +21,7 @@ Prompts:
     </instructions>
 
     <form>
-    Category:
+    Categories: <comma separated list of categories>
     Inner Thought:
     Emotion:
     Reason:

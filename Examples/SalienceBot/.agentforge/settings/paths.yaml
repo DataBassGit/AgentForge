@@ -1,7 +1,5 @@
-CustomAgentsPath: ./CustomAgents
-CustomModulesPath: ./CustomModules
-CustomToolsPath: ./CustomTools
-WorkspacePath: ./Workspace
+Files: ./Files
+Workspace: ./Workspace
 
 
 

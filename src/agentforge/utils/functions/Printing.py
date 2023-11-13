@@ -1,5 +1,4 @@
-# import os
-from termcolor import colored, cprint
+from termcolor import cprint
 from colorama import init
 init(autoreset=True)
 

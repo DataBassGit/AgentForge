@@ -65,12 +65,17 @@ class Agent:
     def load_data(self, **kwargs):
         """This method is in charge of calling all the relevant load data methods"""
         self.load_agent_data(**kwargs)
+        self.load_agent_type_data()
         self.load_main_data()
         self.load_additional_data()
 
     def load_main_data(self):
         """Loads the main data for the Agent; by default, it's the Objective"""
         self.data['objective'] = self.agent_data['settings']['directives'].get('Objective', None)
+
+    def load_agent_type_data(self):
+        """Does nothing by default, it is meant to be overriden by Custom Agent Types if needed"""
+        pass
 
     def parse_result(self):
         """This method does nothing by default, it is meant to be overridden by Custom Agents if needed"""

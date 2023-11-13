@@ -3,6 +3,9 @@ from agentforge.agent import Agent
 
 class ActionPrimingAgent(Agent):
 
+    def load_additional_data(self):
+        self.data['task'] = self.functions.task_handling.get_current_task()['document']
+
     def build_output(self):
         try:
             formatted_result = self.get_formatted_result()
@@ -13,9 +16,6 @@ class ActionPrimingAgent(Agent):
     def get_formatted_result(self):
         result = self.result.replace('\n', '').replace('\t', '')
         return self.functions.parsing.extract_outermost_brackets(result)
-
-    def load_additional_data(self):
-        self.data['task'] = self.functions.task_handling.get_current_task()['document']
 
     def save_result(self):
         pass

@@ -23,15 +23,16 @@ For more details on how to create and specialize agents, see [Custom Agents](Cus
 2. [Status](#status)
 3. [Load Data](#load-data)
 4. [Load Agent Data](#load-agent-data)
-5. [Load Main Data](#load-main-data)
-6. [Load Additional Data](#load-additional-data)
-7. [Process Data](#process-data)
-8. [Generate Prompt](#generate-prompt)
-9. [Run LLM](#run-llm)
-10. [Parse Result](#parse-result)
-11. [Save Result](#save-result)
-12. [Build Output](#build-output)
-13. [Additional Functions](#note-additional-functions)
+5. [Load Agent Type Data](#load-agent-type-data)
+6. [Load Main Data](#load-main-data)
+7. [Load Additional Data](#load-additional-data)
+8. [Process Data](#process-data)
+9. [Generate Prompt](#generate-prompt)
+10. [Run LLM](#run-llm)
+11. [Parse Result](#parse-result)
+12. [Save Result](#save-result)
+13. [Build Output](#build-output)
+14. [Additional Functions](#note-additional-functions)
 
 ---
 
@@ -96,20 +97,22 @@ def status(self, msg):
 
 ### `load_data(self, **kwargs)`
 
-**Purpose**: This method coordinates the data loading process. It sequentially calls `load_agent_data`, `load_main_data`, and `load_additional_data` to populate the agent's internal `data` attribute.
+**Purpose**: This method orchestrates the data loading process for the agent. It sequentially calls `load_agent_data`, `load_agent_type_data`, `load_main_data`, and `load_additional_data` to comprehensively populate the agent's internal `data` attribute. This structured approach ensures that all necessary data, from the general to the specific, is available for the agent's operations.
 
 **Arguments**:
-- `**kwargs`: Additional keyword arguments that may be used by `load_agent_data` for fetching the agent-specific data.
+- `**kwargs`: These are additional keyword arguments provided to the agent. Any data passed through `**kwargs` is directly added to the agent's internal data structure, allowing for the customization of the agent's behavior or state at runtime.
 
 **Workflow**:
-1. Calls `self.load_agent_data(**kwargs)` to populate agent-specific data. The data is stored internally.
-2. Invokes `self.load_main_data()` to add core data required for the agent's operation. The data is added to the internal `data` attribute.
-3. Executes `self.load_additional_data()` to include any extra data. Again, this is added to the internal `data` attribute.
+1. Calls `self.load_agent_data(**kwargs)` to load data that is inherently tied to the agent. This method not only fetches the agent's inherent data but also takes any additional data provided via `**kwargs` and integrates it into the agent's internal data structure. This approach enables the agent to be dynamically configured with specific data at the time of its invocation.
+2. Invokes `self.load_agent_type_data()` to load data specific to the agent's type or subclass. This step is crucial for agents belonging to a specific category or type, like `PersonaAgent`, to load their common data.
+3. Executes `self.load_main_data()` to add core data essential for the agent's operation. This data is added to the internal `data` attribute.
+4. Calls `self.load_additional_data()` to include any extra, agent-specific data. This step is tailored for the individual 'child' agents to load data unique to their specific functionality.
 
 ```python
 def load_data(self, **kwargs):
-    """This method is in charge of calling all the relevant load data methods"""
+    """Orchestrates the various data loading methods for comprehensive data preparation"""
     self.load_agent_data(**kwargs)
+    self.load_agent_type_data()
     self.load_main_data()
     self.load_additional_data()
 ```
@@ -123,13 +126,13 @@ def load_data(self, **kwargs):
 **Purpose**: This method takes charge of loading the agent-specific data. It stores the data directly in the agent's internal `data` attribute.
 
 **Arguments**:
-- `**kwargs`: Additional keyword arguments that can be used to supplement the agent's data.
+- `**kwargs`: These are additional keyword arguments provided to the method.
 
 **Workflow**:
 1. Initialized the agent-specific data `self.agent_data` by calling `self.functions.agent_utils.load_agent_data(self.agent_name)`.
 2. Initializes the agent's internal `data` attribute with two keys:
-  - `params`: A copy of the parameters from `self.agent_data`.
-  - `prompts`: A copy of the prompts from `self.agent_data`.
+   1. `params`: A copy of the parameters from `self.agent_data`.
+   2. `prompts`: A copy of the prompts from `self.agent_data`.
 3. Iterates through `kwargs` to add any additional data to the `data` attribute.
 
 ```python
@@ -140,6 +143,30 @@ def load_agent_data(self, **kwargs):
     for key in kwargs:
         self.data[key] = kwargs[key]
 ```
+
+---
+
+## Load Agent Type Data
+
+### `load_agent_type_data(self)`
+
+**Purpose**: This method is intended for use in subclasses of the main `Agent` class, providing a structured way to load data specific to a particular subclass (or "type") of agent. It's a powerful tool for creating hierarchies of agents where each subclass inherits the general capabilities of the `Agent` class but also has unique data requirements.
+
+**Example Use Case**: Consider a `PersonaAgent` subclass. This method in `PersonaAgent` could be overridden to load persona-specific data, essential for all agents derived from this class (e.g., `FriendlyAgent`, `ProfessionalAgent`, etc.). Each of these child agents would automatically load data require by persona agents, thanks to this method defined in their parent `PersonaAgent` class.
+**Example Use Case**: Consider a `PersonaAgent` subclass. This method in `PersonaAgent` could be overridden to load persona-specific data, essential for all agents derived from this class (e.g., `FriendlyAgent`, `ProfessionalAgent`, etc.). Each of these child agents would automatically load data require by persona agents, thanks to this method defined in their parent `PersonaAgent` class.
+
+**Arguments**: None
+
+**Workflow**:
+1. By default, this method does nothing. It serves as a placeholder for subclasses to implement their specific data loading logic.
+
+```python
+def load_agent_type_data(self):
+    """Designed to be overridden in subclasses to load data specific to the agent's type or category"""
+    pass
+```
+
+>**Note**: Utilize this method in any subclass of `Agent` to load data that is relevant to all agents of that particular subclass. This approach promotes code reusability and maintains a clean architecture, where each subclass can extend the functionality of the base class without redundancy.
 
 ---
 
@@ -165,23 +192,24 @@ def load_main_data(self):
 
 ## Load Additional Data
 
-### `load_additional_data(data)`
+### `load_additional_data(self)`
 
-**Purpose**: By default, this method is a placeholder waiting for [Custom Agents](CustomAgents.md) to override it. It provides an access point to modify the data going into the agent.
+**Purpose**: This method is specifically designed for the final, specialized agent classes — the "children" in the agent hierarchy. It allows these agents to load data that is unique to their specific functionality or role. This method is where you can tailor data loading for each individual agent, ensuring they have all the unique information they need to perform their tasks effectively.
+
+**Example Use Case**: If you have a `WeatherReportingAgent` that requires specific weather data, or a `StockAnalysisAgent` needing financial data, this method in each of these agents can be overridden to load that specialized data.
 
 **Arguments**: None
 
 **Workflow**:
-1. Does nothing. Yep, you read that right.
+1. This method does nothing by default, providing a template for final agent classes to implement their own data loading logic.
 
 ```python
 def load_additional_data(self):
-    """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
+    """Intended to be overridden in the final, specialized agent classes to load data unique to each agent's specific role or functionality"""
     pass
-
 ```
 
->**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md) for loading any additional data depending on their specific requirements.
+>**Note**: This method is a critical part of designing specialized, task-specific agents. By overriding `load_additional_data`, you can ensure that each agent is equipped with all the unique information it needs, differentiating it from other agents in the hierarchy and enabling it to execute its specific tasks.
 
 ---
 
@@ -200,7 +228,7 @@ def process_data(self):
     pass
 ```
 
->**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md)  for custom data processing depending on their specific requirements.
+>**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md) for custom data processing depending on their specific requirements.
 
 ---
 

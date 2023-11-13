@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.28",
+    version="0.1.29",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -19,7 +19,7 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "pynput~=1.7.6",
+        "colorama~=0.4.6",
         "python-dotenv~=1.0.0",
         "PyYAML~=6.0",
         "requests~=2.31.0",
@@ -33,6 +33,7 @@ setup(
         "beautifulsoup4~=4.12.2",
         "browse~=1.0.1",
         "kivy~=2.2.1",
+        "flask~=2.3.2",
     ],
     extras_require={
         "pinecone": [

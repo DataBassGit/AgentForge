@@ -18,8 +18,8 @@ Welcome to the central hub for system configurations. Below, you'll find specifi
 
 - **[Personas](../Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable. (Note: Feature in development)
 
-- **[Tools & Actions](../Tools/ToolsActions.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
+- **[Tools & Actions](../Tools/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
-- **[Overriding LLM Defaults](../Agents/Overrides/Overriding.md)**: Learn the flexibility of having agents override default LLM settings when needed.
+- **[Overriding LLM Defaults](../Settings/Models.md)**: Learn the flexibility of having agents override default LLM settings when needed.
 
 ---

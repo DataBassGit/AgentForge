@@ -4,7 +4,9 @@
 
 ## Creating Custom Agents
 
-Creating a Custom Agent is pretty straightforward. A  class only needs to inherit from the base `Agent` class. By doing so, it gains access to all the default behaviors defined in the `Agent` class.
+Creating a Custom Agent is pretty straightforward.
+A class only needs to inherit from the base `Agent` class.
+By doing so, it gains access to all the default behaviors defined in the `Agent` class.
 
 Creating a Custom Agent from the base class is pretty straightforward. All you need to do is create a new `Python` class that inherits from the base `Agent` class. 
 
@@ -24,9 +26,11 @@ In this example, `NewAgent` will behave exactly like its `Agent` base class sinc
 
 ## Persona Files
 
-Each bot or architecture is associated with a persona, which is defined in a `Persona YAML file` located in the `./agentforge/personas` folder. The persona file contains all the data related to the persona of the Cognitive Architecture (bot). For more details on how to structure the `Persona YAML File`, check out the [Persona Documentation](../Personas/Personas.md).
-
-> **Note**: Personas are **NOT** currently implemented, right now it is simply setting the groundwork for future implementation. Soon, you'll be able to select from multiple persona files, define specific personality traits, and possibly more. So, keep an eye out for that; exciting stuff is on the way!
+Each bot or architecture can have one or more personas,
+which are defined by Persona `YAML` files located in the `./agentforge/personas` folder.
+The persona file contains all the data related to the persona of the Cognitive Architecture (bot).
+For more details on how to structure the `Persona YAML File`,
+check out the [Persona Documentation](../Personas/Personas.md).
 
 ---
 
