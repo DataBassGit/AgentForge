@@ -5,7 +5,7 @@ Each YAML file is tailored for ease of use and clarity, ensuring that configurat
 Below is a roadmap to guide your configuration journey.
 
 
-### **[Config Class](ConfigClass.md)**
+### **[Config Class](../Configs/ConfigClass.md)**
 - The heart of configurations. Understand the class responsible for harmonizing the system's settings.
 
 ---
