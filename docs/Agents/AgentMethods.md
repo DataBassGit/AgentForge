@@ -228,7 +228,7 @@ def process_data(self):
     pass
 ```
 
->**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md)  for custom data processing depending on their specific requirements.
+>**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md) for custom data processing depending on their specific requirements.
 
 ---
 

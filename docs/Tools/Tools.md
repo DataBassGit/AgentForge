@@ -1,46 +1,124 @@
-# System Documentation
+# Dynamic Tool Functionality
 
-## **Tools and Actions Overview**
+## Introduction to Dynamic Tools
 
-### **Tools Overview**
+The Dynamic Tool system within our framework serves as a universal handler for executing functionalities, known as "tools," which are specified in YAML files. This system is designed to be model-agnostic, meaning that it can work with any model as long as the model is capable of responding in the correct format and possesses the requisite intelligence to execute the functions. Tools are defined and managed within a dedicated directory in the project structure, allowing for organized development and easy access.
 
-Tools are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a YAML file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
+**Tools Directory**: The tools are located within the `tools` directory in the project. Navigate to `your_project_root/.agentforge/tools` to access the YAML files for each tool.
 
-**Detailed Guide**: For a comprehensive guide on Tools, including their configurations and capabilities, please see [Tools Detailed Guide](Tools/Guide.md).
+## Defining Tools in YAML
 
-**Example Tool: Google Search**
+Each tool is meticulously described in a YAML file, encompassing several key attributes for a complete and actionable definition:
+
+- **Name**: A descriptive title for the tool.
+- **Args**: Specifications of the arguments that the tool accepts, along with their respective data types.
+- **Command**: The name of the function or method to be executed by the tool.
+- **Description**: A detailed explanation of the tool's purpose and functionality.
+- **Example**: A code snippet demonstrating the tool's usage.
+- **Instruction**: Detailed steps on how to utilize the tool.
+- **Script**: The path to the Python module where the tool's implementation resides.
+
+Here's a full example of a tool definition in YAML format:
+
 ```yaml
 Name: Google Search
-Args: query (str), number_result (int)
+Args: 
+  query: (str), 
+  number_result: (int)
 Command: google_search
 Description: >-
   The 'Google Search' tool searches the web for a specified query and retrieves a set number of results.
   Each result consists of a URL and a short snippet describing its contents.
-Example: search_results = google_search(query, number_of_results)
+Example: search_results = google_search('OpenAI', 5)
 Instruction: >-
-  The 'google_search' function takes a query string and a number of results as inputs.
-  The query string is what you want to search for, and the number of results is how many search results you want returned.
-  The function returns a list of tuples, each tuple containing a URL and a snippet description of a search result.
+  The 'google_search' function takes a 'query' string and a 'number_result' integer as inputs.
+  It performs a web search and returns a list of results, with each result being a tuple containing a URL and a snippet.
 Script: agentforge.tools.GoogleSearch
 ```
 
-### **Actions Overview**
+In addition to defining tools, our system comes with a set of default custom tools, which are Python scripts located in the `agentforge/tools/` directory within the library package. These scripts can be used and referenced in the same way as the Google Search example provided.
 
-Actions are structured sequences of one or more Tools, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via YAML files which describe the process flow and inter-tool dynamics.
+## Executing Tools with Dynamic Tool Functionality
 
-**Detailed Guide**: To understand Actions in depth, including how to create and manage them, refer to [Actions Detailed Guide](Actions/Guide.md).
+To execute a tool, use the `dynamic_tool` method in the `ToolUtils` class. The method dynamically loads the specified tool based on its module path and executes it using the provided arguments.
 
-**Example Action: Web Search**
+### Dynamic Tool Execution Process
+
+1. **Dynamic Module Import**: The tool's script module is dynamically imported using the `importlib` library.
+2. **Command Execution**: The specific command (function or method) mentioned in the tool's YAML definition is then executed with the provided arguments.
+3. **Result Handling**: The result of the command execution is handled appropriately, potentially being used in further processing or returned to the caller.
+
+### Example Tool Execution Code
+
+To execute a tool, use the necessary information from the tool's YAML file. Below is an example of how to use the `dynamic_tool` method with details typically found in a tool's YAML definition:
+
 ```yaml
-Name: Web Search
-Description: This action performs a Google search from a query, scrapes the text from one of the returned URLs, and then breaks the scraped text into manageable chunks.
-Example: search_results = google.google_search(query, number_result); url = search_results[2][0]; scrapped = web_scrape.get_plain_text(url)
-Instruction: First, use the 'Google Search' tool to perform a Google search and retrieve a list of search results. Choose a URL from the search results, then use the 'Web Scrape' tool to scrape the text from that URL.
-Tools: Google Search, Web Scrape
+# GoogleSearch.yaml
+Name: Google Search
+Args: 
+  query: (str), 
+  number_result: (int)
+Command: google_search
+Script: agentforge.tools.GoogleSearch
 ```
 
-### **Integrating Tools and Actions**
+Based on the YAML file, we construct a `payload` in Python and call the `dynamic_tool` method:
 
-While Tools provide the fundamental functions of our system, Actions blend these functions to automate workflows and complex processes. Through the strategic use of both Tools and Actions, our system can cater to a variety of automation needs, offering users a versatile platform for their operational requirements.
+```python
+tool_utils = ToolUtils()
+# The 'payload' dictionary is constructed based on the specifications from the 'GoogleSearch.yaml' file
+payload = {
+  "command": "google_search", # Corresponds to the 'Command' in the YAML
+  "args": {
+    "query": "OpenAI",       # Corresponds to the 'Args' in the YAML
+    "number_result": 5       # Corresponds to the 'Args' in the YAML
+  }
+}
+
+# 'tool_module' is the path to the script specified under 'Script' in the YAML file
+result = tool_utils.dynamic_tool("agentforge.tools.GoogleSearch", payload)
+
+# The result of the execution will be handled by the tool_utils object
+```
+
+#### Note on Tool Attributes:
+Not all attributes defined in the tool's YAML file are used when executing the tool with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the tool for use. They inform the LLM about the tool's purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the tool.
+
+## Implementing Custom Tools
+
+For those looking to expand the system's capabilities with their own functionalities, users can create a `Custom Tools` directory inside their project folder. The path to these custom scripts should be set in the tool's YAML file, which still resides within the `your_project_root/.agentforge/tools` directory. This allows users to seamlessly integrate their custom scripts into the system's workflow.
+
+Here's an example structure for a custom tool definition:
+
+```yaml
+Name: My Custom Tool
+Args: 
+  param1: (str), 
+  param2: (int)
+Command: my_custom_function
+Script: my_project.Custom_Tools.MyCustomToolScript
+```
+
+Ensure that the `Script` attribute correctly points to the custom tool's script location within your project.
+
+### Utilizing Python Libraries
+
+Users are also free to reference any Python library functions or methods installed in the same environment as the project. Simply specify the library path in the `Script` attribute of the tool's YAML file.
+
+## Future Implementations
+
+Looking ahead, we plan to introduce 'Automatic Tool Creation' capabilities within our system. This will enable the system to autonomously develop and incorporate new tools based on operational data and interactions, all without direct human oversight. Such a feature promises to greatly enhance the system's adaptability and expand its functional repertoire, facilitating continuous evolution and efficiency in task automation.
+
+## Compatibility and Requirements
+
+- **Script Path Specification**: Ensure that the `Script` path in the YAML definition matches the exact name of the module in the Python environment.
+- **Function Compatibility**: The Python library function or method should be compatible with dynamic calling and must be defined within the specified script path.
+
+## Best Practices for Tool Definitions
+
+- **Validate Your Definitions**: Test each YAML tool definition to ensure it functions as expected.
+- **Follow the Format**: Adhere to the YAML format provided in the example to avoid execution errors.
+
+By adhering to these guidelines and properly defining your tools in YAML files, you can leverage the Dynamic Tool functionality to enhance the automation capabilities of your system.
 
 ---

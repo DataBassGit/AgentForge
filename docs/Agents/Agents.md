@@ -19,7 +19,7 @@ Welcome to the heart of the AgentForge framework—the Agents. These entities ar
 ### **[Predefined Agents](PredefinedAgents/PredefinedAgents.md)**
 - Get inspired by exploring some of our predefined agents. These agents, built using the AgentForge framework, showcase the potential of method overriding and how it can be employed to implement custom behaviors.
 
-### **[Overriding LLM Settings](Overrides/Overriding.md)**
+### **[Overriding LLM Settings](../Settings/Models.md)**
 - Each agent holds the power to tailor the Large Language Models (LLM) settings it employs. This section delves into how agents can utilize default LLMs or opt for specific models fine-tuned for unique tasks, offering flexibility and precision.
 
 ---
