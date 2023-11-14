@@ -12,10 +12,9 @@ The `paths.yaml` file defines directory paths the system can read from and write
 ### **Sample Configuration**
 
 ```yaml
-CustomAgentsPath: ./CustomAgents
-CustomModulesPath: ./CustomModules
-CustomToolsPath: ./CustomTools
-WorkspacePath: ./Workspace
+# paths.yaml
+Files: ./Files
+Workspace: ./Workspace
 ```
 
 ---

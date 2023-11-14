@@ -124,6 +124,6 @@ selected_action = action_selection_agent.run()
 
 Here, `current_task` and `current_frustration` are variables that contain the task to be performed and the current frustration level, respectively. The agent will return a selected action to accomplish the task.
 
-> **Note**: For a more detailed explanation of actions and how they play a role in this architecture, please refer to our [Actions Documentation](../../Tools/Overview.md).
+> **Note**: For a more detailed explanation of actions and how they play a role in this architecture, please refer to our [Actions Documentation](../../ToolsAndActions/Overview.md).
 
 ---

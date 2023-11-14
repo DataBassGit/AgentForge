@@ -39,7 +39,7 @@ Welcome to the AgentForge framework documentation. This comprehensive guide will
 
 - **[Personas](docs/Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable. 
 
-- **[Tools & Actions](docs/Tools/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
+- **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
 - **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.  (Note: Documentation not implemented yet)
 
