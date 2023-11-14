@@ -22,14 +22,14 @@ Here's an example of a single-tool action and a multi-tool action defined in YAM
 
 ### Single Tool Action
 ```yaml
-Name: Create File
+Name: Write File
 Description: >-
-  Utilizes the 'Write File' tool to write or append text to a specified file in a given directory.
+  Utilizes the 'File Writer' tool to write or append text to a specified file in a given directory.
 Example: >-
   response = write_file('path/to/folder', 'filename.txt', 'This is the content', mode='a')
 Instruction: >-
   Specify the target folder, filename, and content to write. Optionally, provide a mode ('a' for append, 'w' for overwrite).
-Tools: Write File
+Tools: File Writer
 ```
 
 ### Multi Tool Action
@@ -43,7 +43,9 @@ Example: >-
   scrapped = web_scrape.get_plain_text(url)
 Instruction: >-
   Use 'Google Search' to get search results, pick a URL, then 'Web Scrape' to scrape text from the URL.
-Tools: Google Search, Web Scrape
+Tools: 
+  - Google Search
+  - Web Scrape
 ```
 
 ## Executing Actions
@@ -60,18 +62,44 @@ For those interested in the underlying implementation, the [ActionExecution](../
 2. **Running Tools in Sequence**: Each tool is executed in the order specified, with outputs from one tool being used as inputs for the next where necessary.
 3. **Handling Results**: The results are collected and can be used for further processing or saved for future reference.
 
-### Example Action Execution Code
+## Example Action Execution Code
+
+The following example demonstrates a generic use case of executing an action within our framework. This example shows how an action can be selected, defined, and then executed using the `Action` class from the `ActionExecution` module.
+
+### Usage Example:
 
 ```python
-action_executor = Action()
-action_definition = {
-  "Name": "Web Search",
-  # ... other action attributes ...
-}
-context = {}  # Any additional context needed for the action
-result = action_executor.run(action_definition, context)
+from agentforge.modules.ActionExecution import Action
 
-# The result now contains the output from the action
+# Example objective and task for context
+objective = "Perform a specific task using a combination of tools."
+task = "Describe the specific steps involved in achieving the task."
+
+# Define an action
+selected_action = {
+  "Name": "Example Action",
+  "Description": "This action demonstrates how multiple tools can be combined to perform a complex task.",
+  "Example": "result = tool1.method(param1); output = tool2.method(result)",
+  "Instruction": "First, execute 'Tool 1' with the specified parameters. Then, use the output from 'Tool 1' as input for 'Tool 2'.",
+  "Tools": "Tool 1, Tool 2"
+}
+
+class ActionExecutor:
+
+    def __init__(self):
+        self.action = Action()
+
+    def execute(self):
+        # Additional context for the action
+        self.action.data = {'objective': objective, 'task': task}
+        # Execute the action and get the result
+        result = self.action.run(selected_action)
+        return result
+
+if __name__ == '__main__':
+    executor = ActionExecutor()
+    execution_result = executor.execute()
+    print("Execution Result:", execution_result)
 ```
 
 ### Note on Action Attributes:

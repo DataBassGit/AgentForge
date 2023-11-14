@@ -1,5 +1,7 @@
 Name: Intelligent Chunk
-Args: text (str), chunk_size (int=0-3)
+Args:
+  - text (str)
+  - chunk_size (int=0-3)
 Command: intelligent_chunk
 Description: >-
   The 'Intelligent Chunk' tool splits a provided text into smaller, manageable parts or 'chunks'. The user decides the size of these chunks based on their needs.

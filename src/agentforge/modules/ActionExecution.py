@@ -44,11 +44,14 @@ class Action:
         self.tool['Prompt'] = f"Tool: {self.tool['Name']}\n{tool_info}"
 
     def prime_tool(self):
+        # Load the paths into a dictionary
+        paths_dict = self.storage.config.settings['paths']
 
-        work_path = self.storage.config.settings['paths']['Workspace']
+        # Construct the work_paths string by iterating over the dictionary
+        work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
 
         self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
-                                                      path=work_path,
+                                                      path=work_paths,
                                                       results=self.tool['Result'],
                                                       context=self.context)
         self.functions.tool_utils.show_primed_tool(self.tool['Name'], self.tool['Payload'])

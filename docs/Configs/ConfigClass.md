@@ -153,7 +153,7 @@ def find_file_in_directory(self, directory, filename):
 def get_config_element(self, case):
     switch = {
         "Persona": self.personas[self.persona_name],
-        "Tools": self.tools,
+        "ToolsAndActions": self.tools,
         "Actions": self.actions
     }
     return switch.get(case, "Invalid case")

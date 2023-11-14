@@ -73,6 +73,28 @@ class StorageInterface:
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
+    @staticmethod
+    def format_metadata(metadata_list):
+        # Check if the input is a list
+        if not isinstance(metadata_list, list):
+            raise TypeError("Expected a list of dictionaries")
+
+        # Iterate through each dictionary in the list
+        for metadata in metadata_list:
+            # Ensure each item in the list is a dictionary
+            if not isinstance(metadata, dict):
+                raise TypeError("Each item in the list should be a dictionary")
+
+            # Format each dictionary
+            for key, value in metadata.items():
+                # Check if the value is a list (array)
+                if isinstance(value, list):
+                    # Convert list elements into a comma-separated string
+                    # Update the dictionary with the formatted string
+                    metadata[key] = ', '.join(value)
+
+        return metadata_list
+
     def prefill_storage(self, storage, data):
         """Initializes a collection with provided data source and metadata builder."""
 
@@ -93,13 +115,15 @@ class StorageInterface:
         else:
             metadata = [builder(collection_name, key, value) for key, value in data.items()]
 
-        description = [extractor(meta) for meta in metadata]
+        formatted_metadata = self.format_metadata(metadata)
+
+        description = [extractor(meta) for meta in formatted_metadata]
 
         save_params = {
             "collection_name": collection_name,
             "ids": ids,
             "data": description,
-            "metadata": metadata,
+            "metadata": formatted_metadata,
         }
 
         self.storage_utils.select_collection(collection_name)
