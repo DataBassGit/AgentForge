@@ -14,36 +14,11 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 ---
 
 ## Table of Contents
-1. [Documentation](#documentation)
-2. [Features](#features)
-3. [Requisites](#requisites)
-4. [Pre-Installation](#pre-installation)
-5. [Installation](#installation)
-6. [Dev-build Installation](#dev-build-installation)
-7. [Usage](#usage)
-8. [Contributing](#contributing)
-9. [Contact Us](#contact-us)
-10. [License](#license)
-
----
-
-## Documentation
-
-Welcome to the AgentForge framework documentation. This comprehensive guide will support you whether you're just getting started or diving deep into custom configurations and advanced features. Here, you'll find detailed insights into the various components that make up our system.
-
-### **Core Concepts:**
-
-- **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
-
-- **[Settings](docs/Settings/Settings.md)**: Delve into directives, memories, models, paths, and storage configurations – the fine-tuned engine settings that keep the system humming.
-
-- **[Personas](docs/Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable. 
-
-- **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
-
-- **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.  (Note: Documentation not implemented yet)
-
-> **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience and welcome your feedback to improve the documentation.
+1. [Features](#features)
+2. [Documentation](#documentation)
+3. [Contributing](#contributing)
+4. [Contact Us](#contact-us)
+5. [License](#license)
 
 ---
 
@@ -64,129 +39,31 @@ Welcome to the AgentForge framework documentation. This comprehensive guide will
 * API Implementation
 * Knowledge Graphs
 
-## Requisites
-
-**Note**: If you already have all the requisites below, you can skip ahead to the [Pre-Installation](#pre-installation) section.
-
-Make sure you have the following set-up:
-
-### Python
-- Python must be installed, and the PATH variable should be configured accordingly.
-
-### Microsoft C++ Build Tools (WINDOWS ONLY)
-1. [ChromaDB](https://www.trychroma.com/) requires [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) in order to work with Windows.
-2. Once downloaded, mark the 'Desktop Development with C++' for installation. It should automatically select these optional packages for you.
-   ![Cpp_Setup](/docs/Images/Cpp_Setup.png)
-3. When the installation is complete, you'll see a message that says, 'All installations are up-to-date.'
-   ![Cpp_Completion](/docs/Images/Cpp_Completion.png)
-4. Done! Close the Visual Studio installer.
-
 ---
 
-## Pre-Installation
+## Documentation
 
-Before you get started with AgentForge, there are a few things you should know:
+Welcome to the AgentForge framework documentation. This comprehensive guide will support you whether you're just getting started or diving deep into custom configurations and advanced features. Here, you'll find detailed insights into the various components that make up our system.
 
-### LLM Models
-- **Local:** AgentForge can run using self-hosted models via the Oobabooga implementation. You'll need to host the model either locally yourself or on a cloud server as the Oobabooga implementation in AgentForge only handles the connection to the server created by Oobabooga; **it doesn't download or install any models.**
-- **Cloud-Based:** To use cloud-based LLM models like OpenAI, you'll need to obtain and set up API keys in your user environment variables.
+### **Installation and Usage:**
 
-### LLM API Keys
-- You don't need API keys for both Claude and OpenAI if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Model Configuration](/docs/Settings/Models.md) file.
+- **[Getting Started with AgentForge](docs/Guides/InstallationGuide.md)**: Begin your journey with a straightforward setup guide, covering everything from initial installation to launching your first bot.
 
-### Other Services
-- If you're planning to use Google Search functionalities, you'll need both a Google API key and a Google Search Engine ID key.
+### **Core Concepts:**
 
-### Environment Variables
-Set your **User Environment Variables** names to the following:
+- **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
 
-- **Claude**: ANTHROPIC_API_KEY 
-- **OpenAI**: OPENAI_API_KEY
-- **Google**: GOOGLE_API_KEY
-- **Google Search Engine ID**: SEARCH_ENGINE_ID
+- **[LLM API Integration](docs/LLMs/LLMs.md)**: Understand how AgentForge connects with various Large Language Model (LLM) APIs.
 
-![Environment Variables](/docs/Images/EnvKeys.png)
+- **[Settings](docs/Settings/Settings.md)**: Delve into directives, memories, models, paths, and storage configurations – the fine-tuned engine settings that keep the system humming.
 
-### 3rd-Party API Documentation
-- We haven't provided guides for obtaining these API keys as it's outside the scope of this project. Plenty of resources are available online to guide you through the process.
+- **[Personas](docs/Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable.
 
----
+- **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
-## Installation
+- **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.  (Note: Documentation not implemented yet)
 
-1. Install AgentForge:
-
-```shell
-pip install agentforge
-```
-
-2. Navigate to where you want your architecture's (bot) project folder:
-
-```shell
-cd c:\bot
-```
-
-3. Run the initialization script:
-
-```shell
-agentforge init
-```
-
-Additionally, if you want to try our demo architecture, run the following command to copy our bot script to your project folder:
-
-```shell
-agentforge salience
-```
-
----
-
-## Dev-build Installation
-
-If you want to install the build from the dev branch and help with development, follow these instructions instead:
-
-Clone the GitHub repository:
-
-```shell
-git clone https://github.com/DataBassGit/AgentForge.git
-```
-
-Install the required dependencies:
-
-```shell+
-pip install -e .
-```
-
----
-
-## Usage
-
-Each Cognitive Architecture (bot) you create should contain an `.agentforge` folder which contains everything pertaining to its agents and personas along with other configuration files.
-
-**Important**: Before running any bot, we need to make sure that the configuration files have the correct LLM settings. If you've selected an OpenAI model, for example, the system will look for the corresponding API key in your environment variables. This applies not only to the default settings but also to individual [Custom Agents](docs/Agents/CustomAgents.md) as they can override these settings and call different models if needed.
-
->**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent Scripts!  
-
-### For Custom Agents
-
-To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `agents` folder which contains an example of a custom test agent. To know more about how to use and create your own agents, check out the [Custom Agents](docs/Agents/CustomAgents.md) page.
-
-### For Salience Bot Example
-
-If you've installed our Salience example, head over to `Examples/SalienceBot/.agentforge/` to find its configuration files.
-
-To run the Salience Bot demo, go to `Examples/SalienceBot/` in your console and run:
-
-```shell
-python salience.py
-```
-
-This will execute a simple bot script that uses our
-[Predefined Agents](docs/Agents/PredefinedAgents/PredefinedAgents.md) 
-to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
-
-For a more detailed break-down of our `Salience` example please refer to the [Salience Page]()
-
-**Important** : Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.
+> **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience and welcome your feedback to improve the documentation.
 
 ---
 

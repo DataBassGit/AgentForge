@@ -6,28 +6,37 @@ ModelLibrary:
     module: "openai"
     class: "GPT"
     models:
-      fast_model: gpt-3.5-turbo
-      long_fast_model: gpt-3.5-turbo-16k
-      old_fast_model: gpt-3.5-turbo-0613
-      old_long_fast_model: gpt-3.5-turbo-16k-0613
-      smart_model: gpt-4
+      fast_model:
+        name: gpt-3.5-turbo
+      long_fast_model:
+        name: gpt-3.5-turbo-16k
+      old_fast_model:
+        name: gpt-3.5-turbo-0613
+      old_long_fast_model:
+        name: gpt-3.5-turbo-16k-0613
+      smart_model:
+        name: gpt-4
+      smart_fast_model:
+        name: gpt-4-1106-preview
+        params: # Specific parameters for the model
+          max_new_tokens: 2500
   claude_api:
     module: "anthropic"
     class: "Claude"
     models:
-      claude: claude-2
+      claude:
+        name: claude-2
   oobabooga_api:
     module: "oobabooga"
     class: "Oobabooga"
-    models: None
-  oobabooga_v2_api:
-    module: "oobabooga"
-    class: "OobaboogaV2"
-    models: None
+    models:
+      ooba:
+        name: None
 
+# Default settings for all models unless overridden
 ModelSettings:
-  API: claude_api
-  Model: claude
+  API: oobabooga_api
+  Model: ooba
   Params:
     max_new_tokens: 2000
     temperature: 0.5
