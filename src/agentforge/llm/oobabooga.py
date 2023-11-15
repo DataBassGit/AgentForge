@@ -43,4 +43,8 @@ class Oobabooga:
                 reply = response.json()['results'][0]['text']
                 # print(str(prompt) + reply)
 
+        if response.status_code == 200:
+            reply = response.json()['results'][0]['text']
+            print(str(prompt) + reply)
+
         return reply
