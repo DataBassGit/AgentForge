@@ -29,16 +29,16 @@ ModelLibrary:
   oobabooga_api:
     module: "oobabooga"
     class: "Oobabooga"
-    models: None
-  oobabooga_v2_api:
-    module: "oobabooga"
-    class: "OobaboogaV2"
-    models: None
+    models:
+      oobabooga:
+        name: None
+        params: # Oobabooga host server url
+          host_url: "127.0.0.1:5000"
 
 # Default settings for all models unless overridden
 ModelSettings:
-  API: openai_api
-  Model: fast_model
+  API: claude_api
+  Model: claude
   Params:
     max_new_tokens: 2000
     temperature: 0.5

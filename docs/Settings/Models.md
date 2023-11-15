@@ -50,6 +50,47 @@ ModelSettings:
 #### **Note on Model-specific Parameters**
 - The `params` attribute under each model in `ModelLibrary` is optional. When overriding or adding parameters, there is no need to retype all existing parameters. Simply include the specific parameters you wish to change or add. If `params` is not specified, the model will use the default parameters from `ModelSettings`.
 
+---
+
+## Special Configuration for Oobabooga API
+
+### **Understanding Oobabooga API Integration**
+
+The `oobabooga_api` is a distinct implementation within the `ModelLibrary` that interacts with an externally hosted model. Unlike other models where a model name is specified, the Oobabooga model is hosted and accessed through a specific URL.
+
+#### **Configuration for Oobabooga**
+
+Here's an example of how the Oobabooga model is configured within the `ModelLibrary`:
+
+```yaml
+ModelLibrary:
+  # ... Other Model APIs ...
+  oobabooga_api:
+    module: "oobabooga"
+    class: "Oobabooga"
+    models:
+      oobabooga:
+        name: None # The name is not required as Oobabooga hosts the model
+        params:
+          host_url: "127.0.0.1:5000" # Points to the Oobabooga host server URL
+```
+
+**Key Points to Note:**
+
+- **Model Name**: The `name` attribute for Oobabooga is set to `None` since the model itself is hosted by the Oobabooga service, and this system connects to it directly.
+- **Host URL**: The `host_url` parameter is crucial as it specifies the URL and port where the Oobabooga model is hosted. This can be a local address (as shown in the example) or a remote server address.
+
+### **Implications of Oobabooga Configuration**
+
+When integrating with the `oobabooga_api`:
+
+- Ensure that the `host_url` is correctly defined to match the hosting location of the Oobabooga model. The script will connect to the given URL and port to communicate with the model.
+- Adjust the `host_url` based on whether Oobabooga is hosted locally or on a remote server, ensuring the system can reliably access the model.
+
+> **Note**: The Oobabooga model requires this specific configuration due to its external hosting setup. Ensure that the connection details are accurate to facilitate smooth communication with the model.
+
+---
+
 ## **Overriding Default LLM Configurations**
 
 Agents can override the default LLM settings specified in the `models.yaml` file. This feature allows agents to use specific models or parameters tailored to their unique tasks and requirements.

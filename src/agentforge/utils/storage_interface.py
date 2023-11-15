@@ -21,6 +21,28 @@ def metadata_list_builder(order, details):
     }
 
 
+def format_metadata(metadata_list):
+    # Check if the input is a list
+    if not isinstance(metadata_list, list):
+        raise TypeError("Expected a list of dictionaries")
+
+    # Iterate through each dictionary in the list
+    for metadata in metadata_list:
+        # Ensure each item in the list is a dictionary
+        if not isinstance(metadata, dict):
+            raise TypeError("Each item in the list should be a dictionary")
+
+        # Format each dictionary
+        for key, value in metadata.items():
+            # Check if the value is a list (array)
+            if isinstance(value, list):
+                # Convert list elements into a comma-separated string
+                # Update the dictionary with the formatted string
+                metadata[key] = ', '.join(value)
+
+    return metadata_list
+
+
 def description_extractor(metadata):
     return metadata["Description"]
 
@@ -49,16 +71,31 @@ class StorageInterface:
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
 
-        # if self.config.get_info('ChromaDB', 'DBFreshStart') == 'True':
         if self.config.settings['storage']['ChromaDB']['DBFreshStart'] == 'True':
             self.storage_utils.reset_memory()
             storage = self.config.settings['memories']
 
             [self.prefill_storage(key, value) for key, value in storage.items()]
 
+    def initialize_pinecone(self):
+        try:
+            from agentforge.utils.pinecone_utils import PineconeUtils
+            self.storage_utils = PineconeUtils()
+            self.storage_utils.init_storage()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    # Not implemented yet
+    # def initialize_rabbitmq(self):
+    #     try:
+    #         from agentforge.utils.amqp_utils import AMQPUtils
+    #         self.storage_utils = AMQPUtils()
+    #         self.storage_utils.init_storage()
+    #     except Exception as e:
+    #         print(f"An error occurred: {e}")
+
     def initialize_storage(self):
         if self.storage_utils is None:
-            # storage_api = self.config.get_storage_api()
             storage_api = self.config.settings['storage']['StorageAPI']
 
             if storage_api == 'ChromaDB':
@@ -72,28 +109,6 @@ class StorageInterface:
                 return
             else:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
-
-    @staticmethod
-    def format_metadata(metadata_list):
-        # Check if the input is a list
-        if not isinstance(metadata_list, list):
-            raise TypeError("Expected a list of dictionaries")
-
-        # Iterate through each dictionary in the list
-        for metadata in metadata_list:
-            # Ensure each item in the list is a dictionary
-            if not isinstance(metadata, dict):
-                raise TypeError("Each item in the list should be a dictionary")
-
-            # Format each dictionary
-            for key, value in metadata.items():
-                # Check if the value is a list (array)
-                if isinstance(value, list):
-                    # Convert list elements into a comma-separated string
-                    # Update the dictionary with the formatted string
-                    metadata[key] = ', '.join(value)
-
-        return metadata_list
 
     def prefill_storage(self, storage, data):
         """Initializes a collection with provided data source and metadata builder."""
@@ -115,32 +130,19 @@ class StorageInterface:
         else:
             metadata = [builder(collection_name, key, value) for key, value in data.items()]
 
-        formatted_metadata = self.format_metadata(metadata)
+        if collection_name in ['Tools', 'Actions']:
+            metadata = format_metadata(metadata)
 
-        description = [extractor(meta) for meta in formatted_metadata]
+        description = [extractor(meta) for meta in metadata]
 
         save_params = {
             "collection_name": collection_name,
             "ids": ids,
             "data": description,
-            "metadata": formatted_metadata,
+            "metadata": metadata,
         }
 
         self.storage_utils.select_collection(collection_name)
         self.storage_utils.save_memory(save_params)
 
-    # def initialize_rabbitmq(self):
-    #     try:
-    #         from agentforge.utils.amqp_utils import AMQPUtils
-    #         self.storage_utils = AMQPUtils()
-    #         self.storage_utils.init_storage()
-    #     except Exception as e:
-    #         print(f"An error occurred: {e}")
 
-    def initialize_pinecone(self):
-        try:
-            from agentforge.utils.pinecone_utils import PineconeUtils
-            self.storage_utils = PineconeUtils()
-            self.storage_utils.init_storage()
-        except Exception as e:
-            print(f"An error occurred: {e}")
