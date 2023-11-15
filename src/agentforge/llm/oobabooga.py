@@ -11,6 +11,10 @@ class Oobabooga:
         # Server address
         url = f"http://{params['host_url']}/api/v1/generate"
 
+        headers = {
+            "Content-Type": "application/json"
+        }
+
         request = {
             'prompt': str(prompt),
             'max_new_tokens': params['max_new_tokens'],
@@ -36,12 +40,12 @@ class Oobabooga:
 
         # print(f"prompt: {prompt}")
         reply = None
-        with requests.Session() as session:
-            response = session.post(url, json=request)
 
-            if response.status_code == 200:
-                reply = response.json()['results'][0]['text']
-                # print(str(prompt) + reply)
+        response = requests.post(url, json=request)
+
+        # if response.status_code == 200:
+        #     reply = response.json()['results'][0]['text']
+        #     # print(str(prompt) + reply)
 
         if response.status_code == 200:
             reply = response.json()['results'][0]['text']
