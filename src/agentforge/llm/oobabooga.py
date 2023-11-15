@@ -9,7 +9,8 @@ class Oobabooga:
     def generate_text(prompt, **params):
 
         # Server address
-        url = f"http://{params['host_url']}/api/v1/generate"
+        # url = f"http://{params['host_url']}/api/v1/generate"
+        url = f"http://{params['host_url']}/v1/chat/completions"
 
         headers = {
             "Content-Type": "application/json"
