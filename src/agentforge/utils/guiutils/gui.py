@@ -28,7 +28,7 @@ def layer_update():
 
 
 def run_flask_app():
-    app.run(port=5000, use_reloader=False, threaded=True)
+    app.run(port=5002, use_reloader=False, threaded=True)
 
 
 class KivyApp(App):
