@@ -1,6 +1,6 @@
 import json
 import requests
-import sseclient  # pip install sseclient-py
+# import sseclient  # pip install sseclient-py
 
 from termcolor import cprint
 from colorama import init
