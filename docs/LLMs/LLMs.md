@@ -91,3 +91,5 @@ oobabooga_api:
 ```
 
 For the `oobabooga_api`, the host URL is defined as the model is hosted externally and accessed via this URL.
+
+For more information on the Oobabooga implementation and other models, please see our [Models documentation](../Settings/Models.md).
