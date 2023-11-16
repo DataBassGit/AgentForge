@@ -22,7 +22,7 @@ class Salience:
         self.selected_action = {}
 
         self.frustration_step = 0.1
-        self.min_frustration = 0.9
+        self.min_frustration = 0.7
         self.max_frustration = 1
         self.frustration = self.min_frustration
 

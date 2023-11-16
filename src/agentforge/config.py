@@ -65,7 +65,12 @@ class Config:
         try:
             model_name = self.settings['models']['ModelLibrary'][api]['models'][model]['name']
             module_name = self.settings['models']['ModelLibrary'][api]['module']
+            # module_name = 'openai_api' if api == 'oobabooga_api' else self.settings['models']['ModelLibrary'][api]['module']
             class_name = self.settings['models']['ModelLibrary'][api]['class']
+
+            # # Check if api is 'oobabooga_api' and change it to 'openai_api' if so
+            # if api == 'oobabooga_api':
+            #     module_name = 'openai_api'
 
             module = importlib.import_module(f".llm.{module_name}", package=__package__)
             model_class = getattr(module, class_name)

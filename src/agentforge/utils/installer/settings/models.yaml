@@ -34,11 +34,12 @@ ModelLibrary:
         name: None
         params: # Oobabooga host server url
           host_url: "127.0.0.1:5000"
+          allow_custom_value: True
 
 # Default settings for all models unless overridden
 ModelSettings:
-  API: claude_api
-  Model: claude
+  API: openai_api
+  Model: smart_fast_model
   Params:
     max_new_tokens: 2000
     temperature: 0.5
