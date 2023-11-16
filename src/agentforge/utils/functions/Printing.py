@@ -3,17 +3,22 @@ from colorama import init
 init(autoreset=True)
 
 
+def encode_msg(msg):
+    return msg.encode('utf-8', 'replace').decode('utf-8')
+
+
 class Printing:
 
     @staticmethod
     def print_message(msg):
-        cprint(f"{msg}", 'red', attrs=['bold'])
+        encoded_msg = msg.encode('utf-8', 'replace').decode('utf-8')
+        cprint(f"{encode_msg(msg)}", 'red', attrs=['bold'])
 
     @staticmethod
     def print_result(result, desc):
         # Print the task result
         cprint(f"***** {desc} *****", 'green', attrs=['bold'])
-        print(result)
+        cprint(f"{encode_msg(result)}", 'white')
         cprint(f"*****", 'green', attrs=['bold'])
 
         # # Save the result to a log.txt file in the /Logs/ folder
