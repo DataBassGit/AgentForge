@@ -54,14 +54,55 @@ class Directory:
             directory_str += self.pretty_print(child, indent)
         return directory_str
 
-    def read_directory(self, directory_path, max_depth):
-        self.root = DirectoryNode(directory_path, True)
-        self.build_tree(self.root, max_depth)
-        return self.pretty_print()
+    def read_directory(self, directory_paths, max_depth):
+        if isinstance(directory_paths, str):
+            # If it's a single path, make it a list
+            directory_paths = [directory_paths]
+
+        output = ""
+        for directory_path in directory_paths:
+            try:
+                # Check if the path exists
+                if not os.path.exists(directory_path):
+                    # Create the directory if it doesn't exist
+                    os.makedirs(directory_path, exist_ok=True)
+                    output += f"Created '{directory_path}'\n"
+                    continue
+
+                # Check if the directory is empty
+                if not os.listdir(directory_path):
+                    output += f"The directory at '{directory_path}' is empty.\n"
+                    continue
+
+                self.root = DirectoryNode(directory_path, True)
+                self.build_tree(self.root, max_depth)
+                output += self.pretty_print() + "\n"
+
+            except PermissionError:
+                output += f"Permission denied: Unable to access '{directory_path}'.\n"
+            except FileNotFoundError:
+                output += f"File not found: The path '{directory_path}' does not exist.\n"
+            except Exception as e:
+                output += f"An error occurred: {str(e)}\n"
+
+        return output.strip()
 
 
-# Usage Example
-# dir_tree = DirectoryTree()
+# # Usage Example
+# dir_tree = Directory()
 # dir_tree.excluded_file_types = {'.exe', '.dll'}
-# dir_tree.excluded_files = {'__pycache__'}
-# dir_tree.read_directory('../../agentforge', 3)  # Replace with your directory path and desired depth
+# dir_tree.excluded_files = {'__pycache__', '__init__.py'}
+#
+# # Test with a single path
+# single_path = '../../agentforge'  # Replace with a valid directory path
+# print("---- Single Path Test ----")
+# print(dir_tree.read_directory(single_path, max_depth=2))
+# print("\n")
+#
+# # Test with multiple paths
+# multiple_paths = [
+#     '../../agentforge/agents',  # Replace with a valid directory path
+#     '../../agentforge/settings'  # Replace with another valid directory path
+# ]
+# print("---- Multiple Paths Test ----")
+# print(dir_tree.read_directory(multiple_paths, max_depth=2))

@@ -9,18 +9,19 @@ Prompts:
   Summary: |+
     Here is a summary with context of what has been previously done:
     
+    ```
     {summary}
+    ```
 
   Instruction: |+
     An execution agent has been given the following task to complete: {task}
   
     The agent has attempted to complete the task and has followed up with this result on the task:
   
-    ---
-  
+    ```  
     {task_result}
-  
-    ---
+    ```  
+    
 
   Response: |+
     Analyze the relevant data provided for the current task and determine its current status, whether it has been completed or not, and provide your reasoning as to the conclusion reached. Your response must follow the following format:
