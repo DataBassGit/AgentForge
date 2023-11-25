@@ -22,7 +22,7 @@ class Salience:
         self.selected_action = {}
 
         self.frustration_step = 0.1
-        self.min_frustration = 0.7
+        self.min_frustration = 0.9
         self.max_frustration = 1
         self.frustration = self.min_frustration
 
@@ -82,7 +82,7 @@ class Salience:
     def format_action_results(action_results):
         formatted_strings = []
         for key, value in action_results.items():
-            formatted_string = f"{key}: {value}\n\n---\n"
+            formatted_string = f"{key}:\n{value}\n\n---\n"
             formatted_strings.append(formatted_string)
 
         return "\n".join(formatted_strings).strip('---\n')

@@ -1,85 +1,67 @@
 import os
 
 
+class DirectoryNode:
+    def __init__(self, name, is_dir, depth=0):
+        self.name = name
+        self.is_dir = is_dir
+        self.children = []
+        self.depth = depth
+
+    def add_child(self, child):
+        self.children.append(child)
+
+
 class Directory:
-    def __init__(self, path="."):
-        """
-        Initialize the DirectoryTool with the given directory path.
-        If no path is provided, it defaults to the current directory.
-        """
-        self.path = path
-        self.excluded_file_types = ['.exe', '.dll']
-        self.excluded_files = ['__pycache__']
+    def __init__(self):
+        self.root = None
+        self.excluded_files = set()
+        self.excluded_file_types = set()
 
-    def set_excluded_file_types(self, file_types):
-        """
-        Set the list of file types to be excluded.
-        """
-        self.excluded_file_types = file_types
+    def build_tree(self, node=None, max_depth=None):
+        if node is None:
+            node = self.root
+        if max_depth is not None and node.depth >= max_depth:
+            node.add_child(DirectoryNode('... more files ...', False, node.depth + 1))
+            return
 
-    def set_excluded_files(self, files):
-        """
-        Set the list of files or directories to be excluded.
-        """
-        self.excluded_files = files
+        try:
+            for item in os.listdir(node.name):
+                if item in self.excluded_files:
+                    continue
 
-    def list_directory(self, path=None):
-        """
-        List the directory structure excluding the specified file types and files.
-        """
-        if path is None:
-            path = self.path
+                full_path = os.path.join(node.name, item)
+                if os.path.isdir(full_path):
+                    child_node = DirectoryNode(full_path, True, node.depth + 1)
+                    node.add_child(child_node)
+                    self.build_tree(child_node, max_depth)
+                elif os.path.splitext(item)[1] not in self.excluded_file_types:
+                    child_node = DirectoryNode(full_path, False, node.depth + 1)
+                    node.add_child(child_node)
+        except PermissionError:
+            pass  # Ignore directories for which the user has no access
 
-        path_structure = {}
+    def pretty_print(self, node=None, indent=""):
+        directory_str = ""
+        if node is None:
+            node = self.root
+        if node.is_dir:
+            directory_str += f"{indent}{os.path.basename(node.name)}/\n"
+        else:
+            directory_str += f"{indent}{os.path.basename(node.name)}\n"
+        indent += "    "
+        for child in node.children:
+            directory_str += self.pretty_print(child, indent)
+        return directory_str
 
-        for item in os.listdir(path):
-            if item in self.excluded_files:
-                continue
+    def read_directory(self, directory_path, max_depth):
+        self.root = DirectoryNode(directory_path, True)
+        self.build_tree(self.root, max_depth)
+        return self.pretty_print()
 
-            full_path = os.path.join(path, item)
 
-            if os.path.splitext(item)[1] in self.excluded_file_types:
-                continue
-
-            if os.path.isdir(full_path):
-                path_structure[item] = self.list_directory(full_path)
-            else:
-                path_structure[item] = None
-
-        return path_structure
-
-    def read_directory(self, directory_path, indent=0, max_depth=2):
-        output = ""
-
-        directory = self.list_directory(directory_path)
-        if directory:
-            return f"{directory_path}/"
-
-        if indent >= max_depth:
-            padding = '|   ' * (indent - 1)
-            line = f"{padding}| ... More Files ... \n"
-            output += line
-            return output
-
-        for name, sub_structure in directory.items():
-            padding = '|   ' * (indent - 1)
-            if indent > 0:
-                padding += '|-- '
-
-            if sub_structure is not None:
-                line = f"{padding}{name}/\n"
-                output += line
-                if sub_structure:
-                    output += self.read_directory(sub_structure, indent + 1, max_depth)
-            else:
-                line = f"{padding}{name}\n"
-                output += line
-
-        print(output)
-        return output
-
-# dir_tool = DirectoryTool('../../agentforge')
-# dir_tool.set_excluded_file_types(['.dll', '.pyc', '.pyd', '.pth'])
-# dir_tool.set_excluded_files(['__init__.py', '__pycache__'])
-# dir_structure = dir_tool.list_directory()
-# dir_tool.read_directory(dir_structure)
+# Usage Example
+# dir_tree = DirectoryTree()
+# dir_tree.excluded_file_types = {'.exe', '.dll'}
+# dir_tree.excluded_files = {'__pycache__'}
+# dir_tree.read_directory('../../agentforge', 3)  # Replace with your directory path and desired depth

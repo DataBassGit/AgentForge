@@ -48,7 +48,9 @@ class Action:
         paths_dict = self.storage.config.settings['paths']
 
         # Construct the work_paths string by iterating over the dictionary
-        work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
+        work_paths = None
+        if self.tool['Name'] == 'Read Directory':
+            work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
 
         self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
                                                       path=work_paths,

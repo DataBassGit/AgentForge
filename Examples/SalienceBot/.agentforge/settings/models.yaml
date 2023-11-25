@@ -38,8 +38,8 @@ ModelLibrary:
 
 # Default settings for all models unless overridden
 ModelSettings:
-  API: oobabooga_api
-  Model: oobabooga
+  API: claude_api
+  Model: claude
   Params:
     max_new_tokens: 2000
     temperature: 0.5
