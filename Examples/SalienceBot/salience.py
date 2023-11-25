@@ -203,7 +203,7 @@ class Salience:
         task = self.data['current_task']['document']
         self.data['summary'] = self.summarization_agent.run(query=task)
         if self.data['summary'] is not None:
-            self.functions.printing.print_result(result=self.data['summary'], desc="Summary Agent results")
+            self.functions.printing.print_result(result=self.data['summary'], desc="Summary Agent Results")
         return self.data['summary']
 
 

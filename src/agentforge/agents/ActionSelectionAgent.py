@@ -1,6 +1,5 @@
 from agentforge.agent import Agent
 
-
 class StopExecution(Exception):
     pass
 
@@ -59,7 +58,7 @@ class ActionSelectionAgent(Agent):
         self.format_actions()
 
     def parse_result(self):
-        self.result = self.functions.parsing.string_to_dictionary(self.result)
+        self.result = self.functions.agent_utils.parse_yaml_string(self.result)
 
     def build_output(self):
         selected_action = self.result['action']

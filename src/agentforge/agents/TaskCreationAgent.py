@@ -5,18 +5,19 @@ import uuid
 class TaskCreationAgent(Agent):
 
     def parse_result(self):
-        new_tasks = self.result.split("\n")
+        # Parse the YAML content from the result
+        parsed_yaml = self.functions.agent_utils.parse_yaml_string(self.result)
 
-        result = [{"Description": task_desc} for task_desc in new_tasks]
-        filtered_results = [task for task in result if task['Description'] and task['Description'][0].isdigit()]
+        if parsed_yaml is None or 'tasks' not in parsed_yaml:
+            raise ValueError("No valid 'tasks' key found in the YAML content")
 
-        try:
-            ordered_tasks = [{
-                'Order': int(task['Description'].split('. ', 1)[0]),
-                'Description': task['Description'].split('. ', 1)[1]
-            } for task in filtered_results]
-        except Exception as e:
-            raise ValueError(f"\n\nError ordering tasks. Error: {e}")
+        tasks = parsed_yaml['tasks']
+
+        # Create task metadata
+        ordered_tasks = [{
+            'Order': index + 1,  # Assuming order starts from 1
+            'Description': task
+        } for index, task in enumerate(tasks)]
 
         self.result = ordered_tasks
 

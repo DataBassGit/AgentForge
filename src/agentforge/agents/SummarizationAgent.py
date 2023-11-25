@@ -33,3 +33,9 @@ class SummarizationAgent(Agent):
         # Simply summarize the given text
         return super().run(text=text)
 
+    def build_output(self):
+        try:
+            parsed_yaml = self.functions.agent_utils.parse_yaml_string(self.result)
+            self.output = parsed_yaml.get("summary", "").lower().strip()
+        except Exception as e:
+            raise ValueError(f"\n\nError while building output for agent: {e}")

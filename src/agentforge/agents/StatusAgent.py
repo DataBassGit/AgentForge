@@ -1,14 +1,28 @@
 from agentforge.agent import Agent
 
 
+def log_task_results(task, text_to_append):
+    filename = "./Logs/results.txt"
+    separator = "\n\n\n\n---\n\n\n\n"
+    task_to_append = "\nTask: " + task['description'] + "\n\n"
+    with open(filename, "a") as file:
+        file.write(separator + task_to_append + text_to_append)
+
+
 class StatusAgent(Agent):
 
     def load_additional_data(self):
         self.data['task'] = self.functions.task_handling.get_current_task()['document']
 
     def parse_result(self):
-        status = self.result.split("Status: ")[1].split("\n")[0].lower().strip()
-        reason = self.result.split("Reason: ")[1].rstrip()
+        # Parse the YAML content from the result
+        parsed_yaml = self.functions.agent_utils.parse_yaml_string(self.result)
+
+        if parsed_yaml is None:
+            raise ValueError("No valid YAML content found in the result")
+
+        status = parsed_yaml.get("status", "").lower().strip()
+        reason = parsed_yaml.get("reason", "").strip()
 
         task = {
             "task_id": self.data['current_task']['id'],
@@ -17,14 +31,9 @@ class StatusAgent(Agent):
             "order": self.data['current_task']['metadata']['Order'],
         }
 
-        # Log results
+        # Log results if the task is completed
         if status == "completed":
-            filename = "./Logs/results.txt"
-            separator = "\n\n\n\n---\n\n\n\n"
-            task_to_append = "\nTask: " + self.data['current_task']['metadata']['Description'] + "\n\n"
-            text_to_append = self.data['task_result']
-            with open(filename, "a") as file:
-                file.write(separator + task_to_append + text_to_append)
+            log_task_results(task, self.data['task_result'])
 
         self.result = {
             "task": task,
