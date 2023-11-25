@@ -1,6 +1,6 @@
 Name: Read Directory
 Args:
-  - directory_path (dict)
+  - directory_path (str)
   - max_depth (int)
 Command: read_directory
 Description: >-

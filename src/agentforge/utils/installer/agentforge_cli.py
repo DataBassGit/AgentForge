@@ -41,7 +41,6 @@ def copy_files():
     with open(os.path.join("Logs", "results.txt"), "w") as f:
         f.write("Results Log File:\n")
 
-
     print("All files have been successfully copied!")
 
     copy_files_from_src_to_dest("tools", "tools")
