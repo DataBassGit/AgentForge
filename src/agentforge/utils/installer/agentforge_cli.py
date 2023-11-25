@@ -1,16 +1,11 @@
-# agentforge_cli.py
-
 import os
 import shutil
 import argparse
 import pkg_resources
-import glob
 import subprocess
 import sys
 
-
-def display_custom_help():
-    help_message = """
+help_message = """
 Available commands for AgentForge:
 
 init       - Copy necessary files and set up directories.
@@ -19,60 +14,57 @@ gui        - Launch the graphical user interface.
 
 For more details on each command, use 'agentforge <command> -h'
 """
+
+
+def display_custom_help():
     print(help_message)
 
 
-def copy_files():
+def copy_yaml_files():
+    try:
+        src_base_path = pkg_resources.resource_filename("agentforge.utils.installer", "")
+        dest_base_path = ".agentforge"
 
-    # Create directories
-    os.makedirs(".agentforge", exist_ok=True)
-    os.makedirs(".agentforge/agents", exist_ok=True)
-    os.makedirs(".agentforge/agents/PredefinedAgents", exist_ok=True)
-    os.makedirs(".agentforge/actions", exist_ok=True)
-    os.makedirs(".agentforge/personas", exist_ok=True)
-    os.makedirs(".agentforge/settings", exist_ok=True)
-    os.makedirs(".agentforge/tools", exist_ok=True)
-    os.makedirs("CustomAgents", exist_ok=True)
-    os.makedirs("Logs", exist_ok=True)
-
-    # Create infrastructure files
-    with open(os.path.join("CustomAgents", "__init__.py"), "w") as f:
-        f.write("")
-    with open(os.path.join("Logs", "results.txt"), "w") as f:
-        f.write("Results Log File:\n")
-
-    print("All files have been successfully copied!")
-
-    copy_files_from_src_to_dest("tools", "tools")
-    copy_files_from_src_to_dest("actions", "actions")
-    copy_files_from_src_to_dest("agents", "agents/PredefinedAgents")
-    copy_files_from_src_to_dest("settings", "settings")
-
-    # Copy personas/default.yaml to .agentforge/personas
-    personas_src_path = pkg_resources.resource_filename("agentforge.utils.installer", "personas/default.yaml")
-    personas_dest_path = os.path.join(".agentforge", "personas", "default.yaml")
-    shutil.copyfile(personas_src_path, personas_dest_path)
+        for root, dirs, files in os.walk(src_base_path):
+            for file in files:
+                if file.endswith('.yaml'):
+                    src_file_path = os.path.join(root, file)
+                    relative_path = os.path.relpath(root, src_base_path)
+                    dest_directory = os.path.join(dest_base_path, relative_path)
+                    os.makedirs(dest_directory, exist_ok=True)
+                    dest_file_path = os.path.join(dest_directory, file)
+                    shutil.copyfile(src_file_path, dest_file_path)
+    except Exception as e:
+        print(f"Error copying YAML files: {e}")
+        sys.exit(1)
 
 
-# Copy all files from the agents subfolder in src_path to .agentforge/agents
-def copy_files_from_src_to_dest(src_folder, dest_folder):
-    src_path = pkg_resources.resource_filename("agentforge.utils.installer", f"{src_folder}/*")
-    for file_path in glob.glob(src_path):
-        file_name = os.path.basename(file_path)
-        dest_path = os.path.join(".agentforge", dest_folder, file_name)
-        shutil.copyfile(file_path, dest_path)
+def init_command():
+    print("Starting initialization...")
+    copy_yaml_files()
+    print("Initialization complete: YAML files have been copied.")
 
 
 def copy_salience():
-    src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
-    shutil.copyfile(src_path, "salience.py")
-    print("Salience.py has been successfully copied!\n")
+    try:
+        print("Copying Salience...")
+        src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
+        shutil.copyfile(src_path, "salience.py")
+        print("Salience.py has been successfully copied!\n")
+    except Exception as e:
+        print(f"Error copying salience.py: {e}")
+        sys.exit(1)
 
 
 def gui():
-    gui_path = pkg_resources.resource_filename("agentforge.utils.guiutils", "gui.py")
-    subprocess.run(["python", gui_path])
-    print("Launching GUI...\n")
+    try:
+        print("Launching GUI...")
+        gui_path = pkg_resources.resource_filename("agentforge.utils.guiutils", "gui.py")
+        subprocess.run(["python", gui_path])
+        print("GUI launched successfully.\n")
+    except Exception as e:
+        print(f"Error launching GUI: {e}")
+        sys.exit(1)
 
 
 def main():
@@ -81,12 +73,9 @@ def main():
         return
 
     parser = argparse.ArgumentParser(description="AgentForge CLI", add_help=False)
+    subparsers = parser.add_subparsers(title="Commands", description="Available commands for AgentForge CLI", dest="command")
 
-    subparsers = parser.add_subparsers(title="Commands",
-                                       description="Available commands for AgentForge CLI",
-                                       dest="command")
-
-    # Define sub-commands | Note Variables are not used but have been placed in case of further expansion
+    # Define sub-commands
     init_parser = subparsers.add_parser('init', help="Copy necessary files and set up directories.")
     salience_parser = subparsers.add_parser('salience', help="Copy the salience.py file.")
     gui_parser = subparsers.add_parser('gui', help="Launch the graphical user interface.")
@@ -95,17 +84,16 @@ def main():
 
     try:
         if args.command == "init":
-            copy_files()
+            init_command()
         elif args.command == "salience":
             copy_salience()
         elif args.command == "gui":
             gui()
-
-        print(f"'{args.command}' command executed successfully!\n")
-
+        else:
+            display_custom_help()
     except Exception as e:
-        # Catch any exception and print an error message
-        print(f"An error occurred while executing the '{args.command}' command: {str(e)}\n")
+        print(f"An error occurred while executing the '{args.command}' command: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
