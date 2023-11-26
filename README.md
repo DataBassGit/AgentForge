@@ -53,6 +53,8 @@ Welcome to the AgentForge framework documentation. This comprehensive guide will
 
 - **[Agents](docs/Agents/Agents.md)**: Dive deep into the agents' world. Learn how they operate, respond, and can be customized.
 
+- **[Modules](docs/Modules/Modules.md)**: Explore multi-agent scripts, the hierarchies above agents. Understand how Modules coordinate various agents and manage the flow of information to achieve specific goals.
+
 - **[LLM API Integration](docs/LLMs/LLMs.md)**: Understand how AgentForge connects with various Large Language Model (LLM) APIs.
 
 - **[Settings](docs/Settings/Settings.md)**: Delve into directives, memories, models, paths, and storage configurations – the fine-tuned engine settings that keep the system humming.

@@ -1,5 +1,6 @@
 from agentforge.agent import Agent
 
+
 class StopExecution(Exception):
     pass
 

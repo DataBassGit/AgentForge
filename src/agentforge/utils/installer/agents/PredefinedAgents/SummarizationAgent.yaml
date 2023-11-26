@@ -4,7 +4,7 @@ Prompts:
     1. Highlight the main points and key findings of the text.
     2. Maintain the original context and intention of the text.
     3. Be written in a clear and coherent manner.
-  
+    
     Additionally, please follow these guidelines while summarizing the text:
     
     1. Avoid using direct quotations or copying sentences verbatim, unless absolutely necessary.
@@ -13,9 +13,15 @@ Prompts:
 
   Instruction: |+
     Text to abstract:
-  
-    ---
-  
+    
+    ```
     {text}
-  
-    ---
+    ```
+
+  Response: |+
+    Your response must follow the following YAML format:
+
+    ```yaml
+    speak: <any feedback for the user>
+    summary: <summary of the text provided>
+    ```

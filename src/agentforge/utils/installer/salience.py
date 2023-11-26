@@ -82,7 +82,7 @@ class Salience:
     def format_action_results(action_results):
         formatted_strings = []
         for key, value in action_results.items():
-            formatted_string = f"{key}: {value}\n\n---\n"
+            formatted_string = f"{key}:\n{value}\n\n---\n"
             formatted_strings.append(formatted_string)
 
         return "\n".join(formatted_strings).strip('---\n')
@@ -203,7 +203,7 @@ class Salience:
         task = self.data['current_task']['document']
         self.data['summary'] = self.summarization_agent.run(query=task)
         if self.data['summary'] is not None:
-            self.functions.printing.print_result(result=self.data['summary'], desc="Summary Agent results")
+            self.functions.printing.print_result(result=self.data['summary'], desc="Summary Agent Results")
         return self.data['summary']
 
 
