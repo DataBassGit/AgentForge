@@ -52,7 +52,9 @@ Tools:
 
 The `ActionExecution` module in our framework takes an action, runs each tool listed in the `Tools` attribute in sequence, and smartly feeds the result from one tool into the next. This allows for a seamless chain of operations, automating complex procedures with ease.
 
-For those interested in the underlying implementation, the [ActionExecution](../../src/agentforge/modules/ActionExecution.py) module is central to action orchestration. It's located at `agentforge/modules/ActionExecution.py` within the library package.
+For those interested in the underlying implementation, 
+the [ActionExecution](../Modules/ActionExecution.md) module is central to action orchestration.
+It's located at `agentforge/modules/ActionExecution.py` within the library package.
 
 
 
