@@ -78,7 +78,7 @@ class Action:
         }
 
         results = self.storage.query_memory(params)
-        filtered = self.functions.parsing.extract_metadata(results)
+        filtered = results['metadatas'][0][0]
         filtered.pop('timestamp', None)
 
         return filtered

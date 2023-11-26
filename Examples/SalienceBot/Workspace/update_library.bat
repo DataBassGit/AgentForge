@@ -1,3 +1,5 @@
-call venv\scripts\activate
-pip install --upgrade test-library
+@echo off
+
+call venv\Scripts\activate
+pip install --upgrade testpackage
 python -m unittest discover tests

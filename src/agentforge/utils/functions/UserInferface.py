@@ -9,9 +9,6 @@ class UserInterface:
         self.mode = 'manual'
         self.mode_thread = None  # This attribute will keep track of the mode switch thread.
 
-    def get_auto_mode(self):
-        return self.mode
-
     def get_user_input(self):
         feedback = None
         msg = "\nPress Enter to Continue | Type 'auto' for Auto Mode | Type 'exit' to Exit | Or Provide Feedback: "

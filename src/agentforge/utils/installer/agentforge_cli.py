@@ -18,7 +18,7 @@ For more details on each command, use 'agentforge <command> -h'
 
 def display_custom_help():
     print(help_message)
-    
+
 
 def copy_yaml_files():
     try:
@@ -107,7 +107,8 @@ def main():
         return
 
     parser = argparse.ArgumentParser(description="AgentForge CLI", add_help=False)
-    subparsers = parser.add_subparsers(title="Commands", description="Available commands for AgentForge CLI",
+    subparsers = parser.add_subparsers(title="Commands",
+                                       description="Available commands for AgentForge CLI",
                                        dest="command")
 
     # Define sub-commands
