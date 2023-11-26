@@ -1,4 +1,4 @@
-# UserInterface Documentation
+# User Interface Documentation
 
 ## Overview
 

@@ -99,6 +99,3 @@ See our [Storage Documentation](../Settings/Storage.md) for more details.
 > **Attention**: The Pinecone database integration is not currently operational. We are open to contributions from the community to either fix the existing `PineconeUtils` or to create new utilities for other databases. Your contributions are highly valuable in enhancing the flexibility and robustness of the AgentForge system.
 
 ---
-
-For more detailed usage examples and method descriptions,
-please refer to the specific utility class implementation for [ChromaUtils](../../src/agentforge/utils/chroma_utils.py) and [PineconeUtils](../../src/agentforge/utils/pinecone_utils.py).

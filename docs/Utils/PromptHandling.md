@@ -1,4 +1,4 @@
-# PromptHandling Documentation
+# Prompt Handling Documentation
 
 ## Overview
 

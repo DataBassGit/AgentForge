@@ -1,4 +1,4 @@
-# ToolUtils Documentation
+# Tool Utils Documentation
 
 ## Overview
 

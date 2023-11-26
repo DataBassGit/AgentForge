@@ -1,4 +1,4 @@
-# TaskHandling Documentation
+# Task Handling Documentation
 
 ## Overview
 
