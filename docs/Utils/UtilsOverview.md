@@ -39,7 +39,7 @@ Beyond the foundational function utilities, AgentForge encompasses scripts that 
   
 - **[ChromaUtils](../../src/agentforge/utils/chroma_utils.py)**: Integrates ChromaDB with the StorageInterface Utility, providing a specialized database for the system. While ChromaDB is the default, the framework is adaptable to other databases such as SQL or Pinecone, provided they have corresponding utility scripts with matching method signatures.
 
-- **[PineconeUtils](../../src/agentforge/utils/pinecone_utils.py)**: Similar to ChromaUtils, PineconeUtils connects Pinecone — a vector database optimized for machine learning models — with the StorageInterface. This allows the system to leverage Pinecone's capabilities for managing vector data efficiently.
+- **[PineconeUtils](../../src/agentforge/utils/pinecone_utils.py)**: Similar to ChromaUtils, PineconeUtils connects Pinecone — a vector database optimized for machine learning models — with the StorageInterface. This allows the system to leverage Pinecone's capabilities for managing vector data efficiently. **Note: Currently Non-Functional**
 
 These utilities play an instrumental role in augmenting the AgentForge system, ensuring seamless interactions with a variety of data sources and external services.
 
