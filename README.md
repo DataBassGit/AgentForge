@@ -63,7 +63,7 @@ Welcome to the AgentForge framework documentation. This comprehensive guide will
 
 - **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
-- **[Utilities](docs/Utils/)**: Explore the array of utility functions and tools that supercharge the system's capabilities.  (Note: Documentation not implemented yet)
+- **[Utilities](docs/Utils/UtilsOverview.md)**: Explore the array of utility functions and tools that supercharge the system's capabilities.  (Note: Documentation not implemented yet)
 
 > **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience and welcome your feedback to improve the documentation.
 
