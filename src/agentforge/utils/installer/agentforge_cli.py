@@ -18,25 +18,7 @@ For more details on each command, use 'agentforge <command> -h'
 
 def display_custom_help():
     print(help_message)
-
-
-# def copy_yaml_files():
-#     try:
-#         src_base_path = pkg_resources.resource_filename("agentforge.utils.installer", "")
-#         dest_base_path = ".agentforge"
-#
-#         for root, dirs, files in os.walk(src_base_path):
-#             for file in files:
-#                 if file.endswith('.yaml'):
-#                     src_file_path = os.path.join(root, file)
-#                     relative_path = os.path.relpath(root, src_base_path)
-#                     dest_directory = os.path.join(dest_base_path, relative_path)
-#                     os.makedirs(dest_directory, exist_ok=True)
-#                     dest_file_path = os.path.join(dest_directory, file)
-#                     shutil.copyfile(src_file_path, dest_file_path)
-#     except Exception as e:
-#         print(f"Error copying YAML files: {e}")
-#         sys.exit(1)
+    
 
 def copy_yaml_files():
     try:
