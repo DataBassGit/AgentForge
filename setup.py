@@ -20,6 +20,7 @@ setup(
     package_dir={"": "src"},
     install_requires=[
         "wheel",
+        "PyPDF2",
         "colorama~=0.4.6",
         "python-dotenv~=1.0.0",
         "PyYAML~=6.0",
