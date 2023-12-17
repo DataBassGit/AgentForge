@@ -2,6 +2,7 @@ import importlib
 import yaml
 import os
 import pathlib
+import sys
 
 
 class Config:
@@ -14,7 +15,10 @@ class Config:
         return cls._instance
 
     def __init__(self, config_path=None):
-        self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
+        self.project_root = self.find_project_root()
+        self.config_path = config_path or self.project_root / ".agentforge"
+        # ... other initializations ...
+        # self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
 
         # Placeholders for the data the agent needs which is located in each respective YAML file
         self.persona_name = {}
@@ -27,15 +31,54 @@ class Config:
         # Here is where we load the information from the YAML files to their corresponding attributes
         self.load()
 
+    @staticmethod
+    def find_project_root():
+        """
+        Finds the project root by looking for the .agentforge folder.
+        Starts from the directory of the executing script and moves up the tree.
+        """
+        # Get the path of the executing script
+        script_dir = pathlib.Path(sys.argv[0]).parent
+        # print(f"Starting search for .agentforge from {script_dir}")
+
+        current_dir = script_dir
+        while current_dir != current_dir.parent:
+            potential_dir = current_dir / ".agentforge"
+            # print(f"Checking {potential_dir}")
+
+            if potential_dir.is_dir():
+                # print(f"Found .agentforge directory at {current_dir}")
+                return current_dir
+
+            current_dir = current_dir.parent
+
+        raise FileNotFoundError("Could not find the .agentforge directory at {script_dir}")
+
     def load(self):
         self.load_settings()
         self.load_actions()
         self.load_tools()
         self.load_persona()
 
+    # def chromadb(self):
+    #     db_path = self.settings['storage'].get('ChromaDB', {}).get('persist_directory', None)
+    #     db_embed = self.settings['storage'].get('ChromaDB', {}).get('embedding', None)
+    #
+    #     return db_path, db_embed
+
     def chromadb(self):
-        db_path = self.settings['storage'].get('ChromaDB', {}).get('persist_directory', None)
-        db_embed = self.settings['storage'].get('ChromaDB', {}).get('embedding', None)
+        # Retrieve the ChromaDB settings
+        db_settings = self.settings['storage'].get('ChromaDB', {})
+
+        # Get the database path and embedding settings
+        db_path_setting = db_settings.get('persist_directory', None)
+        db_embed = db_settings.get('embedding', None)
+
+        # Construct the absolute path of the database using the project root
+        if db_path_setting:
+            db_path = str(self.project_root / db_path_setting)
+        else:
+            db_path = None
 
         return db_path, db_embed
 

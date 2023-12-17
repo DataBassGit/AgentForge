@@ -1,0 +1,16 @@
+Name: Read Directory
+Args:
+  - directory_paths (str or list of str)
+  - max_depth (int, optional)
+Command: read_directory
+Description: >-
+  The 'Read Directory' tool prints the structure of a directory or multiple directories in a tree-like format. It visually represents folders and files, and you can specify the depth of the structure to be printed. The tool can handle both a single directory path or a list of directory paths. If a specified path does not exist, the tool will create it. Additionally, it indicates if a directory is empty or if there are more files beyond the specified depth.
+Example: >-
+  # For a single directory
+  directory_structure = read_directory('/path/to/directory', max_depth=3)
+
+  # For multiple directories
+  directory_structure = read_directory(['/path/to/directory1', '/path/to/directory2'], max_depth=2)
+Instruction: >-
+  The 'read_directory' method requires either a single directory path (string) or a list of directory paths (list of strings). An optional max_depth parameter can be provided to limit the depth of the directory structure displayed. The method returns a string representing the directory structure. It handles directory creation if the path does not exist and checks if directories are empty. The method includes error handling for permissions and file not found errors.
+Script: agentforge.tools.Directory
