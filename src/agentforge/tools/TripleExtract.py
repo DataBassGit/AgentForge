@@ -48,22 +48,3 @@ class TripleExtract:
 
         # print(f"Debug Trip:\n\nSubject: {_subject}\nPredicate: {_predicate}\nObject: {_object}")
         return _subject, _predicate, _object
-
-
-# Test the function with different sentences
-# if __name__ == "__main__":
-#     TExtract = TripleExtract()
-#
-#     sentences = [
-#         "Alice sang a beautiful song.",
-#         "With great enthusiasm, the students discussed the novel intensely.",
-#         "The old man at the store bought a new hat.",
-#         "Under the bright moonlight, the cat prowled silently.",
-#         "The teacher gave the students homework.",
-#         "In the garden, the birds were chirping melodiously."
-#         # Add more sentences as needed
-#     ]
-#
-#     for sentence in sentences:
-#         sub, pre, obj = TExtract.find_subject_predicate_object(sentence)
-#         print(f"Sentence: '{sentence}'\nSubject: {sub}, Predicate: {pre}, Object: {obj}\n")
