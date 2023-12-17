@@ -2,6 +2,7 @@ import PyPDF2
 import requests
 import io
 
+
 class GetText:
     def read_file(self, filename_or_url):
         if filename_or_url.startswith('http://') or filename_or_url.startswith('https://'):
@@ -15,12 +16,12 @@ class GetText:
                 return "Unsupported file format"
 
     def read_pdf(self, filename):
-        text = ""
         with open(filename, 'rb') as file:
             text = self.extract_text_from_pdf(file)
         return text
 
-    def read_txt(self, filename):
+    @staticmethod
+    def read_txt(filename):
         with open(filename, 'r', encoding='utf-8') as file:
             return file.read()
 
@@ -33,16 +34,17 @@ class GetText:
         else:
             return "Unsupported file format"
 
-    def extract_text_from_pdf(self, file_stream):
+    @staticmethod
+    def extract_text_from_pdf(file_stream):
         text = ""
-        reader = PyPDF2.PdfFileReader(file_stream)
-        for page in range(reader.numPages):
-            text += reader.getPage(page).extractText()
+        reader = PyPDF2.PdfReader(file_stream)
+        for page in reader.pages:
+            text += page.extract_text()
         return text
 
 
 if __name__ == "__main__":
     gettext_instance = GetText()
-    filename_or_url = 'example.pdf'  # Replace with your file path or URL
+    filename_or_url = 'Documents'  # Replace with your file path or URL
     file_content = gettext_instance.read_file(filename_or_url)
     print(file_content)
