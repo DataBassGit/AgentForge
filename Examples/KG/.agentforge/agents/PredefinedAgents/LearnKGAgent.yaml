@@ -1,0 +1,34 @@
+Prompts:
+  System: |+
+    You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+  ExistingKnowledge: |+
+    The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+    
+    ```
+    {kg}
+    ```
+
+  Chunk: |+
+    Analyze this text to find new and important knowledge:
+    
+    ```
+    {chunk}
+    ```
+
+  Instruction: |+
+    Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+    Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+    RESPONSE FORMAT:
+    ```yaml
+    sentences:
+      # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+      1: <FIRST NEW AND IMPORTANT SENTENCE>
+      # Add more sentences if necessary.
+    reasons:
+      # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+      1: <REASON FOR CHOOSING SENTENCE 1>
+      # Continue with reasons for additional sentences if there are any.
+    ```

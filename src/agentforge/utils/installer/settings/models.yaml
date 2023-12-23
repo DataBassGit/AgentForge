@@ -26,6 +26,12 @@ ModelLibrary:
     models:
       claude:
         name: claude-2
+  gemini_api:
+    module: "gemini"
+    class: "Gemini"
+    models:
+      gemini-pro:
+        name: gemini-pro
   oobabooga_api:
     module: "oobabooga"
     class: "Oobabooga"
@@ -38,8 +44,8 @@ ModelLibrary:
 
 # Default settings for all models unless overridden
 ModelSettings:
-  API: openai_api
-  Model: smart_fast_model
+  API: claude_api
+  Model: claude
   Params:
     max_new_tokens: 2000
     temperature: 0.5

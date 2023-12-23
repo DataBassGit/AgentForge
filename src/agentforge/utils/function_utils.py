@@ -1,5 +1,4 @@
 from .functions.AgentUtils import AgentUtils
-from .functions.Parsing import Parsing
 from .functions.Printing import Printing
 from .functions.PromptHandling import PromptHandling
 from .functions.TaskHandling import TaskHandling
@@ -11,7 +10,6 @@ class Functions:
 
     def __init__(self):
         self.agent_utils = AgentUtils()
-        self.parsing = Parsing()
         self.printing = Printing()
         self.prompt_handling = PromptHandling()
         self.task_handling = TaskHandling()

@@ -26,17 +26,25 @@ ModelLibrary:
     models:
       claude:
         name: claude-2
+  gemini_api:
+    module: "gemini"
+    class: "Gemini"
+    models:
+      gemini-pro:
+        name: gemini-pro
   oobabooga_api:
     module: "oobabooga"
     class: "Oobabooga"
     models:
-      ooba:
+      oobabooga:
         name: None
+        params: # Oobabooga host server url
+          host_url: "127.0.0.1:5000"
+          allow_custom_value: True
 
-# Default settings for all models unless overridden
 ModelSettings:
-  API: oobabooga_api
-  Model: ooba
+  API: gemini_api
+  Model: gemini-pro
   Params:
     max_new_tokens: 2000
     temperature: 0.5

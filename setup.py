@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.1.34",
+    version="0.1.36",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -19,6 +19,9 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
+        "wheel",
+        "google-generativeai",
+        "PyPDF2",
         "colorama~=0.4.6",
         "python-dotenv~=1.0.0",
         "PyYAML~=6.0",

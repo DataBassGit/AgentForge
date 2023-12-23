@@ -23,6 +23,7 @@ Examples/SalienceBot/Logs/
 Examples/SalienceBot/db_path/
 /Examples/SalienceBot/DB/
 /Examples/SalienceBot/Tests/
+/Examples/KG/DB/
 
 /Examples/Dyn/DB/
 /Examples/Dyn/Logs/
@@ -32,3 +33,6 @@ Examples/CustomAgents/DB/
 /Examples/SalienceBot/path/
 
 Examples/Chatbot/DB/
+/Examples/SalienceBot/Files/
+/Examples/SalienceBot/Workspace/
+/Examples/KG/DB/

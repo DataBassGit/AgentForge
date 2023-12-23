@@ -1,5 +1,6 @@
+import yaml
+import re
 from typing import Dict, Any
-
 from ...config import Config
 from ..storage_interface import StorageInterface
 
@@ -71,3 +72,23 @@ class AgentUtils:
             else:
                 self.config.settings['directives']['Objective'] = user_input
                 return user_input
+
+    def parse_yaml_string(self, yaml_string):
+        try:
+            cleaned_string = self.extract_yaml_block(yaml_string)
+            return yaml.safe_load(cleaned_string)
+        except yaml.YAMLError as e:
+            raise ValueError(f"Error decoding YAML string: {e}")
+
+    @staticmethod
+    def extract_yaml_block(text):
+        # Regex pattern to capture content between ```yaml and ```
+        pattern = r"```yaml(.*?)```"
+        match = re.search(pattern, text, re.DOTALL)
+
+        if match:
+            # Return the extracted content
+            return match.group(1).strip()
+        else:
+            # Return None or an empty string if no match is found
+            return None

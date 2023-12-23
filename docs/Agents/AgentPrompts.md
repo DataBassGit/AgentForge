@@ -105,6 +105,6 @@ Each of these sub-prompts has its own unique purpose and is rendered based on th
 
 ## Deep Dive into Prompt Handling
 
-For those interested in understanding the intricate workings of how prompts handle dynamic variables, how they're rendered, and the magic behind the `PromptHandling` class, check out our dedicated [**Prompt Handling Documentation**](PromptHandling.md).
+For those interested in understanding the intricate workings of how prompts handle dynamic variables, how they're rendered, and the magic behind the `PromptHandling` class, check out our dedicated [**Prompt Handling Documentation**](../Utils/PromptHandling.md).
 
 ---
