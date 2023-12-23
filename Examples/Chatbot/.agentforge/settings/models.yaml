@@ -26,6 +26,12 @@ ModelLibrary:
     models:
       claude:
         name: claude-2
+  gemini_api:
+    module: "gemini"
+    class: "Gemini"
+    models:
+      gemini-pro:
+        name: gemini-pro
   oobabooga_api:
     module: "oobabooga"
     class: "Oobabooga"
