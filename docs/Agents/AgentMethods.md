@@ -224,11 +224,11 @@ def load_additional_data(self):
 
 ```python
 def process_data(self):
-    """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
+    """Does nothing by default, it is meant to be overridden by Custom Agents if needed"""
     pass
 ```
 
->**Note**: This method is designed to be overriden by [Custom Agents](CustomAgents.md) for custom data processing depending on their specific requirements.
+>**Note**: This method is designed to be overridden by [Custom Agents](CustomAgents.md) for custom data processing depending on their specific requirements.
 
 ---
 
@@ -303,11 +303,11 @@ def run_llm(self):
 
 ```python
 def parse_result(self):
-    """Does nothing by default, it is meant to be overriden by Custom Agents if needed"""
+    """Does nothing by default, it is meant to be overridden by Custom Agents if needed"""
     pass
 ```
 
->**Note**: This method is intended to be overriden by [Custom Agents](CustomAgents.md) who may require custom parsing of the result.
+>**Note**: This method is intended to be overridden by [Custom Agents](CustomAgents.md) who may require custom parsing of the result.
 
 ---
 
