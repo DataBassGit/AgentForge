@@ -52,7 +52,7 @@ class Config:
 
             current_dir = current_dir.parent
 
-        raise FileNotFoundError("Could not find the .agentforge directory at {script_dir}")
+        raise FileNotFoundError(f"Could not find the .agentforge directory at {script_dir}")
 
     def load(self):
         self.load_settings()
