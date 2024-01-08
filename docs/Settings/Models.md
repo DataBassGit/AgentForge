@@ -2,17 +2,17 @@
 
 ## **Overview of Models Configuration**
 
-The `models.yaml` file configures settings for Large Language Models (LLM) used within the system. It is located under the `settings` directory within the main project folder, typically found at `your_project_root/agentforge/settings/models.yaml`. This file includes settings for various models, APIs, and default parameters. It also supports model-specific settings, offering customization for different use cases.
+The `models.yaml` file configures settings for Large Language Models (LLM) used within the system. It is located under the `settings` directory within the main project folder. This file includes settings for various models, APIs, and default parameters. It also supports model-specific settings, offering customization for different use cases.
 
 ### **Locating the Configuration File**
 
 To access and modify the `models.yaml` file, navigate to the following path in your project directory:
 
 ```
-agentforge/settings/models.yaml
+your_project_root/.agentforge/settings/models.yaml
 ```
 
-Here, `agentforge` is the root directory of the project. Inside the `settings` folder, you will find the `models.yaml` file, which you can edit to configure model settings according to your needs.
+Here, `your_project_root` is the root directory of the project. Inside the `settings` folder, you will find the `models.yaml` file, which you can edit to configure model settings according to your needs.
 
 ### **Formatting Guidelines**
 
