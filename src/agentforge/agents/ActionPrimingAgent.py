@@ -2,9 +2,8 @@ from agentforge.agent import Agent
 
 
 class ActionPrimingAgent(Agent):
-
     def load_additional_data(self):
-        self.data['task'] = self.functions.task_handling.get_current_task()['document']
+        self.data["task"] = self.functions.task_handling.get_current_task()["document"]
 
     def build_output(self):
         try:

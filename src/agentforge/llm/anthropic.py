@@ -5,19 +5,20 @@ import anthropic
 
 from termcolor import cprint
 from colorama import init
+
 init(autoreset=True)
 
-API_KEY = os.getenv('ANTHROPIC_API_KEY')
+API_KEY = os.getenv("ANTHROPIC_API_KEY")
 client = anthropic.Anthropic(api_key=API_KEY)
-_level = 'debug'
+_level = "debug"
 
 
 def parse_prompts(prompts):
-    prompt = ''.join(prompts[0:])
+    prompt = "".join(prompts[0:])
     prompt = f"{anthropic.HUMAN_PROMPT} {prompt}{anthropic.AI_PROMPT}"
 
-    if _level == 'debug':
-        cprint(f'\nPrompt:\n"{prompt}"', 'magenta', attrs=['concealed'])
+    if _level == "debug":
+        cprint(f'\nPrompt:\n"{prompt}"', "magenta", attrs=["concealed"])
 
     return prompt
 
@@ -41,12 +42,12 @@ class Claude:
                     model=self._model,
                     max_tokens_to_sample=params["max_new_tokens"],
                     temperature=params["temperature"],
-                    top_p=params["top_p"]
+                    top_p=params["top_p"],
                 )
                 reply = response
                 break
 
-            except anthropic.ApiException as e:
+            except anthropic.APIError as e:
                 print(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}")
                 time.sleep(backoff)
 

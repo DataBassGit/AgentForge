@@ -96,7 +96,7 @@ class StorageInterface:
 
     def initialize_storage(self):
         if self.storage_utils is None:
-            storage_api = self.config.settings['storage']['StorageAPI']
+            storage_api = self.config.settings['storage']['StorageAPI'] or 'ChromaDB'
 
             if storage_api == 'ChromaDB':
                 self.initialize_chroma()

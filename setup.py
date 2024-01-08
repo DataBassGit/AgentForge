@@ -69,9 +69,8 @@ setup(
         "agentforge.utils.guiutils": ["*", "**/*"],
     },
     entry_points={
-        'console_scripts': [
-            'agentforge=agentforge.utils.installer.agentforge_cli:main',
+        "console_scripts": [
+            "agentforge=agentforge.utils.installer.agentforge_cli:main",
         ],
-    }
-
+    },
 )

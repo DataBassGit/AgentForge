@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "AgentForge"
+version = "0.1.36"
+description = "AI-driven task automation system"
+authors = ["John Smith, Ansel Anselmi <contact@agentforge.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+wheel = "^0.42.0"
+google-generativeai = "^0.3.2"
+pypdf2 = "^3.0.1"
+colorama = "^0.4.6"
+pyyaml = "^6.0.1"
+requests = "^2.31.0"
+spacy = "^3.7.2"
+termcolor = "^2.4.0"
+openai = "^1.6.1"
+chromadb = "^0.4.22"
+sentence-transformers = "^2.2.2"
+anthropic = "^0.8.1"
+google = "^3.0.0"
+beautifulsoup4 = "^4.12.2"
+browse = "^1.0.1"
+kivy = "^2.3.0"
+flask = "^3.0.0"
+numpy = "^1.26.3"
+matplotlib = "^3.8.2"
+umap = "^0.1.1"
+. -e
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -8,7 +8,7 @@ Logs/log.txt
 /hiAGI-Dev.log
 
 AgentForge.log
-
+.venv
 src/agentforge.egg-info/
 src/agentforge/persona/chatbot.json
 src/agentforge/salience.py
