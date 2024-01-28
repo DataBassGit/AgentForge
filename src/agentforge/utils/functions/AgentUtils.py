@@ -11,58 +11,68 @@ class AgentUtils:
         self.config = Config()
 
     def load_agent_data(self, agent_name):
-        self.config.reload(agent_name)
+        try:
+            self.config.reload(agent_name)
 
-        agent = self.config.agent
-        settings = self.config.settings
+            agent = self.config.agent
+            settings = self.config.settings
 
-        # Check for a Persona override in the agent's configuration
-        agent_persona_override = agent.get('Persona', None)
+            # Check for a Persona override in the agent's configuration
+            agent_persona_override = agent.get('Persona', None)
 
-        # Use the overridden persona if available, or default to the system's predefined persona_name
-        persona_name = agent_persona_override or self.config.persona_name
+            # Use the overridden persona if available, or default to the system's predefined persona_name
+            persona_name = agent_persona_override or self.config.persona_name
 
-        # Check if the selected persona exists
-        if persona_name not in self.config.personas:
-            raise FileNotFoundError(
-                f"Persona file for '{persona_name}' not found. Please check your persona configuration.")
+            # Check if the selected persona exists
+            if persona_name not in self.config.personas:
+                raise FileNotFoundError(
+                    f"Persona file for '{persona_name}' not found. Please check your persona configuration.")
 
-        # Load the selected persona
-        persona = self.config.personas[persona_name]
+            # Load the selected persona
+            persona = self.config.personas[persona_name]
 
-        # Check for API and model_name overrides in the agent's ModelOverrides
-        agent_api_override = agent.get('ModelOverrides', {}).get('API', None)
-        agent_model_override = agent.get('ModelOverrides', {}).get('Model', None)
+            # Check for API and model_name overrides in the agent's ModelOverrides
+            agent_api_override = agent.get('ModelOverrides', {}).get('API', None)
+            agent_model_override = agent.get('ModelOverrides', {}).get('Model', None)
 
-        # Use overrides if available, otherwise default to the settings
-        api = agent_api_override or settings['models']['ModelSettings']['API']
-        model = agent_model_override or settings['models']['ModelSettings']['Model']
+            # Use overrides if available, otherwise default to the settings
+            api = agent_api_override or settings['models']['ModelSettings']['API']
+            model = agent_model_override or settings['models']['ModelSettings']['Model']
 
-        # Load default model parameter settings
-        default_params = settings['models']['ModelSettings']['Params']
+            # Load default model parameter settings
+            default_params = settings['models']['ModelSettings']['Params']
 
-        # Load model-specific settings (if any)
-        model_params = settings['models']['ModelLibrary'][api]['models'].get(model, {}).get('params', {})
+            # Load model-specific settings (if any)
+            model_params = settings['models']['ModelLibrary'][api]['models'].get(model, {}).get('params', {})
 
-        # Merge default settings with model-specific settings
-        combined_params = {**default_params, **model_params}
+            # Merge default settings with model-specific settings
+            combined_params = {**default_params, **model_params}
 
-        # Apply agent's parameter overrides (if any)
-        agent_params_overrides = agent.get('ModelOverrides', {}).get('Params', {})
-        final_model_params = {**combined_params, **agent_params_overrides}
+            # Apply agent's parameter overrides (if any)
+            agent_params_overrides = agent.get('ModelOverrides', {}).get('Params', {})
+            final_model_params = {**combined_params, **agent_params_overrides}
 
-        # Initialize agent data
-        agent_data: Dict[str, Any] = dict(
-            name=agent_name,
-            settings=settings,
-            llm=self.config.get_llm(api, model),
-            params=final_model_params,
-            prompts=agent['Prompts'],
-            storage=StorageInterface().storage_utils,
-            persona=persona,
-        )
+            # Initialize agent data
+            agent_data: Dict[str, Any] = dict(
+                name=agent_name,
+                settings=settings,
+                llm=self.config.get_llm(api, model),
+                params=final_model_params,
+                prompts=agent['Prompts'],
+                storage=StorageInterface().storage_utils,
+                persona=persona,
+            )
 
-        return agent_data
+            return agent_data
+        except FileNotFoundError as e:
+            # Handle file not found errors specifically
+            raise FileNotFoundError(f"Configuration or persona file not found: {e}")
+        except KeyError as e:
+            # Handle missing keys in configuration
+            raise KeyError(f"Missing key in configuration: {e}")
+        except Exception as e:
+            # Handle other general exceptions
+            raise Exception(f"Error loading agent data: {e}")
 
     def prepare_objective(self):
         while True:
@@ -82,13 +92,17 @@ class AgentUtils:
 
     @staticmethod
     def extract_yaml_block(text):
-        # Regex pattern to capture content between ```yaml and ```
-        pattern = r"```yaml(.*?)```"
-        match = re.search(pattern, text, re.DOTALL)
+        try:
+            # Regex pattern to capture content between ```yaml and ```
+            pattern = r"```yaml(.*?)```"
+            match = re.search(pattern, text, re.DOTALL)
 
-        if match:
-            # Return the extracted content
-            return match.group(1).strip()
-        else:
-            # Return None or an empty string if no match is found
-            return None
+            if match:
+                # Return the extracted content
+                return match.group(1).strip()
+            else:
+                # Return None or an empty string if no match is found
+                return None
+        except Exception as e:
+            # Handle unexpected errors during regex operation
+            raise Exception(f"Error extracting YAML block: {e}")

@@ -7,6 +7,7 @@ import sys
 
 class Config:
     _instance = None
+    _level = 'debug'
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -15,21 +16,24 @@ class Config:
         return cls._instance
 
     def __init__(self, config_path=None):
-        self.project_root = self.find_project_root()
-        self.config_path = config_path or self.project_root / ".agentforge"
-        # ... other initializations ...
-        # self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
+        try:
+            self.project_root = self.find_project_root()
+            self.config_path = config_path or self.project_root / ".agentforge"
+            # ... other initializations ...
+            # self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
 
-        # Placeholders for the data the agent needs which is located in each respective YAML file
-        self.persona_name = {}
-        self.personas = {}
-        self.actions = {}
-        self.agent = {}
-        self.tools = {}
-        self.settings = {}
+            # Placeholders for the data the agent needs which is located in each respective YAML file
+            self.persona_name = {}
+            self.personas = {}
+            self.actions = {}
+            self.agent = {}
+            self.tools = {}
+            self.settings = {}
 
-        # Here is where we load the information from the YAML files to their corresponding attributes
-        self.load()
+            # Here is where we load the information from the YAML files to their corresponding attributes
+            self.load()
+        except Exception as e:
+            raise ValueError(f"Error during Config initialization: {e}")
 
     @staticmethod
     def find_project_root():
@@ -55,10 +59,14 @@ class Config:
         raise FileNotFoundError(f"Could not find the .agentforge directory at {script_dir}")
 
     def load(self):
-        self.load_settings()
-        self.load_actions()
-        self.load_tools()
-        self.load_persona()
+        try:
+            self.load_settings()
+            self.load_actions()
+            self.load_tools()
+            self.load_persona()
+        except Exception as e:
+            print(f"Error loading configuration data: {e}")
+
 
     # def chromadb(self):
     #     db_path = self.settings['storage'].get('ChromaDB', {}).get('persist_directory', None)
@@ -125,11 +133,14 @@ class Config:
             raise
 
     def load_agent(self, agent_name):
-        path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
-        if path_to_file:
-            self.agent = get_yaml_data(path_to_file)
-        else:
-            raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
+        try:
+            path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
+            if path_to_file:
+                self.agent = get_yaml_data(path_to_file)
+            else:
+                raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
+        except Exception as e:
+            print(f"Error loading agent {agent_name}: {e}")
 
     def load_settings(self):
         self.load_from_folder("settings")
@@ -152,39 +163,41 @@ class Config:
         self.load_persona()
 
     def load_from_folder(self, folder):
-        # Get the path for the provided folder name
-        folder_path = self.get_file_path(folder)
+        try:
+            # Get the path for the provided folder name
+            folder_path = self.get_file_path(folder)
 
-        # If the folder attribute doesn't exist, initialize it as an empty dictionary
-        if not hasattr(self, folder):
-            setattr(self, folder, {})
+            # If the folder attribute doesn't exist, initialize it as an empty dictionary
+            if not hasattr(self, folder):
+                setattr(self, folder, {})
 
-        # Reference to the folder's dictionary
-        folder_dict = getattr(self, folder)
+            # Reference to the folder's dictionary
+            folder_dict = getattr(self, folder)
 
-        # Iterate over each file in the specified folder
-        for file in os.listdir(folder_path):
-            # Only process files with a .yaml or .yml extension
-            if file.endswith(".yaml") or file.endswith(".yml"):
-                # Load the YAML data from the current file
-                pathy = os.path.join(folder_path, file)
-                data = get_yaml_data(pathy)
+            # Iterate over each file in the specified folder
+            for file in os.listdir(folder_path):
+                # Only process files with a .yaml or .yml extension
+                if file.endswith(".yaml") or file.endswith(".yml"):
+                    # Load the YAML data from the current file
+                    pathy = os.path.join(folder_path, file)
+                    data = get_yaml_data(pathy)
 
-                # Get the filename without the extension
-                filename = os.path.splitext(file)[0]
+                    # Get the filename without the extension
+                    filename = os.path.splitext(file)[0]
 
-                # Check if filename exists under the folder's dictionary, if not, initialize it as a dict
-                if filename not in folder_dict:
-                    folder_dict[filename] = {}
+                    # Check if filename exists under the folder's dictionary, if not, initialize it as a dict
+                    if filename not in folder_dict:
+                        folder_dict[filename] = {}
 
-                # Reference to the file name's dictionary
-                file_dict = folder_dict[filename]
+                    # Reference to the file name's dictionary
+                    file_dict = folder_dict[filename]
 
-                for item_name, data_item in data.items():
-                    # Extract the name and store the data under that name in the file name's dictionary
-                    if item_name:
-                        file_dict[item_name] = data_item
-
+                    for item_name, data_item in data.items():
+                        # Extract the name and store the data under that name in the file name's dictionary
+                        if item_name:
+                            file_dict[item_name] = data_item
+        except Exception as e:
+            print(f"Error loading data from {folder}: {e}")
 
 # -------------------------- FUNCTIONS --------------------------
 

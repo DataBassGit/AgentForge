@@ -4,16 +4,24 @@ from .functions.PromptHandling import PromptHandling
 from .functions.TaskHandling import TaskHandling
 from .functions.ToolUtils import ToolUtils
 from .functions.UserInferface import UserInterface
+from ..logs.logger_config import Logger
+
+logger = Logger(name="Function Utils")
+logger.set_level('info')
 
 
 class Functions:
 
     def __init__(self):
-        self.agent_utils = AgentUtils()
-        self.printing = Printing()
-        self.prompt_handling = PromptHandling()
-        self.task_handling = TaskHandling()
-        self.tool_utils = ToolUtils()
-        self.user_interface = UserInterface()
+        try:
+            self.agent_utils = AgentUtils()
+            self.printing = Printing()
+            self.prompt_handling = PromptHandling()
+            self.task_handling = TaskHandling()
+            self.tool_utils = ToolUtils()
+            self.user_interface = UserInterface()
+        except Exception as e:
+            logger.log(f"Error initializing storage: {e}", 'error')
+            raise
 
 

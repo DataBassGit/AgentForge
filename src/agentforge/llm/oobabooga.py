@@ -1,12 +1,7 @@
 import json
-import requests
 # import sseclient  # pip install sseclient-py
-
-from termcolor import cprint
-from colorama import init
-init(autoreset=True)
-
-_level = 'debug'
+import requests
+from ..llm import LLM
 
 
 class Oobabooga:
@@ -18,8 +13,8 @@ class Oobabooga:
 
         prompt = ''.join(prompt)
 
-        if _level == 'debug':
-            cprint(f'\nPrompt:\n"{prompt}"', 'magenta', attrs=['concealed'])
+        if params.get('show_prompt', False):
+            LLM.print_prompt(prompt)
 
         # Server address
         host = params.pop('host_url', None)
@@ -77,7 +72,11 @@ class Oobabooga:
         reply = ''
         try:
             response = requests.post(url, headers=headers, json=data, verify=False)
+
             reply = response.json()['choices'][0]['message']['content']
+
+            if params.get('show_model_response', False):
+                LLM.print_response(reply)
 
             # stream_response = requests.post(url, headers=headers, json=data, verify=False, stream=True)
             # client = sseclient.SSEClient(stream_response)

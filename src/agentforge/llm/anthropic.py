@@ -1,7 +1,7 @@
 import os
 import time
-
 import anthropic
+from ..llm import LLM
 
 from termcolor import cprint
 from colorama import init
@@ -9,15 +9,11 @@ init(autoreset=True)
 
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
 client = anthropic.Anthropic(api_key=API_KEY)
-_level = 'debug'
 
 
 def parse_prompts(prompts):
     prompt = ''.join(prompts[0:])
     prompt = f"{anthropic.HUMAN_PROMPT} {prompt}{anthropic.AI_PROMPT}"
-
-    if _level == 'debug':
-        cprint(f'\nPrompt:\n"{prompt}"', 'magenta', attrs=['concealed'])
 
     return prompt
 
@@ -29,8 +25,11 @@ class Claude:
         self._model = model
 
     def generate_text(self, prompts, **params):
-        reply = None
+        response = None
         prompt = parse_prompts(prompts)
+
+        if params.get('show_prompt', False):
+            LLM.print_prompt(prompt)
 
         for attempt in range(self.num_retries):
             backoff = 2 ** (attempt + 2)
@@ -43,14 +42,16 @@ class Claude:
                     temperature=params["temperature"],
                     top_p=params["top_p"]
                 )
-                reply = response
+
+                if params.get('show_model_response', False):
+                    LLM.print_response(response)
                 break
 
             except anthropic.ApiException as e:
                 print(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}")
                 time.sleep(backoff)
 
-        if reply is None:
+        if response is None:
             raise RuntimeError("\n\nError: Failed to get Anthropic Response")
 
-        return reply.completion
+        return response.completion

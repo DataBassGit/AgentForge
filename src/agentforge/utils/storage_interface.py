@@ -57,9 +57,13 @@ class StorageInterface:
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls.config = Config()
-            cls._instance = super(StorageInterface, cls).__new__(cls, *args, **kwargs)
-            cls._instance.initialize_storage()
+            try:
+                cls.config = Config()
+                cls._instance = super(StorageInterface, cls).__new__(cls, *args, **kwargs)
+                cls._instance.initialize_storage()
+            except Exception as e:
+                print(f"Error initializing StorageInterface: {e}")
+                raise
         return cls._instance
 
     def __init__(self):
@@ -111,38 +115,40 @@ class StorageInterface:
                 raise ValueError(f"Unsupported Storage API library: {storage_api}")
 
     def prefill_storage(self, storage, data):
-        """Initializes a collection with provided data source and metadata builder."""
+        try:
+            """Initializes a collection with provided data source and metadata builder."""
 
-        if not data:
-            data = self.config.get_config_element(storage)
+            if not data:
+                data = self.config.get_config_element(storage)
 
-            if data == 'Invalid case':
-                return
+                if data == 'Invalid case':
+                    return
 
-        collection_name = storage
-        builder = metadata_builder
-        extractor = description_extractor
-        generator = id_generator
-        ids = generator(data)
+            collection_name = storage
+            builder = metadata_builder
+            extractor = description_extractor
+            generator = id_generator
+            ids = generator(data)
 
-        if isinstance(data, list):
-            metadata = [builder(collection_name, i, item) for i, item in enumerate(data)]
-        else:
-            metadata = [builder(collection_name, key, value) for key, value in data.items()]
+            if isinstance(data, list):
+                metadata = [builder(collection_name, i, item) for i, item in enumerate(data)]
+            else:
+                metadata = [builder(collection_name, key, value) for key, value in data.items()]
 
-        if collection_name in ['Tools', 'Actions']:
-            metadata = format_metadata(metadata)
+            if collection_name in ['Tools', 'Actions']:
+                metadata = format_metadata(metadata)
 
-        description = [extractor(meta) for meta in metadata]
+            description = [extractor(meta) for meta in metadata]
 
-        save_params = {
-            "collection_name": collection_name,
-            "ids": ids,
-            "data": description,
-            "metadata": metadata,
-        }
+            save_params = {
+                "collection_name": collection_name,
+                "ids": ids,
+                "data": description,
+                "metadata": metadata,
+            }
 
-        self.storage_utils.select_collection(collection_name)
-        self.storage_utils.save_memory(save_params)
-
+            self.storage_utils.select_collection(collection_name)
+            self.storage_utils.save_memory(save_params)
+        except Exception as e:
+            print(f"Error in prefill_storage: {e}")
 

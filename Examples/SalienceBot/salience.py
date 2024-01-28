@@ -12,31 +12,35 @@ from agentforge.utils.storage_interface import StorageInterface
 class Salience:
 
     def __init__(self):
-        self.logger = Logger(name="Salience")
+        try:
+            self.logger = Logger(name="Salience")
 
-        self.data = {}
-        self.task = {}
-        self.context = {}
-        self.feedback = {}
-        self.reason = {}
-        self.selected_action = {}
+            self.data = {}
+            self.task = {}
+            self.context = {}
+            self.feedback = {}
+            self.reason = {}
+            self.selected_action = {}
 
-        self.frustration_step = 0.1
-        self.min_frustration = 0.7
-        self.max_frustration = 1
-        self.frustration = self.min_frustration
+            self.frustration_step = 0.1
+            self.min_frustration = 0.7
+            self.max_frustration = 1
+            self.frustration = self.min_frustration
 
-        self.storage = StorageInterface().storage_utils
-        self.functions = Functions()
+            self.storage = StorageInterface().storage_utils
+            self.functions = Functions()
 
-        self.summarization_agent = SummarizationAgent()
-        self.action_execution = Action()
-        self.action_selection = ActionSelectionAgent()
-        self.exec_agent = ExecutionAgent()
-        self.task_creation_agent = TaskCreationAgent()
-        self.status_agent = StatusAgent()
+            self.summarization_agent = SummarizationAgent()
+            self.action_execution = Action()
+            self.action_selection = ActionSelectionAgent()
+            self.exec_agent = ExecutionAgent()
+            self.task_creation_agent = TaskCreationAgent()
+            self.status_agent = StatusAgent()
 
-        self.init_settings_and_objectives()
+            self.init_settings_and_objectives()
+        except Exception as e:
+            self.logger.log(f"Initialization error: {e}", 'error')
+            raise  # Optionally re-raise the exception after logging
 
     def init_settings_and_objectives(self):
         self.action_selection.set_threshold(self.frustration)
@@ -44,20 +48,28 @@ class Salience:
         self.set_objective()
 
     def run(self):
-        self.log_start()
-        self.load_data_from_storage()
-        self.summarize_task()
-        self.check_for_actions()
-        self.log_results()
+        try:
+            self.log_start()
+            self.load_data_from_storage()
+            self.summarize_task()
+            self.check_for_actions()
+            self.log_results()
+        except Exception as e:
+            self.logger.log(f"Run error: {e}", 'error')
 
     def loop(self):
-        while True:
-            self.display_task_list()
-            self.fetch_context()
-            self.fetch_feedback()
-            self.run()
-            self.determine_status()
-            self.handle_frustration()
+        try:
+            while True:
+                self.display_task_list()
+                self.fetch_context()
+                self.fetch_feedback()
+                self.run()
+                self.determine_status()
+                self.handle_frustration()
+        except KeyboardInterrupt:
+            self.logger.log("Loop interrupted by user", 'info')
+        except Exception as e:
+            self.logger.log(f"Loop error: {e}", 'error')
 
     def check_for_actions(self):
         self.select_action()
@@ -68,15 +80,18 @@ class Salience:
             self.execute_task()
 
     def execute_action(self):
-        action_results = self.action_execution.run(action=self.selected_action, context=self.reason)
-        formatted_results = self.format_action_results(action_results)
+        try:
+            action_results = self.action_execution.run(action=self.selected_action, context=self.reason)
+            formatted_results = self.format_action_results(action_results)
 
-        self.task['execution_results'] = {
-            "task_result": formatted_results,
-            "current_task": self.data['current_task'],
-            "context": self.context,
-            "Order": self.data['Order']
-        }
+            self.task['execution_results'] = {
+                "task_result": formatted_results,
+                "current_task": self.data['current_task'],
+                "context": self.context,
+                "Order": self.data['Order']
+            }
+        except Exception as e:
+            self.logger.log(f"Execute action error: {e}", 'error')
 
     @staticmethod
     def format_action_results(action_results):
@@ -174,10 +189,15 @@ class Salience:
             self.action_selection.set_threshold(self.frustration)
 
     def load_data_from_storage(self):
-        self.load_results()
-        self.fetch_ordered_task_list()
-        self.determine_current_task()
-        self.prepare_ordered_results()
+        try:
+            self.load_results()
+            self.fetch_ordered_task_list()
+            self.determine_current_task()
+            self.prepare_ordered_results()
+        except KeyError as e:
+            self.logger.log(f"Data loading error (key missing): {e}", 'error')
+        except Exception as e:
+            self.logger.log(f"General data loading error: {e}", 'error')
 
     def load_results(self):
         results = self.storage.load_collection({'collection_name': "Results", 'include': ["documents"]})

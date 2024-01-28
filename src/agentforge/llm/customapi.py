@@ -2,6 +2,7 @@ import requests
 import json
 import os
 
+
 def request_completion(prompt):
     url = os.getenv('CUSTOM_AI_ENDPOINT')
     if not url:
@@ -21,6 +22,7 @@ def request_completion(prompt):
         return response.json()
     else:
         return None
+
 
 # Example usage:
 prompt = "What does the cow say?"

@@ -1,10 +1,11 @@
 from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
+from ..logs.logger_config import Logger
 
 
 class Action:
-    def __init__(self):
+    def __init__(self, log_level="info"):
         self.storage = StorageInterface().storage_utils
         self.functions = Functions()
         self.priming_agent = ActionPrimingAgent()
@@ -14,27 +15,41 @@ class Action:
         self.results = {}
         self.context = {}
 
+        self.logger = Logger(name=self.__class__.__name__)
+        self.logger.set_level(log_level)
+
     def run(self, action, context=None):
-        if action:
-            self.context = context
-            self.action = action
-            self.load_action_tools()
-            self.run_tools_in_sequence()
-            self.save_action_results()
-            return self.results
+        try:
+            if action:
+                self.context = context
+                self.action = action
+                self.load_action_tools()
+                self.run_tools_in_sequence()
+                self.save_action_results()
+                return self.results
+        except Exception as e:
+            self.logger.log(f"Error in running action: {e}", 'error')
+            return None
 
     def load_action_tools(self):
-        tools = self.action['Tools'].split(', ')
-        self.tools = {tool: self.load_tool(tool) for tool in tools}
+        try:
+            tools = self.action['Tools'].split(', ')
+            self.tools = {tool: self.load_tool(tool) for tool in tools}
+        except Exception as e:
+            self.logger.log(f"Error in loading action tools: {e}", 'error')
+            self.tools = {}
 
     def run_tools_in_sequence(self):
         self.tool['Result'] = None
-        for self.tool['Name'], self.tool['Data'] in self.tools.items():
-            self.get_tool_script()
-            self.process_tool_data()
-            self.prime_tool()
-            self.execute_tool()
-            self.parse_tool_result()
+        try:
+            for self.tool['Name'], self.tool['Data'] in self.tools.items():
+                self.get_tool_script()
+                self.process_tool_data()
+                self.prime_tool()
+                self.execute_tool()
+                self.parse_tool_result()
+        except Exception as e:
+            self.logger.log(f"Error in running tools in sequence: {e}", 'error')
 
     def get_tool_script(self):
         self.tool['Script'] = self.tool['Data'].pop('Script')
@@ -44,44 +59,61 @@ class Action:
         self.tool['Prompt'] = f"Tool: {self.tool['Name']}\n{tool_info}"
 
     def prime_tool(self):
-        # Load the paths into a dictionary
-        paths_dict = self.storage.config.settings['paths']
+        try:
+            # Load the paths into a dictionary
+            paths_dict = self.storage.config.settings['paths']
 
-        # Construct the work_paths string by iterating over the dictionary
-        work_paths = None
-        if self.tool['Name'] == 'Read Directory':
-            work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
+            # Construct the work_paths string by iterating over the dictionary
+            work_paths = None
+            if self.tool['Name'] == 'Read Directory':
+                work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
 
-        self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
-                                                      path=work_paths,
-                                                      results=self.tool['Result'],
-                                                      context=self.context)
-        self.functions.tool_utils.show_primed_tool(self.tool['Name'], self.tool['Payload'])
+            self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
+                                                          path=work_paths,
+                                                          results=self.tool['Result'],
+                                                          context=self.context)
+            self.functions.tool_utils.show_primed_tool(self.tool['Name'], self.tool['Payload'])
+        except Exception as e:
+            self.logger.log(f"Error in priming tool: {e}", 'error')
 
     def execute_tool(self):
-        self.tool['Payload']['command'] = self.tool['Data']['Command']
-        self.tool['Result'] = self.functions.tool_utils.dynamic_tool(self.tool['Script'], self.tool['Payload'])
+        try:
+            self.tool['Payload']['command'] = self.tool['Data']['Command']
+            self.tool['Result'] = self.functions.tool_utils.dynamic_tool(self.tool['Script'], self.tool['Payload'])
+        except Exception as e:
+            self.logger.log(f"Error in executing tool: {e}", 'error')
 
     def parse_tool_result(self):
-        self.results[self.tool['Name']] = self.tool['Result']
+        try:
+            self.results[self.tool['Name']] = self.tool['Result']
+        except Exception as e:
+            self.logger.log(f"Error in parsing tool result: {e}", 'error')
 
     def save_action_results(self):
-        for key, result in self.results.items():
-            params = {'data': [result], 'collection_name': 'Results'}
-            self.storage.save_memory(params)
+        try:
+            for key, result in self.results.items():
+                params = {'data': [result], 'collection_name': 'Results'}
+                self.storage.save_memory(params)
+        except Exception as e:
+            self.logger.log(f"Error in saving action results: {e}", 'error')
 
     def load_tool(self, tool):
-        params = {
-            "collection_name": 'Tools',
-            "query": tool,
-            "include": ["documents", "metadatas"]
-        }
+        try:
+            params = {
+                "collection_name": 'Tools',
+                "query": tool,
+                "include": ["documents", "metadatas"]
+            }
 
-        results = self.storage.query_memory(params)
-        filtered = results['metadatas'][0][0]
-        filtered.pop('timestamp', None)
+            results = self.storage.query_memory(params)
+            filtered = results['metadatas'][0][0]
+            filtered.pop('timestamp', None)
 
-        return filtered
+            return filtered
+        except Exception as e:
+            self.logger.log(f"Error in loading tool: {e}", 'error')
+            return None
+
 
 
 

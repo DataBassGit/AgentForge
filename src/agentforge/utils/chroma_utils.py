@@ -35,30 +35,41 @@ class ChromaUtils:
         pass
 
     def init_embeddings(self):
-        self.db_path, self.db_embed = self.config.chromadb()
+        try:
+            self.db_path, self.db_embed = self.config.chromadb()
 
-        if self.db_embed == 'openai_ada2':
-            # Get API keys from environment variables
-            openai_api_key = os.getenv('OPENAI_API_KEY')
+            if self.db_embed == 'openai_ada2':
+                # Get API keys from environment variables
+                openai_api_key = os.getenv('OPENAI_API_KEY')
 
-            # Embeddings - need to handle embedding errors gracefully
-            self.embedding = embedding_functions.OpenAIEmbeddingFunction(
-                api_key=openai_api_key,
-                model_name="text-embedding-ada-002"
-            )
-        elif self.db_embed == 'all-distilroberta-v1':
-            self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
-        elif self.db_embed == 'gte-base':
-            self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
-        else:
-            self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
+                # Embeddings - need to handle embedding errors gracefully
+                self.embedding = embedding_functions.OpenAIEmbeddingFunction(
+                    api_key=openai_api_key,
+                    model_name="text-embedding-ada-002"
+                )
+            elif self.db_embed == 'all-distilroberta-v1':
+                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-distilroberta-v1")
+            elif self.db_embed == 'gte-base':
+                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="gte-base")
+            else:
+                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L12-v2")
+        except KeyError as e:
+            logger.log(f"Missing environment variable or setting: {e}", 'error')
+            raise
+        except Exception as e:
+            logger.log(f"Error initializing embeddings: {e}", 'error')
+            raise
 
     def init_storage(self):
-        if self.client is None:
-            if self.db_path:
-                self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
-            else:
-                self.client = chromadb.EphemeralClient()
+        try:
+            if self.client is None:
+                if self.db_path:
+                    self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
+                else:
+                    self.client = chromadb.EphemeralClient()
+        except Exception as e:
+            logger.log(f"Error initializing storage: {e}", 'error')
+            raise
 
     def select_collection(self, collection_name):
         try:
@@ -78,17 +89,21 @@ class ChromaUtils:
         return self.client.list_collections()
 
     def peek(self, collection_name):
-        self.select_collection(collection_name)
+        try:
+            self.select_collection(collection_name)
 
-        max_result_count = self.collection.count()
-        num_results = min(1, max_result_count)
+            max_result_count = self.collection.count()
+            num_results = min(1, max_result_count)
 
-        if num_results > 0:
-            result = self.collection.peek()
-        else:
-            result = {'documents': "No Results!"}
+            if num_results > 0:
+                result = self.collection.peek()
+            else:
+                result = {'documents': "No Results!"}
 
-        return result
+            return result
+        except Exception as e:
+            logger.log(f"Error peeking collection: {e}", 'error')
+            return None
 
     def load_collection(self, params):
         try:
@@ -137,67 +152,75 @@ class ChromaUtils:
             raise ValueError(f"\n\nError saving results. Error: {e}")
 
     def query_memory(self, params, num_results=1):
-        collection_name = params.get('collection_name', None)
-        self.select_collection(collection_name)
+        try:
+            collection_name = params.get('collection_name', None)
+            self.select_collection(collection_name)
 
-        max_result_count = self.collection.count()
-        num_results = min(num_results, max_result_count)
+            max_result_count = self.collection.count()
+            num_results = min(num_results, max_result_count)
 
-        if num_results > 0:
-            query = params.pop('query', None)
-            filter_condition = params.pop('filter', None)
-            include = params.pop('include', ["documents", "metadatas", "distances"])
+            if num_results > 0:
+                query = params.pop('query', None)
+                filter_condition = params.pop('filter', None)
+                include = params.pop('include', ["documents", "metadatas", "distances"])
 
-            if query is not None:
-                result = self.collection.query(
-                    query_texts=[query],
-                    n_results=num_results,
-                    where=filter_condition,
-                    include=include
-                )
-            else:
-                embeddings = params.pop('embeddings', None)
-
-                if embeddings is not None:
+                if query is not None:
                     result = self.collection.query(
-                        query_embeddings=embeddings,
+                        query_texts=[query],
                         n_results=num_results,
                         where=filter_condition,
                         include=include
                     )
                 else:
-                    raise ValueError(f"\n\nError: No query nor embeddings were provided!")
-        else:
-            result = {'documents': "No Results!"}
+                    embeddings = params.pop('embeddings', None)
 
-        return result
+                    if embeddings is not None:
+                        result = self.collection.query(
+                            query_embeddings=embeddings,
+                            n_results=num_results,
+                            where=filter_condition,
+                            include=include
+                        )
+                    else:
+                        raise ValueError(f"\n\nError: No query nor embeddings were provided!")
+            else:
+                result = {'documents': "No Results!"}
+
+            return result
+        except Exception as e:
+            logger.log(f"Error querrying memory: {e}", 'error')
+            return None
 
     def reset_memory(self):
         self.client.reset()
 
     def search_storage_by_threshold(self, parameters):
-        from scipy.spatial import distance
+        try:
+            from scipy.spatial import distance
 
-        collection_name = parameters.pop('collection_name', None)
-        num_results = parameters.pop('num_results', 1)
-        threshold = parameters.pop('threshold', 0.7)
-        query_text = parameters.pop('query', None)
+            collection_name = parameters.pop('collection_name', None)
+            num_results = parameters.pop('num_results', 1)
+            threshold = parameters.pop('threshold', 0.7)
+            query_text = parameters.pop('query', None)
 
-        query_emb = self.return_embedding(query_text)
+            query_emb = self.return_embedding(query_text)
 
-        parameters = {
-            "collection_name": collection_name,
-            "embeddings": query_emb,
-            "include": ["embeddings", "documents", "metadatas", "distances"]
-        }
+            parameters = {
+                "collection_name": collection_name,
+                "embeddings": query_emb,
+                "include": ["embeddings", "documents", "metadatas", "distances"]
+            }
 
-        results = self.query_memory(parameters, num_results)
-        dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
+            results = self.query_memory(parameters, num_results)
+            dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
 
-        if dist >= threshold:
-            results = {'failed': 'No action found!'}
+            if dist >= threshold:
+                results = {'failed': 'No action found!'}
 
-        return results
+            return results
+        except Exception as e:
+            logger.log(f"Error initializing storage: {e}", 'error')
+            return None
 
     def return_embedding(self, text_to_embed):
         return self.embedding([text_to_embed])

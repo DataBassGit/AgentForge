@@ -1,8 +1,8 @@
 from agentforge.agents.LearnKGAgent import LearnKGAgent
 from agentforge.tools.GetText import GetText
 from agentforge.tools.IntelligentChunk import intelligent_chunk
-# from agentforge.tools.TripleExtract import TripleExtract
 from agentforge.tools.InjectKG import Consume
+from ..logs.logger_config import Logger
 
 '''
 This needs to receive a file path and send that as an argument to GetText.
@@ -17,34 +17,44 @@ This will inject everything into the database using InjectKG.Consume.
 
 
 class FileProcessor:
-    def __init__(self):
+    def __init__(self, log_level="info"):
         self.intelligent_chunk = intelligent_chunk
         self.get_text = GetText()
         self.learn_kg = LearnKGAgent()
         self.consumer = Consume()
 
+        self.logger = Logger(name=self.__class__.__name__)
+        self.logger.set_level(log_level)
+
     def process_file(self, file):
-        # Step 1: Extract text from the file
-        file_content = self.get_text.read_file(file)
+        try:
+            # Step 1: Extract text from the file
+            file_content = self.get_text.read_file(file)
+        except Exception as e:
+            self.logger.log(f"Error reading file: {e}", 'error')
+            return
 
-        # Step 2: Create chunks of the text
-        chunks = self.intelligent_chunk(file_content, chunk_size=2)
+        try:
+            # Step 2: Create chunks of the text
+            chunks = self.intelligent_chunk(file_content, chunk_size=2)
+        except Exception as e:
+            self.logger.log(f"Error chunking text: {e}", 'error')
+            return
 
-        # Step 3: Process each chunk
         for chunk in chunks:
+            try:
+                # Steps within the loop for learning and injecting data
+                data = self.learn_kg.run(chunk=chunk, kg="No Entries")
 
-            # Learn from the triples
-            data = self.learn_kg.run(chunk=chunk, kg="No Entries")
-            # sentences returns as a yaml object.
+                if data is not None and 'sentences' in data and data['sentences']:
+                    for key in data['sentences']:
+                        sentence = data['sentences'][key]
+                        reason = data['reasons'].get(key, "")
 
-            # Inject into the database
-            if data is not None and 'sentences' in data and data['sentences']:
-                for key in data['sentences']:
-                    sentence = data['sentences'][key]
-                    reason = data['reasons'].get(key, "")  # Get the corresponding reason, or empty if not found
-
-                    # Assuming you have a consumer object with a consume method
-                    injected = self.consumer.consume(sentence, reason, "Test", file)
-                    print(f"The following entry was added to the knowledge graph:\n{injected}\n\n")
-            else:
-                print("No relevant knowledge was found")
+                        injected = self.consumer.consume(sentence, reason, "Test", file)
+                        print(f"The following entry was added to the knowledge graph:\n{injected}\n\n")
+                else:
+                    self.logger.log("No relevant knowledge was found", 'info')
+            except Exception as e:
+                self.logger.log(f"Error processing chunk: {e}", 'error')
+                continue  # Optionally continue to the next chunk
