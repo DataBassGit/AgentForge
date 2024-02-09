@@ -1,20 +1,19 @@
-import json
 # import sseclient  # pip install sseclient-py
 import requests
-from ..llm import LLM
+from agentforge.utils.functions.Logger import Logger
 
 
 class Oobabooga:
     def __init__(self, model):
         self._model = model
+        self.logger = Logger(name=__name__)
 
-    @staticmethod
-    def generate_text(prompt, **params):
+    def generate_text(self, prompt, **params):
+        log_level = params.get('log_level', 'info')
+        self.logger.set_level(log_level)
 
         prompt = ''.join(prompt)
-
-        if params.get('show_prompt', False):
-            LLM.print_prompt(prompt)
+        self.logger.log_prompt(prompt)
 
         # Server address
         host = params.pop('host_url', None)
@@ -74,9 +73,7 @@ class Oobabooga:
             response = requests.post(url, headers=headers, json=data, verify=False)
 
             reply = response.json()['choices'][0]['message']['content']
-
-            if params.get('show_model_response', False):
-                LLM.print_response(reply)
+            self.logger.log_response(reply)
 
             # stream_response = requests.post(url, headers=headers, json=data, verify=False, stream=True)
             # client = sseclient.SSEClient(stream_response)
@@ -91,7 +88,7 @@ class Oobabooga:
             # print()
 
         except Exception as e:
-            print(f'Error: {e}')
+            self.logger.log(f"\n\nError: {e}", 'critical')
 
         # if response.status_code == 200:
         #     reply = response.json()['results'][0]['text']

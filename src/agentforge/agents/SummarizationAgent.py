@@ -54,6 +54,5 @@ class SummarizationAgent(Agent):
             parsed_yaml = self.functions.agent_utils.parse_yaml_string(self.result)
             self.output = parsed_yaml.get("summary", "").lower().strip()
         except Exception as e:
-            self.logger.log("It is very likely the model did not respond in the desired format", 'error')
-            self.logger.log(f"Error while building output for agent: {e}", 'error')
-            raise
+            self.logger.parsing_error(self.result, e)
+            self.output = self.result

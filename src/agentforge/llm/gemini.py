@@ -1,7 +1,7 @@
 import os
 import time
 import google.generativeai as genai
-from ..llm import LLM
+from agentforge.utils.functions.Logger import Logger
 
 # Get API key from Env
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
@@ -19,16 +19,17 @@ class Gemini:
 
     def __init__(self, model):
         self._model = genai.GenerativeModel(model)
+        self.logger = Logger(name=__name__)
 
     def generate_text(self, prompts, **params):
-        reply = None
+        log_level = params.get('log_level', 'info')
+        self.logger.set_level(log_level)
+
         prompt = parse_prompts(prompts)
+        self.logger.log_prompt(prompt)
 
-        if params.get('show_prompt', False):
-            LLM.print_prompt(prompt)
-
-        # will retry to get chat if a rate limit or bad gateway error is received
-        # from the chat, up to limit of num_retries
+        # Will retry to get chat if a rate limit or bad gateway error is received from the chat
+        reply = None
         for attempt in range(self.num_retries):
             backoff = 2 ** (attempt + 2)
             try:
@@ -44,18 +45,16 @@ class Gemini:
                 )
 
                 reply = response.text
-
-                if params.get('show_model_response', False):
-                    LLM.print_response(reply)
+                self.logger.log_response(reply)
 
                 break
 
             except Exception as e:
-                print(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}")
+                self.logger.log(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}", 'warning')
                 time.sleep(backoff)
 
         # reply will be none if we have failed above
         if reply is None:
-            raise RuntimeError("\n\nError: Failed to get OpenAI Response")
+            self.logger.log("\n\nError: Failed to get Gemini Response", 'critical')
 
         return reply

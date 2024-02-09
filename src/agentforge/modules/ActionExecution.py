@@ -1,7 +1,7 @@
 from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
-from ..logs.logger_config import Logger
+from agentforge.utils.functions.Logger import Logger
 
 
 class Action:

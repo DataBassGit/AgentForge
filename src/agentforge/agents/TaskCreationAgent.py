@@ -16,12 +16,11 @@ class TaskCreationAgent(Agent):
             ordered_tasks = [{'Order': index + 1, 'Description': task} for index, task in enumerate(tasks)]
             self.result = ordered_tasks
         except ValueError as e:
-            self.logger.log("It is very likely the model did not respond in the desired format", 'error')
-            self.logger.log(f"Parsing value error: {e}", 'error')
+            self.logger.log('Parsing Value Error', 'warning')
+            self.logger.parsing_error(self.result, e)
             self.result = []
         except Exception as e:
-            self.logger.log("It is very likely the model did not respond in the desired format", 'error')
-            self.logger.log(f"Parsing result error: {e}", 'error')
+            self.logger.parsing_error(self.result, e)
             self.result = []
 
     def save_result(self):

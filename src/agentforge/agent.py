@@ -1,5 +1,5 @@
 from agentforge.llm import LLM
-from agentforge.logs.logger_config import Logger
+from agentforge.utils.functions.Logger import Logger
 from agentforge.utils.function_utils import Functions
 # from .logs.logger_config import Logger
 #
@@ -39,7 +39,7 @@ class Agent:
             self.save_result()
             self.build_output()
         except Exception as e:
-            self.logger.log(f"Error during run: {e}", 'error')
+            self.logger.log(f"Error running agent: {e}", 'error')
             return None
 
         return self.output

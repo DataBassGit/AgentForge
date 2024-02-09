@@ -2,7 +2,7 @@ from agentforge.agents.LearnKGAgent import LearnKGAgent
 from agentforge.tools.GetText import GetText
 from agentforge.tools.IntelligentChunk import intelligent_chunk
 from agentforge.tools.InjectKG import Consume
-from ..logs.logger_config import Logger
+from agentforge.utils.functions.Logger import Logger
 
 '''
 This needs to receive a file path and send that as an argument to GetText.

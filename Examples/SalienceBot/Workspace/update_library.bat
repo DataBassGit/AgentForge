@@ -1,12 +1,12 @@
 @echo off
-REM Update the pip library to the latest test build
-pip install --upgrade --index-url https://test.pypi.org/simple/ your-library
+REM Activate virtual environment
+call venv\Scripts\activate.bat
 
-REM Run tests to verify the new build
-python -m unittest discover
+REM Upgrade the library in the virtual environment
+pip install --upgrade --extra-index-url https://test.pypi.org/simple/ your-library
 
-REM If this batch file is used by other team members, please ensure that:
-REM - You have the necessary permissions to install and upgrade libraries
-REM - You have updated the 'your-library' placeholder with the actual library name
-REM - The test suite is configured correctly to run with 'unittest discover'
-REM - You understand that this will install from the Test PyPI repository, not the main PyPI repository
+REM Run tests
+python -m unittest discover -s tests
+
+REM Deactivate virtual environment
+call venv\Scripts\deactivate.bat

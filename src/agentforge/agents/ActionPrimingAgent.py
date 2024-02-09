@@ -13,8 +13,7 @@ class ActionPrimingAgent(Agent):
         try:
             self.output = self.functions.agent_utils.parse_yaml_string(self.result)
         except Exception as e:
-            self.logger.log("It is very likely the model did not respond in the desired format", 'error')
-            self.logger.log(f"Error while building output for agent: {e}", 'error')
+            self.logger.parsing_error(self.result, e)
             raise
 
     def save_result(self):

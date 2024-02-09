@@ -1,11 +1,7 @@
 import os
 import time
 import anthropic
-from ..llm import LLM
-
-from termcolor import cprint
-from colorama import init
-init(autoreset=True)
+from agentforge.utils.functions.Logger import Logger
 
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
 client = anthropic.Anthropic(api_key=API_KEY)
@@ -23,14 +19,16 @@ class Claude:
 
     def __init__(self, model):
         self._model = model
+        self.logger = Logger(name=__name__)
 
     def generate_text(self, prompts, **params):
-        response = None
+        log_level = params.get('log_level', 'info')
+        self.logger.set_level(log_level)
         prompt = parse_prompts(prompts)
+        self.logger.log_prompt(prompt)
 
-        if params.get('show_prompt', False):
-            LLM.print_prompt(prompt)
-
+        # Will retry to get chat if a rate limit or bad gateway error is received from the chat
+        response = None
         for attempt in range(self.num_retries):
             backoff = 2 ** (attempt + 2)
             try:
@@ -42,16 +40,14 @@ class Claude:
                     temperature=params["temperature"],
                     top_p=params["top_p"]
                 )
-
-                if params.get('show_model_response', False):
-                    LLM.print_response(response)
+                self.logger.log_response(response)
                 break
 
-            except anthropic.ApiException as e:
-                print(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}")
+            except anthropic as e:
+                self.logger.log(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}", 'warning')
                 time.sleep(backoff)
 
         if response is None:
-            raise RuntimeError("\n\nError: Failed to get Anthropic Response")
+            self.logger.log("\n\nError: Failed to get Anthropic Response", 'critical')
 
         return response.completion

@@ -1,3 +1,4 @@
+import time
 import threading
 from termcolor import cprint
 from colorama import init
@@ -49,8 +50,9 @@ class UserInterface:
         try:
             # This function will block until any key is pressed.
             input()
-            self.mode = 'manual'
-            self.mode_thread = None
+            self.exit_auto_mode()
+            # self.mode = 'manual'
+            # self.mode_thread = None
             cprint("\nSwitching to Manual Mode...\n\n", 'green', attrs=['bold'])
         except Exception as e:
             cprint(f"Error while waiting for keypress: {e}", 'red', attrs=['bold'])
@@ -62,3 +64,27 @@ class UserInterface:
                 self.mode_thread.join()
         except Exception as e:
             cprint(f"Error in cleanup: {e}", 'red', attrs=['bold'])
+
+    def exit_auto_mode(self):
+        self.mode = 'manual'
+        self.mode_thread = None
+        self.cleanup()
+
+    def user_input_on_error(self):
+        time.sleep(1)
+        try:
+            mode = self.mode
+            self.exit_auto_mode()
+            msg = "\nAn Error Has Occurred | Continue? (y/n): "
+            user_input = input(msg)
+
+            if user_input.lower() == 'n':
+                self.cleanup()
+                quit()
+
+            if mode == 'auto':
+                self.set_auto_mode()
+
+        except Exception as e:
+            cprint(f"Error in getting user input: {e}", 'red', attrs=['bold'])
+            return None

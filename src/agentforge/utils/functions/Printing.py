@@ -16,7 +16,7 @@ class Printing:
             encoded_msg = encode_msg(msg)  # Utilize the existing encode_msg function
             cprint(encoded_msg, 'red', attrs=['bold'])
         except Exception as e:
-            print(f"Error in print_message: {e}")
+            print(f"Error printing message: {e}")
 
     @staticmethod
     def print_result(result, desc):
@@ -50,3 +50,5 @@ class Printing:
             print(f"Error writing to file {filename}: {e}")
         except Exception as e:
             print(f"Unexpected error in write_file: {e}")
+
+

@@ -7,7 +7,7 @@ from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
 from ..config import Config
-from ..logs.logger_config import Logger
+from agentforge.utils.functions.Logger import Logger
 
 logger = Logger(name="Chroma Utils")
 logger.set_level('info')

@@ -60,7 +60,7 @@ class ActionSelectionAgent(Agent):
 
                 self.data['action_list'] = "\n".join(formatted_actions)
         except Exception as e:
-            self.logger.log(f"Error formatting actions: {e}", 'error')
+            self.logger.log(f"Error Formatting Actions:\n{self.actions}\n\nError: {e}", 'error')
 
     def process_data(self):
         try:
@@ -74,8 +74,7 @@ class ActionSelectionAgent(Agent):
         try:
             self.result = self.functions.agent_utils.parse_yaml_string(self.result)
         except Exception as e:
-            self.logger.log("It is very likely the model did not respond in the desired format", 'error')
-            self.logger.log(f"Error parsing result : {e}", 'error')
+            self.logger.parsing_error(self.result, e)
 
     def build_output(self):
         try:
@@ -86,7 +85,7 @@ class ActionSelectionAgent(Agent):
                 self.output = (f"The '{selected_action}' action does not exist. It is very likely the agent did not "
                                f"correctly choose an action from the given list.")
         except Exception as e:
-            self.logger.log(f"Error building output: {e}", 'error')
+            self.logger.parsing_error(self.result, e)
 
     def parse_actions(self):
         parsed_actions = {}
@@ -101,7 +100,7 @@ class ActionSelectionAgent(Agent):
 
                 self.actions = parsed_actions
         except Exception as e:
-            self.logger.log(f"Error parsing actions: {e}", 'error')
+            self.logger.log(f"Error Parsing Actions:\n{self.actions}\n\nError: {e}", 'error')
             self.actions = {}
 
     def save_result(self):

@@ -4,7 +4,7 @@ from agentforge.agents.ExecutionAgent import ExecutionAgent
 from agentforge.agents.TaskCreationAgent import TaskCreationAgent
 from agentforge.agents.StatusAgent import StatusAgent
 from agentforge.agents.SummarizationAgent import SummarizationAgent
-from agentforge.logs.logger_config import Logger
+from agentforge.utils.functions.Logger import Logger
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.storage_interface import StorageInterface
 

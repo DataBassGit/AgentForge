@@ -3,8 +3,8 @@ from .functions.Printing import Printing
 from .functions.PromptHandling import PromptHandling
 from .functions.TaskHandling import TaskHandling
 from .functions.ToolUtils import ToolUtils
-from .functions.UserInferface import UserInterface
-from ..logs.logger_config import Logger
+from .functions.UserInterface import UserInterface
+from agentforge.utils.functions.Logger import Logger
 
 logger = Logger(name="Function Utils")
 logger.set_level('info')
@@ -12,7 +12,10 @@ logger.set_level('info')
 
 class Functions:
 
-    def __init__(self):
+    def __init__(self, log_level='info'):
+        self.logger = Logger(name="Function Utils")
+        self.logger.set_level(log_level)
+
         try:
             self.agent_utils = AgentUtils()
             self.printing = Printing()
@@ -21,7 +24,7 @@ class Functions:
             self.tool_utils = ToolUtils()
             self.user_interface = UserInterface()
         except Exception as e:
-            logger.log(f"Error initializing storage: {e}", 'error')
+            self.logger.log(f"Error initializing storage: {e}", 'error')
             raise
 
 
