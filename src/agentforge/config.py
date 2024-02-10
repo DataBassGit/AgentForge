@@ -1,6 +1,7 @@
 import importlib
 import yaml
 import os
+# from pathlib import Path
 import pathlib
 import sys
 
@@ -75,50 +76,77 @@ class Config:
 
         raise FileNotFoundError(f"Could not find the .agentforge directory at {script_dir}")
 
-    def __getattr__(self, item):
+    @staticmethod
+    def get_nested_dict(data_dict, path_parts):
         """
-        Redirect attribute lookup to configuration data dictionary.
+        Gets or creates a nested dictionary given the parts of a relative path.
+
+        Args:
+            data_dict (dict): The top-level dictionary to start from.
+            path_parts (tuple): A tuple of path components leading to the desired nested dictionary.
+
+        Returns:
+            A reference to the nested dictionary at the end of the path.
         """
-        try:
-            return self.data[item]
-        except KeyError:
-            raise AttributeError(f"'Config' object has no attribute '{item}'")
+        for part in path_parts:
+            if part not in data_dict:
+                data_dict[part] = {}
+            data_dict = data_dict[part]
+        return data_dict
+
+    def find_agent_config(self, agent_name):
+        """
+        Search for an agent's configuration by name within the nested agents dictionary.
+
+        Parameters:
+            agent_name (str): The name of the agent to find.
+
+        Returns:
+            dict: The configuration dictionary for the specified agent, or None if not found.
+        """
+
+        def search_nested_dict(nested_dict, target):
+            for key, value in nested_dict.items():
+                if key == target:
+                    return value
+                elif isinstance(value, dict):
+                    result = search_nested_dict(value, target)
+                    if result is not None:
+                        return result
+            return None
+
+        return search_nested_dict(self.data.get('agents', {}), agent_name)
 
     def load_all_configurations(self):
         """
-        Loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
+        Recursively loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
         """
-        try:
-            # Initialize a single dictionary to hold all configuration data
-            self.data = {}
+        for subdir, dirs, files in os.walk(self.config_path):
+            for file in files:
+                if file.endswith(('.yaml', '.yml')):
+                    subdir_path = pathlib.Path(subdir)
+                    relative_path = subdir_path.relative_to(self.config_path)
+                    nested_dict = self.get_nested_dict(self.data, relative_path.parts)
 
-            # Iterate over each subdirectory in the .agentforge directory
-            for subdir in os.listdir(self.config_path):
-                subdir_path = self.config_path / subdir
-                if subdir_path.is_dir():
-                    self.data[subdir] = {}  # Create a subdictionary for this type of configuration
-
-                    # Load YAML files from the subdirectory
-                    for file in os.listdir(subdir_path):
-                        if file.endswith(('.yaml', '.yml')):
-                            data = get_yaml_data(subdir_path / file)
-                            if data:
-                                filename_without_ext = os.path.splitext(file)[0]
-                                self.data[subdir][filename_without_ext] = data
-        except Exception as e:
-            print(f"Error loading configurations: {e}")
+                    file_path = subdir_path / file
+                    data = get_yaml_data(file_path)
+                    if data:
+                        filename_without_ext = os.path.splitext(file)[0]
+                        nested_dict[filename_without_ext] = data
 
     # def load_all_configurations(self):
     #     """
     #     Loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
     #     """
     #     try:
+    #         # Initialize a single dictionary to hold all configuration data
+    #         self.data = {}
+    #
     #         # Iterate over each subdirectory in the .agentforge directory
     #         for subdir in os.listdir(self.config_path):
     #             subdir_path = self.config_path / subdir
     #             if subdir_path.is_dir():
-    #                 # Initialize the dictionary for this particular type of configuration
-    #                 setattr(self, subdir, {})
+    #                 self.data[subdir] = {}  # Create a subdictionary for this type of configuration
     #
     #                 # Load YAML files from the subdirectory
     #                 for file in os.listdir(subdir_path):
@@ -126,7 +154,7 @@ class Config:
     #                         data = get_yaml_data(subdir_path / file)
     #                         if data:
     #                             filename_without_ext = os.path.splitext(file)[0]
-    #                             getattr(self, subdir)[filename_without_ext] = data
+    #                             self.data[subdir][filename_without_ext] = data
     #     except Exception as e:
     #         print(f"Error loading configurations: {e}")
 
@@ -151,7 +179,7 @@ class Config:
             tuple: A tuple containing the database path and embedding settings.
         """
         # Retrieve the ChromaDB settings
-        db_settings = self.settings['storage'].get('ChromaDB', {})
+        db_settings = self.data['settings']['storage'].get('ChromaDB', {})
 
         # Get the database path and embedding settings
         db_path_setting = db_settings.get('persist_directory', None)
@@ -193,10 +221,11 @@ class Config:
         Returns:
             The configuration element if found; otherwise, returns "Invalid case".
         """
+        selected_persona = self.data['settings']['configuration']['Persona']
         switch = {
-            "Persona": self.personas[self.persona_name],
-            "Tools": self.tools,
-            "Actions": self.actions
+            "Persona": self.data['personas'][selected_persona],
+            "Tools": self.data['tools'],
+            "Actions": self.data['actions']
         }
         return switch.get(case, "Invalid case")
 
@@ -227,9 +256,9 @@ class Config:
             Exception: If there is an error loading the model.
         """
         try:
-            model_name = self.settings['models']['ModelLibrary'][api]['models'][model]['name']
-            module_name = self.settings['models']['ModelLibrary'][api]['module']
-            class_name = self.settings['models']['ModelLibrary'][api]['class']
+            model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
+            module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
+            class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
 
             module = importlib.import_module(f".llm.{module_name}", package=__package__)
             model_class = getattr(module, class_name)
@@ -254,7 +283,7 @@ class Config:
         try:
             path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
             if path_to_file:
-                self.agent = get_yaml_data(path_to_file)  # Fix warning
+                self.data['agent'] = get_yaml_data(path_to_file)  # Fix warning
             else:
                 raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
         except Exception as e:
@@ -285,7 +314,7 @@ class Config:
     #     self.persona_name = self.settings.get('directives', None).get('Persona', None)
     #     self.load_from_folder("personas")
 
-    def reload(self, agent_name):
+    def reload(self):
         """
         Reloads configurations for an agent, including actions, tools, and persona, without refreshing settings.
 

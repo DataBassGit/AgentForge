@@ -61,7 +61,7 @@ class Action:
     def prime_tool(self):
         try:
             # Load the paths into a dictionary
-            paths_dict = self.storage.config.settings['paths']
+            paths_dict = self.storage.config.data['settings']['configuration']['Paths']
 
             # Construct the work_paths string by iterating over the dictionary
             work_paths = None
@@ -113,7 +113,4 @@ class Action:
         except Exception as e:
             self.logger.log(f"Error in loading tool: {e}", 'error')
             return None
-
-
-
 

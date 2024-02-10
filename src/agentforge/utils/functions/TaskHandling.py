@@ -73,7 +73,8 @@ class TaskHandling:
 
     def show_task_list(self, desc):
         try:
-            objective = self.storage.config.settings['directives']['Objective']
+            selected_persona = self.storage.config.data['settings']['configuration']['Persona']
+            objective = self.storage.config.data['personas'][selected_persona]['Objective']
             self.storage.storage_utils.select_collection("Tasks")
 
             task_collection = self.storage.storage_utils.collection.get()

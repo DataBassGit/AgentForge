@@ -51,6 +51,7 @@ ModelSettings:
   API: openai_api
   Model: smart_fast_model
   Params:
+    save: true
     log_level: debug
     max_new_tokens: 2000
     temperature: 0.5

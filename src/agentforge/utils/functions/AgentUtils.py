@@ -12,24 +12,24 @@ class AgentUtils:
 
     def load_agent_data(self, agent_name):
         try:
-            self.config.reload(agent_name)
+            self.config.reload()
 
-            agent = self.config.agent
-            settings = self.config.settings
+            agent = self.config.find_agent_config(agent_name)
+            settings = self.config.data['settings']
 
             # Check for a Persona override in the agent's configuration
             agent_persona_override = agent.get('Persona', None)
 
-            # Use the overridden persona if available, or default to the system's predefined persona_name
-            persona_name = agent_persona_override or self.config.persona_name
+            # Use the overridden persona if available, or default to the system's predefined persona
+            persona_file = agent_persona_override or settings['configuration']['Persona']
 
             # Check if the selected persona exists
-            if persona_name not in self.config.personas:
+            if persona_file not in self.config.data['personas']:
                 raise FileNotFoundError(
-                    f"Persona file for '{persona_name}' not found. Please check your persona configuration.")
+                    f"Persona file for '{persona_file}' not found. Please check your persona configuration.")
 
             # Load the selected persona
-            persona = self.config.personas[persona_name]
+            persona = self.config.data['personas'][persona_file]
 
             # Check for API and model_name overrides in the agent's ModelOverrides
             agent_api_override = agent.get('ModelOverrides', {}).get('API', None)
@@ -74,13 +74,14 @@ class AgentUtils:
             # Handle other general exceptions
             raise Exception(f"Error loading agent data: {e}")
 
+    # Might strip when removing salience
     def prepare_objective(self):
         while True:
             user_input = input("\nDefine Objective (leave empty to use defaults): ")
             if user_input.lower() == '':
                 return None
             else:
-                self.config.settings['directives']['Objective'] = user_input
+                self.config.data['settings']['directives']['Objective'] = user_input
                 return user_input
 
     def parse_yaml_string(self, yaml_string):

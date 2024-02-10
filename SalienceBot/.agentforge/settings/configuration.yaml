@@ -1,12 +1,15 @@
 Persona: default
 
+OnTheFly: true
+SaveMemory: true
+
 Logging:
-  default: error
+  folder: ./Logs
+  wipe_logs_on_start: true
   general: error
-  modelio: error
+  modelio: debug
   results: info
 
 Paths:
-  Logging: ./Logs
   Files: ./Files
   Workspace: ./Workspace

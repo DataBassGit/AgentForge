@@ -75,9 +75,9 @@ class StorageInterface:
         self.storage_utils = ChromaUtils()
         self.storage_utils.init_storage()
 
-        if self.config.settings['storage']['ChromaDB']['DBFreshStart'] == 'True':
+        if self.config.data['settings']['storage']['ChromaDB']['DBFreshStart'] == 'True':
             self.storage_utils.reset_memory()
-            storage = self.config.settings['memories']
+            storage = self.config.data['settings']['memories']
 
             [self.prefill_storage(key, value) for key, value in storage.items()]
 
@@ -100,7 +100,7 @@ class StorageInterface:
 
     def initialize_storage(self):
         if self.storage_utils is None:
-            storage_api = self.config.settings['storage']['StorageAPI']
+            storage_api = self.config.data['settings']['storage']['StorageAPI']
 
             if storage_api == 'ChromaDB':
                 self.initialize_chroma()

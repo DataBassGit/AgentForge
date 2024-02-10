@@ -161,7 +161,6 @@ class Logger:
 
             # Save the result to the log file
             self.log(f'\n{result}', 'info', 'results')
-            # Printing.write_file(log_folder, log_file, result)
         except OSError as e:
             self.log(f"File operation error: {e}", 'error')
         except Exception as e:
