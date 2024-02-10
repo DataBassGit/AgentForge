@@ -1,15 +1,11 @@
 from agentforge.llm import LLM
 from agentforge.utils.functions.Logger import Logger
 from agentforge.utils.function_utils import Functions
-# from .logs.logger_config import Logger
-#
-# logger = Logger(name="Chroma Utils")
-# logger.set_level('info')
 
 
 class Agent:
 
-    def __init__(self, log_level="info"):
+    def __init__(self, log_level="error"):
         """Initializes the Agent, loads the relevant data depending on it's name and sets up the storage and logger"""
         try:
             self.agent_name = self.__class__.__name__
@@ -129,4 +125,4 @@ class Agent:
 
     def status(self, msg):
         """Prints a formatted status message to the console"""
-        self.functions.printing.print_message(f"\n{self.agent_name} - {msg}")
+        self.logger.log_info(f"\n{self.agent_name} - {msg}")

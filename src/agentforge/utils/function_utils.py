@@ -1,5 +1,4 @@
 from .functions.AgentUtils import AgentUtils
-from .functions.Printing import Printing
 from .functions.PromptHandling import PromptHandling
 from .functions.TaskHandling import TaskHandling
 from .functions.ToolUtils import ToolUtils
@@ -18,7 +17,6 @@ class Functions:
 
         try:
             self.agent_utils = AgentUtils()
-            self.printing = Printing()
             self.prompt_handling = PromptHandling()
             self.task_handling = TaskHandling()
             self.tool_utils = ToolUtils()
@@ -26,5 +24,3 @@ class Functions:
         except Exception as e:
             self.logger.log(f"Error initializing storage: {e}", 'error')
             raise
-
-

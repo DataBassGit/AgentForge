@@ -15,7 +15,7 @@ class ActionSelectionAgent(Agent):
         try:
             return super().run(**kwargs)
         except StopExecution:
-            self.functions.printing.print_result('No Relevant Action Found', 'Selection Results')
+            self.logger.log_result('No Relevant Action Found', 'Selection Results')
             return None
 
     def set_threshold(self, new_threshold):

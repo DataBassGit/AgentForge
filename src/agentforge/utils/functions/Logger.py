@@ -7,6 +7,10 @@ from colorama import init
 init(autoreset=True)
 
 
+def encode_msg(msg):
+    return msg.encode('utf-8', 'replace').decode('utf-8')
+
+
 class BaseLogger:
     # Class-level dictionaries to track existing handlers
     file_handlers = {}
@@ -36,7 +40,7 @@ class BaseLogger:
         # File handler for logs
         log_file_path = f'{log_folder}/{self.log_file}'
         fh = logging.FileHandler(log_file_path)
-        fh.setLevel(logging.DEBUG)  # Set the level for file handler
+        fh.setLevel(logging.ERROR)  # Set the level for file handler
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %('
                                       'message)s\n-------------------------------------------------------------',
                                       datefmt='%Y-%m-%d %H:%M:%S')
@@ -98,13 +102,23 @@ class BaseLogger:
 
 
 class Logger:
-    def __init__(self, name, general_log_name='AgentForge', model_log_name='ModelIO'):
+    def __init__(self, name, general_log_name='agentforge', model_log_name='model_io', results_log_name='results'):
         self.caller_name = name  # This will store the __name__ of the script that instantiated the Logger
         # Initialize loggers and store them in a list
         self.loggers = {
             'general': BaseLogger(name=general_log_name, log_file=f'{general_log_name}.log'),
             'model': BaseLogger(name=model_log_name, log_file=f'{model_log_name}.log'),
+            'results': BaseLogger(name=results_log_name, log_file=f'{results_log_name}.log'),
         }
+
+    @staticmethod
+    def initialize_logging():
+        # Save the result to a log.txt file in the /Logs/ folder
+        log_folder = "Logs"
+
+        # Create the Logs folder if it doesn't exist
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
 
     def log(self, msg, level='info', logger_type='general'):
         # Allow logging to a specific logger or all loggers
@@ -133,4 +147,34 @@ class Logger:
     def parsing_error(self, model_response, error):
         self.log(f"Parsing Error - It is very likely the model did not respond in the required "
                  f"format\n\nModel Response:\n{model_response}\n\nError: {error}", 'error')
+
+    def log_result(self, result, desc):
+        try:
+            # Print the task result
+            cprint(f"***** {desc} *****", 'green', attrs=['bold'])
+            cprint(encode_msg(result), 'white')
+            cprint("*****", 'green', attrs=['bold'])
+
+            # Create the Logs folder if it doesn't exist
+            self.initialize_logging()
+
+            # Save the result to the log file
+            self.log(f'\n{result}', 'info', 'results')
+            # Printing.write_file(log_folder, log_file, result)
+        except OSError as e:
+            self.log(f"File operation error: {e}", 'error')
+        except Exception as e:
+            self.log(f"Error logging result: {e}", 'error')
+
+    def log_info(self, msg):
+        try:
+            # Create the Logs folder if it doesn't exist
+            self.initialize_logging()
+
+            encoded_msg = encode_msg(msg)  # Utilize the existing encode_msg function
+            cprint(encoded_msg, 'red', attrs=['bold'])
+            self.log(f'\n{encoded_msg}', 'info', 'results')
+        except Exception as e:
+            self.log(f"Error logging message: {e}", 'error')
+
 
