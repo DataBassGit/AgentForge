@@ -20,10 +20,11 @@ class GPT:
 
     def __init__(self, model):
         self._model = model
-        self.logger = Logger(name=__name__)
+        self.logger = None
 
     def generate_text(self, prompts, **params):
         log_level = params.get('log_level', 'info')
+        self.logger = Logger(name=params.pop('agent_name', None))
         self.logger.set_level(log_level)
         self.logger.log_prompt(''.join(prompts))
 

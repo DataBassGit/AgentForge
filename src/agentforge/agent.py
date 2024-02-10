@@ -110,6 +110,10 @@ class Agent:
         try:
             model: LLM = self.agent_data['llm']
             params = self.agent_data.get("params", {})
+
+            # Add 'agent_name' to the 'params'
+            params['agent_name'] = self.agent_name
+
             self.result = model.generate_text(self.prompt, **params).strip()
         except Exception as e:
             self.logger.log(f"Error running LLM: {e}", 'error')

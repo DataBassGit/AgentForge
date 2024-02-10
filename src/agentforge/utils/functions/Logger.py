@@ -37,7 +37,8 @@ class BaseLogger:
         log_file_path = f'{log_folder}/{self.log_file}'
         fh = logging.FileHandler(log_file_path)
         fh.setLevel(logging.DEBUG)  # Set the level for file handler
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %('
+                                      'message)s\n-------------------------------------------------------------',
                                       datefmt='%Y-%m-%d %H:%M:%S')
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
@@ -55,7 +56,7 @@ class BaseLogger:
         # Console handler for logs
         ch = logging.StreamHandler()
         ch.setLevel(logging.ERROR)  # Set the level for console handler
-        formatter = logging.Formatter('%(name)s - %(levelname)s: %(message)s\n')
+        formatter = logging.Formatter('%(levelname)s: %(message)s\n')
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
 
@@ -63,7 +64,6 @@ class BaseLogger:
         BaseLogger.console_handlers[self.logger.name] = ch
 
     def log_msg(self, msg, level='info'):
-
         level_code = self._get_level_code(level)
 
         if level_code == logging.DEBUG:
@@ -99,6 +99,7 @@ class BaseLogger:
 
 class Logger:
     def __init__(self, name, general_log_name='AgentForge', model_log_name='ModelIO'):
+        self.caller_name = name  # This will store the __name__ of the script that instantiated the Logger
         # Initialize loggers and store them in a list
         self.loggers = {
             'general': BaseLogger(name=general_log_name, log_file=f'{general_log_name}.log'),
@@ -107,11 +108,13 @@ class Logger:
 
     def log(self, msg, level='info', logger_type='general'):
         # Allow logging to a specific logger or all loggers
+        # Prepend the caller's module name to the log message
+        msg_with_caller = f'[{self.caller_name}] {msg}'
         if logger_type == 'all':
             for logger in self.loggers.values():
-                logger.log_msg(msg, level)
+                logger.log_msg(msg_with_caller, level)
         else:
-            self.loggers[logger_type].log_msg(msg, level)
+            self.loggers[logger_type].log_msg(msg_with_caller, level)
 
     def log_prompt(self, prompt):
         self.log(f'Prompt:\n{prompt}', 'debug', 'model')
