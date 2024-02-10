@@ -13,8 +13,7 @@ class Salience:
 
     def __init__(self):
         try:
-            self.logger = Logger(name="Salience")
-            self.logger.set_level('error')
+
             self.data = {}
             self.task = {}
             self.context = {}
@@ -29,6 +28,8 @@ class Salience:
 
             self.storage = StorageInterface().storage_utils
             self.functions = Functions()
+            self.logger = Logger(name="Salience")
+            self.logger.set_level('error')
 
             self.summarization_agent = SummarizationAgent()
             self.action_execution = Action()

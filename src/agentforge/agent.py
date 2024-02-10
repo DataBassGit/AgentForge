@@ -7,19 +7,20 @@ class Agent:
 
     def __init__(self, log_level="error"):
         """Initializes the Agent, loads the relevant data depending on it's name and sets up the storage and logger"""
-        try:
-            self.agent_name = self.__class__.__name__
-            self.data = None
-            self.prompt = None
-            self.result = None
-            self.output = None
+        self.agent_name = self.__class__.__name__
+        self.logger = Logger(name=self.agent_name)
+        self.logger.set_level(log_level)
 
+        self.data = None
+        self.prompt = None
+        self.result = None
+        self.output = None
+
+        try:
             self.functions = Functions()
             self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
             self.storage = self.agent_data['storage']
 
-            self.logger = Logger(name=self.agent_name)
-            self.logger.set_level(log_level)
         except Exception as e:
             self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
 

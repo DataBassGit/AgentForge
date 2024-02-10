@@ -1,5 +1,6 @@
 import os
 import logging
+from ...config import Config
 from agentforge.utils.functions.UserInterface import UserInterface
 
 from termcolor import cprint

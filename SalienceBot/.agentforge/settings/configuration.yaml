@@ -1,0 +1,12 @@
+Persona: default
+
+Logging:
+  default: error
+  general: error
+  modelio: error
+  results: info
+
+Paths:
+  Logging: ./Logs
+  Files: ./Files
+  Workspace: ./Workspace
