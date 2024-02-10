@@ -12,8 +12,9 @@ from agentforge.utils.storage_interface import StorageInterface
 class Salience:
 
     def __init__(self):
+        self.logger = Logger(name="Salience")
+        self.logger.set_level('error')
         try:
-
             self.data = {}
             self.task = {}
             self.context = {}
@@ -24,12 +25,10 @@ class Salience:
             self.frustration_step = 0.1
             self.min_frustration = 0.7
             self.max_frustration = 1
-            self.frustration = self.min_frustration
 
+            self.frustration = self.min_frustration
             self.storage = StorageInterface().storage_utils
             self.functions = Functions()
-            self.logger = Logger(name="Salience")
-            self.logger.set_level('error')
 
             self.summarization_agent = SummarizationAgent()
             self.action_execution = Action()
