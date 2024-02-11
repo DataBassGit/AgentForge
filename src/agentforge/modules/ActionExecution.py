@@ -5,7 +5,8 @@ from agentforge.utils.functions.Logger import Logger
 
 
 class Action:
-    def __init__(self, log_level="info"):
+    def __init__(self):
+        self.logger = Logger(name=self.__class__.__name__)
         self.storage = StorageInterface().storage_utils
         self.functions = Functions()
         self.priming_agent = ActionPrimingAgent()
@@ -14,9 +15,6 @@ class Action:
         self.tool = {}
         self.results = {}
         self.context = {}
-
-        self.logger = Logger(name=self.__class__.__name__)
-        self.logger.set_level(log_level)
 
     def run(self, action, context=None):
         try:

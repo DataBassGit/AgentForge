@@ -17,14 +17,13 @@ This will inject everything into the database using InjectKG.Consume.
 
 
 class FileProcessor:
-    def __init__(self, log_level="info"):
+    def __init__(self):
+        self.logger = Logger(name=self.__class__.__name__)
+
         self.intelligent_chunk = intelligent_chunk
         self.get_text = GetText()
         self.learn_kg = LearnKGAgent()
         self.consumer = Consume()
-
-        self.logger = Logger(name=self.__class__.__name__)
-        self.logger.set_level(log_level)
 
     def process_file(self, file):
         try:

@@ -1,7 +1,6 @@
 import importlib
 import yaml
 import os
-# from pathlib import Path
 import pathlib
 import sys
 
@@ -37,12 +36,6 @@ class Config:
             self.config_path = config_path or self.project_root / ".agentforge"
 
             # Placeholders for the data the agent needs which is located in each respective YAML file
-            # self.persona_name = {}
-            # self.personas = {}
-            # self.actions = {}
-            # self.agent = {}
-            # self.tools = {}
-            # self.settings = {}
             self.data = {}
 
             # Here is where we load the information from the YAML files to their corresponding attributes
@@ -62,7 +55,6 @@ class Config:
         Raises:
             FileNotFoundError: If the .agentforge directory cannot be found.
         """
-        # Get the path of the executing script
         script_dir = pathlib.Path(sys.argv[0]).parent
         current_dir = script_dir
 
@@ -104,7 +96,6 @@ class Config:
         Returns:
             dict: The configuration dictionary for the specified agent, or None if not found.
         """
-
         def search_nested_dict(nested_dict, target):
             for key, value in nested_dict.items():
                 if key == target:
@@ -133,42 +124,6 @@ class Config:
                     if data:
                         filename_without_ext = os.path.splitext(file)[0]
                         nested_dict[filename_without_ext] = data
-
-    # def load_all_configurations(self):
-    #     """
-    #     Loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
-    #     """
-    #     try:
-    #         # Initialize a single dictionary to hold all configuration data
-    #         self.data = {}
-    #
-    #         # Iterate over each subdirectory in the .agentforge directory
-    #         for subdir in os.listdir(self.config_path):
-    #             subdir_path = self.config_path / subdir
-    #             if subdir_path.is_dir():
-    #                 self.data[subdir] = {}  # Create a subdictionary for this type of configuration
-    #
-    #                 # Load YAML files from the subdirectory
-    #                 for file in os.listdir(subdir_path):
-    #                     if file.endswith(('.yaml', '.yml')):
-    #                         data = get_yaml_data(subdir_path / file)
-    #                         if data:
-    #                             filename_without_ext = os.path.splitext(file)[0]
-    #                             self.data[subdir][filename_without_ext] = data
-    #     except Exception as e:
-    #         print(f"Error loading configurations: {e}")
-
-    # def load(self):
-    #     """
-    #     Loads configuration data from YAML files into respective attributes.
-    #     """
-    #     try:
-    #         self.load_settings()
-    #         self.load_actions()
-    #         self.load_tools()
-    #         self.load_persona()
-    #     except Exception as e:
-    #         print(f"Error loading configuration data: {e}")
 
     # Does not belong here, need to be reworked to be in chroma_utils
     def chromadb(self):
@@ -283,100 +238,18 @@ class Config:
         try:
             path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
             if path_to_file:
-                self.data['agent'] = get_yaml_data(path_to_file)  # Fix warning
+                self.data['agent'] = get_yaml_data(str(path_to_file))  # Fix warning
             else:
                 raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
         except Exception as e:
             print(f"Error loading agent {agent_name}: {e}")
 
-    # def load_settings(self):
-    #     """
-    #     Loads settings configuration from the settings folder.
-    #     """
-    #     self.load_from_folder("settings")
-    #
-    # def load_actions(self):
-    #     """
-    #     Loads actions configuration from the actions folder.
-    #     """
-    #     self.load_from_folder("actions")
-    #
-    # def load_tools(self):
-    #     """
-    #     Loads tools configuration from the tools folder.
-    #     """
-    #     self.load_from_folder("tools")
-    #
-    # def load_persona(self):
-    #     """
-    #     Loads persona configuration based on the directives setting from the settings folder.
-    #     """
-    #     self.persona_name = self.settings.get('directives', None).get('Persona', None)
-    #     self.load_from_folder("personas")
-
     def reload(self):
         """
         Reloads configurations for an agent, including actions, tools, and persona, without refreshing settings.
-
-        Parameters:
-            agent_name (str): The name of the agent to reload configurations for.
         """
-        # Here is where we load the information from the YAML files to their corresponding attributes
-        self.load_all_configurations()
-
-        # Rework how we do main objective
-
-        # self.load_settings() // If we allow refreshing the settings, the main objective will always be rewritten
-        # self.load_agent(agent_name)
-        # self.load_actions()
-        # self.load_tools()
-        # self.load_persona()
-
-    # def load_from_folder(self, folder):
-    #     """
-    #     Loads configuration data from a specified folder.
-    #
-    #     Parameters:
-    #         folder (str): The folder from which to load configuration data.
-    #
-    #     Raises:
-    #         Exception: For any errors encountered while loading data from the folder.
-    #     """
-    #     try:
-    #         # Get the path for the provided folder name
-    #         folder_path = self.get_file_path(folder)
-    #
-    #         # If the folder attribute doesn't exist, initialize it as an empty dictionary
-    #         if not hasattr(self, folder):
-    #             setattr(self, folder, {})
-    #
-    #         # Reference to the folder's dictionary
-    #         folder_dict = getattr(self, folder)
-    #
-    #         # Iterate over each file in the specified folder
-    #         for file in os.listdir(folder_path):
-    #             # Only process files with a .yaml or .yml extension
-    #             if file.endswith(".yaml") or file.endswith(".yml"):
-    #                 # Load the YAML data from the current file
-    #                 pathy = os.path.join(folder_path, file)
-    #                 data = get_yaml_data(pathy)
-    #
-    #                 # Get the filename without the extension
-    #                 filename = os.path.splitext(file)[0]
-    #
-    #                 # Check if filename exists under the folder's dictionary, if not, initialize it as a dict
-    #                 if filename not in folder_dict:
-    #                     folder_dict[filename] = {}
-    #
-    #                 # Reference to the file name's dictionary
-    #                 file_dict = folder_dict[filename]
-    #
-    #                 for item_name, data_item in data.items():
-    #                     # Extract the name and store the data under that name in the file name's dictionary
-    #                     if item_name:
-    #                         file_dict[item_name] = data_item
-    #     except Exception as e:
-    #         print(f"Error loading data from {folder}: {e}")
+        if self.data['settings']['configuration']['OnTheFly'] == 'true':
+            self.load_all_configurations()
 
 # -------------------------- FUNCTIONS --------------------------
 

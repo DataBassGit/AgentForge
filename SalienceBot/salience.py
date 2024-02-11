@@ -12,8 +12,8 @@ from agentforge.utils.storage_interface import StorageInterface
 class Salience:
 
     def __init__(self):
-        self.logger = Logger(name="Salience")
-        self.logger.set_level('error')
+        self.logger = Logger(name=self.__class__.__name__)
+
         try:
             self.data = {}
             self.task = {}

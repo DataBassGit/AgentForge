@@ -17,31 +17,30 @@ class BaseLogger:
     file_handlers = {}
     console_handlers = {}
 
-    def __init__(self, name='BaseLogger', log_file='default.log'):
+    def __init__(self, name='BaseLogger', log_file='default.log', log_level='error'):
+        self.config = Config()
+        level = self._get_level_code(log_level)
         self.logger = logging.getLogger(name)
+        self.log_folder = None
         self.log_file = log_file
-        self._setup_file_handler()
-        self._setup_console_handler()
+        self._setup_file_handler(level)
+        self._setup_console_handler(level)
+        self.logger.setLevel(level)
 
-    def _setup_file_handler(self):
+    def _setup_file_handler(self, level):
+        # Create the Logs folder if it doesn't exist
+        self.initialize_logging()
+
         if self.log_file in BaseLogger.file_handlers:
             # Use the existing file handler
             fh = BaseLogger.file_handlers[self.log_file]
             self.logger.addHandler(fh)
             return
 
-        self.logger.setLevel(logging.DEBUG)  # Default level, can be customized
-
-        # Define the relative path for the log directory
-        log_folder = "Logs"
-        # Create the Logs folder if it doesn't exist
-        if not os.path.exists(log_folder):
-            os.makedirs(log_folder)
-
         # File handler for logs
-        log_file_path = f'{log_folder}/{self.log_file}'
+        log_file_path = f'{self.log_folder}/{self.log_file}'
         fh = logging.FileHandler(log_file_path)
-        fh.setLevel(logging.ERROR)  # Set the level for file handler
+        fh.setLevel(level)  # Set the level for file handler
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %('
                                       'message)s\n-------------------------------------------------------------',
                                       datefmt='%Y-%m-%d %H:%M:%S')
@@ -51,7 +50,7 @@ class BaseLogger:
         # Store the file handler in the class-level dictionary
         BaseLogger.file_handlers[self.log_file] = fh
 
-    def _setup_console_handler(self):
+    def _setup_console_handler(self, level):
         if self.logger.name in BaseLogger.console_handlers:
             # Use the existing console handler
             ch = BaseLogger.console_handlers[self.logger.name]
@@ -60,7 +59,7 @@ class BaseLogger:
 
         # Console handler for logs
         ch = logging.StreamHandler()
-        ch.setLevel(logging.ERROR)  # Set the level for console handler
+        ch.setLevel(level)  # Set the level for console handler
         formatter = logging.Formatter('%(levelname)s: %(message)s\n')
         ch.setFormatter(formatter)
         self.logger.addHandler(ch)
@@ -101,27 +100,39 @@ class BaseLogger:
         }
         return level_dict.get(level.lower(), logging.INFO)
 
+    # @staticmethod
+    def initialize_logging(self):
+        # Save the result to a log.txt file in the /Logs/ folder
+        self.log_folder = self.config.data['settings']['configuration']['Logging']['Folder']
+
+        # Create the Logs folder if it doesn't exist
+        if not os.path.exists(self.log_folder):
+            os.makedirs(self.log_folder)
+            return
+
 
 class Logger:
     def __init__(self, name, general_log_name='agentforge', model_log_name='model_io', results_log_name='results'):
+        self.config = Config()
         self.caller_name = name  # This will store the __name__ of the script that instantiated the Logger
-        # Initialize loggers and store them in a list
-        self.loggers = {
-            'general': BaseLogger(name=general_log_name, log_file=f'{general_log_name}.log'),
-            'model': BaseLogger(name=model_log_name, log_file=f'{model_log_name}.log'),
-            'results': BaseLogger(name=results_log_name, log_file=f'{results_log_name}.log'),
-        }
 
-    @staticmethod
-    def initialize_logging():
-        # Save the result to a log.txt file in the /Logs/ folder
-        log_folder = "Logs"
+        # Retrieve the logging configuration from the config data
+        logging_config = self.config.data['settings']['configuration']['Logging']['Files']
 
-        # Create the Logs folder if it doesn't exist
-        if not os.path.exists(log_folder):
-            os.makedirs(log_folder)
+        # Initialize loggers dynamically based on configuration settings
+        self.loggers = {}
+        for log_name, log_level in logging_config.items():
+            # The log_key will be 'agentforge', 'modelio', 'results', etc.
+            # The log file name is derived by adding '.log' to the log_key
+            log_file_name = f'{log_name}.log'
 
-    def log(self, msg, level='info', logger_type='general'):
+            # Initialize the BaseLogger with the name and file name
+            new_logger = BaseLogger(name=log_name, log_file=log_file_name, log_level=log_level)
+
+            # Store the logger in the dictionary with the log_key as the key
+            self.loggers[log_name] = new_logger
+
+    def log(self, msg, level='info', logger_type='AgentForge'):
         # Allow logging to a specific logger or all loggers
         # Prepend the caller's module name to the log message
         msg_with_caller = f'[{self.caller_name}] {msg}'
@@ -132,18 +143,10 @@ class Logger:
             self.loggers[logger_type].log_msg(msg_with_caller, level)
 
     def log_prompt(self, prompt):
-        self.log(f'Prompt:\n{prompt}', 'debug', 'model')
+        self.log(f'Prompt:\n{prompt}', 'debug', 'ModelIO')
 
     def log_response(self, response):
-        self.log(f'Model Response:\n{response}', 'debug', 'model')
-
-    def set_level(self, level, logger_type='all'):
-        # Apply log level to selected logger(s)
-        if logger_type == 'all':
-            for logger in self.loggers.values():
-                logger.set_level(level)
-        else:
-            self.loggers[logger_type].set_level(level)
+        self.log(f'Model Response:\n{response}', 'debug', 'ModelIO')
 
     def parsing_error(self, model_response, error):
         self.log(f"Parsing Error - It is very likely the model did not respond in the required "
@@ -156,11 +159,8 @@ class Logger:
             cprint(encode_msg(result), 'white')
             cprint("*****", 'green', attrs=['bold'])
 
-            # Create the Logs folder if it doesn't exist
-            self.initialize_logging()
-
             # Save the result to the log file
-            self.log(f'\n{result}', 'info', 'results')
+            self.log(f'\n{result}', 'info', 'Results')
         except OSError as e:
             self.log(f"File operation error: {e}", 'error')
         except Exception as e:
@@ -168,12 +168,9 @@ class Logger:
 
     def log_info(self, msg):
         try:
-            # Create the Logs folder if it doesn't exist
-            self.initialize_logging()
-
             encoded_msg = encode_msg(msg)  # Utilize the existing encode_msg function
             cprint(encoded_msg, 'red', attrs=['bold'])
-            self.log(f'\n{encoded_msg}', 'info', 'results')
+            self.log(f'\n{encoded_msg}', 'info', 'Results')
         except Exception as e:
             self.log(f"Error logging message: {e}", 'error')
 

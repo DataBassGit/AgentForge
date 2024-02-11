@@ -7,8 +7,6 @@ logger = Logger(name=__name__)
 
 
 def request_completion(model_prompt, **params):
-    log_level = params.get('log_level', 'info')
-    logger.set_level(log_level)
     logger.log_prompt(model_prompt)
 
     headers = {'Content-Type': 'application/json'}

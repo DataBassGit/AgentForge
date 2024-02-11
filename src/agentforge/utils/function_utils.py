@@ -5,15 +5,11 @@ from .functions.ToolUtils import ToolUtils
 from .functions.UserInterface import UserInterface
 from agentforge.utils.functions.Logger import Logger
 
-logger = Logger(name="Function Utils")
-logger.set_level('info')
-
 
 class Functions:
 
-    def __init__(self, log_level='info'):
-        self.logger = Logger(name="Function Utils")
-        self.logger.set_level(log_level)
+    def __init__(self, ):
+        self.logger = Logger(name=self.__class__.__name__)
 
         try:
             self.agent_utils = AgentUtils()

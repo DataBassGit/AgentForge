@@ -26,6 +26,7 @@ class ActionSelectionAgent(Agent):
 
     def load_additional_data(self):
         try:
+            self.data['objective'] = self.agent_data['persona'].get('Objective', None)
             self.data['task'] = self.functions.task_handling.get_current_task()['document']
             self.load_actions()
         except Exception as e:

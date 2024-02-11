@@ -1,6 +1,7 @@
 import yaml
 import re
 from typing import Dict, Any
+from .Logger import Logger
 from ...config import Config
 from ..storage_interface import StorageInterface
 

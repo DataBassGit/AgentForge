@@ -10,7 +10,6 @@ from ..config import Config
 from agentforge.utils.functions.Logger import Logger
 
 logger = Logger(name="Chroma Utils")
-logger.set_level('info')
 
 
 class ChromaUtils:

@@ -23,9 +23,7 @@ class GPT:
         self.logger = None
 
     def generate_text(self, prompts, **params):
-        log_level = params.get('log_level', 'info')
         self.logger = Logger(name=params.pop('agent_name', None))
-        self.logger.set_level(log_level)
         self.logger.log_prompt(''.join(prompts))
 
         prompt = parse_prompts(prompts)

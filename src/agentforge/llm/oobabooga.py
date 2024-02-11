@@ -6,12 +6,10 @@ from agentforge.utils.functions.Logger import Logger
 class Oobabooga:
     def __init__(self, model):
         self._model = model
-        self.logger = Logger(name=__name__)
+        self.logger = None
 
     def generate_text(self, prompt, **params):
-        log_level = params.get('log_level', 'info')
-        self.logger.set_level(log_level)
-
+        self.logger = Logger(name=params.pop('agent_name', None))
         prompt = ''.join(prompt)
         self.logger.log_prompt(prompt)
 

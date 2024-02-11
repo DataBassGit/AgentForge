@@ -5,11 +5,10 @@ from agentforge.utils.function_utils import Functions
 
 class Agent:
 
-    def __init__(self, log_level="error"):
+    def __init__(self):
         """Initializes the Agent, loads the relevant data depending on it's name and sets up the storage and logger"""
         self.agent_name = self.__class__.__name__
         self.logger = Logger(name=self.agent_name)
-        self.logger.set_level(log_level)
 
         self.data = None
         self.prompt = None
@@ -87,8 +86,7 @@ class Agent:
         self.load_additional_data()
 
     def load_main_data(self):
-        """Loads the main data for the Agent; by default, it's the Objective"""
-        self.data['objective'] = self.agent_data['settings']['directives'].get('Objective', None)
+        """Loads the Agent's main data; Does nothing by default, it is meant to be overriden by Custom Agent Types"""
 
     def load_agent_type_data(self):
         """Does nothing by default, it is meant to be overriden by Custom Agent Types if needed"""
