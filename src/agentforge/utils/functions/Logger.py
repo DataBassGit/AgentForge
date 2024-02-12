@@ -1,7 +1,8 @@
 import os
+import time
 import logging
 from ...config import Config
-from agentforge.utils.functions.UserInterface import UserInterface
+from ...utils.functions.UserInterface import UserInterface
 
 from termcolor import cprint
 from colorama import init
@@ -19,6 +20,8 @@ class BaseLogger:
 
     def __init__(self, name='BaseLogger', log_file='default.log', log_level='error'):
         self.config = Config()
+        self.UI = UserInterface()
+
         level = self._get_level_code(log_level)
         self.logger = logging.getLogger(name)
         self.log_folder = None
@@ -78,8 +81,11 @@ class BaseLogger:
             self.logger.warning(msg)
         elif level_code == logging.ERROR:
             self.logger.error(msg)
+            time.sleep(1)
+            self.UI.user_input_on_error()
         elif level_code == logging.CRITICAL:
             self.logger.critical(msg)
+            raise
         else:
             raise ValueError(f'Invalid log level: {level}')
 

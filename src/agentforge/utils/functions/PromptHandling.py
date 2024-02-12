@@ -1,9 +1,13 @@
 import re
+from .Logger import Logger
 
 
 class PromptHandling:
     # Define a pattern to find all occurrences of {variable_name}
     pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
+
+    def __init__(self):
+        self.logger = Logger(name=self.__class__.__name__)
 
     def extract_prompt_variables(self, template):
         try:
@@ -11,7 +15,7 @@ class PromptHandling:
             return re.findall(self.pattern, template)
         except Exception as e:
             # Log or print the error message
-            print(f"Error extracting prompt variables: {e}")
+            self.logger.log(f"Error extracting prompt variables: {e}", 'error')
             return []
 
     def handle_prompt_template(self, prompt_template, data):
@@ -27,7 +31,7 @@ class PromptHandling:
             return None
         except Exception as e:
             # Log or print the error message
-            print(f"Error handling prompt template: {e}")
+            self.logger.log(f"Error handling prompt template: {e}", 'error')
             return None
 
     def render_prompt_template(self, template, data):
@@ -44,5 +48,5 @@ class PromptHandling:
             return prompt
         except Exception as e:
             # Log or print the error message
-            print(f"Error rendering prompt template: {e}")
+            self.logger.log(f"Error rendering prompt template: {e}", 'error')
             return template  # Optionally return the original template in case of failure

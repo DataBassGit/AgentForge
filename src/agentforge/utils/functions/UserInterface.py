@@ -30,8 +30,7 @@ class UserInterface:
 
             return feedback
         except Exception as e:
-            cprint(f"Error in getting user input: {e}", 'red', attrs=['bold'])
-            return None
+            raise print(f"Error in getting user input: {e}")
 
     def set_auto_mode(self):
         try:
@@ -44,7 +43,7 @@ class UserInterface:
                 self.mode_thread.daemon = True
                 self.mode_thread.start()
         except Exception as e:
-            cprint(f"Error in setting auto mode: {e}", 'red', attrs=['bold'])
+            raise print(f"Error in setting auto mode: {e}")
 
     def wait_for_key(self):
         try:
@@ -55,7 +54,7 @@ class UserInterface:
             # self.mode_thread = None
             cprint("\nSwitching to Manual Mode...\n\n", 'green', attrs=['bold'])
         except Exception as e:
-            cprint(f"Error while waiting for keypress: {e}", 'red', attrs=['bold'])
+            raise print(f"Error while waiting for keypress: {e}")
 
     def cleanup(self):
         try:
@@ -63,7 +62,7 @@ class UserInterface:
             if self.mode_thread is not None and self.mode_thread.is_alive():
                 self.mode_thread.join()
         except Exception as e:
-            cprint(f"Error in cleanup: {e}", 'red', attrs=['bold'])
+            raise print(f"Error in cleanup: {e}")
 
     def exit_auto_mode(self):
         self.mode = 'manual'
@@ -86,5 +85,5 @@ class UserInterface:
                 self.set_auto_mode()
 
         except Exception as e:
-            cprint(f"Error in getting user input: {e}", 'red', attrs=['bold'])
-            return None
+            raise print(f"Error in getting user input: {e}")
+

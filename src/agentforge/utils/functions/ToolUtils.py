@@ -5,7 +5,7 @@ from .Logger import Logger
 class ToolUtils:
 
     def __init__(self):
-        self.logger = Logger(name="ToolUtils")
+        self.logger = Logger(name=self.__class__.__name__)
 
     def dynamic_tool(self, tool_module, payload):
         # Extract the actual class name from the tool_class path
@@ -18,9 +18,9 @@ class ToolUtils:
         try:
             tool = importlib.import_module(tool_module)
         except ModuleNotFoundError as e:
-            self.logger.log(f"Error: {e}", 'error')
-            raise ValueError(
-                f"No tool module named '{tool_module}' found. Ensure the Module name matches the Script name exactly.")
+            self.logger.log(f"No tool module named '{tool_module}' found. Ensure the Module name matches the Script "
+                            f"name exactly.\nError: {e}", 'critical')
+            return None
 
         try:
             # Check if the tool has a class name

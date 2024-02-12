@@ -9,6 +9,7 @@ from ..storage_interface import StorageInterface
 class AgentUtils:
 
     def __init__(self):
+        self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
 
     def load_agent_data(self, agent_name):
@@ -17,20 +18,6 @@ class AgentUtils:
 
             agent = self.config.find_agent_config(agent_name)
             settings = self.config.data['settings']
-
-            # Check for a Persona override in the agent's configuration
-            agent_persona_override = agent.get('Persona', None)
-
-            # Use the overridden persona if available, or default to the system's predefined persona
-            persona_file = agent_persona_override or settings['configuration']['Persona']
-
-            # Check if the selected persona exists
-            if persona_file not in self.config.data['personas']:
-                raise FileNotFoundError(
-                    f"Persona file for '{persona_file}' not found. Please check your persona configuration.")
-
-            # Load the selected persona
-            persona = self.config.data['personas'][persona_file]
 
             # Check for API and model_name overrides in the agent's ModelOverrides
             agent_api_override = agent.get('ModelOverrides', {}).get('API', None)
@@ -53,6 +40,22 @@ class AgentUtils:
             agent_params_overrides = agent.get('ModelOverrides', {}).get('Params', {})
             final_model_params = {**combined_params, **agent_params_overrides}
 
+            # Check for a Persona override in the agent's configuration
+            agent_persona_override = agent.get('Persona', None)
+
+            # Use the overridden persona if available, or default to the system's predefined persona
+            persona_file = agent_persona_override or settings['configuration'].get('Persona')
+
+            persona = None
+            if persona_file is not None:
+                # Check if the selected persona exists
+                if persona_file not in self.config.data['personas']:
+                    self.logger.log(f"Selected Persona '{persona_file}' not found. Please make sure the corresponding "
+                                    f"persona file is in the personas folder", 'critical')
+
+                # Load the selected persona
+                persona = self.config.data['personas'][persona_file]
+
             # Initialize agent data
             agent_data: Dict[str, Any] = dict(
                 name=agent_name,
@@ -67,13 +70,13 @@ class AgentUtils:
             return agent_data
         except FileNotFoundError as e:
             # Handle file not found errors specifically
-            raise FileNotFoundError(f"Configuration or persona file not found: {e}")
+            self.logger.log(f"Configuration or persona file not found: {e}", 'critical')
         except KeyError as e:
             # Handle missing keys in configuration
-            raise KeyError(f"Missing key in configuration: {e}")
+            self.logger.log(f"Missing key in configuration: {e}", 'critical')
         except Exception as e:
             # Handle other general exceptions
-            raise Exception(f"Error loading agent data: {e}")
+            self.logger.log(f"Error loading agent data: {e}", 'critical')
 
     # Might strip when removing salience
     def prepare_objective(self):
@@ -90,10 +93,9 @@ class AgentUtils:
             cleaned_string = self.extract_yaml_block(yaml_string)
             return yaml.safe_load(cleaned_string)
         except yaml.YAMLError as e:
-            raise ValueError(f"Error decoding YAML string: {e}")
+            self.logger.log(f"Error decoding YAML string: {e}", 'critical')
 
-    @staticmethod
-    def extract_yaml_block(text):
+    def extract_yaml_block(self, text):
         try:
             # Regex pattern to capture content between ```yaml and ```
             pattern = r"```yaml(.*?)```"
@@ -107,4 +109,4 @@ class AgentUtils:
                 return None
         except Exception as e:
             # Handle unexpected errors during regex operation
-            raise Exception(f"Error extracting YAML block: {e}")
+            self.logger.log(f"Error extracting YAML block: {e}", 'critical')

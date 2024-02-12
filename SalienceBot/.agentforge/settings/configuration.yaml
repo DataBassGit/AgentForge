@@ -5,9 +5,9 @@ SaveMemory: true
 Logging:
   Folder: ./Logs
   Files:
-    AgentForge: error
-    ModelIO: error
-    Results: error
+    AgentForge: info
+    ModelIO: info
+    Results: info
 
 Paths:
   Files: ./Files

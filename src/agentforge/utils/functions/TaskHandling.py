@@ -1,5 +1,6 @@
 import os
 from ..storage_interface import StorageInterface
+from .Logger import Logger
 
 from termcolor import colored, cprint
 from colorama import init
@@ -9,6 +10,7 @@ init(autoreset=True)
 class TaskHandling:
 
     def __init__(self):
+        self.logger = Logger(name=self.__class__.__name__)
         self.storage = StorageInterface()
         # self.config = Configs()
 
@@ -27,7 +29,7 @@ class TaskHandling:
 
             return current_task
         except Exception as e:
-            print(f"Error in fetching current task: {e}")
+            self.logger.log(f"Error in fetching current task: {e}", 'error')
             return None
 
     def get_ordered_task_list(self):
@@ -55,11 +57,10 @@ class TaskHandling:
 
             return ordered_list
         except Exception as e:
-            print(f"Error in fetching ordered task list: {e}")
+            self.logger.log(f"Error in fetching ordered task list: {e}", 'error')
             return {'ids': [], 'embeddings': [], 'documents': [], 'metadatas': []}
 
-    @staticmethod
-    def log_tasks(tasks):
+    def log_tasks(self, tasks):
         try:
             filename = "./Logs/results.txt"
 
@@ -69,7 +70,7 @@ class TaskHandling:
             with open(filename, "a") as file:
                 file.write(tasks)
         except Exception as e:
-            print(f"Error in logging tasks: {e}")
+            self.logger.log(f"Error in logging tasks: {e}", 'error')
 
     def show_task_list(self, desc):
         try:
@@ -105,5 +106,5 @@ class TaskHandling:
 
             return result
         except Exception as e:
-            print(f"Error in showing task list: {e}")
+            self.logger.log(f"Error in showing task list: {e}", 'error')
             return ""
