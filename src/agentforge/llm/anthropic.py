@@ -39,7 +39,7 @@ class Claude:
                     temperature=params["temperature"],
                     top_p=params["top_p"]
                 )
-                self.logger.log_response(response)
+                self.logger.log_response(response.completion)
                 break
 
             except anthropic as e:

@@ -44,8 +44,12 @@ ModelLibrary:
 
 # Default settings for all models unless overridden
 ModelSettings:
-  API: claude_api
-  Model: claude
+#  API: gemini_api
+#  Model: gemini-pro
+#  API: claude_api
+#  Model: claude
+  API: openai_api
+  Model: smart_fast_model
   Params:
     max_new_tokens: 2000
     temperature: 0.5

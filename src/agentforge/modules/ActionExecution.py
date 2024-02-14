@@ -4,6 +4,32 @@ from agentforge.utils.storage_interface import StorageInterface
 from agentforge.utils.functions.Logger import Logger
 
 
+def id_generator(data):
+    return [str(i + 1) for i in range(len(data))]
+
+
+def format_metadata(metadata_list):
+    # Check if the input is a list
+    if not isinstance(metadata_list, list):
+        raise TypeError("Expected a list of dictionaries")
+
+    # Iterate through each dictionary in the list
+    for metadata in metadata_list:
+        # Ensure each item in the list is a dictionary
+        if not isinstance(metadata, dict):
+            raise TypeError("Each item in the list should be a dictionary")
+
+        # Format each dictionary
+        for key, value in metadata.items():
+            # Check if the value is a list (array)
+            if isinstance(value, list):
+                # Convert list elements into a comma-separated string
+                # Update the dictionary with the formatted string
+                metadata[key] = ', '.join(value)
+
+    return metadata_list
+
+
 class Action:
     def __init__(self):
         self.logger = Logger(name=self.__class__.__name__)
@@ -15,12 +41,17 @@ class Action:
         self.tool = {}
         self.results = {}
         self.context = {}
+        self.task = {}
 
-    def run(self, action, context=None):
+        self.initialize_collection('Actions')
+        self.initialize_collection('Tools')
+
+    def run(self, task, action, context=None):
         try:
             if action:
                 self.context = context
                 self.action = action
+                self.task = task
                 self.load_action_tools()
                 self.run_tools_in_sequence()
                 self.save_action_results()
@@ -28,6 +59,28 @@ class Action:
         except Exception as e:
             self.logger.log(f"Error in running action: {e}", 'error')
             return None
+
+    def initialize_collection(self, collection_name):
+        """Initializes the collection with pre-loaded data."""
+        # try:
+        data = self.functions.agent_utils.config.data[collection_name.lower()]
+
+        ids = id_generator(data)
+
+        description = [value['Description'] for key, value in data.items()]
+        meta = [value for key, value in data.items()]
+        metadata = format_metadata(meta)
+
+        # storage system expects the data to be formatted.
+        save_params = {
+            "collection_name": collection_name,
+            "ids": ids,
+            "data": description,
+            "metadata": metadata,
+        }
+
+        # Save the item into the selected collection
+        self.storage.save_memory(save_params)
 
     def load_action_tools(self):
         try:
@@ -66,7 +119,8 @@ class Action:
             if self.tool['Name'] == 'Read Directory':
                 work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
 
-            self.tool['Payload'] = self.priming_agent.run(tool=self.tool['Prompt'],
+            self.tool['Payload'] = self.priming_agent.run(task=self.task,
+                                                          tool=self.tool['Prompt'],
                                                           path=work_paths,
                                                           results=self.tool['Result'],
                                                           context=self.context)

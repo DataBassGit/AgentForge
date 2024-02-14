@@ -1,6 +1,6 @@
 from .functions.AgentUtils import AgentUtils
 from .functions.PromptHandling import PromptHandling
-from .functions.TaskHandling import TaskHandling
+# from .functions.TaskHandling import TaskHandling
 from .functions.ToolUtils import ToolUtils
 from .functions.UserInterface import UserInterface
 from agentforge.utils.functions.Logger import Logger
@@ -14,7 +14,6 @@ class Functions:
         try:
             self.agent_utils = AgentUtils()
             self.prompt_handling = PromptHandling()
-            self.task_handling = TaskHandling()
             self.tool_utils = ToolUtils()
             self.user_interface = UserInterface()
         except Exception as e:

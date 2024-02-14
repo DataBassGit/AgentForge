@@ -78,16 +78,6 @@ class AgentUtils:
             # Handle other general exceptions
             self.logger.log(f"Error loading agent data: {e}", 'critical')
 
-    # Might strip when removing salience
-    def prepare_objective(self):
-        while True:
-            user_input = input("\nDefine Objective (leave empty to use defaults): ")
-            if user_input.lower() == '':
-                return None
-            else:
-                self.config.data['settings']['directives']['Objective'] = user_input
-                return user_input
-
     def parse_yaml_string(self, yaml_string):
         try:
             cleaned_string = self.extract_yaml_block(yaml_string)

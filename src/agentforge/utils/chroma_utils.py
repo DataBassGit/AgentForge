@@ -183,7 +183,8 @@ class ChromaUtils:
                     else:
                         raise ValueError(f"\n\nError: No query nor embeddings were provided!")
             else:
-                result = {'documents': "No Results!"}
+                logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
+                return {}
 
             return result
         except Exception as e:
@@ -218,7 +219,7 @@ class ChromaUtils:
 
             return results
         except Exception as e:
-            logger.log(f"Error initializing storage: {e}", 'error')
+            logger.log(f"Error searching storage by threshold: {e}", 'error')
             return None
 
     def return_embedding(self, text_to_embed):
