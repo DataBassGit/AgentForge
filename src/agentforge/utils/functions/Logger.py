@@ -22,13 +22,23 @@ class BaseLogger:
         self.config = Config()
         self.UI = UserInterface()
 
+        # Retrieve the logging enabled flag from configuration
+        logging_enabled = self.config.data['settings']['configuration']['Logging']['Enabled']
+
         level = self._get_level_code(log_level)
         self.logger = logging.getLogger(name)
         self.log_folder = None
         self.log_file = log_file
-        self._setup_file_handler(level)
-        self._setup_console_handler(level)
-        self.logger.setLevel(level)
+
+        # Conditional setup based on logging enabled flag
+        if logging_enabled:
+            self._setup_file_handler(level)
+            self._setup_console_handler(level)
+            self.logger.setLevel(level)
+
+        else:
+            # If logging is disabled, set the logger level to NOTSET or higher than CRITICAL to effectively disable it
+            self.logger.setLevel(logging.CRITICAL + 1)  # Effectively disables logging
 
     def _setup_file_handler(self, level):
         # Create the Logs folder if it doesn't exist
@@ -81,10 +91,12 @@ class BaseLogger:
             self.logger.warning(msg)
         elif level_code == logging.ERROR:
             self.logger.error(msg)
+            self.logger.exception("Exception occurred")
             time.sleep(1)
             self.UI.user_input_on_error()
         elif level_code == logging.CRITICAL:
             self.logger.critical(msg)
+            self.logger.exception("Exception occurred")
             raise
         else:
             raise ValueError(f'Invalid log level: {level}')
