@@ -26,7 +26,6 @@ class ActionSelectionAgent(Agent):
 
     def load_additional_data(self):
         try:
-            self.data['objective'] = self.agent_data['persona'].get('Objective', None)
             self.load_actions()
         except Exception as e:
             self.logger.log(f"Error loading additional data: {e}", 'error')

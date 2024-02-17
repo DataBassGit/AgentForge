@@ -23,7 +23,7 @@ class BaseLogger:
         self.UI = UserInterface()
 
         # Retrieve the logging enabled flag from configuration
-        logging_enabled = self.config.data['settings']['configuration']['Logging']['Enabled']
+        logging_enabled = self.config.data['settings']['system']['Logging']['Enabled']
 
         level = self._get_level_code(log_level)
         self.logger = logging.getLogger(name)
@@ -121,7 +121,7 @@ class BaseLogger:
     # @staticmethod
     def initialize_logging(self):
         # Save the result to a log.txt file in the /Logs/ folder
-        self.log_folder = self.config.data['settings']['configuration']['Logging']['Folder']
+        self.log_folder = self.config.data['settings']['system']['Logging']['Folder']
 
         # Create the Logs folder if it doesn't exist
         if not os.path.exists(self.log_folder):
@@ -135,7 +135,7 @@ class Logger:
         self.caller_name = name  # This will store the __name__ of the script that instantiated the Logger
 
         # Retrieve the logging configuration from the config data
-        logging_config = self.config.data['settings']['configuration']['Logging']['Files']
+        logging_config = self.config.data['settings']['system']['Logging']['Files']
 
         # Initialize loggers dynamically based on configuration settings
         self.loggers = {}

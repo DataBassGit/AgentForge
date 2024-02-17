@@ -3,11 +3,12 @@ OnTheFly: true
 SaveMemory: true
 
 Logging:
+  Enabled: true
   Folder: ./Logs
   Files:
-    AgentForge: info
-    ModelIO: info
-    Results: info
+    AgentForge: warning
+    ModelIO: warning
+    Results: warning
 
 Paths:
   Files: ./Files

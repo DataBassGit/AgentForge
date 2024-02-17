@@ -35,7 +35,8 @@ class ChromaUtils:
 
     def init_embeddings(self):
         try:
-            self.db_path, self.db_embed = self.config.chromadb()
+            # self.db_path, self.db_embed = self.config.chromadb()
+            self.db_path, self.db_embed = self.chromadb_settings()
 
             if self.db_embed == 'openai_ada2':
                 # Get API keys from environment variables
@@ -69,6 +70,28 @@ class ChromaUtils:
         except Exception as e:
             logger.log(f"Error initializing storage: {e}", 'error')
             raise
+
+    def chromadb_settings(self):
+        """
+        Retrieves the ChromaDB settings from the configuration.
+
+        Returns:
+            tuple: A tuple containing the database path and embedding settings.
+        """
+        # Retrieve the ChromaDB settings
+        db_settings = self.config.data['settings']['storage'].get('ChromaDB', {})
+
+        # Get the database path and embedding settings
+        db_path_setting = db_settings.get('persist_directory', None)
+        db_embed = db_settings.get('embedding', None)
+
+        # Construct the absolute path of the database using the project root
+        if db_path_setting:
+            db_path = str(self.config.project_root / db_path_setting)
+        else:
+            db_path = None
+
+        return db_path, db_embed
 
     def select_collection(self, collection_name):
         try:
@@ -127,6 +150,9 @@ class ChromaUtils:
         return data
 
     def save_memory(self, params):
+        if self.config.data['settings']['system']['SaveMemory'] is False:
+            return
+
         try:
             collection_name = params.pop('collection_name', None)
             ids = params.pop('ids', None)

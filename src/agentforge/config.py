@@ -7,7 +7,7 @@ import sys
 
 class Config:
     _instance = None
-    _level = 'debug'
+    # _level = 'debug'
 
     def __new__(cls, *args, **kwargs):
         """
@@ -40,7 +40,6 @@ class Config:
 
             # Here is where we load the information from the YAML files to their corresponding attributes
             self.load_all_configurations()
-            # self.load()
         except Exception as e:
             raise ValueError(f"Error during Config initialization: {e}")
 
@@ -125,29 +124,6 @@ class Config:
                         filename_without_ext = os.path.splitext(file)[0]
                         nested_dict[filename_without_ext] = data
 
-    # Does not belong here, need to be reworked to be in chroma_utils
-    def chromadb(self):
-        """
-        Retrieves the ChromaDB settings from the configuration.
-
-        Returns:
-            tuple: A tuple containing the database path and embedding settings.
-        """
-        # Retrieve the ChromaDB settings
-        db_settings = self.data['settings']['storage'].get('ChromaDB', {})
-
-        # Get the database path and embedding settings
-        db_path_setting = db_settings.get('persist_directory', None)
-        db_embed = db_settings.get('embedding', None)
-
-        # Construct the absolute path of the database using the project root
-        if db_path_setting:
-            db_path = str(self.project_root / db_path_setting)
-        else:
-            db_path = None
-
-        return db_path, db_embed
-
     def find_file_in_directory(self, directory, filename):
         """
         Recursively searches for a file within a directory and its subdirectories.
@@ -164,25 +140,6 @@ class Config:
         for file_path in directory.rglob(filename):
             return file_path
         return None
-
-    # Not happy with this
-    def get_config_element(self, case):
-        """
-        Retrieves a specific configuration element based on a given case.
-
-        Parameters:
-            case (str): The case to retrieve, such as "Persona", "Tools", or "Actions".
-
-        Returns:
-            The configuration element if found; otherwise, returns "Invalid case".
-        """
-        selected_persona = self.data['settings']['configuration']['Persona']
-        switch = {
-            "Persona": self.data['personas'][selected_persona],
-            "Tools": self.data['tools'],
-            "Actions": self.data['actions']
-        }
-        return switch.get(case, "Invalid case")
 
     def get_file_path(self, file_name):
         """
@@ -246,9 +203,9 @@ class Config:
 
     def reload(self):
         """
-        Reloads configurations for an agent, including actions, tools, and persona, without refreshing settings.
+        Reloads configurations for an agent.
         """
-        if self.data['settings']['configuration']['OnTheFly'] == 'true':
+        if self.data['settings']['system']['OnTheFly'] == 'true':
             self.load_all_configurations()
 
 # -------------------------- FUNCTIONS --------------------------

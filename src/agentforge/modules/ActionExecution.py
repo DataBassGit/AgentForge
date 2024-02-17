@@ -41,16 +41,18 @@ class Action:
         self.tool = {}
         self.results = {}
         self.context = {}
+        self.objective = {}
         self.task = {}
 
         self.initialize_collection('Actions')
         self.initialize_collection('Tools')
 
-    def run(self, task, action, context=None):
+    def run(self, objective, task, action, context=None):
         try:
             if action:
                 self.context = context
                 self.action = action
+                self.objective = objective
                 self.task = task
                 self.load_action_tools()
                 self.run_tools_in_sequence()
@@ -112,14 +114,15 @@ class Action:
     def prime_tool(self):
         try:
             # Load the paths into a dictionary
-            paths_dict = self.storage.config.data['settings']['configuration']['Paths']
+            paths_dict = self.storage.config.data['settings']['system']['Paths']
 
             # Construct the work_paths string by iterating over the dictionary
             work_paths = None
             if self.tool['Name'] == 'Read Directory':
                 work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
 
-            self.tool['Payload'] = self.priming_agent.run(task=self.task,
+            self.tool['Payload'] = self.priming_agent.run(objective=self.objective,
+                                                          task=self.task,
                                                           tool=self.tool['Prompt'],
                                                           path=work_paths,
                                                           results=self.tool['Result'],

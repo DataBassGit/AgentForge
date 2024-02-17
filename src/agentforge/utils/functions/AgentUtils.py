@@ -44,7 +44,7 @@ class AgentUtils:
             agent_persona_override = agent.get('Persona', None)
 
             # Use the overridden persona if available, or default to the system's predefined persona
-            persona_file = agent_persona_override or settings['configuration'].get('Persona')
+            persona_file = agent_persona_override or settings['system'].get('Persona')
 
             persona = None
             if persona_file is not None:

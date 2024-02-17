@@ -86,7 +86,10 @@ class Agent:
         self.load_additional_data()
 
     def load_main_data(self):
-        """Loads the Agent's main data; Does nothing by default, it is meant to be overriden by Custom Agent Types"""
+        """Loads the Agent's main data; Which is the persona data if it exists"""
+        persona = self.agent_data.get('persona', None)
+        for key in persona:
+            self.data[key.lower()] = persona[key]
 
     def load_agent_type_data(self):
         """Does nothing by default, it is meant to be overriden by Custom Agent Types if needed"""

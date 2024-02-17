@@ -1,6 +1,5 @@
-Name: Chatbot
+# This file works as a knowledge base for the system persona, add any system attribute
+Name: example_name
 
-Description: # Your description here
-
-
-
+Description: |+
+    Example description
