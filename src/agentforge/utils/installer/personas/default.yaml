@@ -1,5 +1,8 @@
-# This file works as a knowledge base for the system persona, add any system attribute
-Name: example_name
+# This file works as a knowledge base for the system persona,
+# Any attribute in this file will be automatically loaded as part of the agent data for prompt rendering
+Name: BotName
 
 Description: |+
-    Example description
+    Bot description here
+
+# ... other attributes ...
