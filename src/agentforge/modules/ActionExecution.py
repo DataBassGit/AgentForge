@@ -31,7 +31,17 @@ def format_metadata(metadata_list):
 
 
 class Action:
+    """
+    Manages the execution of actions by processing files, running tools in sequence based on the action's configuration,
+    and saving the results into a database.
+
+    This class orchestrates the flow from loading action-specific tools, executing these tools, to injecting the
+    processed data into the knowledge graph.
+    """
     def __init__(self):
+        """
+        Initializes the Action class, setting up logger, storage utilities, and loading necessary components for action processing.
+        """
         self.logger = Logger(name=self.__class__.__name__)
         self.storage = StorageInterface().storage_utils
         self.functions = Functions()
@@ -48,6 +58,21 @@ class Action:
         self.initialize_collection('Tools')
 
     def run(self, objective, task, action, context=None):
+        """
+        Main method to process an action for a given task and objective, optionally within a provided context.
+
+        Parameters:
+            objective (dict): The objective information related to the action.
+            task (dict): Task details that the action pertains to.
+            action (dict): Action configuration including tools to be used.
+            context (dict, optional): Contextual information to influence action processing.
+
+        Returns:
+            dict or None: The results of action processing, or None if an error occurs.
+
+        Raises:
+            Exception: If an error is encountered during action processing.
+        """
         try:
             if action:
                 self.context = context
@@ -63,7 +88,12 @@ class Action:
             return None
 
     def initialize_collection(self, collection_name):
-        """Initializes the collection with pre-loaded data."""
+        """
+        Initializes a specified collection with preloaded data.
+
+        Parameters:
+            collection_name (str): The name of the collection to initialize.
+        """
         # try:
         data = self.functions.agent_utils.config.data[collection_name.lower()]
 
@@ -85,6 +115,12 @@ class Action:
         self.storage.save_memory(save_params)
 
     def load_action_tools(self):
+        """
+        Loads the tools specified in the action's configuration.
+
+        Raises:
+            Exception: If an error occurs while loading action tools.
+        """
         try:
             tools = self.action['Tools'].split(', ')
             self.tools = {tool: self.load_tool(tool) for tool in tools}
@@ -93,6 +129,12 @@ class Action:
             self.tools = {}
 
     def run_tools_in_sequence(self):
+        """
+        Executes the loaded tools in sequence as configured for the action.
+
+        Raises:
+            Exception: If an error occurs during the sequential tool execution.
+        """
         self.tool['Result'] = None
         try:
             for self.tool['Name'], self.tool['Data'] in self.tools.items():
@@ -105,13 +147,25 @@ class Action:
             self.logger.log(f"Error in running tools in sequence: {e}", 'error')
 
     def get_tool_script(self):
+        """
+        Extracts the script path from the tool's data.
+        """
         self.tool['Script'] = self.tool['Data'].pop('Script')
 
     def process_tool_data(self):
+        """
+        Prepares the tool data for execution, constructing the tool prompt from its configuration.
+        """
         tool_info = '\n'.join([f'{key}: {value}' for key, value in self.tool['Data'].items() if key != 'Name'])
         self.tool['Prompt'] = f"Tool: {self.tool['Name']}\n{tool_info}"
 
     def prime_tool(self):
+        """
+        Prepares the tool for execution by running the ActionPrimingAgent.
+
+        Raises:
+            Exception: If an error occurs during tool priming.
+        """
         try:
             # Load the paths into a dictionary
             paths_dict = self.storage.config.data['settings']['system']['Paths']
@@ -132,6 +186,12 @@ class Action:
             self.logger.log(f"Error in priming tool: {e}", 'error')
 
     def execute_tool(self):
+        """
+        Executes the tool using the dynamic tool utility with the prepared payload.
+
+        Raises:
+            Exception: If an error occurs during tool execution.
+        """
         try:
             self.tool['Payload']['command'] = self.tool['Data']['Command']
             self.tool['Result'] = self.functions.tool_utils.dynamic_tool(self.tool['Script'], self.tool['Payload'])
@@ -139,12 +199,25 @@ class Action:
             self.logger.log(f"Error in executing tool: {e}", 'error')
 
     def parse_tool_result(self):
+        """
+        Processes and stores the result of the tool execution.
+
+        Raises:
+            Exception: If an error occurs during result parsing.
+        """
         try:
             self.results[self.tool['Name']] = self.tool['Result']
         except Exception as e:
             self.logger.log(f"Error in parsing tool result: {e}", 'error')
 
     def save_action_results(self):
+        """
+        Saves the results of the action processing into the specified collection.
+
+        Raises:
+            Exception: If an error occurs while saving action results.
+        """
+
         try:
             for key, result in self.results.items():
                 params = {'data': [result], 'collection_name': 'Results'}
@@ -153,6 +226,18 @@ class Action:
             self.logger.log(f"Error in saving action results: {e}", 'error')
 
     def load_tool(self, tool):
+        """
+        Loads configuration and data for a specified tool from the storage.
+
+        Parameters:
+            tool (str): The name of the tool to load.
+
+        Returns:
+            dict or None: The loaded tool data, or None if an error occurs.
+
+        Raises:
+            Exception: If an error occurs while loading the tool.
+        """
         try:
             params = {
                 "collection_name": 'Tools',

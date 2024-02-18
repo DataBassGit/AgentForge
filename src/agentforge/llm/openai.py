@@ -7,6 +7,16 @@ client = OpenAI()
 
 
 def parse_prompts(prompts):
+    """
+    Transforms a list of prompt segments into a structured format expected by the GPT chat interface.
+
+    Parameters: prompts (list): A list where the first element is considered the 'system' prompt and the rest are
+    'user' prompts.
+
+    Returns:
+        list: A list of dictionaries, each representing a part of the conversation with roles ('system' or 'user')
+        and their content.
+    """
     prompt = [
         {"role": "system", "content": prompts[0]},
         {"role": "user", "content": "".join(prompts[1:])}
@@ -16,13 +26,42 @@ def parse_prompts(prompts):
 
 
 class GPT:
+    """
+    A class for interacting with OpenAI's GPT models to generate text based on provided prompts.
+
+    Handles API calls to OpenAI, including error handling for rate limits and API connection issues, and retries
+    failed requests.
+
+    Attributes:
+        num_retries (int): The number of times to retry generating text upon encountering rate limits or
+        connection errors.
+    """
     num_retries = 5
 
     def __init__(self, model):
+        """
+        Initializes the GPT class with a specific model.
+
+        Parameters:
+            model (str): The identifier of the GPT model to use for generating text.
+        """
         self._model = model
         self.logger = None
 
     def generate_text(self, prompts, **params):
+        """
+        Generates text based on the provided prompts and additional parameters for the GPT model.
+
+        Parameters:
+            prompts (list): A list of strings to be passed as prompts to the GPT model.
+            **params: Arbitrary keyword arguments providing additional options to the model (e.g., temperature, max tokens).
+
+        Returns:
+            str or None: The generated text from the GPT model or None if the operation fails.
+
+        Raises:
+            APIError: If an API error occurs not related to rate limits or bad gateway responses.
+        """
         self.logger = Logger(name=params.pop('agent_name', None))
         self.logger.log_prompt(''.join(prompts))
 

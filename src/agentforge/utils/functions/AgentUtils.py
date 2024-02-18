@@ -7,12 +7,38 @@ from ..storage_interface import StorageInterface
 
 
 class AgentUtils:
+    """
+    A utility class providing support for agent-specific operations, including configuration loading, YAML parsing,
+    and extracting blocks from text.
+
+    Attributes:
+        logger (Logger): Logger instance for logging messages.
+        config (Config): Config instance for accessing application configurations.
+    """
 
     def __init__(self):
+        """
+        Initializes the AgentUtils class with a Logger and Config instance.
+        """
         self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
 
     def load_agent_data(self, agent_name):
+        """
+        Loads configuration data for a specified agent, applying any overrides specified in the agent's configuration.
+
+        Parameters:
+            agent_name (str): The name of the agent for which to load configuration data.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing the loaded agent data, including settings, LLM instance,
+                            parameters, prompts, storage utility, and persona.
+
+        Raises:
+            FileNotFoundError: If a required configuration or persona file is not found.
+            KeyError: If a required key is missing in the configuration.
+            Exception: For general errors encountered during the loading process.
+        """
         try:
             self.config.reload()
 
@@ -79,6 +105,18 @@ class AgentUtils:
             self.logger.log(f"Error loading agent data: {e}", 'critical')
 
     def parse_yaml_string(self, yaml_string):
+        """
+        Parses a YAML-formatted string into a Python dictionary.
+
+        Parameters:
+            yaml_string (str): The YAML string to parse.
+
+        Returns:
+            Dict[str, Any]: The parsed YAML content as a dictionary.
+
+        Raises:
+            yaml.YAMLError: If an error occurs during YAML parsing.
+        """
         try:
             cleaned_string = self.extract_yaml_block(yaml_string)
             return yaml.safe_load(cleaned_string)
@@ -86,6 +124,18 @@ class AgentUtils:
             self.logger.log(f"Error decoding YAML string: {e}", 'critical')
 
     def extract_yaml_block(self, text):
+        """
+        Extracts a YAML block from a string, typically used to parse YAML content from larger text blocks or files.
+
+        Parameters:
+            text (str): The text containing the YAML block.
+
+        Returns:
+            str: The extracted YAML block as a string, or None if no block is found.
+
+        Raises:
+            Exception: For unexpected errors during the extraction process.
+        """
         try:
             # Regex pattern to capture content between ```yaml and ```
             pattern = r"```yaml(.*?)```"

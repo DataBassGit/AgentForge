@@ -14,11 +14,30 @@ def encode_msg(msg):
 
 
 class BaseLogger:
+    """
+    A base logger class for setting up file and console logging with support for multiple handlers and log levels.
+
+    This class provides mechanisms for initializing file and console log handlers, logging messages at various
+    levels, and dynamically adjusting log levels.
+
+    Attributes:
+        file_handlers (dict): A class-level dictionary tracking file handlers by log file name.
+        console_handlers (dict): A class-level dictionary tracking console handlers by logger name.
+    """
+
     # Class-level dictionaries to track existing handlers
     file_handlers = {}
     console_handlers = {}
 
     def __init__(self, name='BaseLogger', log_file='default.log', log_level='error'):
+        """
+        Initializes the BaseLogger with optional name, log file, and log level.
+
+        Parameters:
+            name (str): The name of the logger.
+            log_file (str): The name of the file to log messages to.
+            log_level (str): The initial log level for the logger.
+        """
         self.config = Config()
         self.UI = UserInterface()
 
@@ -35,12 +54,19 @@ class BaseLogger:
             self._setup_file_handler(level)
             self._setup_console_handler(level)
             self.logger.setLevel(level)
+            return
 
-        else:
-            # If logging is disabled, set the logger level to NOTSET or higher than CRITICAL to effectively disable it
-            self.logger.setLevel(logging.CRITICAL + 1)  # Effectively disables logging
+        # If logging is disabled, set the logger level to NOTSET or higher than CRITICAL to effectively disable it
+        self.logger.setLevel(logging.CRITICAL + 1)  # Effectively disables logging
 
     def _setup_file_handler(self, level):
+        """
+        Sets up a file handler for logging messages to a file. Initializes the log folder and file if they do not exist,
+        and configures logging format and level.
+
+        Parameters:
+            level (int): The logging level to set for the file handler.
+        """
         # Create the Logs folder if it doesn't exist
         self.initialize_logging()
 
@@ -54,8 +80,10 @@ class BaseLogger:
         log_file_path = f'{self.log_folder}/{self.log_file}'
         fh = logging.FileHandler(log_file_path)
         fh.setLevel(level)  # Set the level for file handler
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %('
-                                      'message)s\n-------------------------------------------------------------',
+        formatter = logging.Formatter('%(asctime)s '
+                                      '- %(levelname)s '
+                                      '- %(message)s\n'
+                                      '-------------------------------------------------------------',
                                       datefmt='%Y-%m-%d %H:%M:%S')
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
@@ -64,6 +92,12 @@ class BaseLogger:
         BaseLogger.file_handlers[self.log_file] = fh
 
     def _setup_console_handler(self, level):
+        """
+        Sets up a console handler for logging messages to the console. Configures logging format and level.
+
+        Parameters:
+            level (int): The logging level to set for the console handler.
+        """
         if self.logger.name in BaseLogger.console_handlers:
             # Use the existing console handler
             ch = BaseLogger.console_handlers[self.logger.name]
@@ -81,6 +115,13 @@ class BaseLogger:
         BaseLogger.console_handlers[self.logger.name] = ch
 
     def log_msg(self, msg, level='info'):
+        """
+        Logs a message at the specified log level.
+
+        Parameters:
+            msg (str): The message to log.
+            level (str): The level at which to log the message (e.g., 'info', 'debug', 'error').
+        """
         level_code = self._get_level_code(level)
 
         if level_code == logging.DEBUG:
@@ -102,6 +143,12 @@ class BaseLogger:
             raise ValueError(f'Invalid log level: {level}')
 
     def set_level(self, level):
+        """
+        Sets the log level for the logger and its handlers.
+
+        Parameters:
+            level (str): The new log level to set (e.g., 'info', 'debug', 'error').
+        """
         level_code = self._get_level_code(level)
         self.logger.setLevel(level_code)
         for handler in self.logger.handlers:
@@ -109,6 +156,15 @@ class BaseLogger:
 
     @staticmethod
     def _get_level_code(level):
+        """
+        Converts a log level as a string to the corresponding logging module level code.
+
+        Parameters:
+            level (str): The log level as a string (e.g., 'debug', 'info', 'warning', 'error', 'critical').
+
+        Returns:
+            int: The logging module level code corresponding to the provided string.
+        """
         level_dict = {
             'debug': logging.DEBUG,
             'info': logging.INFO,
@@ -120,6 +176,9 @@ class BaseLogger:
 
     # @staticmethod
     def initialize_logging(self):
+        """
+        Initializes logging by ensuring the log folder exists and setting up the log folder path.
+        """
         # Save the result to a log.txt file in the /Logs/ folder
         self.log_folder = self.config.data['settings']['system']['Logging']['Folder']
 
@@ -130,7 +189,23 @@ class BaseLogger:
 
 
 class Logger:
-    def __init__(self, name, general_log_name='agentforge', model_log_name='model_io', results_log_name='results'):
+    """
+    A wrapper class for managing multiple BaseLogger instances, supporting different log files and levels
+    as configured in the system settings.
+
+    This class facilitates logging across different modules and components of the application, allowing
+    for specific logs for agent activities, model interactions, and results.
+
+    Attributes:
+        loggers (dict): A dictionary of BaseLogger instances keyed by log type (e.g., 'agentforge', 'modelio').
+    """
+    def __init__(self, name):
+        """
+        Initializes the Logger class with names for different types of logs.
+
+        Parameters:
+            name (str): The name of the module or component using the logger.
+        """
         self.config = Config()
         self.caller_name = name  # This will store the __name__ of the script that instantiated the Logger
 
@@ -151,6 +226,14 @@ class Logger:
             self.loggers[log_name] = new_logger
 
     def log(self, msg, level='info', logger_type='AgentForge'):
+        """
+        Logs a message to a specified logger or all loggers.
+
+        Parameters:
+            msg (str): The message to log.
+            level (str): The log level (e.g., 'info', 'debug', 'error').
+            logger_type (str): The specific logger to use, or 'all' to log to all loggers.
+        """
         # Allow logging to a specific logger or all loggers
         # Prepend the caller's module name to the log message
         msg_with_caller = f'[{self.caller_name}] {msg}'
@@ -161,16 +244,42 @@ class Logger:
             self.loggers[logger_type].log_msg(msg_with_caller, level)
 
     def log_prompt(self, prompt):
+        """
+        Logs a prompt to the model interaction logger.
+
+        Parameters:
+            prompt (str): The prompt to log.
+        """
         self.log(f'Prompt:\n{prompt}', 'debug', 'ModelIO')
 
     def log_response(self, response):
+        """
+        Logs a model response to the model interaction logger.
+
+        Parameters:
+            response (str): The model response to log.
+        """
         self.log(f'Model Response:\n{response}', 'debug', 'ModelIO')
 
     def parsing_error(self, model_response, error):
+        """
+        Logs parsing errors along with the model response.
+
+        Parameters:
+            model_response (str): The model response associated with the parsing error.
+            error (Exception): The exception object representing the parsing error.
+        """
         self.log(f"Parsing Error - It is very likely the model did not respond in the required "
                  f"format\n\nModel Response:\n{model_response}\n\nError: {error}", 'error')
 
     def log_result(self, result, desc):
+        """
+        Logs and displays a result with a description.
+
+        Parameters:
+            result (str): The result to log and display.
+            desc (str): A short description of the result.
+        """
         try:
             # Print the task result
             cprint(f"***** {desc} *****", 'green', attrs=['bold'])
@@ -185,11 +294,15 @@ class Logger:
             self.log(f"Error logging result: {e}", 'error')
 
     def log_info(self, msg):
+        """
+        Logs and displays an informational message.
+
+        Parameters:
+            msg (str): The message to log and display.
+        """
         try:
             encoded_msg = encode_msg(msg)  # Utilize the existing encode_msg function
             cprint(encoded_msg, 'red', attrs=['bold'])
             self.log(f'\n{encoded_msg}', 'info', 'Results')
         except Exception as e:
             self.log(f"Error logging message: {e}", 'error')
-
-
