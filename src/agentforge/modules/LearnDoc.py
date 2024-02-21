@@ -39,8 +39,8 @@ Initializes the FileProcessor class with its required components.
 
     def process_file(self, file):
         """
-        Processes a single file through the pipeline, extracting text, chunking it, learning from the chunks, and
-        injecting the learned knowledge into the database.
+        Processes a single file through the pipeline, extracting text, chunking it, learning from the chunks,
+        and injecting the learned knowledge into the database.
 
         Parameters:
             file (str): The file path of the file to process.

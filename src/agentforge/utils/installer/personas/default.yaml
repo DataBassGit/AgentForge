@@ -11,7 +11,7 @@
 
 # Name: The name of your agent or persona.
 # This should be unique and descriptive, giving a clear indication of your agent identity or purpose.
-Name: "Your Persona Name"
+Name: Persona Name
 
 # Description: A detailed description of your agent.
 # This should include any background information, capabilities, and the general tone or personality your agent embodies.
@@ -23,7 +23,7 @@ Description: |+
 
 # Location: The primary operating environment or context of your agent.
 # This can be virtual, physical, or conceptual, depending on your agent's design.
-Location: "Virtual Environment/Physical Location"
+Location: Virtual Environment/Physical Location
 
 # Setting: The detailed setting in which your agent operates.
 # This can help in providing contextual background for your agent's interactions and responses.
@@ -34,11 +34,11 @@ Setting: |+
 
 # Username: A default or suggested username for interactions.
 # This can be useful for personalizing responses or for systems that require user identification.
-Username: "DefaultUser"
+Username: DefaultUser
 
 # Objective: The primary goal or function of your agent.
 # This can be as broad as providing assistance and answering questions, or as specific as performing tasks in a particular domain.
-Objective: "Define the primary goal of your agent here."
+Objective: Define the primary goal of your agent here.
 
 # Additional Attributes: You can add any number of additional attributes to further define your agent.
 # Examples might include 'Skills', 'KnowledgeAreas', 'PreferredPronouns', etc.

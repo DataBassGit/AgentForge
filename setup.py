@@ -21,7 +21,7 @@ setup(
     install_requires=[
         "wheel",
         "google-generativeai",
-        "PyPDF2",
+        "pypdf~=4.0.2",
         "colorama~=0.4.6",
         "python-dotenv~=1.0.0",
         "PyYAML~=6.0",
@@ -37,6 +37,8 @@ setup(
         "browse~=1.0.1",
         "kivy~=2.2.1",
         "flask~=2.3.2",
+        "scipy",
+        "google-generativeai"
     ],
     extras_require={
         "pinecone": [

@@ -13,7 +13,6 @@ Predicate
 These will be entered into the knowledge graph collection on the database. The Sentence will be the document, the other
 six parameters will be metadata.
 """
-
 from agentforge.tools.TripleExtract import TripleExtract
 from agentforge.utils.storage_interface import StorageInterface
 import uuid

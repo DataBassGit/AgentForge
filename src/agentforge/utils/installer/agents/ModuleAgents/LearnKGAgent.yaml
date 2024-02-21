@@ -25,7 +25,7 @@ Prompts:
     ```yaml
     sentences:
       # If any new and important sentences are identified, list them here. Otherwise, leave blank.
-      1: <FIRST NEW AND IMPORTANT SENTENCE>
+      1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
       # Add more sentences if necessary.
     reasons:
       # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.

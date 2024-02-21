@@ -9,7 +9,7 @@ class Config:
     _instance = None
     # _level = 'debug'
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, config_path=None, *args, **kwargs):
         """
         Ensures that only one instance of Config exists.
         Follows the singleton pattern to prevent multiple instances.
@@ -19,7 +19,7 @@ class Config:
         """
         if not cls._instance:
             cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
-            cls._instance.__init__()
+            cls._instance.__init__(config_path)
         return cls._instance
 
     def __init__(self, config_path=None):

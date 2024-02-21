@@ -2,6 +2,7 @@ import os
 import uuid
 from collections.abc import Iterable
 from datetime import datetime
+from scipy.spatial import distance
 
 import chromadb
 from chromadb.config import Settings
@@ -343,8 +344,6 @@ class ChromaUtils:
             Exception: Logs an error message if an exception occurs during the search process.
         """
         try:
-            from scipy.spatial import distance
-
             collection_name = parameters.pop('collection_name', None)
             num_results = parameters.pop('num_results', 1)
             threshold = parameters.pop('threshold', 0.7)
