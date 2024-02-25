@@ -28,6 +28,16 @@ class Consume:
         # Extract Triples
         _subject, _predicate, _object = self.trip.find_subject_predicate_object(sentence)
 
+        if _subject is None:
+            print("No subject found!")
+            return
+        if _predicate is None:
+            print("No predicate found!")
+            return
+        if _object is None:
+            print("No object found!")
+            return
+
         # build params
         random_uuid = uuid.uuid4()
         params = {

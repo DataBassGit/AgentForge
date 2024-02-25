@@ -278,7 +278,7 @@ class ChromaUtils:
             )
 
         except Exception as e:
-            raise ValueError(f"Error saving results. Error: {e}")
+            raise ValueError(f"Error saving results. Error: {e}\n\nData:\n{data}")
 
     def query_memory(self, collection_name: str, query: Optional[Union[str, list]] = None,
                      filter_condition: Optional[dict] = None, include: Optional[list] = None,

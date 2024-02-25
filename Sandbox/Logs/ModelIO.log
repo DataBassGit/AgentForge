@@ -1,0 +1,1209 @@
+2024-02-25 16:41:06 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+Reflexion: Language Agents with
+Verbal Reinforcement Learning
+Noah Shinn
+Northeastern University
+noahshinn024@gmail.comFederico Cassano
+Northeastern University
+cassano.f@northeastern.edu
+Edward Berman
+Northeastern University
+berman.ed@northeastern.eduAshwin Gopinath
+Massachusetts Institute of Technology
+agopi@mit.edu
+Karthik Narasimhan
+Princeton University
+karthikn@princeton.eduShunyu Yao
+Princeton University
+shunyuy@princeton.edu
+Abstract
+Large language models (LLMs) have been increasingly used to interact with exter-
+nal environments (e.g., games, compilers, APIs) as goal-driven agents. However,
+it remains challenging for these language agents to quickly and efficiently learn
+from trial-and-error as traditional reinforcement learning methods require exten-
+sive training samples and expensive model fine-tuning. We propose Reflexion , a
+novel framework to reinforce language agents not by updating weights, but in-
+stead through linguistic feedback. Concretely, Reflexion agents verbally reflect
+on task feedback signals, then maintain their own reflective text in an episodic
+memory buffer to induce better decision-making in subsequent trials. Reflexion is
+flexible enough to incorporate various types (scalar values or free-form language)
+and sources (external or internally simulated) of feedback signals, and obtains
+significant improvements over a baseline agent across diverse tasks (sequential
+decision-making, coding, language reasoning). For example, Reflexion achieves a
+91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previ-
+ous state-of-the-art GPT-4 that achieves 80%. We also conduct ablation and analysis
+studies using different feedback signals, feedback incorporation methods, and agent
+types, and provide insights into how they affect performance. We release all code,
+demos, and datasets at https://github.com/noahshinn024/reflexion . 
+1 Introduction
+Recent works such as ReAct [ 30], SayCan [ 1], Toolformer [ 22], HuggingGPT [ 23], generative
+agents [ 19], and WebGPT [ 17] have demonstrated the feasibility of autonomous decision-making
+agents that are built on top of a large language model (LLM) core. These methods use LLMs to
+generate text and ‘actions‘ that can be used in API calls and executed in an environment. Since
+they rely on massive models with an enormous number of parameters, such approaches have been
+so far limited to using in-context examples as a way of teaching the agents, since more traditional
+optimization schemes like reinforcement learning with gradient descent require substantial amounts
+of compute and time. 
+Preprint. Under review.arXiv:2303.11366v4  [cs. AI]  10 Oct 2023In this paper, we propose an alternative approach called Reflexion that uses verbal reinforcement
+to help agents learn from prior failings. Reflexion converts binary or scalar feedback from the
+environment into verbal feedback in the form of a textual summary, which is then added as additional
+context for the LLM agent in the next episode. This self-reflective feedback acts as a ‘semantic’
+gradient signal by providing the agent with a concrete direction to improve upon, helping it learn
+from prior mistakes to perform better on the task. This is akin to how humans iteratively learn to
+accomplish complex tasks in a few-shot manner – by reflecting on their previous failures in order to
+form an improved plan of attack for the next attempt. For example, in figure 1, a Reflexion agent
+learns to optimize its own behavior to solve decision-making, programming, and reasoning tasks
+through trial, error, and self-reflection. 
+Generating useful reflective feedback is challenging since it requires a good understanding of where
+the model made mistakes (i.e. the credit assignment problem [ 25]) as well as the ability to generate
+a summary containing actionable insights for improvement. We explore three ways for doing
+this – simple binary environment feedback, pre-defined heuristics for common failure cases, and
+self-evaluation such as binary classification using LLMs (decision-making) or self-written unit
+tests (programming). In all implementations, the evaluation signal is amplified to natural language
+experience summaries which can be stored in long-term memory. 
+Reflexion has several advantages compared to more traditional RL approaches like policy or value-
+based learning: 1) it is lightweight and doesn’t require finetuning the LLM, 2) it allows for more
+nuanced forms of feedback (e.g. targeted changes in actions), compared to scalar or vector rewards
+that are challenging to perform accurate credit assignment with, 3) it allows for a more explicit and
+interpretable form of episodic memory over prior experiences, and 4) it provides more explicit hints
+for actions in future episodes. At the same time, it does have the disadvantages of relying on the
+power of the LLM’s self-evaluation capabilities (or heuristics) and not having a formal guarantee for
+success. However, as LLM capabilities improve, we only expect this paradigm to get better over time. 
+We perform experiments on (1) decision-making tasks to test sequential action choices over long
+trajectories, (2) reasoning tasks to test knowledge-intensive, single-step generation improvement,
+and (3) programming tasks to teach the agent to effectively use external tools such as compilers
+and interpreters. Across all three types of tasks, we observe Reflexion agents are better decision-
+makers, reasoners, and programmers. More concretely, Reflexion agents improve on decision-making
+AlfWorld [ 24] tasks over strong baseline approaches by an absolute 22% in 12 iterative learning
+steps, and on reasoning questions in HotPotQA [ 28] by 20%, and Python programming tasks on
+HumanEval [6] by as much as 11%. 
+To summarize, our contributions are the following:
+•We propose Reflexion, a new paradigm for ‘verbal‘ reinforcement that parameterizes a
+policy as an agent’s memory encoding paired with a choice of LLM parameters. 
+•We explore this emergent property of self-reflection in LLMs and empirically show that
+self-reflection is extremely useful to learn complex tasks over a handful of trials. 
+•We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40
+challenging Leetcode questions (‘hard-level‘) in 19 programming languages. 
+•We show that Reflexion achieves improvements over strong baselines across several tasks,
+and achieves state-of-the-art results on various code generation benchmarks. 
+2 Related work
+Reasoning and decision-making Self-Refine [ 15] employs an iterative framework for self-
+refinement to autonomously improve generation through self-evaluation. These self-evaluation
+and self-improvement steps are conditioned on given task constraints, such as "How can this genera-
+tion be written in a more positive way". Self-Refine is effective but is limited to single-generation
+reasoning tasks.
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 16:41:31 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "We propose Reflexion, a novel framework to reinforce language agents not by updating weights, but instead through linguistic feedback."
+  2: "Reflexion agents verbally reflect on task feedback signals, then maintain their own reflective text in an episodic memory buffer to induce better decision-making in subsequent trials."
+  3: "Reflexion is flexible enough to incorporate various types (scalar values or free-form language) and sources (external or internally simulated) of feedback signals, and obtains significant improvements over a baseline agent across diverse tasks."
+  4: "For example, Reflexion achieves a 91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previous state-of-the-art GPT-4 that achieves 80%."
+  5: "Reflexion converts binary or scalar feedback from the environment into verbal feedback in the form of a textual summary, which is then added as additional context for the LLM agent in the next episode."
+  6: "We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40 challenging Leetcode questions ('hard-level') in 19 programming languages."
+reasons:
+  1: This sentence introduces the core concept of the paper, the Reflexion framework, which is a new approach to reinforcing language agents, and is foundational for understanding the rest of the text.
+  2: This sentence explains the mechanism by which Reflexion agents learn and improve, which is central to understanding how the framework functions.
+  3: This sentence provides information on the flexibility and effectiveness of Reflexion, showing its capability to handle different types of feedback and its practical improvements over baseline agents.
+  4: This sentence offers a concrete example of Reflexion's performance, providing quantifiable evidence of its superiority over the previous state-of-the-art, which is significant for understanding its impact.
+  5: This sentence details the process by which Reflexion transforms feedback into a format that can be utilized by language agents, which is important for understanding the methodology of the framework.
+  6: This sentence introduces a new tool, LeetcodeHardGym, which is relevant for understanding the practical applications and environments where Reflexion has been tested.
+```
+-------------------------------------------------------------
+2024-02-25 16:41:50 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "Self-Refine is effective but is limited to single-generation reasoning tasks."
+  2: "Xie et al. [ 27] use stochastic beam search over actions to perform a more efficient decision-making search strategy which allows the agent to use foresight advantage due to its self-evaluation component."
+  3: "In this paper, we show that several of these concepts can be enhanced with self-reflection to build a persisting memory of self-reflective experiences which allows an agent to identify its own errors and self-suggest lessons to learn from its mistakes over time."
+  4: "AlphaCode [ 14] evaluates a set of generations on hidden test cases."
+  5: "CodeT [ 5] uses self-generated unit tests that are used to score generated function implementations."
+  6: "Self-Debugging [ 7] employs a debugging component that is used to improve existing implementations given feedback from a code execution environment."
+  7: "CodeRL [ 12] sets the problem in an RL framework using an actor-critic setup to debug programs given feedback from an execution environment."
+  8: "We develop a modular formulation for Reflexion, utilizing three distinct models: an Actor, denoted as Ma, which generates text and actions; an Evaluator model, represented by Me, that scores the outputs produced by Ma; and a Self-Reflection model, denoted as Msr, which generates verbal reinforcement cues to assist the Actor in self-improvement."
+reasons:
+  1: This sentence introduces the concept of Self-Refine and its limitation, which is foundational for understanding the scope of this technology.
+  2: The sentence provides information about a specific technique used by Xie et al. for decision-making, which is distinct and adds to the understanding of different strategies in AI reasoning.
+  3: This sentence is important as it outlines the paper's contribution to enhancing AI with self-reflection for error identification and learning, which is a significant advancement in the field.
+  4: The sentence introduces AlphaCode and its method of evaluating generations, which is a specific approach in the programming domain.
+  5: This sentence describes CodeT's unique approach to scoring function implementations, which is relevant for understanding different methodologies in AI-driven code evaluation.
+  6: The sentence provides insight into the Self-Debugging method, which is a distinct approach to improving code based on execution feedback.
+  7: This sentence introduces CodeRL and its reinforcement learning framework for debugging, which is a specific and advanced technique in the programming domain.
+  8: The sentence outlines the components of Reflexion, a system that integrates three models for self-improvement, which is foundational for understanding the Reflexion framework.
+```
+-------------------------------------------------------------
+2024-02-25 16:47:34 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+Reflexion: Language Agents with
+Verbal Reinforcement Learning
+Noah Shinn
+Northeastern University
+noahshinn024@gmail.comFederico Cassano
+Northeastern University
+cassano.f@northeastern.edu
+Edward Berman
+Northeastern University
+berman.ed@northeastern.eduAshwin Gopinath
+Massachusetts Institute of Technology
+agopi@mit.edu
+Karthik Narasimhan
+Princeton University
+karthikn@princeton.eduShunyu Yao
+Princeton University
+shunyuy@princeton.edu
+Abstract
+Large language models (LLMs) have been increasingly used to interact with exter-
+nal environments (e.g., games, compilers, APIs) as goal-driven agents. However,
+it remains challenging for these language agents to quickly and efficiently learn
+from trial-and-error as traditional reinforcement learning methods require exten-
+sive training samples and expensive model fine-tuning. We propose Reflexion , a
+novel framework to reinforce language agents not by updating weights, but in-
+stead through linguistic feedback. Concretely, Reflexion agents verbally reflect
+on task feedback signals, then maintain their own reflective text in an episodic
+memory buffer to induce better decision-making in subsequent trials. Reflexion is
+flexible enough to incorporate various types (scalar values or free-form language)
+and sources (external or internally simulated) of feedback signals, and obtains
+significant improvements over a baseline agent across diverse tasks (sequential
+decision-making, coding, language reasoning). For example, Reflexion achieves a
+91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previ-
+ous state-of-the-art GPT-4 that achieves 80%. We also conduct ablation and analysis
+studies using different feedback signals, feedback incorporation methods, and agent
+types, and provide insights into how they affect performance. We release all code,
+demos, and datasets at https://github.com/noahshinn024/reflexion . 
+1 Introduction
+Recent works such as ReAct [ 30], SayCan [ 1], Toolformer [ 22], HuggingGPT [ 23], generative
+agents [ 19], and WebGPT [ 17] have demonstrated the feasibility of autonomous decision-making
+agents that are built on top of a large language model (LLM) core. These methods use LLMs to
+generate text and ‘actions‘ that can be used in API calls and executed in an environment. Since
+they rely on massive models with an enormous number of parameters, such approaches have been
+so far limited to using in-context examples as a way of teaching the agents, since more traditional
+optimization schemes like reinforcement learning with gradient descent require substantial amounts
+of compute and time. 
+Preprint. Under review.arXiv:2303.11366v4  [cs. AI]  10 Oct 2023In this paper, we propose an alternative approach called Reflexion that uses verbal reinforcement
+to help agents learn from prior failings. Reflexion converts binary or scalar feedback from the
+environment into verbal feedback in the form of a textual summary, which is then added as additional
+context for the LLM agent in the next episode. This self-reflective feedback acts as a ‘semantic’
+gradient signal by providing the agent with a concrete direction to improve upon, helping it learn
+from prior mistakes to perform better on the task. This is akin to how humans iteratively learn to
+accomplish complex tasks in a few-shot manner – by reflecting on their previous failures in order to
+form an improved plan of attack for the next attempt. For example, in figure 1, a Reflexion agent
+learns to optimize its own behavior to solve decision-making, programming, and reasoning tasks
+through trial, error, and self-reflection. 
+Generating useful reflective feedback is challenging since it requires a good understanding of where
+the model made mistakes (i.e. the credit assignment problem [ 25]) as well as the ability to generate
+a summary containing actionable insights for improvement. We explore three ways for doing
+this – simple binary environment feedback, pre-defined heuristics for common failure cases, and
+self-evaluation such as binary classification using LLMs (decision-making) or self-written unit
+tests (programming). In all implementations, the evaluation signal is amplified to natural language
+experience summaries which can be stored in long-term memory. 
+Reflexion has several advantages compared to more traditional RL approaches like policy or value-
+based learning: 1) it is lightweight and doesn’t require finetuning the LLM, 2) it allows for more
+nuanced forms of feedback (e.g. targeted changes in actions), compared to scalar or vector rewards
+that are challenging to perform accurate credit assignment with, 3) it allows for a more explicit and
+interpretable form of episodic memory over prior experiences, and 4) it provides more explicit hints
+for actions in future episodes. At the same time, it does have the disadvantages of relying on the
+power of the LLM’s self-evaluation capabilities (or heuristics) and not having a formal guarantee for
+success. However, as LLM capabilities improve, we only expect this paradigm to get better over time. 
+We perform experiments on (1) decision-making tasks to test sequential action choices over long
+trajectories, (2) reasoning tasks to test knowledge-intensive, single-step generation improvement,
+and (3) programming tasks to teach the agent to effectively use external tools such as compilers
+and interpreters. Across all three types of tasks, we observe Reflexion agents are better decision-
+makers, reasoners, and programmers. More concretely, Reflexion agents improve on decision-making
+AlfWorld [ 24] tasks over strong baseline approaches by an absolute 22% in 12 iterative learning
+steps, and on reasoning questions in HotPotQA [ 28] by 20%, and Python programming tasks on
+HumanEval [6] by as much as 11%. 
+To summarize, our contributions are the following:
+•We propose Reflexion, a new paradigm for ‘verbal‘ reinforcement that parameterizes a
+policy as an agent’s memory encoding paired with a choice of LLM parameters. 
+•We explore this emergent property of self-reflection in LLMs and empirically show that
+self-reflection is extremely useful to learn complex tasks over a handful of trials. 
+•We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40
+challenging Leetcode questions (‘hard-level‘) in 19 programming languages. 
+•We show that Reflexion achieves improvements over strong baselines across several tasks,
+and achieves state-of-the-art results on various code generation benchmarks. 
+2 Related work
+Reasoning and decision-making Self-Refine [ 15] employs an iterative framework for self-
+refinement to autonomously improve generation through self-evaluation. These self-evaluation
+and self-improvement steps are conditioned on given task constraints, such as "How can this genera-
+tion be written in a more positive way". Self-Refine is effective but is limited to single-generation
+reasoning tasks.
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 16:47:44 - DEBUG - [LearnKGAgent] Model Response:
+sentences:
+  1: Reflexion is a novel framework to reinforce language agents not by updating weights, but instead through linguistic feedback.
+  2: Reflexion agents verbally reflect on task feedback signals, then maintain their own reflective text in an episodic memory buffer to induce better decision-making in subsequent trials.
+  3: Reflexion is flexible enough to incorporate various types (scalar values or free-form language) and sources (external or internally simulated) of feedback signals.
+  4: Reflexion achieves significant improvements over a baseline agent across diverse tasks (sequential decision-making, coding, language reasoning).
+  5: Reflexion agents improve on decision-making AlfWorld tasks over strong baseline approaches by an absolute 22% in 12 iterative learning steps.
+  6: Reflexion agents improve on reasoning questions in HotPotQA by 20%.
+  7: Reflexion agents improve on Python programming tasks on HumanEval by as much as 11%.
+  8: Reflexion achieves state-of-the-art results on various code generation benchmarks.
+reasons:
+  1: This sentence introduces Reflexion as a new approach to reinforcing language agents through linguistic feedback, which is distinct from traditional reinforcement learning methods.
+  2: This sentence explains how Reflexion agents use linguistic feedback to improve their decision-making, which is a unique and important aspect of the framework.
+  3: This sentence highlights the flexibility of Reflexion in incorporating various types and sources of feedback signals, which is a key advantage of the framework.
+  4: This sentence demonstrates the effectiveness of Reflexion in improving the performance of language agents across diverse tasks, which is a significant contribution of the paper.
+  5: This sentence provides specific results showing the improvement of Reflexion agents on decision-making tasks, which is a valuable quantitative evaluation.
+  6: This sentence provides specific results showing the improvement of Reflexion agents on reasoning tasks, which is another valuable quantitative evaluation.
+  7: This sentence provides specific results showing the improvement of Reflexion agents on programming tasks, which is a third valuable quantitative evaluation.
+  8: This sentence summarizes the overall effectiveness of Reflexion in achieving state-of-the-art results on various code generation benchmarks, which is a significant contribution of the paper.
+-------------------------------------------------------------
+2024-02-25 16:48:55 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+Reflexion: Language Agents with
+Verbal Reinforcement Learning
+Noah Shinn
+Northeastern University
+noahshinn024@gmail.comFederico Cassano
+Northeastern University
+cassano.f@northeastern.edu
+Edward Berman
+Northeastern University
+berman.ed@northeastern.eduAshwin Gopinath
+Massachusetts Institute of Technology
+agopi@mit.edu
+Karthik Narasimhan
+Princeton University
+karthikn@princeton.eduShunyu Yao
+Princeton University
+shunyuy@princeton.edu
+Abstract
+Large language models (LLMs) have been increasingly used to interact with exter-
+nal environments (e.g., games, compilers, APIs) as goal-driven agents. However,
+it remains challenging for these language agents to quickly and efficiently learn
+from trial-and-error as traditional reinforcement learning methods require exten-
+sive training samples and expensive model fine-tuning. We propose Reflexion , a
+novel framework to reinforce language agents not by updating weights, but in-
+stead through linguistic feedback. Concretely, Reflexion agents verbally reflect
+on task feedback signals, then maintain their own reflective text in an episodic
+memory buffer to induce better decision-making in subsequent trials. Reflexion is
+flexible enough to incorporate various types (scalar values or free-form language)
+and sources (external or internally simulated) of feedback signals, and obtains
+significant improvements over a baseline agent across diverse tasks (sequential
+decision-making, coding, language reasoning). For example, Reflexion achieves a
+91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previ-
+ous state-of-the-art GPT-4 that achieves 80%. We also conduct ablation and analysis
+studies using different feedback signals, feedback incorporation methods, and agent
+types, and provide insights into how they affect performance. We release all code,
+demos, and datasets at https://github.com/noahshinn024/reflexion . 
+1 Introduction
+Recent works such as ReAct [ 30], SayCan [ 1], Toolformer [ 22], HuggingGPT [ 23], generative
+agents [ 19], and WebGPT [ 17] have demonstrated the feasibility of autonomous decision-making
+agents that are built on top of a large language model (LLM) core. These methods use LLMs to
+generate text and ‘actions‘ that can be used in API calls and executed in an environment. Since
+they rely on massive models with an enormous number of parameters, such approaches have been
+so far limited to using in-context examples as a way of teaching the agents, since more traditional
+optimization schemes like reinforcement learning with gradient descent require substantial amounts
+of compute and time. 
+Preprint. Under review.arXiv:2303.11366v4  [cs. AI]  10 Oct 2023In this paper, we propose an alternative approach called Reflexion that uses verbal reinforcement
+to help agents learn from prior failings. Reflexion converts binary or scalar feedback from the
+environment into verbal feedback in the form of a textual summary, which is then added as additional
+context for the LLM agent in the next episode. This self-reflective feedback acts as a ‘semantic’
+gradient signal by providing the agent with a concrete direction to improve upon, helping it learn
+from prior mistakes to perform better on the task. This is akin to how humans iteratively learn to
+accomplish complex tasks in a few-shot manner – by reflecting on their previous failures in order to
+form an improved plan of attack for the next attempt. For example, in figure 1, a Reflexion agent
+learns to optimize its own behavior to solve decision-making, programming, and reasoning tasks
+through trial, error, and self-reflection. 
+Generating useful reflective feedback is challenging since it requires a good understanding of where
+the model made mistakes (i.e. the credit assignment problem [ 25]) as well as the ability to generate
+a summary containing actionable insights for improvement. We explore three ways for doing
+this – simple binary environment feedback, pre-defined heuristics for common failure cases, and
+self-evaluation such as binary classification using LLMs (decision-making) or self-written unit
+tests (programming). In all implementations, the evaluation signal is amplified to natural language
+experience summaries which can be stored in long-term memory. 
+Reflexion has several advantages compared to more traditional RL approaches like policy or value-
+based learning: 1) it is lightweight and doesn’t require finetuning the LLM, 2) it allows for more
+nuanced forms of feedback (e.g. targeted changes in actions), compared to scalar or vector rewards
+that are challenging to perform accurate credit assignment with, 3) it allows for a more explicit and
+interpretable form of episodic memory over prior experiences, and 4) it provides more explicit hints
+for actions in future episodes. At the same time, it does have the disadvantages of relying on the
+power of the LLM’s self-evaluation capabilities (or heuristics) and not having a formal guarantee for
+success. However, as LLM capabilities improve, we only expect this paradigm to get better over time. 
+We perform experiments on (1) decision-making tasks to test sequential action choices over long
+trajectories, (2) reasoning tasks to test knowledge-intensive, single-step generation improvement,
+and (3) programming tasks to teach the agent to effectively use external tools such as compilers
+and interpreters. Across all three types of tasks, we observe Reflexion agents are better decision-
+makers, reasoners, and programmers. More concretely, Reflexion agents improve on decision-making
+AlfWorld [ 24] tasks over strong baseline approaches by an absolute 22% in 12 iterative learning
+steps, and on reasoning questions in HotPotQA [ 28] by 20%, and Python programming tasks on
+HumanEval [6] by as much as 11%. 
+To summarize, our contributions are the following:
+•We propose Reflexion, a new paradigm for ‘verbal‘ reinforcement that parameterizes a
+policy as an agent’s memory encoding paired with a choice of LLM parameters. 
+•We explore this emergent property of self-reflection in LLMs and empirically show that
+self-reflection is extremely useful to learn complex tasks over a handful of trials. 
+•We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40
+challenging Leetcode questions (‘hard-level‘) in 19 programming languages. 
+•We show that Reflexion achieves improvements over strong baselines across several tasks,
+and achieves state-of-the-art results on various code generation benchmarks. 
+2 Related work
+Reasoning and decision-making Self-Refine [ 15] employs an iterative framework for self-
+refinement to autonomously improve generation through self-evaluation. These self-evaluation
+and self-improvement steps are conditioned on given task constraints, such as "How can this genera-
+tion be written in a more positive way". Self-Refine is effective but is limited to single-generation
+reasoning tasks.
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 16:49:09 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "We propose Reflexion, a novel framework to reinforce language agents not by updating weights, but instead through linguistic feedback."
+  2: "Reflexion agents verbally reflect on task feedback signals, then maintain their own reflective text in an episodic memory buffer to induce better decision-making in subsequent trials."
+  3: "Reflexion is flexible enough to incorporate various types (scalar values or free-form language) and sources (external or internally simulated) of feedback signals, and obtains significant improvements over a baseline agent across diverse tasks (sequential decision-making, coding, language reasoning)."
+  4: "For example, Reflexion achieves a 91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previous state-of-the-art GPT-4 that achieves 80%."
+  5: "Reflexion converts binary or scalar feedback from the environment into verbal feedback in the form of a textual summary, which is then added as additional context for the LLM agent in the next episode."
+  6: "This self-reflective feedback acts as a ‘semantic’ gradient signal by providing the agent with a concrete direction to improve upon, helping it learn from prior mistakes to perform better on the task."
+  7: "We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40 challenging Leetcode questions ('hard-level') in 19 programming languages."
+reasons:
+  1: This sentence introduces the core concept of the paper, the Reflexion framework, which is a foundational piece of information for understanding the subsequent content.
+  2: This sentence explains the operational mechanism of Reflexion agents, which is crucial for understanding how the framework functions and improves decision-making.
+  3: This sentence provides insight into the flexibility and effectiveness of Reflexion across various tasks, which is significant for understanding its applicability and impact.
+  4: This sentence offers a concrete example of Reflexion's performance, providing a benchmark comparison that highlights its advancement over existing technology.
+  5: This sentence details the process by which Reflexion transforms feedback into actionable insights for the agent, which is a key component of the framework's learning methodology.
+  6: This sentence further clarifies the nature of the feedback used by Reflexion and its role in the learning process, likening it to a 'semantic' gradient signal.
+  7: This sentence introduces a new tool, LeetcodeHardGym, which is relevant as it represents an environment created to test the Reflexion framework and is a contribution of the paper.
+```
+-------------------------------------------------------------
+2024-02-25 16:50:27 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "Self-Refine is effective but is limited to single-generation reasoning tasks."
+  2: "Xie et al. [ 27] use stochastic beam search over actions to perform a more efficient decision-making search strategy which allows the agent to use foresight advantage due to its self-evaluation component."
+  3: "In this paper, we show that several of these concepts can be enhanced with self-reflection to build a persisting memory of self-reflective experiences which allows an agent to identify its own errors and self-suggest lessons to learn from its mistakes over time."
+  4: "AlphaCode [ 14] evaluates a set of generations on hidden test cases."
+  5: "CodeT [ 5] uses self-generated unit tests that are used to score generated function implementations."
+  6: "Self-Debugging [ 7] employs a debugging component that is used to improve existing implementations given feedback from a code execution environment."
+  7: "CodeRL [ 12] sets the problem in an RL framework using an actor-critic setup to debug programs given feedback from an execution environment."
+  8: "We develop a modular formulation for Reflexion, utilizing three distinct models: an Actor, denoted as Ma, which generates text and actions; an Evaluator model, represented by Me, that scores the outputs produced by Ma; and a Self-Reflection model, denoted as Msr, which generates verbal reinforcement cues to assist the Actor in self-improvement."
+  9: "These diverse generation models allow us to explore different aspects of text and action generation within the Reflexion framework, providing valuable insights into their performance and effectiveness."
+reasons:
+  1: This sentence introduces the limitation of the Self-Refine approach, which is foundational for understanding the scope of its application.
+  2: This sentence provides information about a specific technique used by Xie et al. for decision-making, which is distinct and adds to the knowledge graph by detailing a method for improving search strategies.
+  3: This sentence outlines the paper's contribution to enhancing existing concepts with self-reflection, which is a significant advancement in the field.
+  4: This sentence describes the methodology used by AlphaCode, which is relevant for understanding different approaches in programming task evaluation.
+  5: This sentence explains the approach of CodeT, which introduces the concept of self-generated unit tests, adding a new dimension to the programming methodologies.
+  6: This sentence provides information about the Self-Debugging approach, which uses a debugging component for code improvement, adding a practical tool to the knowledge graph.
+  7: This sentence introduces CodeRL's approach, which is distinct in setting the problem within a reinforcement learning framework, thus contributing a different perspective to the knowledge graph.
+  8: This sentence lays out the structure of the Reflexion system, which is foundational for understanding the paper's proposed solution.
+  9: This sentence is important as it highlights the exploration of different generation models within the Reflexion framework, which is crucial for assessing the framework's versatility and effectiveness.
+```
+-------------------------------------------------------------
+2024-02-25 16:52:14 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+Reflexion: Language Agents with
+Verbal Reinforcement Learning
+Noah Shinn
+Northeastern University
+noahshinn024@gmail.comFederico Cassano
+Northeastern University
+cassano.f@northeastern.edu
+Edward Berman
+Northeastern University
+berman.ed@northeastern.eduAshwin Gopinath
+Massachusetts Institute of Technology
+agopi@mit.edu
+Karthik Narasimhan
+Princeton University
+karthikn@princeton.eduShunyu Yao
+Princeton University
+shunyuy@princeton.edu
+Abstract
+Large language models (LLMs) have been increasingly used to interact with exter-
+nal environments (e.g., games, compilers, APIs) as goal-driven agents. However,
+it remains challenging for these language agents to quickly and efficiently learn
+from trial-and-error as traditional reinforcement learning methods require exten-
+sive training samples and expensive model fine-tuning. We propose Reflexion , a
+novel framework to reinforce language agents not by updating weights, but in-
+stead through linguistic feedback. Concretely, Reflexion agents verbally reflect
+on task feedback signals, then maintain their own reflective text in an episodic
+memory buffer to induce better decision-making in subsequent trials. Reflexion is
+flexible enough to incorporate various types (scalar values or free-form language)
+and sources (external or internally simulated) of feedback signals, and obtains
+significant improvements over a baseline agent across diverse tasks (sequential
+decision-making, coding, language reasoning). For example, Reflexion achieves a
+91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previ-
+ous state-of-the-art GPT-4 that achieves 80%. We also conduct ablation and analysis
+studies using different feedback signals, feedback incorporation methods, and agent
+types, and provide insights into how they affect performance. We release all code,
+demos, and datasets at https://github.com/noahshinn024/reflexion . 
+1 Introduction
+Recent works such as ReAct [ 30], SayCan [ 1], Toolformer [ 22], HuggingGPT [ 23], generative
+agents [ 19], and WebGPT [ 17] have demonstrated the feasibility of autonomous decision-making
+agents that are built on top of a large language model (LLM) core. These methods use LLMs to
+generate text and ‘actions‘ that can be used in API calls and executed in an environment. Since
+they rely on massive models with an enormous number of parameters, such approaches have been
+so far limited to using in-context examples as a way of teaching the agents, since more traditional
+optimization schemes like reinforcement learning with gradient descent require substantial amounts
+of compute and time. 
+Preprint. Under review.arXiv:2303.11366v4  [cs. AI]  10 Oct 2023In this paper, we propose an alternative approach called Reflexion that uses verbal reinforcement
+to help agents learn from prior failings. Reflexion converts binary or scalar feedback from the
+environment into verbal feedback in the form of a textual summary, which is then added as additional
+context for the LLM agent in the next episode. This self-reflective feedback acts as a ‘semantic’
+gradient signal by providing the agent with a concrete direction to improve upon, helping it learn
+from prior mistakes to perform better on the task. This is akin to how humans iteratively learn to
+accomplish complex tasks in a few-shot manner – by reflecting on their previous failures in order to
+form an improved plan of attack for the next attempt. For example, in figure 1, a Reflexion agent
+learns to optimize its own behavior to solve decision-making, programming, and reasoning tasks
+through trial, error, and self-reflection. 
+Generating useful reflective feedback is challenging since it requires a good understanding of where
+the model made mistakes (i.e. the credit assignment problem [ 25]) as well as the ability to generate
+a summary containing actionable insights for improvement. We explore three ways for doing
+this – simple binary environment feedback, pre-defined heuristics for common failure cases, and
+self-evaluation such as binary classification using LLMs (decision-making) or self-written unit
+tests (programming). In all implementations, the evaluation signal is amplified to natural language
+experience summaries which can be stored in long-term memory. 
+Reflexion has several advantages compared to more traditional RL approaches like policy or value-
+based learning: 1) it is lightweight and doesn’t require finetuning the LLM, 2) it allows for more
+nuanced forms of feedback (e.g. targeted changes in actions), compared to scalar or vector rewards
+that are challenging to perform accurate credit assignment with, 3) it allows for a more explicit and
+interpretable form of episodic memory over prior experiences, and 4) it provides more explicit hints
+for actions in future episodes. At the same time, it does have the disadvantages of relying on the
+power of the LLM’s self-evaluation capabilities (or heuristics) and not having a formal guarantee for
+success. However, as LLM capabilities improve, we only expect this paradigm to get better over time. 
+We perform experiments on (1) decision-making tasks to test sequential action choices over long
+trajectories, (2) reasoning tasks to test knowledge-intensive, single-step generation improvement,
+and (3) programming tasks to teach the agent to effectively use external tools such as compilers
+and interpreters. Across all three types of tasks, we observe Reflexion agents are better decision-
+makers, reasoners, and programmers. More concretely, Reflexion agents improve on decision-making
+AlfWorld [ 24] tasks over strong baseline approaches by an absolute 22% in 12 iterative learning
+steps, and on reasoning questions in HotPotQA [ 28] by 20%, and Python programming tasks on
+HumanEval [6] by as much as 11%. 
+To summarize, our contributions are the following:
+•We propose Reflexion, a new paradigm for ‘verbal‘ reinforcement that parameterizes a
+policy as an agent’s memory encoding paired with a choice of LLM parameters. 
+•We explore this emergent property of self-reflection in LLMs and empirically show that
+self-reflection is extremely useful to learn complex tasks over a handful of trials. 
+•We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40
+challenging Leetcode questions (‘hard-level‘) in 19 programming languages. 
+•We show that Reflexion achieves improvements over strong baselines across several tasks,
+and achieves state-of-the-art results on various code generation benchmarks. 
+2 Related work
+Reasoning and decision-making Self-Refine [ 15] employs an iterative framework for self-
+refinement to autonomously improve generation through self-evaluation. These self-evaluation
+and self-improvement steps are conditioned on given task constraints, such as "How can this genera-
+tion be written in a more positive way". Self-Refine is effective but is limited to single-generation
+reasoning tasks.
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 16:52:30 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "We propose Reflexion, a novel framework to reinforce language agents not by updating weights, but instead through linguistic feedback."
+  2: "Reflexion agents verbally reflect on task feedback signals, then maintain their own reflective text in an episodic memory buffer to induce better decision-making in subsequent trials."
+  3: "Reflexion is flexible enough to incorporate various types (scalar values or free-form language) and sources (external or internally simulated) of feedback signals, and obtains significant improvements over a baseline agent across diverse tasks (sequential decision-making, coding, language reasoning)."
+  4: "For example, Reflexion achieves a 91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previous state-of-the-art GPT-4 that achieves 80%."
+  5: "Reflexion converts binary or scalar feedback from the environment into verbal feedback in the form of a textual summary, which is then added as additional context for the LLM agent in the next episode."
+  6: "This self-reflective feedback acts as a ‘semantic’ gradient signal by providing the agent with a concrete direction to improve upon, helping it learn from prior mistakes to perform better on the task."
+  7: "We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40 challenging Leetcode questions ('hard-level') in 19 programming languages."
+  8: "Reflexion has several advantages compared to more traditional RL approaches like policy or value-based learning: 1) it is lightweight and doesn’t require finetuning the LLM, 2) it allows for more nuanced forms of feedback (e.g. targeted changes in actions), compared to scalar or vector rewards that are challenging to perform accurate credit assignment with, 3) it allows for a more explicit and interpretable form of episodic memory over prior experiences, and 4) it provides more explicit hints for actions in future episodes."
+reasons:
+  1: This sentence introduces the core concept of the paper, the Reflexion framework, which is a foundational piece of information for understanding the subsequent details.
+  2: This sentence explains the operational mechanism of Reflexion agents, which is crucial for understanding how the framework functions and improves decision-making.
+  3: This sentence provides insight into the flexibility and effectiveness of Reflexion across various tasks, which is significant for understanding its scope and impact.
+  4: This sentence offers a concrete example of Reflexion's performance, providing a benchmark comparison that highlights its advancement over existing technology.
+  5: This sentence details the process by which Reflexion transforms feedback into a format usable by language agents, which is important for understanding the method of learning enhancement.
+  6: This sentence describes the role of self-reflective feedback within the Reflexion framework, which is essential for understanding how it influences agent behavior and learning.
+  7: This sentence introduces a new tool, LeetcodeHardGym, which is relevant as it represents an environment created to test the Reflexion framework.
+  8: This sentence outlines the advantages of Reflexion over traditional reinforcement learning approaches, providing critical comparative information that underscores the significance of the new framework.
+```
+-------------------------------------------------------------
+2024-02-25 16:53:08 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "Self-Refine is effective but is limited to single-generation reasoning tasks."
+  2: "Xie et al. [ 27] use stochastic beam search over actions to perform a more efficient decision-making search strategy which allows the agent to use foresight advantage due to its self-evaluation component."
+  3: "In this paper, we show that several of these concepts can be enhanced with self-reflection to build a persisting memory of self-reflective experiences which allows an agent to identify its own errors and self-suggest lessons to learn from its mistakes over time."
+  4: "AlphaCode [ 14] evaluates a set of generations on hidden test cases."
+  5: "CodeT [ 5] uses self-generated unit tests that are used to score generated function implementations."
+  6: "Self-Debugging [ 7] employs a debugging component that is used to improve existing implementations given feedback from a code execution environment."
+  7: "CodeRL [ 12] sets the problem in an RL framework using an actor-critic setup to debug programs given feedback from an execution environment."
+  8: "We develop a modular formulation for Reflexion, utilizing three distinct models: an Actor, denoted as Ma, which generates text and actions; an Evaluator model, represented by Me, that scores the outputs produced by Ma; and a Self-Reflection model, denoted as Msr, which generates verbal reinforcement cues to assist the Actor in self-improvement."
+  9: "These diverse generation models allow us to explore different aspects of text and action generation within the Reflexion framework, providing valuable insights into their performance and effectiveness."
+reasons:
+  1: This sentence introduces the concept of Self-Refine and its limitation, which is foundational for understanding the scope of the technology discussed.
+  2: The sentence provides information about a specific technique used by Xie et al. for decision-making, which is distinct and adds to the understanding of different strategies in AI reasoning.
+  3: This sentence is important as it outlines the paper's contribution to enhancing AI with self-reflection, a significant advancement in the field.
+  4: The sentence introduces AlphaCode and its method of evaluating generations, which is a specific approach in the programming context.
+  5: This sentence provides information about CodeT's approach to scoring function implementations, which is a unique method worth noting.
+  6: The sentence describes the functionality of Self-Debugging, which is relevant for understanding different debugging approaches in programming.
+  7: This sentence introduces CodeRL and its unique approach within a reinforcement learning framework, which is distinct from other methods mentioned.
+  8: The sentence outlines the components of the Reflexion framework, which is central to the paper's thesis and provides a clear description of the system's architecture.
+  9: This sentence is important as it discusses the exploration of different generation models within the Reflexion framework, indicating the research's breadth and depth.
+```
+-------------------------------------------------------------
+2024-02-25 17:05:40 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+Reflexion: Language Agents with
+Verbal Reinforcement Learning
+Noah Shinn
+Northeastern University
+noahshinn024@gmail.comFederico Cassano
+Northeastern University
+cassano.f@northeastern.edu
+Edward Berman
+Northeastern University
+berman.ed@northeastern.eduAshwin Gopinath
+Massachusetts Institute of Technology
+agopi@mit.edu
+Karthik Narasimhan
+Princeton University
+karthikn@princeton.eduShunyu Yao
+Princeton University
+shunyuy@princeton.edu
+Abstract
+Large language models (LLMs) have been increasingly used to interact with exter-
+nal environments (e.g., games, compilers, APIs) as goal-driven agents. However,
+it remains challenging for these language agents to quickly and efficiently learn
+from trial-and-error as traditional reinforcement learning methods require exten-
+sive training samples and expensive model fine-tuning. We propose Reflexion , a
+novel framework to reinforce language agents not by updating weights, but in-
+stead through linguistic feedback. Concretely, Reflexion agents verbally reflect
+on task feedback signals, then maintain their own reflective text in an episodic
+memory buffer to induce better decision-making in subsequent trials. Reflexion is
+flexible enough to incorporate various types (scalar values or free-form language)
+and sources (external or internally simulated) of feedback signals, and obtains
+significant improvements over a baseline agent across diverse tasks (sequential
+decision-making, coding, language reasoning). For example, Reflexion achieves a
+91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previ-
+ous state-of-the-art GPT-4 that achieves 80%. We also conduct ablation and analysis
+studies using different feedback signals, feedback incorporation methods, and agent
+types, and provide insights into how they affect performance. We release all code,
+demos, and datasets at https://github.com/noahshinn024/reflexion . 
+1 Introduction
+Recent works such as ReAct [ 30], SayCan [ 1], Toolformer [ 22], HuggingGPT [ 23], generative
+agents [ 19], and WebGPT [ 17] have demonstrated the feasibility of autonomous decision-making
+agents that are built on top of a large language model (LLM) core. These methods use LLMs to
+generate text and ‘actions‘ that can be used in API calls and executed in an environment. Since
+they rely on massive models with an enormous number of parameters, such approaches have been
+so far limited to using in-context examples as a way of teaching the agents, since more traditional
+optimization schemes like reinforcement learning with gradient descent require substantial amounts
+of compute and time. 
+Preprint. Under review.arXiv:2303.11366v4  [cs. AI]  10 Oct 2023In this paper, we propose an alternative approach called Reflexion that uses verbal reinforcement
+to help agents learn from prior failings. Reflexion converts binary or scalar feedback from the
+environment into verbal feedback in the form of a textual summary, which is then added as additional
+context for the LLM agent in the next episode. This self-reflective feedback acts as a ‘semantic’
+gradient signal by providing the agent with a concrete direction to improve upon, helping it learn
+from prior mistakes to perform better on the task. This is akin to how humans iteratively learn to
+accomplish complex tasks in a few-shot manner – by reflecting on their previous failures in order to
+form an improved plan of attack for the next attempt. For example, in figure 1, a Reflexion agent
+learns to optimize its own behavior to solve decision-making, programming, and reasoning tasks
+through trial, error, and self-reflection. 
+Generating useful reflective feedback is challenging since it requires a good understanding of where
+the model made mistakes (i.e. the credit assignment problem [ 25]) as well as the ability to generate
+a summary containing actionable insights for improvement. We explore three ways for doing
+this – simple binary environment feedback, pre-defined heuristics for common failure cases, and
+self-evaluation such as binary classification using LLMs (decision-making) or self-written unit
+tests (programming). In all implementations, the evaluation signal is amplified to natural language
+experience summaries which can be stored in long-term memory. 
+Reflexion has several advantages compared to more traditional RL approaches like policy or value-
+based learning: 1) it is lightweight and doesn’t require finetuning the LLM, 2) it allows for more
+nuanced forms of feedback (e.g. targeted changes in actions), compared to scalar or vector rewards
+that are challenging to perform accurate credit assignment with, 3) it allows for a more explicit and
+interpretable form of episodic memory over prior experiences, and 4) it provides more explicit hints
+for actions in future episodes. At the same time, it does have the disadvantages of relying on the
+power of the LLM’s self-evaluation capabilities (or heuristics) and not having a formal guarantee for
+success. However, as LLM capabilities improve, we only expect this paradigm to get better over time. 
+We perform experiments on (1) decision-making tasks to test sequential action choices over long
+trajectories, (2) reasoning tasks to test knowledge-intensive, single-step generation improvement,
+and (3) programming tasks to teach the agent to effectively use external tools such as compilers
+and interpreters. Across all three types of tasks, we observe Reflexion agents are better decision-
+makers, reasoners, and programmers. More concretely, Reflexion agents improve on decision-making
+AlfWorld [ 24] tasks over strong baseline approaches by an absolute 22% in 12 iterative learning
+steps, and on reasoning questions in HotPotQA [ 28] by 20%, and Python programming tasks on
+HumanEval [6] by as much as 11%. 
+To summarize, our contributions are the following:
+•We propose Reflexion, a new paradigm for ‘verbal‘ reinforcement that parameterizes a
+policy as an agent’s memory encoding paired with a choice of LLM parameters. 
+•We explore this emergent property of self-reflection in LLMs and empirically show that
+self-reflection is extremely useful to learn complex tasks over a handful of trials. 
+•We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40
+challenging Leetcode questions (‘hard-level‘) in 19 programming languages. 
+•We show that Reflexion achieves improvements over strong baselines across several tasks,
+and achieves state-of-the-art results on various code generation benchmarks. 
+2 Related work
+Reasoning and decision-making Self-Refine [ 15] employs an iterative framework for self-
+refinement to autonomously improve generation through self-evaluation. These self-evaluation
+and self-improvement steps are conditioned on given task constraints, such as "How can this genera-
+tion be written in a more positive way". Self-Refine is effective but is limited to single-generation
+reasoning tasks.
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 17:06:04 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "We propose Reflexion, a novel framework to reinforce language agents not by updating weights, but instead through linguistic feedback."
+  2: "Reflexion agents verbally reflect on task feedback signals, then maintain their own reflective text in an episodic memory buffer to induce better decision-making in subsequent trials."
+  3: "Reflexion is flexible enough to incorporate various types (scalar values or free-form language) and sources (external or internally simulated) of feedback signals, and obtains significant improvements over a baseline agent across diverse tasks (sequential decision-making, coding, language reasoning)."
+  4: "For example, Reflexion achieves a 91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previous state-of-the-art GPT-4 that achieves 80%."
+  5: "Reflexion converts binary or scalar feedback from the environment into verbal feedback in the form of a textual summary, which is then added as additional context for the LLM agent in the next episode."
+  6: "We introduce LeetcodeHardGym, a code-generation RL gym environment consisting of 40 challenging Leetcode questions ('hard-level') in 19 programming languages."
+reasons:
+  1: This sentence introduces the core concept of the paper, the Reflexion framework, which is a new approach to reinforcing language agents, and is foundational for understanding the rest of the text.
+  2: This sentence explains the mechanism by which Reflexion agents learn and improve, which is central to understanding how the framework functions.
+  3: This sentence provides insight into the flexibility and effectiveness of Reflexion across various tasks, which is significant for understanding its potential applications and advantages.
+  4: This sentence offers a concrete example of Reflexion's performance, providing a benchmark comparison that highlights its superiority over existing technology.
+  5: This sentence further elaborates on how Reflexion processes feedback, which is important for understanding the methodological innovation it represents.
+  6: This sentence introduces a new tool, LeetcodeHardGym, which is relevant as it represents an environment created to test the Reflexion framework and is a contribution in itself.
+```
+-------------------------------------------------------------
+2024-02-25 17:06:31 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "Self-Refine is effective but is limited to single-generation reasoning tasks."
+  2: "Xie et al. [ 27] use stochastic beam search over actions to perform a more efficient decision-making search strategy which allows the agent to use foresight advantage due to its self-evaluation component."
+  3: "In this paper, we show that several of these concepts can be enhanced with self-reflection to build a persisting memory of self-reflective experiences which allows an agent to identify its own errors and self-suggest lessons to learn from its mistakes over time."
+  4: "AlphaCode [ 14] evaluates a set of generations on hidden test cases."
+  5: "CodeT [ 5] uses self-generated unit tests that are used to score generated function implementations."
+  6: "Self-Debugging [ 7] employs a debugging component that is used to improve existing implementations given feedback from a code execution environment."
+  7: "CodeRL [ 12] sets the problem in an RL framework using an actor-critic setup to debug programs given feedback from an execution environment."
+  8: "We develop a modular formulation for Reflexion, utilizing three distinct models: an Actor, denoted as Ma, which generates text and actions; an Evaluator model, represented by Me, that scores the outputs produced by Ma; and a Self-Reflection model, denoted as Msr, which generates verbal reinforcement cues to assist the Actor in self-improvement."
+  9: "This adaption was inspired by Brooks et al. [ 3], who suggest a policy iteration approach using in-context learning."
+reasons:
+  1: "This sentence introduces the limitation of the Self-Refine approach, which is foundational for understanding its scope and application."
+  2: "The sentence provides information about a specific technique used by Xie et al. for decision-making, which is distinct in its use of stochastic beam search and foresight advantage."
+  3: "This sentence outlines the paper's contribution to enhancing existing concepts with self-reflection, which is a significant advancement in the field of AI and machine learning."
+  4: "The sentence describes the methodology used by AlphaCode, which is relevant for understanding different approaches to evaluating AI-generated code."
+  5: "This sentence explains the approach of CodeT, which is unique in its use of self-generated unit tests for scoring, adding to the diversity of methods in programming tasks."
+  6: "The sentence provides insight into the Self-Debugging approach, which uses a debugging component for improvement based on code execution feedback, contributing to the understanding of debugging practices in AI."
+  7: "The sentence introduces CodeRL's approach, which is notable for setting the problem within a reinforcement learning framework, a distinct method in the context of programming and debugging."
+  8: "This sentence is important as it describes the modular formulation of Reflexion, detailing its three-component structure which is central to the paper's proposed method."
+  9: "The sentence is selected for its mention of the inspiration behind the adaptation of Reflexion, indicating the influence of policy iteration and in-context learning on the development of the Reflexion framework."
+```
+-------------------------------------------------------------
+2024-02-25 17:08:02 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+All examples can be found in the appendix. 
+Robustly evaluating natural language answers is a long-standing problem in NLP. Therefore, between
+trials, we use exact match answer grading using the environment to give a binary success signal to
+the agent. After each trial, the self-reflection loop is employed to amplify the binary signal, similar to
+the decision-making setup 4.1 in AlfWorld with a memory size of 3 experiences. 
+Results Reflexion outperforms all baseline approaches by significant margins over several learning
+steps. Furthermore, ReAct-only, CoT-only, and CoT (GT)-only implementations fail to probabilisti-
+cally improve on any tasks, meaning that no failed tasks from the first trial from any of the baseline
+approaches were able to be solved in subsequent trials using a temperature of 0.7 In the Reflexion runs,
+we allowed the agent to gather experience and retry on failed tasks until it produced 3 consecutive
+failed attempts on the particular task. Naturally, the CoT (GT) achieved higher accuracy scores as it
+was given access to the ground truth context of the question. Still, the CoT (GT) agent is unable to
+correctly infer the correct answer for 39% of the questions, but Reflexion helps the agent to correct
+its mistakes without access to the ground truth answer to improve its accuracy by 14%. 
+60 2 4 6
+Trial Number0.20.40.60.8Proportion of Solved Tasks
+(a) HotPotQA Success Rate
+CoT only
+ReAct only
+CoT + Reflexion
+ReAct + Reflexion
+01234567
+Trial Number0.40.60.81.0Proportion of Solved Tasks
+(b) HotPotQA CoT (GT)
+CoT (GT) only
+CoT (GT) + Reflexion
+0 1 2 3 4
+Trial Number0.50.60.70.80.91.0Proportion of Solved Tasks
+(c) HotPotQA Episodic Memory
+CoT (GT) only
+CoT (GT) EPM
+CoT (GT) EPM + ReflexionFigure 4: Chain-of-Thought (CoT) and ReAct. Reflexion improves search, information retrieval,
+and reasoning capabilities on 100 HotPotQA questions. ( a) Reflexion ReAct vs Reflexion CoT (b)
+Reflexion CoT (GT) for reasoning only (c) Reflexion vs episodic memory ablation. 
+Analysis We perform an ablation experiment to isolate the advantage of the self-reflective step for
+reasoning using CoT (GT) as the baseline approach 4. Recall that CoT (GT) uses Chain-of-Thought
+reasoning with provided ground truth context, which tests reasoning ability over long contexts. Next,
+we add an element of episodic memory (EPM) by including the most recent trajectory. For the
+Reflexion agent, we implement the standard self-reflection step as a final pass. Intuitively, we test if
+the agent is iteratively learning more effectively by using verbal explanation using language written
+in the first person. 4 shows that self-reflection improves learning by an 8% absolute boost over
+the episodic memory learning advantage. This result supports the argument that refinement-only
+approaches are not as effective as self-reflection-guided refinement approaches. 
+4.3 Programming
+We evaluate the baseline and Reflexion approaches on Python and Rust code writing on MBPP
+[2], HumanEval [ 6], and LeetcodeHardGym, our new dataset. MBPP and HumanEval measure
+function body generation accuracy given natural language descriptions. We use a benchmark language
+compiler, MultiPL-E [ 4], to translate subsets of HumanEval and MBPP to the Rust language. MultiPL-
+E is a collection of small compilers that can be used to translate Python benchmark questions to 18
+other languages. We include experiments for Rust code generation to demonstrate that Reflexion
+implementations for code generation are language-agnostic and can be used for interpreted and
+compiled languages. Lastly, we introduce a new benchmark, LeetcodeHardGym, which is an
+interactive programming gym that contains 40 Leetcode hard-rated questions that have been released
+after October 8, 2022, which is the pre-training cutoff date of GPT-4 [18]. 
+The task of programming presents a unique opportunity to use more grounded self-evaluation practices
+such as self-generated unit test suites. Thus, our Reflexion-based programming task implementation is
+eligible for pass@1 accuracy reporting. To generate a test suite, we use Chain-of-Thought prompting
+[26] to produce diverse, extensive tests with corresponding natural language descriptions. Then, we
+filter for syntactically valid test statements by attempting to construct a valid abstract syntax tree
+(AST) for each proposed test. Finally, we sample ntests from the collection of generated unit tests
+to produce a test suite T, denoted as {t0, t1, . . . , t n}. We set nto a maximum of 6 unit tests. Aside
+from the unit test suite component, the setup for the learning loop for a Reflexion programming agent
+is identical to the reasoning and decision-making agents with a max memory limit of 1 experience. 
+Benchmark + Language Prev SOTA Pass@1 SOTA Pass@1 Reflexion Pass@1
+HumanEval (PY) 65.8 (CodeT [5] + GPT-3.5) 80.1 (GPT-4) 91.0
+HumanEval (RS) – 60.0 (GPT-4) 68.0
+MBPP (PY) 67.7 (CodeT [5] + Codex [6]) 80.1 (GPT-4) 77.1
+MBPP (RS) – 70.9 (GPT-4) 75.4
+Leetcode Hard (PY) – 7.5 (GPT-4) 15.0
+Table 1: Pass@1 accuracy for various model-strategy-language combinations. The base strategy is a
+single code generation sample.
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 17:08:45 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "Robustly evaluating natural language answers is a long-standing problem in NLP."
+  2: "Results Reflexion outperforms all baseline approaches by significant margins over several learning steps."
+  3: "Furthermore, ReAct-only, CoT-only, and CoT (GT)-only implementations fail to probabilistically improve on any tasks."
+  4: "Naturally, the CoT (GT) achieved higher accuracy scores as it was given access to the ground truth context of the question."
+  5: "Still, the CoT (GT) agent is unable to correctly infer the correct answer for 39% of the questions, but Reflexion helps the agent to correct its mistakes without access to the ground truth answer to improve its accuracy by 14%."
+  6: "Reflexion improves search, information retrieval, and reasoning capabilities on 100 HotPotQA questions."
+  7: "We perform an ablation experiment to isolate the advantage of the self-reflective step for reasoning using CoT (GT) as the baseline approach."
+  8: "This result supports the argument that refinement-only approaches are not as effective as self-reflection-guided refinement approaches."
+  9: "We evaluate the baseline and Reflexion approaches on Python and Rust code writing on MBPP, HumanEval, and LeetcodeHardGym, our new dataset."
+  10: "MultiPL-E is a collection of small compilers that can be used to translate Python benchmark questions to 18 other languages."
+  11: "We introduce a new benchmark, LeetcodeHardGym, which is an interactive programming gym that contains 40 Leetcode hard-rated questions that have been released after October 8, 2022, which is the pre-training cutoff date of GPT-4."
+  12: "To generate a test suite, we use Chain-of-Thought prompting to produce diverse, extensive tests with corresponding natural language descriptions."
+  13: "Benchmark + Language Prev SOTA Pass@1 SOTA Pass@1 Reflexion Pass@1 HumanEval (PY) 65.8 (CodeT [5] + GPT-3.5) 80.1 (GPT-4) 91.0 HumanEval (RS) – 60.0 (GPT-4) 68.0 MBPP (PY) 67.7 (CodeT [5] + Codex [6]) 80.1 (GPT-4) 77.1 MBPP (RS) – 70.9 (GPT-4) 75.4 Leetcode Hard (PY) – 7.5 (GPT-4) 15.0"
+reasons:
+  1: "This sentence establishes the context of the problem being addressed in the field of natural language processing (NLP), which is foundational for understanding the rest of the text."
+  2: "This sentence provides a key result of the study, indicating the success of the Reflexion method over other approaches, which is critical for understanding the impact of the research."
+  3: "This sentence offers insight into the limitations of other implementations when compared to Reflexion, which is important for understanding the comparative effectiveness of different methods."
+  4: "This sentence provides information on the conditions under which the CoT (GT) method achieved higher accuracy, which is important for understanding the experimental setup and results."
+  5: "This sentence gives specific quantitative results about the CoT (GT) method's limitations and the improvement made by Reflexion, which is crucial for understanding the effectiveness of the Reflexion method."
+  6: "This sentence summarizes the overall impact of Reflexion on various capabilities, which is significant for understanding the breadth of its application."
+  7: "This sentence introduces the methodology of an ablation experiment, which is important for understanding how the research isolates the effects of the self-reflective step."
+  8: "This sentence provides a conclusion from the experiment, which is important for understanding the implications of the research findings."
+  9: "This sentence outlines the scope of the evaluation for the Reflexion approach, which is important for understanding the contexts in which the approach was tested."
+  10: "This sentence introduces MultiPL-E and its capabilities, which is important for understanding the tools used in the research and their potential applications."
+  11: "This sentence introduces a new benchmark dataset, which is significant as it adds to the field of programming challenges and is relevant for the evaluation of AI models."
+  12: "This sentence describes the methodology for generating a test suite, which is important for understanding how the Reflexion approach is applied in the context of programming."
+  13: "This sentence provides detailed benchmarking results, which are critical for understanding the performance of the Reflexion method compared to previous state-of-the-art (SOTA) results and other models."
+```
+-------------------------------------------------------------
+2024-02-25 17:08:47 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+
+Benchmark + Language Prev SOTA Pass@1 SOTA Pass@1 Reflexion Pass@1
+HumanEval (PY) 65.8 (CodeT [5] + GPT-3.5) 80.1 (GPT-4) 91.0
+HumanEval (RS) – 60.0 (GPT-4) 68.0
+MBPP (PY) 67.7 (CodeT [5] + Codex [6]) 80.1 (GPT-4) 77.1
+MBPP (RS) – 70.9 (GPT-4) 75.4
+Leetcode Hard (PY) – 7.5 (GPT-4) 15.0
+Table 1: Pass@1 accuracy for various model-strategy-language combinations. The base strategy is a
+single code generation sample. All instruction-based models follow zero-shot code generation. 
+7Benchmark + Language Base Reflexion TP FN FP TN
+HumanEval (PY) 0.80 0.91 0.99 0.40 0.01 0.60
+MBPP (PY) 0.80 0.77 0.84 0.59 0.16 0.41
+HumanEval (RS) 0.60 0.68 0.87 0.37 0.13 0.63
+MBPP (RS) 0.71 0.75 0.84 0.51 0.16 0.49
+Table 2: Overall accuracy and test generation performance for HumanEval and MBPP. For Rust,
+HumanEval is the hardest 50 problems from HumanEval Python translated to Rust with MultiPL-E
+[4]. TP: unit tests pass, solution pass; FN: unit tests fail, solution pass; FP: unit tests pass, solution
+fail; TN: unit tests fail, solution fail. 
+Results Reflexion outperforms all baseline accuracies and sets new state-of-the-art standards on
+all benchmarks for Python and Rust except for MBPP Python 1. We further investigate the inferior
+performance of Reflexion on MBPP Python. 
+Analysis We acknowledge that self-reflecting code-generation agents are bound to their ability to
+write diverse, comprehensive tests. Therefore, in the case in which the model generates a flaky test
+suite, it is possible that all tests pass on an incorrect solution and lead to a false positive label on a
+code completion [ 11]. On the other hand, if the model produces an incorrectly written test suite, it
+is possible for some of the tests to fail on a correct solution, leading to a self-reflection generation
+that is conditioned on a false negative code completion. Given the implementation of Reflexion,
+false negatives are preferred over false positives as the agent may be able to use self-reflection to
+identify the incorrect test(s) and prompt itself to keep the original code completion intact. On the
+other hand, if an invalid test suite returns a false positive completion (all internal test cases pass
+but the implementation is incorrect), the agent will prematurely report an invalid submission. In 2,
+various conditions are measured to analyze performance beyond pass@1 accuracy. Previously, we
+displayed the inferior performance of Reflexion to the baseline GPT-4 on MBPP Python. In 2, we
+observe a notable discrepancy between the false positive labels produced by internal test execution,
+P(not pass@1 generation correct | tests pass). That is, the probability that a submission will fail given
+that it passes all unit tests. For HumanEval and MBPP Python, the baseline pass@1 accuracies are
+relatively similar, 82% and 80%, respectively. However, the false positive test execution rate for
+MBPP Python is 16.3% while the rate for HumanEval Python is a mere 1.4%, leading to 91% overall
+accuracy 1. 
+Approach Test Generation Self-reflection Pass@1 (Acc)
+Base model False False 0.60
+Test generation omission False True 0.52
+Self-reflection omission True False 0.60
+Reflexion True True 0.68
+Table 3: Pass@1 accuracy for various compromised approaches on the Reflexion approach using
+GPT-4 as the base model on HumanEval Rust - 50 hardest problems
+Ablation study We test the composite approach of Reflexion for test generation and self-reflection
+cooperation on a subset of the 50 hardest HumanEval Rust problems. Our Rust compiler environment
+provides verbose error logs and helpful debugging hints, therefore serving as a good playground
+for compromised approaches. First, we omit internal test generation and execution steps, which
+test the agent to self-reflect without guidance from current implementations. 3 shows an inferior
+52% vs 60% (baseline) accuracy, which suggests that the agent is unable to determine if the current
+implementation is correct without unit tests. Therefore, the agent must participate in all iterations of
+the run without the option to return early, performing harmful edits to the implementation. 
+Next, we test self-reflection contribution by omitting the natural language explanation step following
+failed unit test suite evaluations. Intuitively, this challenges the agent to combine the tasks of
+error identification and implementation improvement across all failed unit tests. Interestingly, the
+compromised agent does not improve performance over the baseline run. We observe that the test
+generation and code compilation steps are able to catch syntax and logic errors, but the implementation
+fixes do not reflect these indications. These empirical results suggest that several recent works that
+8propose blind trial and error debugging techniques without self-reflection are ineffective on harder
+tasks such as writing complex programs in Rust. 
+5 Limitations
+At its core, Reflexion is an optimization technique that uses natural language to do policy optimization. 
+Policy optimization is a powerful approach to improve action choice through experience, but it may
+still succumb to non-optimal local minima solutions. In this study, we limit long-term memory to
+a sliding window with maximum capacity, but we encourage future work to extend the memory
+component of Reflexion with more advanced structures such as vector embedding databases or
+traditional SQL databases. Specific to code generation, there are many practical limitations to test-
+driven development in specifying accurate input-output mappings such as non-deterministic generator
+functions, impure functions that interact with APIs, functions that vary output according to hardware
+specifications, or functions that invoke parallel or concurrent behavior that may be difficult to predict. 
+6 Broader impact
+Large language models are increasingly used to interact with external environments (e.g. the Internet,
+software, robotics, etc.)
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 17:09:10 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "Reflexion outperforms all baseline accuracies and sets new state-of-the-art standards on all benchmarks for Python and Rust except for MBPP Python 1."
+  2: "We further investigate the inferior performance of Reflexion on MBPP Python."
+  3: "Given the implementation of Reflexion, false negatives are preferred over false positives as the agent may be able to use self-reflection to identify the incorrect test(s) and prompt itself to keep the original code completion intact."
+  4: "For HumanEval and MBPP Python, the baseline pass@1 accuracies are relatively similar, 82% and 80%, respectively."
+  5: "However, the false positive test execution rate for MBPP Python is 16.3% while the rate for HumanEval Python is a mere 1.4%, leading to 91% overall accuracy 1."
+  6: "At its core, Reflexion is an optimization technique that uses natural language to do policy optimization."
+  7: "Policy optimization is a powerful approach to improve action choice through experience, but it may still succumb to non-optimal local minima solutions."
+  8: "Large language models are increasingly used to interact with external environments (e.g. the Internet, software, robotics, etc.)"
+reasons:
+  1: This sentence establishes the overall performance of Reflexion, which is a key piece of information about its effectiveness compared to other models.
+  2: This sentence indicates that there is a specific area where Reflexion does not perform as well, which is significant for understanding its limitations.
+  3: This sentence provides insight into the design philosophy of Reflexion, explaining its preference for false negatives over false positives, which is crucial for understanding how it operates.
+  4: This sentence provides baseline accuracy figures for HumanEval and MBPP Python, which are important metrics for comparing the performance of different models.
+  5: This sentence gives specific false positive rates for MBPP Python and HumanEval Python, which are important for understanding the reliability of the models.
+  6: This sentence defines Reflexion at a high level, which is foundational for understanding what Reflexion is and how it functions.
+  7: This sentence explains the underlying mechanism of Reflexion and its potential limitations, which is important for understanding its operational boundaries.
+  8: This sentence highlights the broader context and application of large language models, which is important for understanding the impact and scope of this technology.
+```
+-------------------------------------------------------------
+2024-02-25 17:09:11 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+Specific to code generation, there are many practical limitations to test-
+driven development in specifying accurate input-output mappings such as non-deterministic generator
+functions, impure functions that interact with APIs, functions that vary output according to hardware
+specifications, or functions that invoke parallel or concurrent behavior that may be difficult to predict. 
+6 Broader impact
+Large language models are increasingly used to interact with external environments (e.g. the Internet,
+software, robotics, etc.) and humans. Our work has the potential of reinforcing and empowering
+these agents toward greater automation and work efficiency, but it also amplifies the risks when these
+agents were put into misuse. We believe that this direction of research will need more effort in safety
+and ethical considerations. 
+On the other hand, reinforcement learning has suffered from its black-box policy and optimiza-
+tion setups in which interpretability and alignment have been challenging. Our proposed “verbal”
+reinforcement learning might address some of the issues and turn autonomous agents more inter-
+pretable and diagnosable. For example, in the case of tool-usage that may be too hard for humans to
+understand, self-reflections could be monitored to ensure proper intent before using the tool. 
+7 Conclusion
+In this work, we present Reflexion , an approach that leverages verbal reinforcement to teach agents
+to learn from past mistakes. We empirically show that Reflexion agents significantly outperform
+currently widely-used decision-making approaches by utilizing self-reflection. In future work,
+Reflexion could be used to employ more advanced techniques that have been thoroughly studied in
+traditional RL settings, such as value learning in natural language or off-policy exploration techniques. 
+8 Reproducibility
+We highly advise others to use isolated execution environments when running autonomous code
+writing experiments as the generated code is not validated before execution. 
+9References
+[1]Ahn, M., Brohan, A., Brown, N., Chebotar, Y ., Cortes, O., David, B., Finn, C., Gopalakrishnan,
+K., Hausman, K., Herzog, A., et al. ( 2022). Do as i can, not as i say: Grounding language in
+robotic affordances. arXiv preprint arXiv:2204.01691 . 
+[2]Austin, J., Odena, A., Nye, M., Bosma, M., Michalewski, H., Dohan, D., Jiang, E., Cai, C.,
+Terry, M., Le, Q., et al. ( 2021). Program synthesis with large language models. arXiv preprint
+arXiv:2108.07732 . 
+[3]Brooks, E., Walls, L., Lewis, R. L., and Singh, S. (2022). In-context policy iteration. arXiv
+preprint arXiv:2210.03821 . 
+[4]Cassano, F., Gouwar, J., Nguyen, D., Nguyen, S., Phipps-Costin, L., Pinckney, D., Yee, M.-H., Zi,
+Y ., Anderson, C. J., Feldman, M. Q., Guha, A., Greenberg, M., and Jangda, A. (2022). Multipl-e:
+A scalable and extensible approach to benchmarking neural code generation. 
+[5]Chen, B., Zhang, F., Nguyen, A., Zan, D., Lin, Z., Lou, J.-G., and Chen, W. (2022). Codet: Code
+generation with generated tests. arXiv preprint arXiv:2207.10397 . 
+[6]Chen, M., Tworek, J., Jun, H., Yuan, Q., Pinto, H. P. d. O., Kaplan, J., Edwards, H., Burda, Y ., 
+Joseph, N., Brockman, G., et al. ( 2021). Evaluating large language models trained on code.
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------
+2024-02-25 17:09:22 - DEBUG - [LearnKGAgent] Model Response:
+```yaml
+sentences:
+  1: "Specific to code generation, there are many practical limitations to test-driven development in specifying accurate input-output mappings such as non-deterministic generator functions, impure functions that interact with APIs, functions that vary output according to hardware specifications, or functions that invoke parallel or concurrent behavior that may be difficult to predict."
+  2: "Large language models are increasingly used to interact with external environments (e.g. the Internet, software, robotics, etc.) and humans."
+  3: "Our work has the potential of reinforcing and empowering these agents toward greater automation and work efficiency, but it also amplifies the risks when these agents were put into misuse."
+  4: "Our proposed “verbal” reinforcement learning might address some of the issues and turn autonomous agents more interpretable and diagnosable."
+  5: "In this work, we present Reflexion, an approach that leverages verbal reinforcement to teach agents to learn from past mistakes."
+  6: "We empirically show that Reflexion agents significantly outperform currently widely-used decision-making approaches by utilizing self-reflection."
+  7: "We highly advise others to use isolated execution environments when running autonomous code writing experiments as the generated code is not validated before execution."
+reasons:
+  1: "This sentence provides foundational knowledge about the limitations of test-driven development in code generation, which is crucial for understanding the challenges in this field."
+  2: "This sentence introduces the broad application of large language models, which is foundational for understanding their impact on various domains."
+  3: "This sentence highlights the dual nature of technological advancements, offering both benefits and risks, which is an important consideration for the ethical use of AI."
+  4: "This sentence introduces a potential solution to the interpretability and diagnosability issues in reinforcement learning, which is significant for the development of transparent AI systems."
+  5: "This sentence introduces Reflexion, a novel approach in the context of the text, which is foundational for understanding the contributions of the work presented."
+  6: "This sentence provides empirical evidence of the effectiveness of Reflexion, which is important for validating the approach's significance over existing methods."
+  7: "This sentence offers a practical recommendation for conducting safe AI experiments, which is important for the responsible development and testing of AI systems."
+```
+-------------------------------------------------------------
+2024-02-25 17:09:23 - DEBUG - [LearnKGAgent] Prompt:
+You are an advanced text analysis agent with a specific focus on enhancing knowledge graphs. Your task involves meticulously parsing through given text to identify and extract sentences containing new, significant information. This information will be integrated into a knowledge graph to augment the intelligence of AI systems. Be mindful that efficiency is key; unnecessary duplication of existing knowledge is to be avoided, except when the knowledge graph is initially empty.
+
+The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
+
+```
+No Entries
+```
+
+Analyze this text to find new and important knowledge:
+
+```
+2021). Evaluating large language models trained on code. arXiv
+preprint arXiv:2107.03374 . 
+[7]Chen, X., Lin, M., Schärli, N., and Zhou, D. (2023). Teaching large language models to
+self-debug. arXiv preprint arXiv:2304.05128 . 
+[8]Côté, M.-A., Kádár, A., Yuan, X., Kybartas, B., Barnes, T., Fine, E., Moore, J., Hausknecht, M.,
+El Asri, L., Adada, M., et al. ( 2019). Textworld: A learning environment for text-based games. In
+Computer Games: 7th Workshop, CGW 2018, Held in Conjunction with the 27th International
+Conference on Artificial Intelligence, IJCAI 2018, Stockholm, Sweden, July 13, 2018, Revised
+Selected Papers 7 , pages 41–75. Springer. 
+[9]Goodman, N. (2023). Meta-prompt: A simple self-improving language agent. noahgood-
+man.substack.com . 
+[10] Kim, G., Baldi, P., and McAleer, S. (2023). Language models can solve computer tasks. arXiv
+preprint arXiv:2303.17491 . 
+[11] Lam, W., Winter, S., Wei, A., Xie, T., Marinov, D., and Bell, J. (2020). A large-scale longitudinal
+study of flaky tests. Proc. ACM Program. Lang. , 4(OOPSLA). 
+[12] Le, H., Wang, Y ., Gotmare, A. D., Savarese, S., and Hoi, S. C. H. (2022). Coderl: Mastering
+code generation through pretrained models and deep reinforcement learning. Advances in Neural
+Information Processing Systems , 35:21314–21328. 
+[13] Li, R., Allal, L. B., Zi, Y ., Muennighoff, N., Kocetkov, D., Mou, C., Marone, M., Akiki, C., Li, J.,
+Chim, J., et al. ( 2023). Starcoder: may the source be with you! arXiv preprint arXiv:2305.06161 . 
+[14] Li, Y ., Choi, D., Chung, J., Kushman, N., Schrittwieser, J., Leblond, R., Eccles, T., Keeling,
+J., Gimeno, F., Dal Lago, A., et al. (
+```
+
+Examine the text chunk and select sentences that provide unique and substantial information. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy. If the knowledge graph is empty, focus on identifying sentences that lay a foundational understanding. If no new relevant information is found, it's acceptable to select none. For each sentence chosen, explain why it's important and distinct from the current knowledge graph entries (or foundational in case of an empty knowledge graph).
+
+Adhere strictly to the provided YAML response format. Only include your selections and reasons within this format, refraining from any additional commentary.
+
+RESPONSE FORMAT:
+```yaml
+sentences:
+  # If any new and important sentences are identified, list them here. Otherwise, leave blank.
+  1: <FIRST NEW AND 0.IMPORTANT SENTENCE>
+  # Add more sentences if necessary.
+reasons:
+  # Corresponding reasons for each selected sentence. If no sentences are selected, leave blank.
+  1: <REASON FOR CHOOSING SENTENCE 1>
+  # Continue with reasons for additional sentences if there are any.
+```
+-------------------------------------------------------------

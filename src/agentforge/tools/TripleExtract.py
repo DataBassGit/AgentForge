@@ -46,5 +46,5 @@ class TripleExtract:
             if "obj" in token.dep_:
                 _object = token.text
 
-        # print(f"Debug Trip:\n\nSubject: {_subject}\nPredicate: {_predicate}\nObject: {_object}")
+        print(f"Debug Trip:\n\nSubject: {_subject}\nPredicate: {_predicate}\nObject: {_object}")
         return _subject, _predicate, _object
