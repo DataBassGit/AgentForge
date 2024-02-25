@@ -199,7 +199,7 @@ class Logger:
     Attributes:
         loggers (dict): A dictionary of BaseLogger instances keyed by log type (e.g., '.agentforge', 'modelio').
     """
-    def __init__(self, name):
+    def __init__(self, name: str):
         """
         Initializes the Logger class with names for different types of logs.
 
@@ -225,7 +225,7 @@ class Logger:
             # Store the logger in the dictionary with the log_key as the key
             self.loggers[log_name] = new_logger
 
-    def log(self, msg, level='info', logger_type='AgentForge'):
+    def log(self, msg: str, level: str = 'info', logger_type: str = 'AgentForge'):
         """
         Logs a message to a specified logger or all loggers.
 
@@ -243,7 +243,7 @@ class Logger:
         else:
             self.loggers[logger_type].log_msg(msg_with_caller, level)
 
-    def log_prompt(self, prompt):
+    def log_prompt(self, prompt: str):
         """
         Logs a prompt to the model interaction logger.
 
@@ -252,7 +252,7 @@ class Logger:
         """
         self.log(f'Prompt:\n{prompt}', 'debug', 'ModelIO')
 
-    def log_response(self, response):
+    def log_response(self, response: str):
         """
         Logs a model response to the model interaction logger.
 
@@ -261,7 +261,7 @@ class Logger:
         """
         self.log(f'Model Response:\n{response}', 'debug', 'ModelIO')
 
-    def parsing_error(self, model_response, error):
+    def parsing_error(self, model_response: str, error: Exception):
         """
         Logs parsing errors along with the model response.
 
@@ -272,7 +272,7 @@ class Logger:
         self.log(f"Parsing Error - It is very likely the model did not respond in the required "
                  f"format\n\nModel Response:\n{model_response}\n\nError: {error}", 'error')
 
-    def log_result(self, result, desc):
+    def log_result(self, result: str, desc: str):
         """
         Logs and displays a result with a description.
 
@@ -293,7 +293,7 @@ class Logger:
         except Exception as e:
             self.log(f"Error logging result: {e}", 'error')
 
-    def log_info(self, msg):
+    def log_info(self, msg: str):
         """
         Logs and displays an informational message.
 

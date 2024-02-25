@@ -54,10 +54,6 @@ class Config:
         Raises:
             FileNotFoundError: If the .agentforge directory cannot be found.
         """
-        # override_path = self.data['settings']['system']['PathOverride']
-        # if override_path:
-        #     path = pathlib.Path(override_path)
-        #     return path
 
         script_dir = pathlib.Path(sys.argv[0]).parent
         current_dir = script_dir
@@ -70,28 +66,27 @@ class Config:
 
             current_dir = current_dir.parent
 
-        print(f"Could not find the ..agentforge directory at {script_dir}")
-        # raise FileNotFoundError(f"Could not find the ..agentforge directory at {script_dir}")
+        raise FileNotFoundError(f"Could not find the '.agentforge' directory at {script_dir}")
 
     @staticmethod
-    def get_nested_dict(data_dict, path_parts):
+    def get_nested_dict(data: dict, path_parts: tuple):
         """
         Gets or creates a nested dictionary given the parts of a relative path.
 
         Args:
-            data_dict (dict): The top-level dictionary to start from.
+            data (dict): The top-level dictionary to start from.
             path_parts (tuple): A tuple of path components leading to the desired nested dictionary.
 
         Returns:
             A reference to the nested dictionary at the end of the path.
         """
         for part in path_parts:
-            if part not in data_dict:
-                data_dict[part] = {}
-            data_dict = data_dict[part]
-        return data_dict
+            if part not in data:
+                data[part] = {}
+            data = data[part]
+        return data
 
-    def find_agent_config(self, agent_name):
+    def find_agent_config(self, agent_name: str):
         """
         Search for an agent's configuration by name within the nested agents' dictionary.
 
@@ -131,7 +126,7 @@ class Config:
                         filename_without_ext = os.path.splitext(file)[0]
                         nested_dict[filename_without_ext] = data
 
-    def find_file_in_directory(self, directory, filename):
+    def find_file_in_directory(self, directory: str, filename: str):
         """
         Recursively searches for a file within a directory and its subdirectories.
 
@@ -148,7 +143,7 @@ class Config:
             return file_path
         return None
 
-    def get_file_path(self, file_name):
+    def get_file_path(self, file_name: str):
         """
         Constructs the full path for a given filename within the configuration path.
 
@@ -160,7 +155,7 @@ class Config:
         """
         return pathlib.Path(self.config_path) / file_name
 
-    def get_llm(self, api, model):
+    def get_llm(self, api: str, model: str):
         """
         Loads a specified language model based on API and model settings.
 
@@ -188,7 +183,7 @@ class Config:
             print(f"Error Loading Model: {e}")
             raise
 
-    def load_agent(self, agent_name):
+    def load_agent(self, agent_name: str):
         """
         Loads an agent's configuration from a YAML file.
 
@@ -219,7 +214,7 @@ class Config:
 # -------------------------- FUNCTIONS --------------------------
 
 
-def get_yaml_data(file_path):
+def get_yaml_data(file_path: str):
     """
     Reads and parses a YAML file, returning its contents as a Python dictionary.
 
