@@ -83,7 +83,7 @@ sudo apt-get install python3 python3-pip
    ```
 
 4. **Done**:
-   Your project folder should have a new '.agentforge' folder with all relevant yaml files as shown below: 
+   Your project folder should have a new '.agentforge' folder with subfolders containing yaml files as shown below: 
 
    ```
    my_project_root/

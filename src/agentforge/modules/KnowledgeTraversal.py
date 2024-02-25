@@ -25,25 +25,21 @@ class KnowledgeTraversal:
         results = self.storage.query_memory(collection_name=knowledge_base_name, query=query, num_results=1)
         print(results)
 
-        object = results.object
-        predicate = results.predicate
-        subject = results.subject
+        metadata = results['metadatas'][0][0]
+        where_map = [{metadata_map[haystack]: metadata.get(needle)} for needle, haystack in metadata_map.items()]
+        where_map = {"$and": where_map}
 
-        for i in metadata_map.items():
-            mapping[i] = metadata_map.keys[i]
+        #
 
-            {"object": object, "predicate": "are"}
+        results2 = self.storage.query_memory(collection_name=knowledge_base_name, query=query,
+                                             filter_condition=where_map,
+                                             num_results=number_results)
 
-        # results2 = self.storage.query_memory(collection_name=knowledge_base_name, query=query,
-        #                                     filter_condition=metadata_map,
-        #                                     num_results=number_results)
-
-        return results
+        print(results2)
+        return results2
 
         #
         # params = {
         #     "collection_name": knowledge_base_name,
         #     "query": query,
         # }
-
-
