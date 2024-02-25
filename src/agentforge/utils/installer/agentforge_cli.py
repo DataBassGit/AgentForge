@@ -23,7 +23,7 @@ def display_custom_help():
 def copy_yaml_files():
     try:
         src_base_path = pkg_resources.resource_filename(".agentforge.utils.installer", "")
-        dest_base_path = "..agentforge"
+        dest_base_path = ".agentforge"
         override_all = False
         skip_all = False
 

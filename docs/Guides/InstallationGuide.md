@@ -11,7 +11,7 @@ Before you get started with AgentForge, there are a few things you should know:
 - **Cloud-Based:** To use cloud-based LLM models like OpenAI, you'll need to obtain and set up API keys in your user environment variables.
 
 ### LLM API Keys
-- You don't need API keys for both Claude and OpenAI if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Model Configuration](../../docs/Settings/Models.md) file.
+- You don't need API keys for all providers if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Model Configuration](../../docs/Settings/Models.md) file.
 
 ### Other Services
 - If you're planning to use Google Search functionalities, you'll need both a Google API key and a Google Search Engine ID key.
@@ -57,7 +57,7 @@ sudo apt-get install python3 python3-pip
 ### Installation Steps
 
 1. **(Optional) Set Up a Virtual Environment**:
-   It's recommended to use a virtual environment to avoid conflicts with system-wide packages.
+   It's highly recommended to use a virtual environment to avoid conflicts with system-wide packages.
    - Install the virtual environment package if you haven't already:
      ```shell
      sudo pip3 install virtualenv
@@ -77,16 +77,24 @@ sudo apt-get install python3 python3-pip
    ```
 
 3. **Initialize Your Bot Project**:
-    Initialize your AgentForge project:
+   Initialize your AgentForge project:
    ```shell
    .agentforge init
    ```
 
-4. **(Optional) Try the Demo Architecture**:
-   To experiment with the demo bot architecture, run:
-   ```shell
-   .agentforge salience
+4. **Done**:
+   Your project folder should have a new '.agentforge' folder with all relevant yaml files as shown below: 
+
    ```
+   my_project_root/
+      .agentforge/
+         actions/
+         agents/
+         personas/
+         settings/
+         tools/
+   ```
+   At this point your project is ready to start using the AgentForge framework.
 
 When you're done working in the virtual environment, deactivate it with `deactivate`. Remember to activate the virtual environment (`source venv/bin/activate`) whenever you return to work on your project.
 

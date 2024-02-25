@@ -3,7 +3,7 @@
 [![Homepage](https://img.shields.io/badge/Homepage-agentforge.net-green?style=plastic&logo=google-chrome)](https://agentforge.net/)
 
 # AgentForge
-AgentForge is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents and Cognitive Architectures. Compatible with a range of LLM models — currently supporting OpenAI, Anthropic's Claude, and Oobabooga (local) — it offers the flexibility to run different models for different agents based on your specific needs.
+AgentForge is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents and Cognitive Architectures. Compatible with a range of LLM models — currently supporting OpenAI, Google's Gemini, Anthropic's Claude, and Oobabooga (local) — it offers the flexibility to run different models for different agents based on your specific needs.
 
 Whether you're a newbie looking for a user-friendly entry point or a seasoned developer aiming to build complex cognitive architectures, this framework has you covered.
 
@@ -24,20 +24,18 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 
 ## Features
 
-* Build Custom Agents And Cognitive Architectures Easily
-* Custom Tools/Actions
+* Build Custom Agents And Cognitive Architectures Easily (Multi-Agent Scripts)
+* Customizable Tools/Actions
 * Customizable Agent Memory Management
-* Default Agents Ready For Use
+* Customizable Agent Template
+* Knowledge Graphs:
+  * Document Consumption
+  * Knowledge Traversal and Retrieval
 * LLM Agnostic Agents (Each Agent can call different LLMs if needed)
 * On-The-Fly Prompt Editing
-* OpenAI & Anthropic API Support
+* OpenAI, Google & Anthropic API Support
 * Open-Source Model Support ([Oobabooga](https://github.com/oobabooga/text-generation-webui))
-* Rapidly Build & Test Cognitive Architectures (Multi-Agent Scripts)
 
-### Coming Soon
-
-* API Implementation
-* Knowledge Graphs
 
 ---
 

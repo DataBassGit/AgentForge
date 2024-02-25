@@ -12,10 +12,17 @@ class KnowledgeTraversal:
         self.logger = Logger(name=self.__class__.__name__)
         self.storage = StorageInterface().storage_utils
 
-    def query_knowledge(self, knowledge_base_name, query, metadata_map, number_results):
-        where_map = [{key, value} for key, value in metadata_map.items()]
+    def query_knowledge(self, knowledge_base_name: str, query: str, metadata_map: dict, number_results: int = 1):
+        """
 
-        results = self.storage.query_memory(collection_name=knowledge_base_name, query=query, where=where_map,
+        :param metadata_map:
+        :type number_results: object
+        :type knowledge_base_name: object
+        :type query: object
+        """
+        knowledge_base_name = "Knowledge" if knowledge_base_name is None else knowledge_base_name
+
+        results = self.storage.query_memory(collection_name=knowledge_base_name, query=query, where=metadata_map,
                                             num_results=number_results)
 
         return results

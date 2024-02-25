@@ -9,7 +9,7 @@ class Config:
     _instance = None
     _override_path = None
 
-    def __new__(cls, config_path=None, *args, **kwargs):
+    def __new__(cls, *args, **kwargs):
         """
         Ensures that only one instance of Config exists.
         Follows the singleton pattern to prevent multiple instances.
@@ -19,21 +19,17 @@ class Config:
         """
         if not cls._instance:
             cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
-            cls._instance.__init__(config_path)
+            cls._instance.__init__()
         return cls._instance
 
-    def __init__(self, config_path=None):
+    def __init__(self):
         """
         Initializes the Config object, setting up the project root and configuration path.
         Calls method to load configuration data from YAML files.
-
-        Parameters:
-            config_path (str, optional): The path to the configuration directory. Defaults to None,
-                                         which will use the project root's ..agentforge directory.
         """
         try:
             self.project_root = self.find_project_root()
-            self.config_path = config_path or self.project_root / ".agentforge"
+            self.config_path = self.project_root / ".agentforge"
 
             # Placeholders for the data the agent needs which is located in each respective YAML file
             self.data = {}
