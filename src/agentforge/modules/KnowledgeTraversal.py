@@ -22,8 +22,21 @@ class KnowledgeTraversal:
         """
         knowledge_base_name = "Knowledge" if knowledge_base_name is None else knowledge_base_name
 
-        results = self.storage.query_memory(collection_name=knowledge_base_name, query=query, where=metadata_map,
-                                            num_results=number_results)
+        results = self.storage.query_memory(collection_name=knowledge_base_name, query=query, num_results=1)
+        print(results)
+
+        object = results.object
+        predicate = results.predicate
+        subject = results.subject
+
+        for i in metadata_map.items():
+            mapping[i] = metadata_map.keys[i]
+
+            {"object": object, "predicate": "are"}
+
+        # results2 = self.storage.query_memory(collection_name=knowledge_base_name, query=query,
+        #                                     filter_condition=metadata_map,
+        #                                     num_results=number_results)
 
         return results
 

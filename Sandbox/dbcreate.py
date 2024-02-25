@@ -26,9 +26,9 @@ params2 = {
 }
 
 print("\nSaving Memory 1...\n")
-storage.save_memory(params1)
+storage.save_memory(**params1)
 print("\nSaving Memory 2...\n")
-storage.save_memory(params2)
+storage.save_memory(**params2)
 print("\nMemory saved...\n")
 data = storage.peek(kg_name)
 print(f"Data: {data}")
