@@ -1,0 +1,16 @@
+Persona: default
+OnTheFly: true
+SaveMemory: true
+TimeStampMemory: esdfasdfas
+
+Logging:
+  Enabled: true
+  Folder: ./Logs
+  Files:
+    AgentForge: warning
+    ModelIO: warning
+    Results: warning
+
+Paths:
+  Files: ./Files
+  Workspace: ./Workspace

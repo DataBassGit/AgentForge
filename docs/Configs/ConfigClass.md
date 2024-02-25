@@ -54,7 +54,7 @@ populating its attributes with the pertinent data.
 
 ```python
 def __init__(self, config_path=None):
-    self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
+    self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", "..agentforge")
 
     # Placeholders for the data the agent needs which is located in each respective YAML file
     self.persona_name = {}

@@ -9,11 +9,11 @@ def get_long_description():
 
 
 setup(
-    name="agentforge",
+    name=".agentforge",
     version="0.1.36",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
-    author_email="contact@agentforge.net",
+    author_email="contact@.agentforge.net",
     url="https://github.com/DataBassGit/HiAGI",
     include_package_data=True,
     packages=find_packages(where="src"),
@@ -67,12 +67,12 @@ setup(
     ],
     python_requires=">=3.9",
     package_data={
-        "agentforge.utils.installer": ["*", "**/*"],
-        "agentforge.utils.guiutils": ["*", "**/*"],
+        ".agentforge.utils.installer": ["*", "**/*"],
+        ".agentforge.utils.guiutils": ["*", "**/*"],
     },
     entry_points={
         'console_scripts': [
-            'agentforge=agentforge.utils.installer.agentforge_cli:main',
+            '.agentforge=.agentforge.utils.installer.agentforge_cli:main',
         ],
     }
 

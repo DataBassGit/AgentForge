@@ -12,7 +12,7 @@ init       - Copy necessary files and set up directories.
 salience   - Copy the salience.py file.
 gui        - Launch the graphical user interface.
 
-For more details on each command, use 'agentforge <command> -h'
+For more details on each command, use '.agentforge <command> -h'
 """
 
 
@@ -22,8 +22,8 @@ def display_custom_help():
 
 def copy_yaml_files():
     try:
-        src_base_path = pkg_resources.resource_filename("agentforge.utils.installer", "")
-        dest_base_path = ".agentforge"
+        src_base_path = pkg_resources.resource_filename(".agentforge.utils.installer", "")
+        dest_base_path = "..agentforge"
         override_all = False
         skip_all = False
 
@@ -82,7 +82,7 @@ def init_command():
 def copy_salience():
     try:
         print("Copying Salience...")
-        src_path = pkg_resources.resource_filename("agentforge.utils.installer", "salience.py")
+        src_path = pkg_resources.resource_filename(".agentforge.utils.installer", "salience.py")
         shutil.copyfile(src_path, "salience.py")
         print("Salience.py has been successfully copied!\n")
     except Exception as e:
@@ -93,7 +93,7 @@ def copy_salience():
 def gui():
     try:
         print("Launching GUI...")
-        gui_path = pkg_resources.resource_filename("agentforge.utils.guiutils", "gui.py")
+        gui_path = pkg_resources.resource_filename(".agentforge.utils.guiutils", "gui.py")
         subprocess.run(["python", gui_path])
         print("GUI launched successfully.\n")
     except Exception as e:

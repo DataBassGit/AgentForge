@@ -152,8 +152,7 @@ class Agent:
         Saves the result of the language model generation into a specified storage.
         """
         try:
-            params = {'data': [self.result], 'collection_name': 'Results'}
-            self.storage.save_memory(params)
+            self.storage.save_memory(collection_name='Results', data=[self.result])
         except Exception as e:
             self.logger.log(f"Error saving result: {e}", 'error')
 

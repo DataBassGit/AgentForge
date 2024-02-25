@@ -48,6 +48,6 @@ class Consume:
 
         output = params.copy()
 
-        self.storage.save_memory(params)
+        self.storage.save_memory(**params)
         return output
 

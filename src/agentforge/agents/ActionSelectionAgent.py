@@ -43,13 +43,17 @@ class ActionSelectionAgent(Agent):
         Loads actions based on the current task and specified criteria from the storage system.
         """
         try:
-            params = {
-                "collection_name": 'Actions',
-                "query": self.data['task'],
-                "threshold": self.threshold,
-                "num_results": self.num_results
-            }
-            self.actions = self.storage.search_storage_by_threshold(params)
+            # params = {
+            #     "collection_name": 'Actions',
+            #     "query": self.data['task'],
+            #     "threshold": self.threshold,
+            #     "num_results": self.num_results
+            # }
+            # self.actions = self.storage.search_storage_by_threshold(params)
+            self.actions = self.storage.search_storage_by_threshold(collection_name='Actions',
+                                                                    query_text=self.data['task'],
+                                                                    threshold=self.threshold,
+                                                                    num_results=self.num_results)
         except Exception as e:
             self.logger.log(f"Error loading actions: {e}", 'error')
             self.actions = {}

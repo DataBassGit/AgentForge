@@ -197,7 +197,7 @@ class Logger:
     for specific logs for agent activities, model interactions, and results.
 
     Attributes:
-        loggers (dict): A dictionary of BaseLogger instances keyed by log type (e.g., 'agentforge', 'modelio').
+        loggers (dict): A dictionary of BaseLogger instances keyed by log type (e.g., '.agentforge', 'modelio').
     """
     def __init__(self, name):
         """
@@ -215,7 +215,7 @@ class Logger:
         # Initialize loggers dynamically based on configuration settings
         self.loggers = {}
         for log_name, log_level in logging_config.items():
-            # The log_key will be 'agentforge', 'modelio', 'results', etc.
+            # The log_key will be '.agentforge', 'modelio', 'results', etc.
             # The log file name is derived by adding '.log' to the log_key
             log_file_name = f'{log_name}.log'
 

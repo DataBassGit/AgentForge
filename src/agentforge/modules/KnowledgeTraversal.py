@@ -14,13 +14,15 @@ class KnowledgeTraversal:
 
     def query_knowledge(self, knowledge_base_name, query, metadata_map, number_results):
         where_map = [{key, value} for key, value in metadata_map.items()]
-        params = {
-            "collection_name": knowledge_base_name,
-            "query": query,
-            "where": where_map
-        }
-
-        results = self.storage.query_memory(params, number_results)
+        # params = {
+        #     "collection_name": knowledge_base_name,
+        #     "query": query,
+        #     "where": where_map
+        # }
+        #
+        # results = self.storage.query_memory(params, number_results)
+        results = self.storage.query_memory(collection_name=knowledge_base_name, query=query,
+                                            where=where_map, num_results=number_results)
 
         return results
 

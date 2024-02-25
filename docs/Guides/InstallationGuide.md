@@ -73,19 +73,19 @@ sudo apt-get install python3 python3-pip
 2. **Install AgentForge**:
    Navigate to your project directory and install AgentForge using pip:
    ```shell
-   pip install agentforge
+   pip install .agentforge
    ```
 
 3. **Initialize Your Bot Project**:
     Initialize your AgentForge project:
    ```shell
-   agentforge init
+   .agentforge init
    ```
 
 4. **(Optional) Try the Demo Architecture**:
    To experiment with the demo bot architecture, run:
    ```shell
-   agentforge salience
+   .agentforge salience
    ```
 
 When you're done working in the virtual environment, deactivate it with `deactivate`. Remember to activate the virtual environment (`source venv/bin/activate`) whenever you return to work on your project.
@@ -100,7 +100,7 @@ Clone the GitHub repository:
 
 ```shell
 git clone https://github.com/DataBassGit/AgentForge.git
-cd agentforge
+cd .agentforge
 pip install -e
 ```
 

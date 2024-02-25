@@ -30,9 +30,10 @@ def get_plain_text(url):
 def chunk_save(chunks, url):
     for chunk in chunks:
         chunk = remove_extra_newlines(chunk)
-        params = {
-            'data': [chunk],
-            'collection_name': 'Results',
-            'metadata': [{"source_url": url}]
-        }
-        storage_instance.save_memory(params)
+        # params = {
+        #     'data': [chunk],
+        #     'collection_name': 'Results',
+        #     'metadata': [{"source_url": url}]
+        # }
+        # storage_instance.save_memory(params)
+        storage_instance.save_memory(collection_name='Results', data=[chunk], metadata=[{"source_url": url}])

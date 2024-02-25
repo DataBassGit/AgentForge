@@ -21,7 +21,7 @@ if __name__ == "__main__":
     }
     params2 = {
         "collection_name": kg_name,
-        "data": "dogs are animals",
+        "data": "cats are animals",
         "ids": [str(size + 2)],
         "metadata": [{
             "subject": "cats",
@@ -30,21 +30,18 @@ if __name__ == "__main__":
         }]
     }
 
-    storage.save_memory(params1)
-    storage.save_memory(params2)
+    storage.save_memory(**params1)
+    storage.save_memory(**params2)
 
-    # params = {
-    #     "collection_name": kg_name
+    data = storage.load_collection(collection_name=kg_name)
+    print(data)
+
+    # query = 'dogs are animals'
+    # meta_map = {
+    #     'predicate': 'predicate',
+    #     'object': 'object'
     # }
-    # data = storage.load_collection(params)
-    # print(data)
-
-    query = 'dogs are animals'
-    meta_map = {
-        'predicate': 'predicate',
-        'object': 'object'
-    }
-
-    knowledge = kgt.query_knowledge(kg_name, query, meta_map, 1)
+    #
+    # knowledge = kgt.query_knowledge(kg_name, query, meta_map, 1)
 
 

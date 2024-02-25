@@ -7,7 +7,7 @@ import sys
 
 class Config:
     _instance = None
-    # _level = 'debug'
+    _override_path = None
 
     def __new__(cls, config_path=None, *args, **kwargs):
         """
@@ -29,7 +29,7 @@ class Config:
 
         Parameters:
             config_path (str, optional): The path to the configuration directory. Defaults to None,
-                                         which will use the project root's .agentforge directory.
+                                         which will use the project root's ..agentforge directory.
         """
         try:
             self.project_root = self.find_project_root()
@@ -54,6 +54,11 @@ class Config:
         Raises:
             FileNotFoundError: If the .agentforge directory cannot be found.
         """
+        # override_path = self.data['settings']['system']['PathOverride']
+        # if override_path:
+        #     path = pathlib.Path(override_path)
+        #     return path
+
         script_dir = pathlib.Path(sys.argv[0]).parent
         current_dir = script_dir
 
@@ -65,7 +70,8 @@ class Config:
 
             current_dir = current_dir.parent
 
-        raise FileNotFoundError(f"Could not find the .agentforge directory at {script_dir}")
+        print(f"Could not find the ..agentforge directory at {script_dir}")
+        # raise FileNotFoundError(f"Could not find the ..agentforge directory at {script_dir}")
 
     @staticmethod
     def get_nested_dict(data_dict, path_parts):
@@ -87,7 +93,7 @@ class Config:
 
     def find_agent_config(self, agent_name):
         """
-        Search for an agent's configuration by name within the nested agents dictionary.
+        Search for an agent's configuration by name within the nested agents' dictionary.
 
         Parameters:
             agent_name (str): The name of the agent to find.
@@ -95,6 +101,7 @@ class Config:
         Returns:
             dict: The configuration dictionary for the specified agent, or None if not found.
         """
+
         def search_nested_dict(nested_dict, target):
             for key, value in nested_dict.items():
                 if key == target:
@@ -109,7 +116,7 @@ class Config:
 
     def load_all_configurations(self):
         """
-        Recursively loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
+        Recursively loads all configuration data from YAML files under each subdirectory of the ..agentforge folder.
         """
         for subdir, dirs, files in os.walk(self.config_path):
             for file in files:
@@ -207,6 +214,7 @@ class Config:
         """
         if self.data['settings']['system']['OnTheFly'] == 'true':
             self.load_all_configurations()
+
 
 # -------------------------- FUNCTIONS --------------------------
 

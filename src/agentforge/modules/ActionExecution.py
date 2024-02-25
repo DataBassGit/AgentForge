@@ -104,15 +104,16 @@ class Action:
         metadata = format_metadata(meta)
 
         # storage system expects the data to be formatted.
-        save_params = {
-            "collection_name": collection_name,
-            "ids": ids,
-            "data": description,
-            "metadata": metadata,
-        }
+        # save_params = {
+        #     "collection_name": collection_name,
+        #     "ids": ids,
+        #     "data": description,
+        #     "metadata": metadata,
+        # }
 
         # Save the item into the selected collection
-        self.storage.save_memory(save_params)
+        # self.storage.save_memory(save_params)
+        self.storage.save_memory(collection_name=collection_name, data=description, ids=ids, metadata=metadata)
 
     def load_action_tools(self):
         """
@@ -220,8 +221,9 @@ class Action:
 
         try:
             for key, result in self.results.items():
-                params = {'data': [result], 'collection_name': 'Results'}
-                self.storage.save_memory(params)
+                # params = {'data': [result], 'collection_name': 'Results'}
+                # self.storage.save_memory(params)
+                self.storage.save_memory(collection_name='Results', data=[result])
         except Exception as e:
             self.logger.log(f"Error in saving action results: {e}", 'error')
 
@@ -239,13 +241,14 @@ class Action:
             Exception: If an error occurs while loading the tool.
         """
         try:
-            params = {
-                "collection_name": 'Tools',
-                "query": tool,
-                "include": ["documents", "metadatas"]
-            }
-
-            results = self.storage.query_memory(params)
+            # params = {
+            #     "collection_name": 'Tools',
+            #     "query": tool,
+            #     "include": ["documents", "metadatas"]
+            # }
+            #
+            # results = self.storage.query_memory(params)
+            results = self.storage.query_memory(collection_name='Tools', query=tool, include=["documents", "metadatas"])
             filtered = results['metadatas'][0][0]
             filtered.pop('timestamp', None)
 

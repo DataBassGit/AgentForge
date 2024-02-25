@@ -21,7 +21,7 @@ Instruction: >-
   The 'google_search' function takes a query string and a number of results as inputs.
   The query string is what you want to search for, and the number of results is how many search results you want returned.
   The function returns a list of tuples, each tuple containing a URL and a snippet description of a search result.
-Script: agentforge.tools.GoogleSearch
+Script: .agentforge.tools.GoogleSearch
 ```
 
 ## **Actions Overview**
