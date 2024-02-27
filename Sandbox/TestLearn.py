@@ -1,6 +1,6 @@
 from agentforge.modules.LearnDoc import FileProcessor
 
-filepath = "Reflexion - Language Agents with Verbal Reinforcement Learning.pdf"
+filepath = "Inscendo_MVP.pdf"
 
 
 def learn_file(file_path):
