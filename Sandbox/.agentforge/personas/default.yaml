@@ -5,7 +5,7 @@
 # Attributes must also be referenced in the corresponding agent's prompt template YAML file to be utilized in interactions.
 # To ensure compatibility, attribute names should follow the Python convention for variables (e.g., lowercase with underscores) to avoid issues.
 # Note: Attribute key names are case-insensitive; the system will automatically convert them to lowercase when adding them to the agent data.
-# Therefore, ensure that attributes in the prompt templates are also defined in lowercase.
+# Therefore, ensure that attributes in the prompt templates are also defined in lowercase and that they adhere to the python variable naming convention.
 
 # Feel free to add, modify, or remove attributes according to your needs.
 
@@ -17,9 +17,7 @@ Name: Persona Name
 # This should include any background information, capabilities, and the general tone or personality your agent embodies.
 # Use the '|+' syntax for multi-line strings to ensure proper formatting.
 Description: |+
-    Describe your agent here. Include any relevant information that defines the personality, capabilities,
-    and general demeanor of your agent. This could range from a friendly and helpful assistant to a specialized
-    advisor in a particular field.
+    Describe your agent here...
 
 # Location: The primary operating environment or context of your agent.
 # This can be virtual, physical, or conceptual, depending on your agent's design.

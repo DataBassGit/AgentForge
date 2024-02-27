@@ -99,11 +99,12 @@ Agents can override the default LLM settings specified in the `models.yaml` file
 
 To override the default settings for an agent, define a `ModelOverrides` attribute within the agent's `YAML` file. The structure should mirror that of the `models.yaml` file.
 
-Example of Agent-specific Overrides:
+### Example of Agent-specific Overrides:
 
 ```yaml
 Prompts: 
   # Agent sub-prompts
+
 ModelOverrides:
   API: openai_api
   Model: smart_model

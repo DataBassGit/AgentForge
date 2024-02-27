@@ -122,25 +122,15 @@ Each Cognitive Architecture (bot) you create should contain an `.agentforge` fol
 
 >**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent Scripts!  
 
-### For Custom Agents
+## Custom Agents
+With AgentForge, you have the flexibility to create any number of [Custom Agents](../../docs/Agents/CustomAgents.md) and structure them however you want in the project. Put simply, a custom agent is a user-defined agent that can specifically meet your needs.
 
-To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `agents` folder which contains an example of a custom test agent. To know more about how to use and create your own agents, check out the [Custom Agents](../../docs/Agents/CustomAgents.md) page.
+### Agent and Prompt Yaml Files
+You need to ensure that each agent has a corresponding prompt yaml file. These prompt yaml files need to be placed inside the `.agentforge/agents` folder. You are free to nest your prompt yaml files within folders however you want. The system is capable of finding the corresponding file as long as it's nested somewhere within the `.agentforge/agents` folder.
 
-### For Salience Bot Example
+Once your custom agents have been set up, you can leverage them in the same way as predefined agents. Remember that each agent must be properly tested and configured to ensure optimal results.
 
-If you've installed our Salience example, head over to `Examples/SalienceBot/.agentforge/` to find its configuration files.
+### Module Agents
+Inside the `.agentforge/agents` folder, there's a `ModuleAgents` folder. This folder contains the prompts for the agents used in our Predefined Modules (multi-agent scripts). These are standard agents that we have created to provide built-in functionalities for common tasks.
 
-To run the Salience Bot demo, go to `Examples/SalienceBot/` in your console and run:
-
-```shell
-python salience.py
-```
-
-This will execute a simple bot script that uses our
-[Predefined Agents](../../docs/Agents/PredefinedAgents/PredefinedAgents.md) 
-to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
-
-For a deep dive into our `Salience` example please refer to the [Salience Code](../../src/agentforge/utils/installer/salience.py)
-(Note: There is no Documentation for Salience Bot Yet)
-
-**Important** : Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.
+**Important Note**: Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.

@@ -53,7 +53,7 @@ class StorageInterface:
         from .chroma_utils import ChromaUtils
         self.storage_utils = ChromaUtils()
 
-        if self.config.data['settings']['storage']['ChromaDB']['DBFreshStart'] == 'True':
+        if self.config.data['settings']['storage']['ChromaDB']['DBFreshStart'] is True:
             self.storage_utils.reset_memory()
 
     def initialize_pinecone(self):

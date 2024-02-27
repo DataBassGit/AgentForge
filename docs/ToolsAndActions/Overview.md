@@ -1,5 +1,7 @@
 # **Tools and Actions**
 
+---
+
 ## **Tools Overview**
 
 Tools are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a YAML file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.

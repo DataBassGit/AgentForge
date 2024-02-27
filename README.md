@@ -25,17 +25,20 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 ## Features
 
 * Build Custom Agents And Cognitive Architectures Easily (Multi-Agent Scripts)
-* Customizable Tools/Actions
 * Customizable Agent Memory Management
 * Customizable Agent Template
-* Knowledge Graphs:
-  * Document Consumption
-  * Knowledge Traversal and Retrieval
+* Customizable Tools & Actions
 * LLM Agnostic Agents (Each Agent can call different LLMs if needed)
 * On-The-Fly Prompt Editing
 * OpenAI, Google & Anthropic API Support
 * Open-Source Model Support ([Oobabooga](https://github.com/oobabooga/text-generation-webui))
 
+### Partially Implemented Features
+* Knowledge Graphs:
+  * Document Consumption
+  * Knowledge Traversal and Retrieval
+
+**Note**: While the basic implementation is there, these features still need more work before we consider them to be completed.
 
 ---
 
@@ -55,9 +58,9 @@ Welcome to the AgentForge framework documentation. This comprehensive guide will
 
 - **[LLM API Integration](docs/LLMs/LLMs.md)**: Understand how AgentForge connects with various Large Language Model (LLM) APIs.
 
-- **[Settings](docs/Settings/Settings.md)**: Delve into directives, memories, models, paths, and storage configurations – the fine-tuned engine settings that keep the system humming.
+- **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage and system configurations – tweak the behavior of the system.
 
-- **[Personas](docs/Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable.
+- **[Personas](docs/Personas/Personas.md)**: Personas encapsulate information accessible to the agents. Acting as a resource of knowledge for the system/agent, they are not limited to defining agents' personalities but can include any kind of information that could be utilized by the agents as needed.
 
 - **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 

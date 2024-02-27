@@ -1,4 +1,4 @@
-## **Paths YAML Documentation**
+## **System YAML Documentation**
 
 ### **Overview**
 

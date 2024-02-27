@@ -1,36 +1,45 @@
-# Custom Agents
+# Custom Agents Guide
 
 ---
 
 ## Creating Custom Agents
 
-Creating a Custom Agent is pretty straightforward.
-A class only needs to inherit from the base `Agent` class.
-By doing so, it gains access to all the default behaviors defined in the `Agent` class.
+Creating a Custom Agent entails building a new class that inherits the `Agent` base class. This endows your class with the default behaviors defined in the `Agent` class. 
 
-Creating a Custom Agent from the base class is pretty straightforward. All you need to do is create a new `Python` class that inherits from the base `Agent` class. 
+To create a custom agent, you'll simply need to create a new `Python` class that inherits from the base `Agent` class. Once you've achieved this, start customizing by overriding the default methods to align them with your specific requirements. 
 
-Once that's set up, you have the freedom to override any of the default methods to fit your specific needs. Don't forget to create a corresponding `YAML` file for your agent's prompts; it should be named after your agent class and is case-sensitive. And just like that, you've got yourself a fully customized agent ready to tackle whatever tasks you throw its way!
+Additionally, remember to create a corresponding `YAML` file for your agent's prompts. The filename should mirror your agent class name and the YAML file is case-sensitive. With these steps, you've successfully created a customized agent tailored to your specific need!
 
 ### Example
+
 ```python
 from agentforge.agent import Agent
 
-class NewAgent(Agent):
+class NewAgent(Agent): 
     pass
 ```
+In this example, `NewAgent` is a mirror of its `Agent` base class template as it doesn't override any methods. 
 
-In this example, `NewAgent` will behave exactly like its `Agent` base class since it doesn't override any methods.
+To utilize this new agent in a different script, import it from its location and provide it the necessary parameters:
+```python
+from your_custom_agent_location.NewAgent import NewAgent
+
+new_agent = NewAgent()
+params = { # ... Dictionary Containing Parameters Needed by the Agent ... }
+results = new_agent.run(**params)
+```
 
 ---
 
 ## Persona Files
 
-Each bot or architecture can have one or more personas,
-which are defined by Persona `YAML` files located in the `./agentforge/personas` folder.
-The persona file contains all the data related to the persona of the Cognitive Architecture (bot).
-For more details on how to structure the `Persona YAML File`,
-check out the [Persona Documentation](../Personas/Personas.md).
+In AgentForge, **Personas** are utilized to encapsulate the information accessible to the agents. They are a crucial tool to define the body of knowledge that an agent can draw from during its execution. 
+
+A Persona is not confined to defining the personality of an agent. Instead, it serves as a store for any kind of information – from data related to a specific subject to general world facts – that the agents might need for providing comprehensive responses to users' input.
+
+Personas are defined using .yaml files within the `.agentforge/personas` folder. You can create as many persona files as needed, allowing you to structure your agents' knowledge in an organized manner and distribute information across them as required.
+
+Each custom agent can be linked to a specific persona file, providing it with the desired set of information. For more details on how to structure the `Persona YAML File`, check out the [Persona Documentation](../Personas/Personas.md).
 
 ---
 
