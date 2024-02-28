@@ -166,14 +166,19 @@ class Config:
             Exception: If there is an error loading the model.
         """
         try:
+            # Retrieve the model name, module, and class from the 'models.yaml' settings.
             model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
             module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
             class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
 
+            # Dynamically import the module corresponding to the LLM API.
             module = importlib.import_module(f".llm.{module_name}", package=__package__)
+
+            # Retrieve the class from the imported module that handles the LLM connection.
             model_class = getattr(module, class_name)
-            args = [model_name]
-            return model_class(*args)
+            model_class = getattr(module, class_name)
+            args = [model_name]  # Prepare the arguments for the model class instantiation.
+            return model_class(*args)  # Instantiate the model class with the provided arguments.
 
         except Exception as e:
             print(f"Error Loading Model: {e}")

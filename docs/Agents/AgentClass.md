@@ -1,61 +1,117 @@
-# `Agent` Base Class
+# `Agent` Class Documentation
 
----
+Welcome to the documentation of the `Agent` class. This foundational class is designed to facilitate the creation, management, and operation of agents within our framework. It encapsulates core functionalities essential for agents, providing a robust template for both general and specialized agent implementations.
 
 ## Overview
-The `Agent` class serves as the **Base Class** for all agents in the framework. It handles core functionalities such as data loading, prompt generation, LLM execution, and more.
 
-### Agent as a Default Template
+The `Agent` class encompasses the essential attributes and methods necessary for agent operation, including data loading, prompt generation, Large Language Model (LLM) execution, and result processing. It serves as a versatile base, ensuring that agents designed under this framework can seamlessly integrate with varying workflows and data structures.
+
+## Agent as a Default Template
 
 The `Agent` base class serves as a default template for creating new agents. By providing basic functionalities and methods that can be overridden, it simplifies the process of defining specialized agents. For more details on how to create custom agents by extending this class, refer to the [Custom Agents](CustomAgents.md) page.
 
+## Class Attributes
 
----
+The `Agent` leverages several key attributes, serving as placeholders for important operational data:
 
-## Attributes
-- `agent_name`: Holds the name of the agent, which defaults to the class name.
-- `agent_data`: Contains data specific to the agent, loaded from storage.
-- `data`: Placeholder for any data that will be used by the agent, this data may be used in prompt rendering.
-- `prompt`: Placeholder for any prompt templates used by the agent.
-- `result`: Placeholder for the raw result returned by the Large Language Model (LLM).
-- `output`: Placeholder for the final output returned by the agent.
-- `storage`: Interface to the data storage component.
+- `agent_name`: Reflects the name of the agent, typically set to the class name.
+- `agent_data`: Holds the configuration data specific to the agent, including settings and operational parameters loaded upon initialization.
+- `logger`: A Logger instance initialized with the agent’s name for logging messages.
+- `data`: A dictionary to store data relevant for agent prompt rendering and inference.
+- `prompt`: Maintains the prompt(s) generated for use with the LLM.
+- `result`: Stores the raw result as returned by the LLM.
+- `output`: Holds the final output as produced by the agent’s processing logic.
+- `storage`: References the data storage interface, facilitating data persistence and retrieval.
 
----
-
-## Class Initialization
-
-### `__init__(self, log_level='info')`
-
-**Purpose**: Initializes an instance of the `Agent` class. It sets up essential attributes and initializes data storage and logging.
-
-**Arguments**:
-- `log_level`: Optional. Specify the logging level. Defaults to `info`.
-
-**Initialization Steps**:
-1. Set `agent_name` to the class name.
-2. Initialize placeholders for `data`, `prompt`, `result`, `parsed_result`, and `output`.
-3. Initialize `Function` Utilities.
-4. Load agent data using `self.functions.agent_utils.load_agent_data`.
-5. Initialize data storage from `self.agent_data['storage']`.
-6. Create a `Logger` instance and set its log level.
+## Initialization
 
 ```python
-def __init__(self, log_level="info"):
-    """Initializes the Agent, loads the relevant data depending on it's name and sets up the storage and logger"""
+def __init__(self):
+    """
+    Initializes the Agent instance by setting up the agent's name, data placeholders,
+    and configuration data. It prepares the agent for operation by loading its specific
+    configurations and initializing the necessary components such as logging and storage.
+    """
     self.agent_name = self.__class__.__name__
+    self.logger = Logger(name=self.agent_name)
+    
     self.data = None
     self.prompt = None
     self.result = None
     self.output = None
-
-    self.functions = Functions()
-    self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
-    self.storage = self.agent_data['storage']
-
-    self.logger = Logger(name=self.agent_name)
-    self.logger.set_level(log_level)
+    
+    try:
+        self.functions = Functions()
+        self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
+        self.storage = self.agent_data['storage']
+    except Exception as e:
+        self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
 ```
+
+The `__init__` method is designed to prepare the agent for operation, initializing essential attributes and loading configuration data pertinent to the agent's functionality.
+
+## Core Methods
+
+### `run(self, **kwargs)`
+
+```python
+def run(self, **kwargs):
+    """
+    Orchestrates the execution of the agent's workflow: loading data, processing data, generating prompts,
+    running language models, parsing results, saving results, and building the output.
+    
+    Parameters:
+        **kwargs: Keyword arguments that can be used for loading data.
+   
+    Returns:
+        The output generated by the agent or None if an error occurred during execution.
+    """
+    try:
+        self.logger.log(f"\n{self.agent_name} - Running...", 'info')
+        self.load_data(**kwargs)
+        self.process_data()
+        self.generate_prompt()
+        self.run_llm()
+        self.parse_result()
+        self.save_result()
+        self.build_output()
+        self.logger.log(f"\n{self.agent_name} - Done!", 'info')
+    except Exception as e:
+        self.logger.log(f"Error running agent: {e}", 'error')
+        return None
+   
+    return self.output
+```
+
+The `run` method acts as the central executor for the agent's task flow, coordinating the sequence of operations from data loading to output generation.
+
+### Data Loading and Processing
+
+- **`load_data(self, **kwargs)`**: Manages the comprehensive loading of data, including agent-specific configurations, additional data through keyword arguments, and type-specific data.
+- **`process_data(self)`**: Provides a template for data processing, customizable in derived classes.
+
+### Prompt Generation and LLM Execution
+
+- **`generate_prompt(self)`**: Constructs the necessary prompts from templates, making them ready for LLM execution.
+- **`run_llm(self)`**: Handles the execution of the Large Language Model with the generated prompts, capturing the raw results.
+
+### Result Parsing and Output Construction
+
+- **`parse_result(self)`**: Serves as a placeholder for result parsing logic, meant to be overridden by custom agents.
+- **`save_result(self)`**: Facilitates the saving of LLM results into a persistent storage system.
+- **`build_output(self)`**: Sets the final output based on processed results, customizable for specific agent outputs.
+
+## Customization and Extension
+
+The `Agent` class is designed to be both a standalone entity for general tasks and a base template for specialized agents. Custom agents can extend this class, overriding methods such as `process_data` and `parse_result` to cater to specific operational needs among other methods. 
+
+## Dynamic Data Loading and Configuration Management
+
+Agents dynamically load their configuration data, including operational parameters and prompt templates, at initialization. This ensures that each agent instance is tailored to its specific task or role within the system. With support for dynamic data loading through keyword arguments, agents can be customized at runtime to adapt to various operational contexts.
+
+## Conclusion
+
+The `Agent` class encapsulates a comprehensive set of functionalities essential for agent operation within our framework. Its design promotes flexibility, ease of use, and extensibility, empowering developers to create both generalized and specialized agents to meet diverse application requirements.
 
 ---
 

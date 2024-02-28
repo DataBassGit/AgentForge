@@ -26,7 +26,7 @@ class Agent:
 
     def run(self, **kwargs):
         """
-        Orchestrates the execution of the agent's task flow: loading data, processing data, generating prompts,
+        Orchestrates the execution of the agent's workflow: loading data, processing data, generating prompts,
         running language models, parsing results, saving results, and building the output.
 
         Parameters:
@@ -44,6 +44,7 @@ class Agent:
             self.parse_result()
             self.save_result()
             self.build_output()
+            self.logger.log(f"\n{self.agent_name} - Done!", 'info')
         except Exception as e:
             self.logger.log(f"Error running agent: {e}", 'error')
             return None
@@ -81,15 +82,6 @@ class Agent:
             self.agent_data = None
             self.data = None
 
-    def load_persona_data(self):
-        """
-        Loads the persona data for the agent if available.
-        """
-        persona = self.agent_data.get('persona', None)
-        if persona:
-            for key in persona:
-                self.data[key.lower()] = persona[key]
-
     def load_agent_type_data(self):
         """
         Placeholder for loading data specific to the agent's type. Meant to be overridden by custom agent types as
@@ -102,6 +94,15 @@ class Agent:
         Placeholder for loading additional data. Meant to be overridden by custom agents as needed.
         """
         pass
+
+    def load_persona_data(self):
+        """
+        Loads the persona data for the agent if available.
+        """
+        persona = self.agent_data.get('persona', None)
+        if persona:
+            for key in persona:
+                self.data[key.lower()] = persona[key]
 
     def process_data(self):
         """

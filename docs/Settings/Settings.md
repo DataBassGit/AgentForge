@@ -1,26 +1,23 @@
 # Settings Overview
 
-Dive into the system's settings.
-Each `YAML` file is tailored for ease of use and clarity, ensuring that configurations are a breeze.
-Below is a roadmap to guide your configuration journey.
+Welcome to the configuration guide of our system. Here, you will interact with YAML files designed for ease of use and readability. The following roadmap will help you navigate through the various configuration settings of our system.
 
-
-### **[Config Class](../Configs/ConfigClass.md)**
-- The heart of configurations. Understand the class responsible for harmonizing the system's settings.
+## **[Config Class](../Configs/ConfigClass.md)**
+The heart of the system's configurations. Here, you'll dive into the class responsible for harmonizing the overall settings of the system.
 
 ---
 
-### **[Models](Models.md)**
-- Configuration hub for Large Language Models (LLM), detailing available models and their default parameters.
+## **[Models](Models.md)**
+The one-stop destination for configuring Large Language Models (LLM). This section provides detailed information about the available models and their default parameters.
 
-### **[Storage](Storage.md)**
-- Blueprint for the system's storage strategies, options, and the default storage API.
+## **[Storage](Storage.md)**
+Guidelines for managing the system's storage configurations. It explains different storage strategies and options, and mentions the default storage API.
 
-### **[System](Paths.md)**
-- General system and logging settings, Paths available to the system/agents.
+## **[System](System.md)**
+Information on general system configurations and logging settings. It includes available paths for system agents.
 
 ---
 
-Journey through each section to master the nuances of each setting. Happy configuring!
+We encourage you to explore each section to master the intricacies of each setting. Enjoy your configuration journey!
 
 ---
