@@ -386,12 +386,12 @@ def run_llm(self):
 
 ```python
 def parse_result(self):
-	"""
-	Placeholder for result parsing. This method is designed to be overridden by custom agents to incorporate
-	specific logic for parsing and interpreting the results obtained from the LLM, tailored to the unique needs
-	of the agent's operational context.
-	"""
-	pass
+    """
+    Placeholder for result parsing. This method is designed to be overridden by custom agents to incorporate
+    specific logic for parsing and interpreting the results obtained from the LLM, tailored to the unique needs
+    of the agent's operational context.
+    """
+    pass
 ```
 
 > **Note**: [Custom Agents](CustomAgents.md) are encouraged to override this method to process and interpret the LLM's output according to their specific requirements. This could involve extracting relevant data, transforming the response into a more usable format, or integrating with other components of the agent's functionality. The design of this method as a customizable placeholder underscores the framework's flexibility, allowing developers to craft tailored agent behaviors that go beyond generic response handling.
@@ -412,16 +412,16 @@ def parse_result(self):
 
 ```python
 def save_result(self):
-	"""
-	Saves the result of the language model generation into a specified storage. This method encapsulates the
-	process of persisting generated results, allowing the agent to maintain a record of its interactions and
-	outcomes. The flexibility of this storage mechanism supports the agent's ability to reference past results
-	for future decision-making or to build upon previous interactions.
-	"""
-	try:
-		self.storage.save_memory(collection_name='Results', data=[self.result])
-	except Exception as e:
-		self.logger.log(f"Error saving result: {e}", 'error')
+    """
+    Saves the result of the language model generation into a specified storage. This method encapsulates the
+    process of persisting generated results, allowing the agent to maintain a record of its interactions and
+    outcomes. The flexibility of this storage mechanism supports the agent's ability to reference past results
+    for future decision-making or to build upon previous interactions.
+    """
+    try:
+        self.storage.save_memory(collection_name='Results', data=[self.result])
+    except Exception as e:
+        self.logger.log(f"Error saving result: {e}", 'error')
 ```
 
 > **Note**: This method ensures that the agent's insights and outputs are not ephemeral, embedding a layer of memory into the agent's architecture. By storing results, developers can implement features that rely on historical data, enhance the agent's learning capabilities over time, or simply audit interactions. The method's design also emphasizes robustness, with error logging in place to capture and report any issues encountered during the save operation.
@@ -441,13 +441,13 @@ def save_result(self):
 
 ```python
 def build_output(self):
-	"""
-	Constructs the output from the result. This method serves as the final step in preparing the agent's response,
-	making the generated result accessible as the official output. It is designed to be simple yet flexible,
-	allowing for straightforward overrides by subclasses that may require a more intricate assembly of the output
-	based on the agent's results or additional logic.
-	"""
-	self.output = self.result
+    """
+    Constructs the output from the result. This method serves as the final step in preparing the agent's response,
+    making the generated result accessible as the official output. It is designed to be simple yet flexible,
+    allowing for straightforward overrides by subclasses that may require a more intricate assembly of the output
+    based on the agent's results or additional logic.
+    """
+    self.output = self.result
 ```
 
 > **Note**: This method is intentionally designed with extensibility in mind, encouraging developers to customize the output formatting or content according to the unique needs of their [Custom Agents](CustomAgents.md). By overriding `build_output`, developers can tailor the agent's communication, enrich the response with additional information, or apply specific formatting required for the agent's operational context.
