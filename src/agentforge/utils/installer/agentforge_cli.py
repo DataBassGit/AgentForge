@@ -79,15 +79,15 @@ def init_command():
     print("Initialization complete: YAML files have been copied.")
 
 
-def copy_salience():
-    try:
-        print("Copying Salience...")
-        src_path = pkg_resources.resource_filename(".agentforge.utils.installer", "salience.py")
-        shutil.copyfile(src_path, "salience.py")
-        print("Salience.py has been successfully copied!\n")
-    except Exception as e:
-        print(f"Error copying salience.py: {e}")
-        sys.exit(1)
+# def copy_salience():
+#     try:
+#         print("Copying Salience...")
+#         src_path = pkg_resources.resource_filename(".agentforge.utils.installer", "salience.py")
+#         shutil.copyfile(src_path, "salience.py")
+#         print("Salience.py has been successfully copied!\n")
+#     except Exception as e:
+#         print(f"Error copying salience.py: {e}")
+#         sys.exit(1)
 
 
 def gui():
@@ -113,7 +113,7 @@ def main():
 
     # Define sub-commands
     init_parser = subparsers.add_parser('init', help="Copy necessary files and set up directories.")
-    salience_parser = subparsers.add_parser('salience', help="Copy the salience.py file.")
+    # salience_parser = subparsers.add_parser('salience', help="Copy the salience.py file.")
     gui_parser = subparsers.add_parser('gui', help="Launch the graphical user interface.")
 
     args = parser.parse_args()
@@ -121,8 +121,8 @@ def main():
     try:
         if args.command == "init":
             init_command()
-        elif args.command == "salience":
-            copy_salience()
+        # elif args.command == "salience":
+        #     copy_salience()
         elif args.command == "gui":
             gui()
         else:
