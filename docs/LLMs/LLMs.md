@@ -2,7 +2,7 @@
 
 ## Seamless Connection with LLM APIs
 
-AgentForge is engineered to interface effortlessly with a variety of Large Language Model (LLM) APIs. This flexibility is a cornerstone of our system, allowing users to plug in different language models as needed. The `get_llm` method plays a pivotal role in this process, leveraging the Python files designated for each API in the `llm` folder within our library package.
+**AgentForge** is engineered to interface effortlessly with a variety of Large Language Model (LLM) APIs. This flexibility is a cornerstone of our system, allowing users to plug in different language models as needed. The `get_llm` method plays a pivotal role in this process, leveraging the Python files designated for each API in the `llm` folder within our library package.
 
 ### How the `get_llm` Method Works
 

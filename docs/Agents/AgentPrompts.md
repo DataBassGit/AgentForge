@@ -1,7 +1,5 @@
 # Agent Prompts Guide
 
----
-
 ## Overview
 
 The engine that drives our AI-based agents are the prompts created for them. Prompts are specific dialog structures, defined in YAML format, that guide the agent's interactions with users.

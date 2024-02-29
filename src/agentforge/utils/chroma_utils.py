@@ -1,4 +1,5 @@
 import os
+import shutil
 import uuid
 from datetime import datetime
 from typing import Optional, Union
@@ -340,70 +341,13 @@ class ChromaUtils:
             logger.log(f"Error querying memory: {e}", 'error')
             return None
 
-    # def query_memory(self, params, num_results=1):
-    #     """
-    #     Queries memory for documents matching a query within a specified collection.
-    #
-    #     Parameters:
-    #         params (dict): Parameters specifying the collection to query, the query text or embeddings, and any filters.
-    #         num_results (int): The maximum number of results to return.
-    #
-    #     Returns:
-    #         dict or None: The query results, or None if an error occurs.
-    #     """
-    #     try:
-    #         # Ensure collection_name is a string
-    #         collection_name = params.pop('collection_name', None)
-    #         if not isinstance(collection_name, str):
-    #             raise ValueError("The 'collection_name' parameter should be a string.")
-    #
-    #         self.select_collection(collection_name)
-    #
-    #         max_result_count = self.collection.count()
-    #         num_results = min(num_results, max_result_count)
-    #
-    #         if num_results > 0:
-    #             query = params.pop('query', None)
-    #             filter_condition = params.pop('filter', None)
-    #             include = params.pop('include', [])
-    #
-    #             if include is None:
-    #                 include = ["documents", "metadatas", "distances"]
-    #
-    #             if query is not None:
-    #                 result = self.collection.query(
-    #                     query_texts=[query] if isinstance(query, str) else query,
-    #                     n_results=num_results,
-    #                     where=filter_condition,
-    #                     include=include
-    #                 )
-    #             else:
-    #                 embeddings = params.pop('embeddings', None)
-    #
-    #                 if embeddings is not None:
-    #                     result = self.collection.query(
-    #                         query_embeddings=embeddings,
-    #                         n_results=num_results,
-    #                         where=filter_condition,
-    #                         include=include
-    #                     )
-    #                 else:
-    #                     raise ValueError(f"\n\nError: No query nor embeddings were provided!")
-    #         else:
-    #             logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
-    #             return {}
-    #
-    #         return result
-    #     except Exception as e:
-    #         logger.log(f"Error querrying memory: {e}", 'error')
-    #         return None
-
     def reset_memory(self):
         """
         Resets the entire storage, removing all collections and their data.
 
         This method should be used with caution as it will permanently delete all data within the storage.
         """
+
         self.client.reset()
 
     def search_storage_by_threshold(self, collection_name: str, query_text: str, threshold: float = 0.7,
@@ -445,49 +389,6 @@ class ChromaUtils:
         except Exception as e:
             logger.log(f"Error searching storage by threshold: {e}", 'error')
             return {'failed': f"Error searching storage by threshold: {e}"}
-
-    # def search_storage_by_threshold(self, parameters):
-    #     """
-    #     Searches the storage for documents that meet a specified similarity threshold to a query.
-    #
-    #     Parameters:
-    #         parameters (dict): A dictionary containing the search parameters, including the collection name,
-    #                             the number of results, the similarity threshold, and the query text.
-    #
-    #     Returns:
-    #         dict: A dictionary containing the search results if successful; otherwise, returns a dictionary
-    #               indicating failure if no documents meet the threshold.
-    #
-    #     Raises:
-    #         Exception: Logs an error message if an exception occurs during the search process.
-    #     """
-    #     try:
-    #         collection_name = parameters.pop('collection_name', None)
-    #         num_results = parameters.pop('num_results', 1)
-    #         threshold = parameters.pop('threshold', 0.7)
-    #         query_text = parameters.pop('query', '')
-    #
-    #         query_emb = self.return_embedding(query_text)
-    #
-    #         # parameters = {
-    #         #     "collection_name": collection_name,
-    #         #     "embeddings": query_emb,
-    #         #     "include": ["embeddings", "documents", "metadatas", "distances"]
-    #         # }
-    #         #
-    #         # results = self.query_memory(parameters, num_results)
-    #         results = self.query_memory(collection_name=collection_name, embeddings=query_emb,
-    #                                     include=["embeddings", "documents", "metadatas", "distances"],
-    #                                     num_results=num_results)
-    #         dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
-    #
-    #         if dist >= threshold:
-    #             results = {'failed': 'No action found!'}
-    #
-    #         return results
-    #     except Exception as e:
-    #         logger.log(f"Error searching storage by threshold: {e}", 'error')
-    #         return None
 
     def return_embedding(self, text_to_embed: str):
         """

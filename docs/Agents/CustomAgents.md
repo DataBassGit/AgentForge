@@ -1,8 +1,6 @@
 # Custom Agents Guide
 
----
-
-## Creating Custom Agents
+## Overview
 
 Creating a Custom Agent entails building a new class that inherits the `Agent` base class. This endows your class with the default behaviors defined in the `Agent` class. 
 

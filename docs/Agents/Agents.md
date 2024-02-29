@@ -1,6 +1,6 @@
 # Agents Overview
 
-Welcome to the heart of the AgentForge framework—the Agents. These entities are the driving force behind the system, managing data, rending prompts, and ensuring seamless operations. Here, you'll get a comprehensive understanding of how agents function, the methods they employ, the prompts guiding them, and how you can craft your own custom agents.
+Welcome to the heart of the **AgentForge** framework—the **Agents**. These entities are the driving force behind the system, managing data, rending prompts, and ensuring seamless operations. Here, you'll get a comprehensive understanding of how agents function, the methods they employ, the prompts guiding them, and how you can craft your own custom agents.
 
 ---
 
@@ -16,8 +16,8 @@ Welcome to the heart of the AgentForge framework—the Agents. These entities ar
 ### **[Custom Agents](CustomAgents.md)**
 - Want to build your own agent? Here, you'll learn how to craft custom agents tailored to fit specific needs. Discover how to derive from the base `Agent` class, override methods, and create corresponding prompt files.
 
-### **[Predefined Agents](../Modules/ModuleAgents/ModuleAgents)**
-- Get inspired by exploring some of our predefined agents. These agents, built using the AgentForge framework, showcase the potential of method overriding and how it can be employed to implement custom behaviors.
+### **[Module Agents](../Modules/ModuleAgents/ModuleAgents.md)**
+- Get inspired by exploring some of our module agents. These agents, built using the **AgentForge** framework, showcase the potential of method overriding and how it can be employed in multi-agent script to implement custom behaviors.
 
 ### **[Overriding LLM Settings](../Settings/Models.md)**
 - Each agent holds the power to tailor the Large Language Models (LLM) settings it employs. This section delves into how agents can utilize default LLMs or opt for specific models fine-tuned for unique tasks, offering flexibility and precision.

@@ -7,6 +7,7 @@ from ...utils.functions.UserInterface import UserInterface
 from termcolor import cprint
 from colorama import init
 init(autoreset=True)
+logging.basicConfig(encoding='utf-8')
 
 
 def encode_msg(msg):
@@ -132,12 +133,10 @@ class BaseLogger:
             self.logger.warning(msg)
         elif level_code == logging.ERROR:
             self.logger.error(msg)
-            self.logger.exception("Exception occurred")
-            time.sleep(1)
-            self.UI.user_input_on_error()
+            self.logger.exception("Exception Error Occurred!")
         elif level_code == logging.CRITICAL:
             self.logger.critical(msg)
-            self.logger.exception("Exception occurred")
+            self.logger.exception("Critical Exception Occurred!")
             raise
         else:
             raise ValueError(f'Invalid log level: {level}')

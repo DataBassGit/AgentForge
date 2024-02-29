@@ -69,9 +69,7 @@ At the core of the Config class is the `self.data` dictionary, which aggregates 
 
 ---
 
-This documentation aims to provide a thorough overview of the Config class, its design rationales, functionalities, and how it can be leveraged for effective configuration management within the system. For further details or specific use cases, users are encouraged to explore the class methods and their implementations directly.
-
-For anyone interested in studying or modifying the configuration class, you can find the code [here](../../src/agentforge/config.py).
+This documentation aims to provide a thorough overview of the Config class, its design rationales, functionalities, and how it can be leveraged for effective configuration management within the system. For further details or specific use cases, users are encouraged to explore the class methods and their implementations directly. For anyone interested in studying or modifying the configuration class, you can find the code [here](../../src/agentforge/config.py).
 
 ---
 

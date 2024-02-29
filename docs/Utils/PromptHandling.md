@@ -2,7 +2,7 @@
 
 ## Overview
 
-`PromptHandling` in AgentForge is a utility class for managing dynamic prompts. It allows for the extraction and rendering of variables within string templates, making it easier to create responsive and personalized prompts for agent interactions.
+`PromptHandling` in **AgentForge** is a utility class for managing dynamic prompts. It allows for the extraction and rendering of variables within string templates, making it easier to create responsive and personalized prompts for agent interactions.
 
 ## Methods and Examples
 
@@ -46,6 +46,6 @@ rendered_prompt = prompt_handler.render_prompt_template(template, data)
 
 ## Integration with Agent Base Class
 
-While developers are free to use `PromptHandling` methods directly, it's important to note that these functionalities are already integrated into the **Agent** base class in AgentForge. Agents can automatically render prompt templates if provided with data in the correct format. Therefore, direct use of `PromptHandling` might be unnecessary in many cases, as agents handle this internally.
+While developers are free to use `PromptHandling` methods directly, it's important to note that these functionalities are already integrated into the **Agent** base class in the **AgentForge** framework. **Agents** can automatically render prompt templates if provided with data in the correct format. Therefore, direct use of `PromptHandling` might be unnecessary in many cases, as agents handle this internally.
 
 ---

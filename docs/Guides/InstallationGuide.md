@@ -1,7 +1,5 @@
 # AgentForge Installation and Usage Guide
 
----
-
 ## Pre-Installation
 
 Before you get started with AgentForge, there are a few things you should know:
@@ -73,13 +71,13 @@ sudo apt-get install python3 python3-pip
 2. **Install AgentForge**:
    Navigate to your project directory and install AgentForge using pip:
    ```shell
-   pip install .agentforge
+   pip install agentforge
    ```
 
 3. **Initialize Your Bot Project**:
    Initialize your AgentForge project:
    ```shell
-   .agentforge init
+   agentforge init
    ```
 
 4. **Done**:
@@ -108,8 +106,8 @@ Clone the GitHub repository:
 
 ```shell
 git clone https://github.com/DataBassGit/AgentForge.git
-cd .agentforge
-pip install -e
+cd agentforge
+pip install -e .
 ```
 
 ---
@@ -133,4 +131,4 @@ Once your custom agents have been set up, you can leverage them in the same way 
 ### Module Agents
 Inside the `.agentforge/agents` folder, there's a `ModuleAgents` folder. This folder contains the prompts for the agents used in our Predefined Modules (multi-agent scripts). These are standard agents that we have created to provide built-in functionalities for common tasks.
 
-**Important Note**: Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.
+> **Important Note**: Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.

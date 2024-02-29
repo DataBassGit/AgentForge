@@ -139,7 +139,7 @@ def load_data(self, **kwargs):
    - `params`: A copy of the agent's parameters, ensuring any setting overrides are applied on top of the default configuration.
    - `prompts`: A copy of the agent's prompt templates, which are essential for guiding the agent's interactions or tasks.
 3. **Additional Data Integration**: Iterates through `**kwargs` to seamlessly integrate any supplementary data provided at runtime into the `data` attribute. This approach allows for dynamic adjustment of the agent's data according to specific needs or contexts.
-4. **Error Handling**: Incorporates error handling to log any issues encountered during the data loading process. If an error occurs, it logs the error and sets both `self.agent_data` and `self.data` to `None`, ensuring the agent does not proceed with incomplete or erroneous data.
+4. **Error Handling**: Incorporates error handling to log any issues encountered during the data loading process. If an error occurs, it logs the error ensuring the agent does not proceed with incomplete or erroneous data.
 
 **Code Example**:
 
@@ -159,8 +159,6 @@ def load_agent_data(self, **kwargs):
             self.data[key] = kwargs[key]
     except Exception as e:
         self.logger.log(f"Error loading agent data: {e}", 'error')
-        self.agent_data = None
-        self.data = None
 ```
 ---
 
@@ -221,7 +219,7 @@ def load_additional_data(self):
 
 ### `load_persona_data(self)`
 
-**Purpose**: This method enriches agents with persona-specific knowledge, allowing them to access and utilize personality traits, general knowledge, or any other information defined in their persona configuration. The method seamlessly loads this data from a YAML file, making it effortless to imbue agents with a rich, dynamic personality without hardcoding details into the agent's codebase. This flexibility facilitates the creation of more engaging and context-aware agents capable of delivering personalized interactions.
+**Purpose**: This method enriches agents with persona-specific knowledge, allowing them to access and utilize personality traits, general knowledge, or any other information defined in their persona configuration. The method seamlessly loads this data from a YAML file, making it effortless to imbue agents with a rich, dynamic personality without hard-coding details into the agent's codebase. This flexibility facilitates the creation of more engaging and context-aware agents capable of delivering personalized interactions.
 
 **How It Works**: Persona data is structured in a YAML file, from which this method retrieves information and stores it within the agent's internal `data` attribute. Key-value pairs defined in the persona file become accessible to the agent, enabling their use in prompt templates and other operations.
 
@@ -229,11 +227,12 @@ def load_additional_data(self):
 
 **Example Persona YAML File**:
 ```yaml
-Name: Botty
+# botty.yaml
+Name: Botty McBotFace
 Description: |+
-    A generic bot designed for interaction.
+    a generic bot
 
-Location: Virtual Environment
+Location: Dinner Table
 Purpose: Pass the butter
 ```
 
@@ -244,17 +243,17 @@ To utilize persona data within prompts, reference the corresponding variables in
 ```yaml
 Prompts:
     System: |+
-        Your name is {name}. You are {description}
+        Your name is {name}. You are {description}.
         Your location: {location}. 
         Your sole purpose is as follows: {purpose}.
 
-Persona: Botty # Optional Parameter: This overrides the default persona set by system
+Persona: botty # Optional Parameter: This overrides the default persona set by system
 ```
 
 **Rendered Prompt Example**:
 ```
-Your name is Botty. You are a generic bot designed for interaction.
-Your location: Virtual Environment. 
+Your name is Botty McBotFace. You are a generic bot.
+Your location: Dinner Table. 
 Your sole purpose is as follows: Pass the butter.
 ```
 

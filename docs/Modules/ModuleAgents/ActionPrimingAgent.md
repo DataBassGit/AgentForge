@@ -37,8 +37,6 @@ The `ActionPrimingAgent` is a specialized agent that inherits its core functiona
 
 ## Overridden Agent Methods
 
----
-
 ### Build Output
 ### `build_output()`
 
@@ -74,7 +72,6 @@ def build_output(self):
 
 > **Note**: This override emphasizes the importance of custom processing capabilities within agents, allowing them to tailor their output processing to fit specific data formats and requirements. By converting YAML formatted strings into structured objects, this method significantly enhances the usability and integration capabilities of the agent's output.
 
----
 
 ### Save Result
 ### `save_result()`

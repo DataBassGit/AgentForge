@@ -1,10 +1,8 @@
 # Persona Guide
 
----
+## Overview
 
-## Overview of Personas
-
-Personas in our system serve as an abstraction of the knowledge that an agent has access to, rather than merely defining the agent’s character or personality traits. They encapsulate vast and varied information – from specific subject matters to general world facts, and yes personality traits – they constitute the database of knowledge that the agents can use during their operation.
+**Personas** in our system serve as an abstraction of the knowledge that an agent has access to, rather than merely defining the agent’s character or personality traits. They encapsulate vast and varied information – from specific subject matters to general world facts, and yes personality traits – they constitute the database of knowledge that the agents can use during their operation.
 
 ### Location of Persona Files
 
@@ -99,7 +97,7 @@ Persona: persona_name # Optional: Override persona set by system
 
 ### Agents using Persona Information
 
-The information defined in the persona is automatically injected into the agent prompt, like any other variable passed to the agent via code. However, the attribute name of the defined knowledge variable **MUST** be referenced in the prompt file in order for it to be used. This allows the system to inject and render that information onto the prompt that is passed to the Large Language Model (LLM).
+The information defined in the persona is automatically injected into the agent data, like any other variable passed to the agent via code. However, the attribute name of the defined knowledge variable **MUST** be referenced in the prompt file in order for it to be used. This allows the system to inject and render that information onto the prompt that is passed to the Large Language Model (LLM).
 
 
 
@@ -136,4 +134,4 @@ Each attribute defined in the persona file can be used in a similar way, allowin
 
 ## Conclusion
 
-With Personas, we aim to provide a flexible, efficient, and effective way of encapsulating the knowledge that an agent can use. They are not just about creating a psychological profile for an agent but about equipping an agent with the necessary knowledge to perform its tasks optimally.
+With **Personas**, we aim to provide a flexible, efficient, and effective way of encapsulating the knowledge that an agent can use. They are not just about creating a psychological profile for an agent but about equipping an agent with the necessary knowledge to perform its tasks optimally.

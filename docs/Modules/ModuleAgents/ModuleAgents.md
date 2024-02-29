@@ -1,10 +1,10 @@
 ## Module Agents
 
-Our in house modules come with their own agents. These agents, built using the AgentForge framework, serve as exemplars of the system's capabilities. By examining these agents, you can glean insights into how they harness the power of method overriding to fine-tune their behaviors for specific tasks.
+Our in house modules come with their own agents. These agents, built using the **AgentForge** framework, serve as exemplars of the system's capabilities. By examining these agents, you can glean insights into how they harness the power of method overriding to fine-tune their behaviors for specific tasks.
 
 ### Action Execution Module Agents
 
-The **[Action Execution Module](../ActionExecution.md)** in the AgentForge framework is a key component that orchestrates the execution of actions. Actions, composed of one or more tools, represent complex tasks or workflows.
+The **[Action Execution Module](../ActionExecution.md)** in the **AgentForge** framework is a key component that orchestrates the execution of actions. Actions, composed of one or more tools, represent complex tasks or workflows.
 
 - **[Action Priming Agent](ActionPrimingAgent.md)**: Take a look at how this agent primes actions, setting the stage for more complex tasks.
 

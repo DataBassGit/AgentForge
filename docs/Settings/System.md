@@ -20,8 +20,8 @@ Logging:
 
 Paths:
   Files: ./Files
-  Workspace: ./Workspace
 ```
+---
 
 ## Configuration Settings
 
@@ -33,29 +33,69 @@ Paths:
 
 - `TimeStampMemory`: A boolean setting that controls whether each memory the agent saves to the datastore will have a timestamp associated with it.
 
-## Logging 
+---
 
-This section is for managing system logs and has various settings:
+## Logging Configuration and Usage
 
-- `Enabled`: A boolean setting that determines whether the system logs files or not.
+The logging system within **AgentForge** is designed to provide flexible and detailed logging capabilities. It is configurable through system settings, allowing for selective logging based on the developer's needs or system requirements.
 
-- `Folder`: This is the path, relative to the project root directory, where the log files will be stored.
+### Configuration Settings
 
-- `Files`: List of log files that will be created by default. You can use these or create your own log files by adding more options:
-    - `AgentForge`: Used for general system logging.
-    - `ModelIO`: Focuses on the rendered prompts sent to the agents and their raw responses.
-    - `Results`: Meant for logging system results like formatted responses from agents.
+The logging behavior is controlled through the following settings:
 
+- **`Enabled`**: Determines if logging is active. If set to `false`, logging will be disabled across the system.
+  
+- **`Folder`**: Defines the directory path, relative to the project root, where log files are stored. This path is used by the logger to organize log output.
+  
+- **`Files`**: Specifies the different log files to be generated, each with a designated purpose and log level. The default log files include:
+  - **`AgentForge`**: Captures general system activities and events.
+  - **`ModelIO`**: Records interactions between the system and models, such as prompts and responses.
+  - **`Results`**: Logs the outcomes or results processed by the system.
 
-Each file can be assigned a logging level:
-- `debug`
-- `info`
-- `warning`
-- `error`
-- `critical`
+### Log Levels
 
-Each level logs all messages from their level and above. For instance, if a file is set to the `warning` level, that file will log all `warning`, `error`, and `critical` messages triggered in the system.
+Each log file can be set to record messages at or above a specified severity level:
 
-## Paths
+- **`debug`**: Captures detailed diagnostic information useful for debugging.
+- **`info`**: Records general informational messages about system operations.
+- **`warning`**: Indicates potential issues that are not immediately harmful.
+- **`error`**: Logs serious issues that might prevent operation or lead to significant problems causing the process to terminate.
+- **`critical`**: Records very severe error events that might cause the application to terminate.
 
-This section allows you to define paths that agents have read and write access to. These paths are relative to the project root directory. There are no limits to the amount of paths that can be added.
+### Directing Logs to Specific Files
+
+Logs can be directed to specific files by specifying the file name (without the `.log` extension) as the last parameter in the logging method. For example, to log a model prompt at the debug level to the `ModelIO` log file:
+
+```python
+logger.log(f'Prompt:\n{prompt}', 'debug', 'ModelIO')
+```
+
+### Custom Log Files
+
+Developers can define additional log files by adding entries to the `Files` configuration. Each new log file should have an associated log level. Logs can then be directed to any defined file using the method shown above, ensuring versatile and organized logging across different system components.
+
+### Practical Implications
+
+By leveraging these logging capabilities, developers can maintain a granular understanding of their system's operations, troubleshoot issues efficiently, and keep a record of significant events or decisions made by the application, fostering transparency and reliability.
+
+---
+
+## Paths Configuration
+
+The `Paths` section in the **AgentForge** system configuration file allows you to specify directory paths that agents can interact with during their operation. These paths are crucial for enabling agents to read from and write to specific locations, enhancing their functionality and integration with external resources.
+
+### Configuration Details
+
+- **Relative Paths**: All paths defined in this section are be relative to the project root directory. This relative addressing ensures that your configurations are portable and consistent across different environments or deployment scenarios.
+
+- **Unrestricted Quantity**: You can define as many paths as necessary for your project needs. This flexibility supports various use cases, from simple data logging to complex interactions involving multiple data sources or output directories.
+
+- **Supported File Types**: Currently, the system is configured to allow agents to access text (.txt) and PDF (.pdf) files within these paths. This limitation focuses on the most common file types for text processing and document consumption.
+
+- **Future Extensions**: Plans are in place to expand the supported file types to include other media, broadening the scope of agent capabilities and the types of data they can manipulate.
+
+### Practical Use
+
+Defining paths is particularly beneficial when leveraging [Tools & Actions](../ToolsAndActions/Overview.md) within **AgentForge**, as it provides agents with necessary access to interact with and manipulate files as part of their operational logic.
+
+>**Note**: Ensure that the paths you provide are accessible and writable as required by your agent's operations to avoid runtime errors or access issues.

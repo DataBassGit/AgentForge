@@ -2,54 +2,61 @@
 
 ## Overview
 
-The `UserInterface` class in AgentForge is designed to manage user interactions within a console-based environment. It offers functionality for switching between manual and automated modes and capturing user input, thereby enhancing user engagement and control over the system.
+The `UserInterface` class within **AgentForge** is tailored to handle user interactions within a console-based setting, providing crucial functionality for toggling between manual and automatic operational modes. It captures user input effectively, promoting enhanced user engagement and control throughout the application's runtime.
 
 ## Key Features and Usage
 
 ### get_user_input
 
-Captures user input, allowing for mode switching and feedback provision.
+This method facilitates the capture of user input in manual mode, allowing users to issue commands, switch modes, or exit the application.
 
 #### Usage Example:
 
 ```python
 ui = UserInterface()
 user_feedback = ui.get_user_input()
-# Captures and processes user input
+# Processes user input accordingly
 ```
 
 ### set_auto_mode
 
-Switches the system to automatic mode, where tasks can be executed without user intervention.
+Activates the automatic mode, enabling the application to run tasks autonomously without the need for continuous user input.
 
 #### Usage Example:
 
 ```python
 ui = UserInterface()
 ui.set_auto_mode()
-# Sets the system to auto mode
+# Application transitions to auto mode
 ```
 
 ### wait_for_key
 
-Waits for a keypress to switch back to manual mode from automatic mode.
+In automatic mode, this method waits for a keypress, enabling a transition back to manual mode upon user interaction.
+
+### exit_auto_mode
+
+Exits the automatic mode and ensures the system is set back to manual mode, handling any necessary cleanup.
 
 ### cleanup
 
-Ensures that any active threads are properly terminated upon application exit.
+Safeguards the graceful termination of any background threads or processes when exiting the application, ensuring system stability.
 
 ## How UserInterface Works
 
-- **Mode Management**: The class allows for switching between 'manual' and 'auto' modes, facilitating user control over task execution.
-- **User Feedback**: In manual mode, users can provide feedback or commands directly through the console.
-- **Thread Handling**: Utilizes threads to manage mode switching, ensuring non-blocking operations.
+- **Mode Switching**: Facilitates seamless transitions between 'manual' and 'auto' modes, giving users control over the application's execution flow.
+- **User Interactivity**: In manual mode, it captures and processes user inputs, enabling direct command issuance or feedback provision.
+- **Thread Management**: Employs background threads to monitor mode status and user interactions, ensuring responsive and non-blocking operational dynamics.
 
 ## Practical Application
 
-`UserInterface` is especially useful in scenarios where user interaction is necessary, such as providing feedback, pausing or resuming tasks, or exiting the application.
+The `UserInterface` class is vital for scenarios requiring interactive user engagement or when there's a need for manual oversight and input during task execution.
+
+## Additional Resources
+
+- For a deeper dive into the implementation details and to explore more about the `UserInterface` class functionalities, please refer to the [UserInterface.py](../../src/agentforge/utils/functions/UserInterface.py) file in the AgentForge framework. This resource provides the source code and context necessary for a comprehensive understanding of user interface interactions within the system.
 
 ## Note
 
-- **UX/UI Development**: Currently focused on console-based interaction, we are actively seeking UX/UI developers to contribute towards developing a more robust graphical user interface for the AgentForge system.
-
+- **Future Enhancements**: While the current focus is on enhancing console-based interactions, there is an open invitation for UX/UI developers to contribute towards evolving a graphical user interface for an enriched user experience within **AgentForge**.
 ---

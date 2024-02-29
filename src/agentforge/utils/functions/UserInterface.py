@@ -105,28 +105,3 @@ class UserInterface:
         self.mode = 'manual'
         self.mode_thread = None
         self.cleanup()
-
-    def user_input_on_error(self):
-        """
-        Prompts the user for input upon encountering an error, with options to continue or exit.
-        Automatically switches back to the previous mode if continuing.
-
-        Raises:
-            Exception: If an error occurs while getting user input after an error.
-        """
-        time.sleep(1)
-        try:
-            mode = self.mode
-            self.exit_auto_mode()
-            msg = "\nAn Error Has Occurred | Continue? (y/n): "
-            user_input = input(msg)
-
-            if user_input.lower() == 'n':
-                self.cleanup()
-                quit()
-
-            if mode == 'auto':
-                self.set_auto_mode()
-
-        except Exception as e:
-            raise print(f"Error in getting user input: {e}")

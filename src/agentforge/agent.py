@@ -79,8 +79,6 @@ class Agent:
                 self.data[key] = kwargs[key]
         except Exception as e:
             self.logger.log(f"Error loading agent data: {e}", 'error')
-            self.agent_data = None
-            self.data = None
 
     def load_agent_type_data(self):
         """
