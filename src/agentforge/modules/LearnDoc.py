@@ -3,6 +3,7 @@ from agentforge.tools.GetText import GetText
 from agentforge.tools.IntelligentChunk import intelligent_chunk
 from agentforge.tools.InjectKG import Consume
 from agentforge.utils.functions.Logger import Logger
+from agentforge.tools.CleanString import Strip
 
 """
 This needs to receive a file path and send that as an argument to GetText.
@@ -36,6 +37,7 @@ Initializes the FileProcessor class with its required components.
         self.get_text = GetText()
         self.learn_kg = LearnKGAgent()
         self.consumer = Consume()
+        self.strip = Strip()
 
     def process_file(self, file):
         """
@@ -57,13 +59,14 @@ Initializes the FileProcessor class with its required components.
         try:
             # Step 1: Extract text from the file
             file_content = self.get_text.read_file(file)
+            file_clean = self.strip.strip_invalid_chars(file_content)
         except Exception as e:
             self.logger.log(f"Error reading file: {e}", 'error')
             return
 
         try:
             # Step 2: Create chunks of the text
-            chunks = self.intelligent_chunk(file_content, chunk_size=2)
+            chunks = self.intelligent_chunk(file_clean, chunk_size=2)
         except Exception as e:
             self.logger.log(f"Error chunking text: {e}", 'error')
             return
@@ -78,7 +81,7 @@ Initializes the FileProcessor class with its required components.
                         sentence = data['sentences'][key]
                         reason = data['reasons'].get(key, "")
 
-                        injected = self.consumer.consume(sentence, reason, "Test", file)
+                        injected = self.consumer.consume(sentence, reason, "Test", file, chunk)
                         print(f"The following entry was added to the knowledge graph:\n{injected}\n\n")
                 else:
                     self.logger.log("No relevant knowledge was found", 'info')

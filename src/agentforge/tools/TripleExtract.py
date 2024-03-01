@@ -110,6 +110,21 @@ class TripleExtract:
         for token in sentence_doc:
             if token.dep_ == "nsubj" or token.dep_ == "nsubjpass":
                 subject = token
+
+                # Filter irrelevant words based on POS tags and additional stop words
+                if subject and isinstance(subject, spacy.tokens.Doc):
+                    filtered_subject_words = [
+                        word.text
+                        for word in subject.words
+                        if word.pos_ not in ["STOP", "ADP", "DET", "AUX"]  # Add AUX for auxiliary verbs
+                    ]
+                else:
+                    filtered_subject_words = [subject.text] if subject else None
+
+                # Join the filtered words with a space
+                subject_text = " ".join(filtered_subject_words) if filtered_subject_words else None
+                print(f"\nDEBUG CHUNK: \nFiltered subject words: {filtered_subject_words}\nSubject text: {subject_text}\n")
+
             elif token.pos_ == "VERB":
                 # Check if it's part of a verb phrase indicating the predicate
                 if token.dep_ == "aux" and nlp(token.head.text).pos_ == "VERB":
@@ -124,7 +139,8 @@ class TripleExtract:
                 # Check for subject within relative clauses or previous entities
                 for child in predicate.children:
                     if child.dep_ == "relcl":
-                        subject = find_subject_in_clause(child, entities)
+                        subject = TripleExtract.find_subject_in_clause_with_chunk(child,
+                                                                                  entities.copy())  # Pass a copy of entities
                         if subject:
                             break
                     elif child.dep_ == "pobj" and len(entities) > 0:
@@ -133,27 +149,34 @@ class TripleExtract:
                             if entity.text == child.text:
                                 subject = entity
                                 break
-                else:
-                    # Try finding a verb phrase as the subject
-                    for chunk in doc.noun_chunks:
-                        if any(token.pos_ == "VERB" for token in chunk):
-                            subject = chunk
-                            break
+                    else:
+                        # Try finding a verb phrase as the subject
+                        for chunk in doc.noun_chunks:
+                            if any(token.pos_ == "VERB" for token in chunk):
+                                subject = chunk
+                                break
 
         # Look for candidate objects after finding subject and predicate
         if subject and predicate:
             for child in predicate.children:
-                if child.dep_ in ["dobj", "attr", "iobj"]:  # Include indirect objects
-                    _object = child
+                if child.dep_ in ["dobj", "attr", "iobj"]:
+                    for grandchild in child.children:  # Iterate over child.children
+                        if grandchild.dep_ == "pobj":
+                            _object = grandchild
+                            break  # Stop iterating after finding the object
                 elif child.dep_ == "prep":
-                    _object = child.children[0] if child.children and len(child.children) > 0 and child.children[
-                        0].dep_ == "pobj" else None
+                    for grandchild in child.children:
+                        if grandchild.dep_ == "pobj":
+                            _object = grandchild
+                            break  # Stop iterating after finding the object
 
         # Convert identified tokens to text if they exist
         subject_text = subject.text if subject else None
         predicate_text = predicate.lemma_ if predicate else None  # Using lemma for base form of verb
         object_text = _object.text if _object else None
 
+        print(
+            f"usingContext:\nSubject: {subject_text}\nPredicate: {predicate_text}\nObject: {object_text}")
         return subject_text, predicate_text, object_text
 
     @staticmethod

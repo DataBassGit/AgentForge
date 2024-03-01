@@ -1,6 +1,6 @@
 from agentforge.modules.LearnDoc import FileProcessor
 
-filepath = "Inscendo_MVP.pdf"
+filepath = "Book of Thoth.pdf"
 
 
 def learn_file(file_path):
