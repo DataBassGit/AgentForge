@@ -4,6 +4,7 @@ from agentforge.tools.IntelligentChunk import intelligent_chunk
 from agentforge.tools.InjectKG import Consume
 from agentforge.utils.functions.Logger import Logger
 from agentforge.tools.CleanString import Strip
+from agentforge.utils.storage_interface import StorageInterface
 
 """
 This needs to receive a file path and send that as an argument to GetText.
@@ -38,6 +39,7 @@ Initializes the FileProcessor class with its required components.
         self.learn_kg = LearnKGAgent()
         self.consumer = Consume()
         self.strip = Strip()
+        self.store = StorageInterface()
 
     def process_file(self, file):
         """
@@ -74,7 +76,8 @@ Initializes the FileProcessor class with its required components.
         for chunk in chunks:
             try:
                 # Steps within the loop for learning and injecting data
-                data = self.learn_kg.run(chunk=chunk, kg="No Entries")
+                kg_results = self.store.storage_utils.query_memory(chunk)
+                data = self.learn_kg.run(chunk=chunk, kg=kg_results)
 
                 if data is not None and 'sentences' in data and data['sentences']:
                     for key in data['sentences']:

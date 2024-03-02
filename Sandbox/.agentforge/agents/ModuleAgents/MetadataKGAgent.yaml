@@ -23,12 +23,12 @@ Prompts:
     
     Examine the context paragraph and create metadata relevant to that sentence. Your selections should fill gaps in the existing knowledge graph, avoiding redundancy, as well as connect the sentence to other entries in the knowledge graph via metadata if applicable. If the knowledge graph is empty, focus on creating new metadata that lays a foundational understanding. You should always include the subject, predicate, and object.
 
-    Make sure to include the code block triple backticks in your response for proper markdown format. Adhere strictly to the provided YAML response template. Include your selections and reasons within this format, refraining from any additional commentary. Try to include at least 3 other metadata tags relevant to the text.
+    Make sure to include the code block triple backticks in your response for proper markdown format. Adhere strictly to the provided YAML response template. Include your selections and reasons within this format, refraining from any additional commentary. Try to include at least 3 other metadata tags relevant to the text. No leading underscores and each value gets its own entry. no lists.
 
     RESPONSE TEMPLATE:
     ```yaml
     subject: <SUBJECT OF THE PROVIDED SENTENCE>
-    predicate: <predicate OF THE PROVIDED SENTENCE>
+    predicate: <PREDICATE OF THE PROVIDED SENTENCE>
     object: <OBJECT OF THE PROVIDED SENTENCE>
     <any_value_use_underscores>: <RELEVANT DATA>
     ```
