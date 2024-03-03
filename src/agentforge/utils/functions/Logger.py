@@ -58,6 +58,55 @@ class BaseLogger:
         # If logging is disabled, set the logger level to NOTSET or higher than CRITICAL to effectively disable it
         self.logger.setLevel(logging.CRITICAL + 1)  # Effectively disables logging
 
+    @staticmethod
+    def _get_level_code(level):
+        """
+        Converts a log level as a string to the corresponding logging module level code.
+
+        Parameters:
+            level (str): The log level as a string (e.g., 'debug', 'info', 'warning', 'error', 'critical').
+
+        Returns:
+            int: The logging module level code corresponding to the provided string.
+        """
+        level_dict = {
+            'debug': logging.DEBUG,
+            'info': logging.INFO,
+            'warning': logging.WARNING,
+            'error': logging.ERROR,
+            'critical': logging.CRITICAL,
+        }
+        return level_dict.get(level.lower(), logging.INFO)
+
+    def _setup_console_handler(self, level):
+        """
+        Sets up a console handler for logging messages to the console. Configures logging format and level.
+
+        Parameters:
+            level (int): The logging level to set for the console handler.
+        """
+
+        formatter = logging.Formatter('%(levelname)s - %(message)s\n')
+
+        if self.logger.name in BaseLogger.console_handlers:
+            # Use the existing console handler if it's not already added to this logger
+            ch = BaseLogger.console_handlers[self.logger.name]
+            if ch not in self.logger.handlers:
+                ch.setLevel(level)
+                ch.setFormatter(formatter)
+                self.logger.addHandler(ch)
+            return
+
+        # Console handler for logs
+        ch = logging.StreamHandler()
+        ch.setLevel(level)
+        ch.setFormatter(formatter)
+
+        if not any(type(handler) is logging.StreamHandler for handler in self.logger.handlers):
+            self.logger.addHandler(ch)
+
+        BaseLogger.console_handlers[self.logger.name] = ch
+
     def _setup_file_handler(self, level):
         """
         Sets up a file handler for logging messages to a file. Initializes the log folder and file if they do not exist,
@@ -101,34 +150,18 @@ class BaseLogger:
         # Store the file handler in the class-level dictionary
         BaseLogger.file_handlers[self.log_file] = fh
 
-    def _setup_console_handler(self, level):
+    def initialize_logging(self):
         """
-        Sets up a console handler for logging messages to the console. Configures logging format and level.
-
-        Parameters:
-            level (int): The logging level to set for the console handler.
+        Initializes logging by ensuring the log folder exists and setting up the log folder path.
         """
+        # Save the result to a log.txt file in the /Logs/ folder
+        self.log_folder = self.config.data['settings']['system']['Logging']['Folder']
+        self.logger.handlers = [h for h in self.logger.handlers if not isinstance(h, logging.StreamHandler)]
 
-        formatter = logging.Formatter('%(levelname)s - %(message)s\n')
-
-        if self.logger.name in BaseLogger.console_handlers:
-            # Use the existing console handler if it's not already added to this logger
-            ch = BaseLogger.console_handlers[self.logger.name]
-            if ch not in self.logger.handlers:
-                ch.setLevel(level)
-                ch.setFormatter(formatter)
-                self.logger.addHandler(ch)
+        # Create the Logs folder if it doesn't exist
+        if not os.path.exists(self.log_folder):
+            os.makedirs(self.log_folder)
             return
-
-        # Console handler for logs
-        ch = logging.StreamHandler()
-        ch.setLevel(level)
-        ch.setFormatter(formatter)
-
-        if not any(type(handler) is logging.StreamHandler for handler in self.logger.handlers):
-            self.logger.addHandler(ch)
-
-        BaseLogger.console_handlers[self.logger.name] = ch
 
     def log_msg(self, msg, level='info'):
         """
@@ -167,40 +200,6 @@ class BaseLogger:
         self.logger.setLevel(level_code)
         for handler in self.logger.handlers:
             handler.setLevel(level_code)
-
-    @staticmethod
-    def _get_level_code(level):
-        """
-        Converts a log level as a string to the corresponding logging module level code.
-
-        Parameters:
-            level (str): The log level as a string (e.g., 'debug', 'info', 'warning', 'error', 'critical').
-
-        Returns:
-            int: The logging module level code corresponding to the provided string.
-        """
-        level_dict = {
-            'debug': logging.DEBUG,
-            'info': logging.INFO,
-            'warning': logging.WARNING,
-            'error': logging.ERROR,
-            'critical': logging.CRITICAL,
-        }
-        return level_dict.get(level.lower(), logging.INFO)
-
-    # @staticmethod
-    def initialize_logging(self):
-        """
-        Initializes logging by ensuring the log folder exists and setting up the log folder path.
-        """
-        # Save the result to a log.txt file in the /Logs/ folder
-        self.log_folder = self.config.data['settings']['system']['Logging']['Folder']
-        self.logger.handlers = [h for h in self.logger.handlers if not isinstance(h, logging.StreamHandler)]
-
-        # Create the Logs folder if it doesn't exist
-        if not os.path.exists(self.log_folder):
-            os.makedirs(self.log_folder)
-            return
 
 
 class Logger:
@@ -264,7 +263,6 @@ class Logger:
             level (str): The log level (e.g., 'info', 'debug', 'error').
             logger_file (str): The specific logger to use, or 'all' to log to all loggers.
         """
-        # Allow logging to a specific logger or all loggers
         # Prepend the caller's module name to the log message
         msg_with_caller = f'{logger_file}.log - [{self.caller_name}]:\n{msg}'
 
