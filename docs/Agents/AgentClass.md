@@ -194,7 +194,33 @@ The placeholders within braces `{}` correspond to keys in the `self.data` dictio
 
 ## Demonstration of Dynamic Data Integration
 
-When executing the agent's `run` method, additional data may be passed as keyword arguments, which are then merged into `self.data` and reflected in the rendered prompts:
+When executing the agent's `run` method, additional data may be passed as keyword arguments, which are then merged into `self.data` and reflected in the rendered prompt.
+
+### Example 1 - No Context:
+
+```python
+from customagent.BottyAgent import BottyAgent
+
+botty = BottyAgent()
+ 
+feedback = 'Include the salt!'
+
+response = botty.run(feedback=feedback)
+```
+
+The above execution populates `self.data` with the `feedback` value, which is then used in prompt rendering:
+
+**Rendered Prompt Fed To The LLM**:
+
+```
+Your name is Botty McBotFace. You are a generic bot.
+Your location: Dinner Table. 
+Your sole purpose is as follows: Pass the butter.
+
+Here's some user feedback: Include the salt!
+```
+
+### Example 2 - With Context:
 
 ```python
 from customagent.BottyAgent import BottyAgent

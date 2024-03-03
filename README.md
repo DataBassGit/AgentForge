@@ -2,7 +2,7 @@
 
 [![Homepage](https://img.shields.io/badge/Homepage-agentforge.net-green?style=plastic&logo=google-chrome)](https://agentforge.net/)
 
-# AgentForge
+# AgentForge 0.2.X
 AgentForge is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents and Cognitive Architectures. Compatible with a range of LLM models — currently supporting OpenAI, Google's Gemini, Anthropic's Claude, and Oobabooga (local) — it offers the flexibility to run different models for different agents based on your specific needs.
 
 Whether you're a newbie looking for a user-friendly entry point or a seasoned developer aiming to build complex cognitive architectures, this framework has you covered.
@@ -38,13 +38,13 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
   * Document Consumption
   * Knowledge Traversal and Retrieval
 
-**Note**: While the basic implementation is there, these features still need more work before we consider them to be completed.
+> **Note**: While the basic implementation is there, these features still need more work before we consider them to be completed.
 
 ---
 
 ## Documentation
 
-Welcome to the AgentForge framework documentation. This comprehensive guide will support you whether you're just getting started or diving deep into custom configurations and advanced features. Here, you'll find detailed insights into the various components that make up our system.
+Welcome to the **AgentForge** framework documentation. This comprehensive guide will support you whether you're just getting started or diving deep into custom configurations and advanced features. Here, you'll find detailed insights into the various components that make up our system.
 
 ### **Installation and Usage:**
 

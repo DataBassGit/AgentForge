@@ -1,6 +1,7 @@
 from agentforge.modules.LearnDoc import FileProcessor
 
-filepath = "2307.03172.pdf"
+# filepath = "2307.03172.pdf"
+filepath = "Reflexion - Language Agents with Verbal Reinforcement Learning.txt"
 
 
 def learn_file(file_path):

@@ -1,5 +1,4 @@
 import os
-import time
 import logging
 from ...config import Config
 from ...utils.functions.UserInterface import UserInterface
@@ -7,7 +6,6 @@ from ...utils.functions.UserInterface import UserInterface
 from termcolor import cprint
 from colorama import init
 init(autoreset=True)
-logging.basicConfig(encoding='utf-8')
 
 
 def encode_msg(msg):
@@ -71,24 +69,35 @@ class BaseLogger:
         # Create the Logs folder if it doesn't exist
         self.initialize_logging()
 
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s\n'
+                                      '-------------------------------------------------------------',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
+
         if self.log_file in BaseLogger.file_handlers:
-            # Use the existing file handler
+            # Use the existing file handler if it's not already added to this logger
             fh = BaseLogger.file_handlers[self.log_file]
-            self.logger.addHandler(fh)
+            if fh not in self.logger.handlers:
+                fh.setLevel(level)
+                fh.setFormatter(formatter)
+                self.logger.addHandler(fh)
             return
 
         # File handler for logs
         log_file_path = f'{self.log_folder}/{self.log_file}'
-        fh = logging.FileHandler(log_file_path)
-        fh.setLevel(level)  # Set the level for file handler
-        formatter = logging.Formatter('%(asctime)s '
-                                      '- %(levelname)s '
-                                      '- %(message)s\n'
-                                      '-------------------------------------------------------------',
-                                      datefmt='%Y-%m-%d %H:%M:%S')
-        fh.setFormatter(formatter)
-        self.logger.addHandler(fh)
+        fh = logging.FileHandler(log_file_path, encoding='utf-8')
+        fh.setLevel(level)
 
+        # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s\n'
+        #                               '-------------------------------------------------------------',
+        #                               datefmt='%Y-%m-%d %H:%M:%S')
+        fh.setFormatter(formatter)
+
+        # Check if a similar handler is already attached
+        if not any(isinstance(handler, logging.FileHandler) and handler.baseFilename == fh.baseFilename for handler in
+                   self.logger.handlers):
+            self.logger.addHandler(fh)
+
+        # self.logger.addHandler(fh)
         # Store the file handler in the class-level dictionary
         BaseLogger.file_handlers[self.log_file] = fh
 
@@ -99,20 +108,26 @@ class BaseLogger:
         Parameters:
             level (int): The logging level to set for the console handler.
         """
+
+        formatter = logging.Formatter('%(levelname)s - %(message)s\n')
+
         if self.logger.name in BaseLogger.console_handlers:
-            # Use the existing console handler
+            # Use the existing console handler if it's not already added to this logger
             ch = BaseLogger.console_handlers[self.logger.name]
-            self.logger.addHandler(ch)
+            if ch not in self.logger.handlers:
+                ch.setLevel(level)
+                ch.setFormatter(formatter)
+                self.logger.addHandler(ch)
             return
 
         # Console handler for logs
         ch = logging.StreamHandler()
-        ch.setLevel(level)  # Set the level for console handler
-        formatter = logging.Formatter('%(levelname)s: %(message)s\n')
+        ch.setLevel(level)
         ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
 
-        # Store the console handler in the class-level dictionary
+        if not any(type(handler) is logging.StreamHandler for handler in self.logger.handlers):
+            self.logger.addHandler(ch)
+
         BaseLogger.console_handlers[self.logger.name] = ch
 
     def log_msg(self, msg, level='info'):
@@ -180,6 +195,7 @@ class BaseLogger:
         """
         # Save the result to a log.txt file in the /Logs/ folder
         self.log_folder = self.config.data['settings']['system']['Logging']['Folder']
+        self.logger.handlers = [h for h in self.logger.handlers if not isinstance(h, logging.StreamHandler)]
 
         # Create the Logs folder if it doesn't exist
         if not os.path.exists(self.log_folder):
@@ -188,6 +204,7 @@ class BaseLogger:
 
 
 class Logger:
+    _instances = {}
     """
     A wrapper class for managing multiple BaseLogger instances, supporting different log files and levels
     as configured in the system settings.
@@ -198,13 +215,30 @@ class Logger:
     Attributes:
         loggers (dict): A dictionary of BaseLogger instances keyed by log type (e.g., '.agentforge', 'modelio').
     """
-    def __init__(self, name: str):
+
+    def __new__(cls, name: str):
         """
-        Initializes the Logger class with names for different types of logs.
+        Create a new instance of Logger if one doesn't exist, or return the existing instance.
 
         Parameters:
             name (str): The name of the module or component using the logger.
         """
+        if name not in cls._instances:
+            instance = super(Logger, cls).__new__(cls)
+            cls._instances[name] = instance
+            instance._initialized = False
+        return cls._instances[name]
+
+    def __init__(self, name: str):
+        """
+        Initializes the Logger class with names for different types of logs. Initialization will only happen once.
+
+        Parameters:
+            name (str): The name of the module or component using the logger.
+        """
+        if self._initialized:
+            return
+
         self.config = Config()
         self.caller_name = name  # This will store the __name__ of the script that instantiated the Logger
 
@@ -214,33 +248,31 @@ class Logger:
         # Initialize loggers dynamically based on configuration settings
         self.loggers = {}
         for log_name, log_level in logging_config.items():
-            # The log_key will be '.agentforge', 'modelio', 'results', etc.
-            # The log file name is derived by adding '.log' to the log_key
             log_file_name = f'{log_name}.log'
-
-            # Initialize the BaseLogger with the name and file name
-            new_logger = BaseLogger(name=log_name, log_file=log_file_name, log_level=log_level)
-
-            # Store the logger in the dictionary with the log_key as the key
+            new_logger = BaseLogger(name=f'{name}.{log_name}', log_file=log_file_name, log_level=log_level)
+            # new_logger = BaseLogger(name=f'{log_name}', log_file=log_file_name, log_level=log_level)
             self.loggers[log_name] = new_logger
 
-    def log(self, msg: str, level: str = 'info', logger_type: str = 'AgentForge'):
+        self._initialized = True
+
+    def log(self, msg: str, level: str = 'info', logger_file: str = 'AgentForge'):
         """
         Logs a message to a specified logger or all loggers.
 
         Parameters:
             msg (str): The message to log.
             level (str): The log level (e.g., 'info', 'debug', 'error').
-            logger_type (str): The specific logger to use, or 'all' to log to all loggers.
+            logger_file (str): The specific logger to use, or 'all' to log to all loggers.
         """
         # Allow logging to a specific logger or all loggers
         # Prepend the caller's module name to the log message
-        msg_with_caller = f'[{self.caller_name}] {msg}'
-        if logger_type == 'all':
-            for logger in self.loggers.values():
-                logger.log_msg(msg_with_caller, level)
-        else:
-            self.loggers[logger_type].log_msg(msg_with_caller, level)
+        msg_with_caller = f'{logger_file}.log - [{self.caller_name}]:\n{msg}'
+
+        if logger_file not in self.loggers:
+            raise ValueError(f"Unknown logger file '{logger_file}' - Make sure the file name is a Logging File in "
+                             f"the configuration file (system.yaml).")
+
+        self.loggers[logger_file].log_msg(msg_with_caller, level)
 
     def log_prompt(self, prompt: str):
         """
