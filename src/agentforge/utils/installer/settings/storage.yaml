@@ -4,7 +4,7 @@ ChromaDB:
   chroma_db_impl: duckdb+parquet
   persist_directory: ./DB/ChromaDB
   collection_name: collection-test
-  DBFreshStart: "False"
+  DBFreshStart: False
   embedding: all-distilroberta-v1
 
 Pinecone:
