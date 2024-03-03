@@ -110,7 +110,7 @@ Name: Botty Mc.BotFace
 # ... more attributes ...
 ```
 
-This `Name` information can be used by an agent when running inference. To do this, it needs to be referenced in the agent's prompt YAML file, as shown:
+This `Name` information can be used by an agent when running inference. By default, the system will use the **persona** selected in the [system configuration](../../src/agentforge/utils/installer/settings/system.yaml) file. This can be overridden be referencing a different **persona** file in the agent's corresponding prompt YAML file, as shown:
 
 ```yaml
 # example_agent.yaml
@@ -119,10 +119,10 @@ Prompts:
     Your name is {name}.
 # ... other sub prompts ... 
 
-Persona: botty # We tell the agent to use this persona
+Persona: botty # Optional | We tell the agent to use this persona - Use the persona YAML file name without the extension.
 ```
 
-The text `{name}` in the prompt file will be replaced with the `Name` value from the persona file when it's rendered. So a possible rendered prompt when sent to the LLM would look like this:
+The text `{name}` in the prompt file will be replaced with the `Name` value from the **persona** file when it's rendered. So a possible rendered prompt when sent to the LLM would look like this:
 
 ```text
 Your name is Botty Mc.BotFace.
