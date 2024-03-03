@@ -7,7 +7,7 @@ Logging:
   Enabled: true
   Folder: ./Logs
   Files:
-    AgentForge: error
+    AgentForge: debug
     ModelIO: error
     Results: error
 

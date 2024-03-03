@@ -136,10 +136,6 @@ class BaseLogger:
         log_file_path = f'{self.log_folder}/{self.log_file}'
         fh = logging.FileHandler(log_file_path, encoding='utf-8')
         fh.setLevel(level)
-
-        # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s\n'
-        #                               '-------------------------------------------------------------',
-        #                               datefmt='%Y-%m-%d %H:%M:%S')
         fh.setFormatter(formatter)
 
         # Check if a similar handler is already attached
@@ -147,7 +143,6 @@ class BaseLogger:
                    self.logger.handlers):
             self.logger.addHandler(fh)
 
-        # self.logger.addHandler(fh)
         # Store the file handler in the class-level dictionary
         BaseLogger.file_handlers[self.log_file] = fh
 
