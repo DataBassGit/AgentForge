@@ -86,7 +86,8 @@ class BaseLogger:
             level (int): The logging level to set for the console handler.
         """
 
-        formatter = logging.Formatter('%(levelname)s - %(message)s\n')
+        formatter = logging.Formatter(f'%(asctime)s - %(levelname)s - {self.log_file} - %(message)s\n',
+                                      datefmt='%Y-%m-%d %H:%M:%S')
 
         if self.logger.name in BaseLogger.console_handlers:
             # Use the existing console handler if it's not already added to this logger
@@ -118,7 +119,7 @@ class BaseLogger:
         # Create the Logs folder if it doesn't exist
         self.initialize_logging()
 
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s\n'
+        formatter = logging.Formatter(f'%(asctime)s - %(levelname)s - %(message)s\n'
                                       '-------------------------------------------------------------',
                                       datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -249,7 +250,6 @@ class Logger:
         for log_name, log_level in logging_config.items():
             log_file_name = f'{log_name}.log'
             new_logger = BaseLogger(name=f'{name}.{log_name}', log_file=log_file_name, log_level=log_level)
-            # new_logger = BaseLogger(name=f'{log_name}', log_file=log_file_name, log_level=log_level)
             self.loggers[log_name] = new_logger
 
         self._initialized = True
@@ -264,7 +264,7 @@ class Logger:
             logger_file (str): The specific logger to use, or 'all' to log to all loggers.
         """
         # Prepend the caller's module name to the log message
-        msg_with_caller = f'{logger_file}.log - [{self.caller_name}]:\n{msg}'
+        msg_with_caller = f'[{self.caller_name}]\n{msg}'
 
         if logger_file not in self.loggers:
             raise ValueError(f"Unknown logger file '{logger_file}' - Make sure the file name is a Logging File in "

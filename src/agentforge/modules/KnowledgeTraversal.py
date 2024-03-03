@@ -114,8 +114,7 @@ class KnowledgeTraversal:
             else:
                 where_map = where_map[0]
 
-            self.logger.log(f"Query:\n"
-                            f"Collection name: {knowledge_base_name}\n"
+            self.logger.log(f"Collection name: {knowledge_base_name}\n"
                             f"Query: {query}\n"
                             f"Filter: {where_map}\n",
                             'debug')
