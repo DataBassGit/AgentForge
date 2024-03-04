@@ -19,10 +19,10 @@ dist/
 Examples/API/Logs/
 Examples/CustomAgents/Logs/
 Examples/DB/
-Examples/SalienceBot/Logs/
-Examples/SalienceBot/db_path/
-/Examples/SalienceBot/DB/
-/Examples/SalienceBot/Tests/
+SalienceBot/Logs/
+SalienceBot/db_path/
+/SalienceBot/DB/
+/SalienceBot/Tests/
 /Examples/KG/DB/
 
 /Examples/Dyn/DB/
@@ -30,9 +30,12 @@ Examples/SalienceBot/db_path/
 /Examples/Dyn/Tests/
 
 Examples/CustomAgents/DB/
-/Examples/SalienceBot/path/
+/SalienceBot/path/
 
 Examples/Chatbot/DB/
-/Examples/SalienceBot/Files/
-/Examples/SalienceBot/Workspace/
+/SalienceBot/Files/
+/SalienceBot/Workspace/
 /Examples/KG/DB/
+/Sandbox/DB/
+
+Sandbox/Logs/

@@ -1,400 +1,75 @@
-Great! Thanks for sharing the updated code for the `Config` class. I'll now help you revise your markdown documentation to reflect these changes.
+# Config Class Documentation
+
+Welcome to the Config Class documentation. This class is instrumental in managing the system's configuration, designed to ensure that settings are fetched, parsed, and made available consistently and efficiently across the system. It employs a Singleton design pattern to maintain a single configuration instance system-wide, enhancing stability and predictability.
 
 ---
 
-# Config Class
+## 📌 Key Insights
 
-Welcome to the Config Class documentation!
-This class is the backbone of our system's configuration management,
-ensuring settings are fetched, parsed, and made available seamlessly.
+The Config class stands as the central mechanism for configuration management within the system, implementing a dynamic and hierarchical data structure for seamless configuration access and performance.
 
 ---
 
-## 📌 Key Insight: The Backbone of Configuration
+## Singleton Design Pattern
 
-The `Config` class serves as the central hub for configuration management,
-ensuring uniform access and efficient performance.
-It fetches its configurations from `YAML` files located under the `/.agentforge/` path,
-populating its attributes with the pertinent data.
+### Overview
 
----
-
-## Methods Overview
-1. [Initialization](#initialization)
-2. [Load](#load)
-3. [Chromadb](#chromadb)
-4. [Find File in Directory](#find-file-in-directory)
-5. [Get Config Element](#get-config-element)
-6. [Get File Path](#get-file-path)
-7. [Get LLM](#get-llm)
-8. [Load Agent](#load-agent)
-9. [Load Settings](#load-settings)
-10. [Load From Folder](#load-from-folder)
-11. [Load Actions](#load-actions)
-12. [Load Tools](#load-tools)
-13. [Load Persona](#load-persona)
-14. [Reload](#reload)
-15. [Get YAML Data](#get-yaml-data)
+The Config class utilizes the Singleton pattern to guarantee a unique, system-wide instance of the configuration. This pattern is essential for uniform access and manipulation of the system's configuration, offering an override functionality that accommodates specific agent requirements.
 
 ---
 
-## Initialization
+## Hierarchical Data Structure
 
-### `__init__(self, config_path=None)`
+### `self.data`: Central Configuration Repository
 
-**Purpose**: Initializes the configuration path and placeholders for various configuration categories.
-
-**Arguments**:
-- `config_path`: Optional path to the configuration directory.
-
-**Workflow**:
-1. Determine the configuration directory path.
-2. Initialize attributes for configuration categories.
-3. Load the configurations.
-
-```python
-def __init__(self, config_path=None):
-    self.config_path = config_path or os.environ.get("AGENTFORGE_CONFIG_PATH", ".agentforge")
-
-    # Placeholders for the data the agent needs which is located in each respective YAML file
-    self.persona_name = {}
-    self.personas = {}
-    self.actions = {}
-    self.agent = {}
-    self.tools = {}
-    self.settings = {}
-
-    # Here is where we load the information from the YAML files to their corresponding attributes
-    self.load()
-```
+At the core of the Config class is the `self.data` dictionary, which aggregates all configuration information in a nested, accessible manner. This structure facilitates an efficient approach to loading, referencing, and extending configuration settings, catering to the dynamic needs of the system.
 
 ---
 
-## Load
+## Configuration Loading
 
-### `load(self)`
+### `load_all_configurations()`
 
-**Purpose**: Coordinates the configuration loading process, fetching and populating settings.
+**Purpose:** Streamlines the process of loading configurations by recursively searching and loading data from `.yaml` or `.yml` files located within the `.agentforge` directory.
 
-**Workflow**:
-1. Load settings, actions, tools, and persona configurations.
-
-```python
-def load(self):
-    self.load_settings()
-    self.load_actions()
-    self.load_tools()
-    self.load_persona()
-```
+**Workflow Highlights:**
+- Traverses the configuration directory and its subdirectories to find configuration files.
+- Organizes the configuration data within `self.data` for structured access and modification.
+- Ensures that configuration settings are dynamically accessible throughout the system.
 
 ---
 
-## Chromadb
+## Dynamic Configuration Reloading
 
-### `chromadb(self)`
+### `reload()`
 
-**Purpose**: Retrieves ChromaDB storage path and embedding details.
+**Objective:** Facilitates the real-time reloading of configurations, leveraging the 'OnTheFly' setting to adapt to changing requirements or operational contexts without system restarts.
 
-**Returns**:
-- `db_path`: Path to the ChromaDB storage.
-- `db_embed`: Embedding details for ChromaDB.
-
-```python
-def chromadb(self):
-    db_path = self.settings['storage'].get('ChromaDB', {}).get('persist_directory', None)
-    db_embed = self.settings['storage'].get('ChromaDB', {}).get('embedding', None)
-
-    return db_path, db_embed
-```
+**Key Capability:**
+- Utilizes the 'OnTheFly' setting as a central feature for flexible and adaptive configuration management, allowing for immediate application of changes to the system's configuration.
 
 ---
 
-## Find File in Directory
+## Configuration Utility Methods
 
-### `find_file_in_directory(self, directory, filename)`
+### Finding and Loading Configurations
 
-**Purpose**: Searches for a file in a directory and its subdirectories.
+- **`find_project_root()`**: Identifies the project root directory by locating the `.agentforge` folder, ensuring configuration files are sourced correctly.
+- **`find_file_in_directory(directory: str, filename: str)`**: Recursively searches for a specific file within a directory, supporting deep configuration searches.
+- **`get_file_path(file_name: str)`**: Constructs the filepath for a given filename within the configuration directory.
 
-**Arguments**:
-- `directory`: The directory to search in.
-- `filename`: The name of the file to find.
+### Managing Configurations
 
-**Returns**:
-- Full path to the found file or `None`.
+- **`get_llm(api: str, model: str)`**: Dynamically loads a Large Language Model based on specified API and model configurations, showcasing the flexible data access facilitated by `self.data`.
+- **`load_agent(agent_name: str)`**: Specifically loads an agent's configuration, illustrating the application of dynamic data handling in agent-specific scenarios.
 
-```python
-def find_file_in_directory(self, directory, filename):
-    """
-    Recursively searches for a filename in a directory and its subdirectories.
-    Returns the full path if found, or None otherwise.
-    """
-    directory = pathlib.Path(self.get_file_path(directory))
+### Utility Functions
 
-    for file_path in directory.rglob(filename):
-        return file_path
-    return None
-```
+- **`get_yaml_data(file_path: str)`**: Safely loads and parses YAML files, converting them into Python dictionaries. This essential function forms the basis for the Config class's data loading capabilities.
 
 ---
 
-## Get Config Element
-
-### `get_config_element(self, case)`
-
-**Purpose**: Accesses specific configuration elements based on the provided case.
-
-**Arguments**:
-- `case`: The configuration category (e.g., "Persona", "Tools", "Actions").
-
-**Returns**:
-- Configuration details for the specified category or "Invalid case" if not found.
-
-```python
-def get_config_element(self, case):
-    switch = {
-        "Persona": self.personas[self.persona_name],
-        "ToolsAndActions": self.tools,
-        "Actions": self.actions
-    }
-    return switch.get(case, "Invalid case")
-```
+This documentation aims to provide a thorough overview of the Config class, its design rationales, functionalities, and how it can be leveraged for effective configuration management within the system. For further details or specific use cases, users are encouraged to explore the class methods and their implementations directly. For anyone interested in studying or modifying the configuration class, you can find the code [here](../../src/agentforge/config.py).
 
 ---
 
-## Get File Path
-
-### `get_file_path(self, file_name)`
-
-**Purpose**: Constructs the full path for a given file.
-
-**Arguments**:
-- `file_name`: The name of the file.
-
-**Returns**:
-- Full path to the specified file.
-
-```python
-def get_file_path(self, file_name):
-    return pathlib.Path(self.config_path) / file_name
-```
-
----
-
-## Get LLM
-
-### `get_llm(self, api, model)`
-
-**Purpose**: Configures and returns an instance of a Large Language Model.
-
-**Arguments**:
-- `api`: The API library for the LLM.
-- `model`: The model name.
-
-**Returns**:
-- An instance of the specified LLM.
-
-```python
-def get_llm(self, api, model):
-    try:
-        model_name = self.settings['models']['ModelLibrary'][api]['models'][model]['name']
-        module_name = self.settings['models']['ModelLibrary'][api]['module']
-        class_name = self.settings['models']['ModelLibrary'][api]['class']
-    
-        module = importlib.import_module(f".llm.{module_name}", package=__package__)
-        model_class = getattr(module, class_name)
-        args = [model_name]
-        return model_class(*args)
-
-    except Exception as e:
-        print(f"Error Loading Model: {e}")
-        raise
-```
-
----
-
-## Load Agent
-
-### `load_agent(self, agent_name)`
-
-**Purpose**: Loads agent-specific configurations.
-
-**Arguments**:
-- `agent_name`: The name of the agent.
-
-**Workflow**:
-1. Finds and loads the agent's YAML configuration.
-
-```python
-def load_agent(self, agent_name):
-    path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
-    if path_to_file:
-        self.agent = get_yaml_data(path_to_file)
-    else:
-        raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
-```
-
----
-
-## Load Settings
-
-### `load_settings(self)`
-
-**Purpose**: Initiates the loading of general settings.
-
-**Workflow**:
-1. Loads settings configurations from the `settings` folder.
-
-```python
-def load_settings(self):
-    self.load_from_folder("settings")
-```
-
----
-
-## Load From Folder
-
-### `load_from_folder(self, folder)`
-
-**Purpose**: Loads configurations from a specified folder.
-
-**Arguments**:
-- `folder`: The folder to load configurations from.
-
-**Workflow**:
-1. Loads and organizes data from YAML files in the specified folder.
-
-```python
-def load_from_folder(self, folder):
-    # Get the path for the provided folder name
-    folder_path = self.get_file_path(folder)
-
-    # If the folder attribute doesn't exist, initialize it as an empty dictionary
-    if not hasattr(self, folder):
-        setattr(self, folder, {})
-
-    # Reference to the folder's dictionary
-    folder_dict = getattr(self, folder)
-
-    # Iterate over each file in the specified folder
-    for file in os.listdir(folder_path):
-        # Only process files with a .yaml or .yml extension
-        if file.endswith(".yaml") or file.endswith(".yml"):
-            # Load the YAML data from the current file
-            pathy = os.path.join(folder_path, file)
-            data = get_yaml_data(pathy)
-
-            # Get the filename without the extension
-            filename = os.path.splitext(file)[0]
-
-            # Check if filename exists under the folder's dictionary, if not, initialize it as a dict
-            if filename not in folder_dict:
-                folder_dict[filename] = {}
-
-            # Reference to the file name's dictionary
-            file_dict = folder_dict[filename]
-
-            for item_name, data_item in data.items():
-                # Extract the name and store the data under that name in the file name's dictionary
-                if item_name:
-                    file_dict[item_name] = data_item
-```
-
----
-
-## Load Actions
-
-### `load_actions(self)`
-
-**Purpose**: Initiates the loading of action configurations.
-
-**Workflow**:
-1. Loads action configurations from the `actions` folder.
-
-```python
-def load_actions(self):
-    self.load_from_folder("actions")
-```
-
----
-
-## Load Tools
-
-### `load_tools(self)`
-
-**Purpose**: Starts the loading of tool configurations.
-
-**Workflow**:
-1. Loads tool configurations from the `tools` folder.
-
-```python
-def load_tools(self):
-    self.load_from_folder("tools")
-```
-
----
-
-## Load Persona
-
-### `load_persona(self)`
-
-**Purpose**: Loads persona configurations.
-
-**Workflow**:
-1. Determines and loads the specified persona configuration.
-
-```python
-def load_persona(self):
-    self.persona_name = self.settings.get('directives', None).get('Persona', None)
-    self.load_from_folder("personas")
-```
-
----
-
-## Reload
-
-### `reload(self, agent_name)`
-
-**Purpose**: Reloads all configurations, including agent-specific configurations.
-
-**Arguments**:
-- `agent_name`: The agent to reload configurations for.
-
-**Workflow**:
-1. Reloads the specified agent's configurations and others.
-
-```python
-def reload(self, agent_name):
-    self.load_agent(agent_name)
-    self.load_actions()
-    self.load_tools()
-    self.load_persona()
-```
-
----
-
-## Get YAML Data
-
-### `get_yaml_data(self, file_name)`
-
-**Purpose**: Fetches data from a YAML file.
-
-**Arguments**:
-- `file_name`: The YAML file to fetch data from.
-
-**Returns**:
-- Data from the specified YAML file.
-
-```python
-def get_yaml_data(self, file_name):
-        try:
-        with open(file_path, 'r') as yaml_file:
-            return yaml.safe_load(yaml_file)
-    except FileNotFoundError:
-        print(f"File {file_path} not found.")
-        return {}
-    except yaml.YAMLError:
-        print(f"Error decoding YAML from {file_path}")
-        return {}
-```
-
----

@@ -13,8 +13,7 @@ Predicate
 These will be entered into the knowledge graph collection on the database. The Sentence will be the document, the other
 six parameters will be metadata.
 """
-
-from agentforge.tools.TripleExtract import TripleExtract
+from agentforge.agents.MetadataKGAgent import MetadataKGAgent
 from agentforge.utils.storage_interface import StorageInterface
 import uuid
 
@@ -22,12 +21,13 @@ import uuid
 class Consume:
 
     def __init__(self):
-        self.trip = TripleExtract()
+        self.trip = MetadataKGAgent()
         self.storage = StorageInterface().storage_utils
 
-    def consume(self, sentence, reason, source_name, source_url):
+    def consume(self, sentence, reason, source_name, source_url, chunk=None):
         # Extract Triples
-        _subject, _predicate, _object = self.trip.find_subject_predicate_object(sentence)
+
+        nodes = self.trip.run(sentence = sentence, chunk=chunk)
 
         # build params
         random_uuid = uuid.uuid4()
@@ -41,14 +41,16 @@ class Consume:
                 "sentence": sentence,
                 "source_name": source_name,
                 "source_url": source_url,
-                "subject": _subject,
-                "predicate": _predicate,
-                "object": _object,
+                **nodes
             }]
         }
 
         output = params.copy()
+        metadata_values = output["metadata"][0]  # Access the first (and only) metadata item
 
-        self.storage.save_memory(params)
+        # Print each metadata item on its own line
+        for key, value in metadata_values.items():
+            print(f"{key}: {value}")
+        self.storage.save_memory(**params)
         return output
 

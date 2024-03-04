@@ -94,15 +94,15 @@ class Directory:
 # dir_tree.excluded_files = {'__pycache__', '__init__.py'}
 #
 # # Test with a single path
-# single_path = '../../agentforge'  # Replace with a valid directory path
+# single_path = '../../.agentforge'  # Replace with a valid directory path
 # print("---- Single Path Test ----")
 # print(dir_tree.read_directory(single_path, max_depth=2))
 # print("\n")
 #
 # # Test with multiple paths
 # multiple_paths = [
-#     '../../agentforge/agents',  # Replace with a valid directory path
-#     '../../agentforge/settings'  # Replace with another valid directory path
+#     '../../.agentforge/agents',  # Replace with a valid directory path
+#     '../../.agentforge/settings'  # Replace with another valid directory path
 # ]
 # print("---- Multiple Paths Test ----")
 # print(dir_tree.read_directory(multiple_paths, max_depth=2))

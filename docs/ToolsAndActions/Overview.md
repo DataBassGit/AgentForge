@@ -2,7 +2,7 @@
 
 ## **Tools Overview**
 
-Tools are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a YAML file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
+**Tools** are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a YAML file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
 
 **Detailed Guide**: For a comprehensive guide on Tools, including their configurations and capabilities, please see [Tools Detailed Guide](Tools.md).
 
@@ -21,12 +21,12 @@ Instruction: >-
   The 'google_search' function takes a query string and a number of results as inputs.
   The query string is what you want to search for, and the number of results is how many search results you want returned.
   The function returns a list of tuples, each tuple containing a URL and a snippet description of a search result.
-Script: agentforge.tools.GoogleSearch
+Script: .agentforge.tools.GoogleSearch
 ```
 
 ## **Actions Overview**
 
-Actions are structured sequences of one or more Tools, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via YAML files which describe the process flow and inter-tool dynamics.
+**Actions** are structured sequences of one or more Tools, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via YAML files which describe the process flow and inter-tool dynamics.
 
 **Detailed Guide**: To understand Actions in depth, including how to create and manage them, refer to [Actions Detailed Guide](Actions.md).
 

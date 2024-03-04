@@ -2,7 +2,7 @@
 
 ## Overview
 
-`ToolUtils` in AgentForge is a utility class that manages the execution of tools defined within the system. It offers functions to dynamically load and execute tools from specified Python modules, streamlining the automation process.
+`ToolUtils` in **AgentForge** is a utility class that manages the execution of tools defined within the system. It offers functions to dynamically load and execute tools from specified Python modules, streamlining the automation process.
 
 ## Key Methods and Examples
 
@@ -65,7 +65,7 @@ tool_utils.show_primed_tool(tool_name, payload)
 
 ---
 
-For a usage and integration example of `ToolUtils` with other components in the AgentForge framework,
+For a usage and integration example of `ToolUtils` with other components in the **AgentForge** framework,
 refer to the [Action Execution Documentation,](../Modules/ActionExecution.md) and it's respective [code](../../src/agentforge/modules/ActionExecution.py).
 
 ---

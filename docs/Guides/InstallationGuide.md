@@ -1,7 +1,5 @@
 # AgentForge Installation and Usage Guide
 
----
-
 ## Pre-Installation
 
 Before you get started with AgentForge, there are a few things you should know:
@@ -11,7 +9,7 @@ Before you get started with AgentForge, there are a few things you should know:
 - **Cloud-Based:** To use cloud-based LLM models like OpenAI, you'll need to obtain and set up API keys in your user environment variables.
 
 ### LLM API Keys
-- You don't need API keys for both Claude and OpenAI if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Model Configuration](../../docs/Settings/Models.md) file.
+- You don't need API keys for all providers if you plan on using just one. No API keys are needed if you're using the Oobabooga implementation. The model you wish to use can be specified in the [Model Configuration](../../docs/Settings/Models.md) file.
 
 ### Other Services
 - If you're planning to use Google Search functionalities, you'll need both a Google API key and a Google Search Engine ID key.
@@ -57,7 +55,7 @@ sudo apt-get install python3 python3-pip
 ### Installation Steps
 
 1. **(Optional) Set Up a Virtual Environment**:
-   It's recommended to use a virtual environment to avoid conflicts with system-wide packages.
+   It's highly recommended to use a virtual environment to avoid conflicts with system-wide packages.
    - Install the virtual environment package if you haven't already:
      ```shell
      sudo pip3 install virtualenv
@@ -77,16 +75,24 @@ sudo apt-get install python3 python3-pip
    ```
 
 3. **Initialize Your Bot Project**:
-    Initialize your AgentForge project:
+   Initialize your AgentForge project:
    ```shell
    agentforge init
    ```
 
-4. **(Optional) Try the Demo Architecture**:
-   To experiment with the demo bot architecture, run:
-   ```shell
-   agentforge salience
+4. **Done**:
+   Your project folder should have a new '.agentforge' folder with subfolders containing yaml files as shown below: 
+
    ```
+   my_project_root/
+      .agentforge/
+         actions/
+         agents/
+         personas/
+         settings/
+         tools/
+   ```
+   At this point your project is ready to start using the AgentForge framework.
 
 When you're done working in the virtual environment, deactivate it with `deactivate`. Remember to activate the virtual environment (`source venv/bin/activate`) whenever you return to work on your project.
 
@@ -101,7 +107,7 @@ Clone the GitHub repository:
 ```shell
 git clone https://github.com/DataBassGit/AgentForge.git
 cd agentforge
-pip install -e
+pip install -e .
 ```
 
 ---
@@ -114,25 +120,15 @@ Each Cognitive Architecture (bot) you create should contain an `.agentforge` fol
 
 >**Note**: We define `Cognitive Architectures` or `Bots` as Multi-Agent Scripts!  
 
-### For Custom Agents
+## Custom Agents
+With AgentForge, you have the flexibility to create any number of [Custom Agents](../../docs/Agents/CustomAgents.md) and structure them however you want in the project. Put simply, a custom agent is a user-defined agent that can specifically meet your needs.
 
-To get started with custom agents, navigate to `Examples/CustomAgents/`. Inside, you'll find the `.agentforge/` folder with its configuration files as well as an `agents` folder which contains an example of a custom test agent. To know more about how to use and create your own agents, check out the [Custom Agents](../../docs/Agents/CustomAgents.md) page.
+### Agent and Prompt Yaml Files
+You need to ensure that each agent has a corresponding prompt yaml file. These prompt yaml files need to be placed inside the `.agentforge/agents` folder. You are free to nest your prompt yaml files within folders however you want. The system is capable of finding the corresponding file as long as it's nested somewhere within the `.agentforge/agents` folder.
 
-### For Salience Bot Example
+Once your custom agents have been set up, you can leverage them in the same way as predefined agents. Remember that each agent must be properly tested and configured to ensure optimal results.
 
-If you've installed our Salience example, head over to `Examples/SalienceBot/.agentforge/` to find its configuration files.
+### Module Agents
+Inside the `.agentforge/agents` folder, there's a `ModuleAgents` folder. This folder contains the prompts for the agents used in our Predefined Modules (multi-agent scripts). These are standard agents that we have created to provide built-in functionalities for common tasks.
 
-To run the Salience Bot demo, go to `Examples/SalienceBot/` in your console and run:
-
-```shell
-python salience.py
-```
-
-This will execute a simple bot script that uses our
-[Predefined Agents](../../docs/Agents/PredefinedAgents/PredefinedAgents.md) 
-to complete an objective by breaking it down into tasks, subsequently executing them and checking for completion.
-
-For a deep dive into our `Salience` example please refer to the [Salience Code](../../src/agentforge/utils/installer/salience.py)
-(Note: There is no Documentation for Salience Bot Yet)
-
-**Important** : Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.
+> **Important Note**: Whenever a bot runs, it will first initialize ChromaDB (or whichever database is used) as it will act as the memory for the agents. The first time Chroma is initialized on a system it needs to download a few language models for sentence embedding, so it is normal for it to take several minutes to run the first time. Any subsequent runs will not have this issue as long as Chroma has previously downloaded the models being used.

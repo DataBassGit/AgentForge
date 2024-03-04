@@ -2,7 +2,7 @@
 
 ## Seamless Connection with LLM APIs
 
-AgentForge is engineered to interface effortlessly with a variety of Large Language Model (LLM) APIs. This flexibility is a cornerstone of our system, allowing users to plug in different language models as needed. The `get_llm` method plays a pivotal role in this process, leveraging the Python files designated for each API in the `llm` folder within our library package.
+**AgentForge** is engineered to interface effortlessly with a variety of Large Language Model (LLM) APIs. This flexibility is a cornerstone of our system, allowing users to plug in different language models as needed. The `get_llm` method plays a pivotal role in this process, leveraging the Python files designated for each API in the `llm` folder within our library package.
 
 ### How the `get_llm` Method Works
 
@@ -25,12 +25,25 @@ For more information on configuring the `models.yaml` file, please refer to our 
 5. **Exception Handling**: If any errors occur during this process (such as a missing module or class), the method prints an error message and re-raises the exception to alert the user.
 
 ```python
-def get_llm(self, api, model):
+def get_llm(self, api: str, model: str):
+    """
+    Loads a specified language model based on API and model settings.
+
+    Parameters:
+        api (str): The API name.
+        model (str): The model name.
+
+    Returns:
+        object: An instance of the requested model class.
+
+    Raises:
+        Exception: If there is an error loading the model.
+    """
     try:
         # Retrieve the model name, module, and class from the 'models.yaml' settings.
-        model_name = self.settings['models']['ModelLibrary'][api]['models'][model]['name']
-        module_name = self.settings['models']['ModelLibrary'][api]['module']
-        class_name = self.settings['models']['ModelLibrary'][api]['class']
+        model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
+        module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
+        class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
 
         # Dynamically import the module corresponding to the LLM API.
         module = importlib.import_module(f".llm.{module_name}", package=__package__)
@@ -68,11 +81,18 @@ Each API file contains a `generate_text` method. This method is crucial for proc
 class Agent:
     # ... other methods ...
 
-    def run_llm(self):
-        """Sends the rendered prompt to the LLM and stores the response."""
-        model: LLM = self.agent_data['llm']
-        params = self.agent_data.get("params", {})
-        self.result = model.generate_text(self.prompt, **params).strip()
+     def run_llm(self):
+        """
+        Executes the language model generation with the generated prompt(s) and any specified parameters.
+        """
+        try:
+            model: LLM = self.agent_data['llm']
+            params = self.agent_data.get("params", {})
+            params['agent_name'] = self.agent_name
+            self.result = model.generate_text(self.prompt, **params).strip()
+        except Exception as e:
+            self.logger.log(f"Error running LLM: {e}", 'error')
+            self.result = None
 ```
 
 ### Integrating New LLM APIs

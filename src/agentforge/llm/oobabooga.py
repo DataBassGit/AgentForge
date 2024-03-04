@@ -1,25 +1,47 @@
-import json
-import requests
 # import sseclient  # pip install sseclient-py
-
-from termcolor import cprint
-from colorama import init
-init(autoreset=True)
-
-_level = 'debug'
+import requests
+from agentforge.utils.functions.Logger import Logger
 
 
 class Oobabooga:
+    """
+    A class for interacting with an external text generation service named Oobabooga. This class handles the
+    construction and execution of requests to the Oobabooga API to generate text based on a given prompt.
+
+    Attributes:
+        _model (str): The model identifier used for generating text. This is kept for compatibility but may not
+                      be directly used depending on the external service's API.
+    """
     def __init__(self, model):
+        """
+        Initializes the Oobabooga class with a specific model identifier.
+
+        Parameters:
+            model (str): The identifier of the model to use for text generation.
+        """
         self._model = model
+        self.logger = None
 
-    @staticmethod
-    def generate_text(prompt, **params):
+    def generate_text(self, prompt, **params):
+        """
+        Generates text based on the provided prompt and additional parameters by making a request to the
+        Oobabooga service's API.
 
+        Parameters:
+            prompt (str or list): The prompt or prompts to send to the text generation service. If a list,
+                                  it will be joined into a single string.
+            **params: Arbitrary keyword arguments providing additional options for the request. This includes
+                      'agent_name' for logging purposes and 'host_url' for specifying the Oobabooga service's address.
+
+        Returns:
+            str: The generated text from the Oobabooga service.
+
+        Raises:
+            Exception: Logs a critical error message if an exception occurs during the API request.
+        """
+        self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
         prompt = ''.join(prompt)
-
-        if _level == 'debug':
-            cprint(f'\nPrompt:\n"{prompt}"', 'magenta', attrs=['concealed'])
+        self.logger.log_prompt(prompt)
 
         # Server address
         host = params.pop('host_url', None)
@@ -77,7 +99,9 @@ class Oobabooga:
         reply = ''
         try:
             response = requests.post(url, headers=headers, json=data, verify=False)
+
             reply = response.json()['choices'][0]['message']['content']
+            self.logger.log_response(reply)
 
             # stream_response = requests.post(url, headers=headers, json=data, verify=False, stream=True)
             # client = sseclient.SSEClient(stream_response)
@@ -92,7 +116,7 @@ class Oobabooga:
             # print()
 
         except Exception as e:
-            print(f'Error: {e}')
+            self.logger.log(f"\n\nError: {e}", 'critical')
 
         # if response.status_code == 200:
         #     reply = response.json()['results'][0]['text']

@@ -1,8 +1,8 @@
 # Action Execution Module
 
-## Overview of the Action Execution Module
+## Overview
 
-The Action Execution Module in the AgentForge framework is a key component that orchestrates the execution of actions. Actions, composed of one or more tools, represent complex tasks or workflows. This module seamlessly manages the flow of information and decision-making processes between various tools and agents to accomplish these tasks.
+The Action Execution Module in the **AgentForge** framework is a key component that orchestrates the execution of actions. Actions, composed of one or more tools, represent complex tasks or workflows. This module seamlessly manages the flow of information and decision-making processes between various tools and agents to accomplish these tasks.
 
 ### Understanding Tools and Actions
 
@@ -54,16 +54,13 @@ This example illustrates how the Action Execution Module can be used in scripts 
 
 ## Key Focus
 
-The Action Execution Module exemplifies the integration of agents within a higher-order process. It highlights how the module leverages various agents to manage and interpret the flow of information, ensuring that each step of an action is contextually aligned with the overarching goal.
+The **Action Execution Module** exemplifies the integration of agents within a higher-order process. It highlights how the module leverages various agents to manage and interpret the flow of information, ensuring that each step of an action is contextually aligned with the overarching goal.
 
 ---
 
 ## Dive into the Code
 
-For those who are curious about the inner workings of the Action Execution Module and wish to explore the actual code, we invite you to take a look at the `ActionExecution.py` file. While this file may not be extensively documented, it is structured in a manner that allows the underlying logic to be followed and understood.
-
-The `ActionExecution.py` file can be found [here](../../src/agentforge/modules/ActionExecution.py),
-it provides practical insights into how the module orchestrates the execution of actions and manages the interplay between tools and agents.
+For those who are curious about the inner workings of the Action Execution Module and wish to explore the actual code, we invite you to take a look at the [ActionExecution.py](../../src/agentforge/modules/ActionExecution.py) file. While this file may not be extensively documented, it is structured in a manner that allows the underlying logic to be followed and understood.
 
 > **Note**: The code in `ActionExecution.py` is designed to be clear and readable. However, if you have any questions or need further clarification, feel free to reach out to our development team or refer to the community forums for support.
 

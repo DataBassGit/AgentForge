@@ -3,6 +3,7 @@
 ### **Overview**
 
 The `storage.yaml` file manages the available storage options and their respective settings. It plays a pivotal role in configuring the system's storage mechanisms.
+You can find this directory at `your_project_root/.agentforge/settings`
 
 ### **Formatting Guidelines**
 
@@ -18,7 +19,7 @@ ChromaDB:
   chroma_db_impl: duckdb+parquet
   persist_directory: ./DB/ChromaDB
   collection_name: collection-test
-  DBFreshStart: "True"
+  DBFreshStart: true
   embedding: all-distilroberta-v1
 
 Pinecone:

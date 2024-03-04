@@ -1,0 +1,15 @@
+Persona: default
+OnTheFly: true
+SaveMemory: true
+TimeStampMemory: true
+
+Logging:
+  Enabled: true
+  Folder: ./Logs
+  Files:
+    AgentForge: error
+    ModelIO: error
+    Results: error
+
+Paths:
+  Files: ./Files

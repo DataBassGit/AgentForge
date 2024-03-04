@@ -1,6 +1,6 @@
 # Storage Interface Documentation
 
-## Introduction to StorageInterface
+## Overview
 
 The `StorageInterface` serves as a critical component in the AgentForge framework, providing a consistent interface for data storage and retrieval operations. It allows the system to interact with various databases, ensuring that data management is seamless regardless of the underlying storage solution.
 
@@ -22,70 +22,91 @@ storage = StorageInterface().storage_utils
 
 ---
 
-### Common Methods and Interoperability
+## Custom Database Integration with Storage Interface
 
-In `storage_utils`, method names and the formats of the information they return must be consistent across different database utilities. This uniformity is crucial for ensuring that data can be handled predictably within the system, regardless of the database technology in use.
+### Overview
 
-Below is a rundown of the common methods provided by the `ChromaUtils` class, which other database utility classes should emulate:
+The **AgentForge** framework offers flexibility in database selection, allowing developers to integrate their preferred database solutions. While `ChromaDB` (accessed via the `ChromaUtils` class) is the default storage option, the framework's design accommodates the use of alternative databases to meet specific needs or preferences.
 
-- `collection_list()`: Returns a list of all collections in the database. The format is a list of strings, each representing a collection name.
+### Storage Interface and `storage_utils` Attribute
 
-- `load_collection(params)`: Loads data from a collection based on the specified parameters. It returns a list of documents meeting the query criteria.
+- The `storage_utils` attribute within the storage interface class serves as a gateway to the database functionalities. By default, it is instantiated as an instance of `ChromaUtils`, which interacts with `ChromaDB`.
+  
+- Developers aiming to integrate a different database solution must create a custom class that adheres to the interface defined by `ChromaUtils`. This custom class should then be assigned to the `storage_utils` attribute, ensuring seamless interoperability within the framework.
 
-- `save_memory(params)`: Saves data to the specified collection. It does not return any value but will raise an exception if the operation fails.
+### Ensuring Compatibility
 
-- `query_memory(params, num_results=1)`: Retrieves data from the collection based on the provided query parameters. It returns a dictionary containing the query results, which includes the documents, metadatas, and distances if specified.
+To ensure full compatibility and maintain the framework's expected behavior, any custom database utility class must:
 
-- `count_collection(collection_name)`: Provides the number of items in the specified collection. The return format is an integer representing the count.
+- **Match Method Names**: Implement all the methods provided by `ChromaUtils`, using the same method names to preserve the consistency of database operations across the framework.
 
-For example, to get a list of all collections:
+- **Align Method Signatures**: Ensure that the intake attributes (parameters) for each method correspond precisely with those defined in `ChromaUtils`. This alignment guarantees that the rest of the framework can interact with the storage layer without encountering method signature mismatches.
 
-```python
-collections = storage.collection_list()
-```
+- **Replicate Return Formats**: Ensure that the data returned by each method matches the format expected by the **AgentForge** framework, as established in the `ChromaUtils` documentation below.
 
-### More Storage Methods
+### Example Scenario
 
-Here are descriptions of the rest of the methods within the `ChromaUtils` class:
+If a developer wishes to integrate a SQL-based storage system, they would need to:
 
-- `init_embeddings()`: Initializes the embedding function based on the specified embedding model. It is crucial for enabling semantic search within ChromaDB.
+1. **Create a Custom Class**: Develop a class, say `SQLUtils`, implementing the necessary storage operations like `collection_list`, `save_memory`, `query_memory`, etc.
 
-- `init_storage()`: Establishes a connection to the ChromaDB client. If a persistent database path is provided, it connects to that; otherwise, it uses an ephemeral client.
+2. **Ensure Method Consistency**: Adopt the same method names and parameters as those in `ChromaUtils`, adapting the internal logic to interact with the SQL database.
 
-- `select_collection(collection_name)`: Selects the specified collection from the database, readying it for operations. If the collection does not exist, it attempts to create it.
+3. **Integrate with AgentForge**: Assign the `SQLUtils` instance to the `storage_utils` attribute within the storage interface, replacing the default `ChromaUtils` instance.
 
-- `delete_collection(collection_name)`: Deletes the specified collection from the database.
-
-- `peek(collection_name)`: Retrieves a snapshot of the latest document in the specified collection.
-
-- `reset_memory()`: Clears all data within the database. It does not return any value but will raise an exception if the operation fails.
-
-- `search_storage_by_threshold(parameters)`: Searches the storage by a semantic threshold, returning documents that are semantically close to the query text.
-
-- `return_embedding(text_to_embed)`: Generates an embedding for the provided text, which can be used for semantic searches.
-
-For the actual code implementation on these methods,
-please refer to the [ChromaUtils](../../src/agentforge/utils/chroma_utils.py) class.
-
-### Ensuring Data Format Consistency
-
-When creating or adapting database utilities, developers must ensure that each method not only matches the method signature but also produces and handles return values in a consistent format. This consistency is critical for the seamless operation of the `StorageInterface`, as it relies on predictable data structures to perform system-wide operations.
-
-Inconsistent return formats could lead to unexpected behavior, errors in data handling, or system failures. Therefore, maintaining uniformity in both method signatures and return data formats is essential for the health and scalability of the AgentForge system.
+By adhering to these guidelines, developers can leverage the **AgentForge** framework's robust features while utilizing their database of choice, ensuring that agents operate effectively and consistently regardless of the underlying storage solution.
 
 ---
 
-## Database Utilities
+## Common Methods in Chroma Utils
 
-The `StorageInterface` is designed to work with various database utilities, such as `ChromaUtils` and `PineconeUtils`. Each utility must implement the same set of methods used by `StorageInterface` to maintain seamless functionality.
+The `storage_utils` provided by the `ChromaUtils` class facilitate a range of database interactions crucial for the AgentForge framework. Below are the core methods offered by the `ChromaUtils` class, serving as standards for any database utility classes within the framework:
 
-### [ChromaUtils](../../src/agentforge/utils/chroma_utils.py)
+- **`collection_list()`**: Returns an array of collection names available within the database.
 
-The default database utility `ChromaUtils` integrates with ChromaDB and provides an array of methods for managing collections, querying data, and handling embeddings.
+- **`load_collection(collection_name, include=None, where=None, where_doc=None)`**: Retrieves data from a specified collection, allowing for filter criteria to refine the data fetched.
 
-### [PineconeUtils](../../src/agentforge/utils/pinecone_utils.py)
+- **`save_memory(collection_name, data, ids=None, metadata=None)`**: Persists data within a specified collection, organizing it based on provided identifiers and metadata.
 
-Although the implementation of `PineconeUtils` is currently non-functional, once fixed, it will provide similar functionalities for Pinecone database operations.
+- **`query_memory(collection_name, query=None, filter_condition=None, include=None, embeddings=None, num_results=1)`**: Executes a query against a specified collection, returning data that meets the query conditions.
+
+- **`count_collection(collection_name)`**: Counts the number of documents within a specified collection, providing insights into its size.
+
+- **`delete_collection(collection_name)`**: Removes an entire collection from the database, along with all its data.
+
+- **`peek(collection_name)`**: Offers a preview of the latest document within a specified collection, useful for quick inspections or validations.
+
+- **`reset_memory()`**: Clears the database entirely, removing all data and collections, to be used with caution due to its irreversible nature.
+
+- **`search_storage_by_threshold(collection_name, query_text, threshold=0.7, num_results=1)`**: Searches a collection for documents that meet a defined semantic similarity threshold to the provided query text.
+
+- **`return_embedding(text_to_embed)`**: Generates an embedding for the specified text using the configured embedding function, essential for semantic comparisons and searches.
+
+### Initialization and Configuration
+
+- **`init_embeddings()`**: Sets up the embedding function critical for supporting semantic operations within the database, chosen based on system configuration.
+
+- **`init_storage()`**: Establishes the database connection, determining whether to connect to a persistent storage path or operate in an ephemeral mode.
+
+- **`select_collection(collection_name)`**: Activates or creates a collection within the database, preparing it for subsequent data operations.
+
+### Advanced Data Management
+
+- **`delete_collection(collection_name)`**: Eliminates the specified collection from the database.
+
+- **`peek(collection_name)`**: Retrieves a brief snapshot of the most recent content in a collection.
+
+- **`reset_memory()`**: Wipes the entire database, removing all stored data and collections.
+
+### Semantic Search and Embeddings
+
+- **`search_storage_by_threshold(collection_name, query_text, threshold, num_results)`**: Performs semantic search within a collection, identifying documents that closely align with the query based on a similarity threshold.
+
+- **`return_embedding(text_to_embed)`**: Produces an embedding vector for text, facilitating semantic comparisons and retrieval operations.
+
+For detailed examples and further information on each method's implementation, developers are encouraged to refer directly to the [ChromaUtils](../../src/agentforge/utils/chroma_utils.py) source code.
+
+---
 
 ## Note on Database Switching
 
@@ -96,6 +117,5 @@ See our [Storage Documentation](../Settings/Storage.md) for more details.
 
 ## Community Contributions
 
-> **Attention**: The Pinecone database integration is not currently operational. We are open to contributions from the community to either fix the existing `PineconeUtils` or to create new utilities for other databases. Your contributions are highly valuable in enhancing the flexibility and robustness of the AgentForge system.
+> **Attention**: The Pinecone database integration is not currently operational. We are open to contributions from the community to either fix the existing `PineconeUtils` or to create new utilities for other databases. Your contributions are highly valuable in enhancing the flexibility and robustness of the **AgentForge** framework.
 
----

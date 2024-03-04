@@ -1,6 +1,6 @@
-# Configuration Overview
+# Getting Started with Configurations
 
-## Getting Started with Configurations
+## Overview
 
 Welcome to the central hub for system configurations. Below, you'll find specific areas of interest that dictate how the system behaves. Each section has dedicated documentation to provide in-depth insights.
 
@@ -16,10 +16,8 @@ Welcome to the central hub for system configurations. Below, you'll find specifi
 
 - **[Custom Agents](../Agents/CustomAgents.md)**: Empower your system with tailor-made agents fitting specific needs.
 
-- **[Personas](../Personas/Personas.md)**: Add flair to the system's interactions. Make it more human-like and relatable. (Note: Feature in development)
+- **[Personas](../Personas/Personas.md)**: Personas encapsulate knowledge accessible to agents, ranging from personality to any kind of general knowledge.
 
 - **[Tools & Actions](../ToolsAndActions/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
 
 - **[Overriding LLM Defaults](../Settings/Models.md)**: Learn the flexibility of having agents override default LLM settings when needed.
-
----

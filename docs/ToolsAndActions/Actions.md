@@ -1,8 +1,8 @@
-# Actions Functionality
+# Actions
 
-## Introduction to Actions
+## Overview
 
-Actions within our framework are sequences of one or more tools that are executed in a specific order to perform complex tasks. They offer the capability to combine the functionality of individual tools into cohesive workflows. Actions are flexible and can consist of a single tool or multiple tools, each contributing a step towards the overall objective of the action.
+**Actions** within our framework are sequences of one or more tools that are executed in a specific order to perform complex tasks. They offer the capability to combine the functionality of individual tools into cohesive workflows. Actions are flexible and can consist of a single tool or multiple tools, each contributing a step towards the overall objective of the action.
 
 Actions are also defined in YAML files and managed within the `actions` directory in the project, facilitating organized development and straightforward access.
 
@@ -104,8 +104,7 @@ if __name__ == '__main__':
     print("Execution Result:", execution_result)
 ```
 
-### Note on Action Attributes:
-Not all attributes in the action's YAML file are directly used in execution. While `Name`, `Description`, `Example`, and `Instruction` give context and define the workflow, the `Tools` attribute is crucial as it lists the actual tools to be executed. The `ActionExecution` module is capable of using these definitions to prime and execute each tool, thus completing the action.
+>**Note on Action Attributes**: Not all attributes in the action's YAML file are directly used in execution. While `Name`, `Description`, `Example`, and `Instruction` give context and define the workflow, the `Tools` attribute is crucial as it lists the actual tools to be executed. The `ActionExecution` module is capable of using these definitions to prime and execute each tool, thus completing the action.
 
 ## Future Implementations
 

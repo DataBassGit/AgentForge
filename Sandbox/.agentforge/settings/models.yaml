@@ -1,0 +1,77 @@
+EmbeddingLibrary:
+  library: sentence_transformers
+
+ModelLibrary:
+  openai_api:
+    module: "openai"
+    class: "GPT"
+    models:
+      fast_model:
+        name: gpt-3.5-turbo
+      long_fast_model:
+        name: gpt-3.5-turbo-16k
+      old_fast_model:
+        name: gpt-3.5-turbo-0613
+      old_long_fast_model:
+        name: gpt-3.5-turbo-16k-0613
+      smart_model:
+        name: gpt-4
+      smart_fast_model:
+        name: gpt-4-1106-preview
+        params: # Specific parameters for the model
+          max_new_tokens: 2500
+  claude_api:
+    module: "anthropic"
+    class: "Claude"
+    models:
+      claude:
+        name: claude-2
+  gemini_api:
+    module: "gemini"
+    class: "Gemini"
+    models:
+      gemini-pro:
+        name: gemini-pro
+  oobabooga_api:
+    module: "oobabooga"
+    class: "Oobabooga"
+    models:
+      oobabooga:
+        name: None
+        params: # Oobabooga host server url
+          host_url: "127.0.0.1:5000"
+          allow_custom_value: True
+
+# Default settings for all models unless overridden
+ModelSettings:
+  API: gemini_api
+  Model: gemini-pro
+#  API: claude_api
+#  Model: claude
+#  API: openai_api
+#  Model: smart_fast_model
+  Params:
+    max_new_tokens: 2000
+    temperature: 0.5
+    top_p: 0.1
+    n: 1
+    stop: null
+    do_sample: true
+    return_prompt: false
+    return_metadata: false
+    typical_p: 0.95
+    repetition_penalty: 1.05
+    encoder_repetition_penalty: 1.0
+    top_k: 40
+    min_length: 10
+    no_repeat_ngram_size: 0
+    num_beams: 1
+    penalty_alpha: 0
+    length_penalty: 1
+    early_stopping: false
+    pad_token_id: null
+    eos_token_id: null
+    use_cache: true
+    num_return_sequences: 1
+    bad_words_ids: null
+    seed: -1

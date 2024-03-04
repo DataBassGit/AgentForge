@@ -33,7 +33,7 @@ Example: search_results = google_search('OpenAI', 5)
 Instruction: >-
   The 'google_search' function takes a 'query' string and a 'number_result' integer as inputs.
   It performs a web search and returns a list of results, with each result being a tuple containing a URL and a snippet.
-Script: agentforge.tools.GoogleSearch
+Script: .agentforge.tools.GoogleSearch
 ```
 
 In addition to defining tools, our system comes with a set of default custom tools, which are Python scripts located in the `agentforge/tools/` directory within the library package. These scripts can be used and referenced in the same way as the Google Search example provided.
@@ -59,7 +59,7 @@ Args:
   - query (str)
   - number_result (int)
 Command: google_search
-Script: agentforge.tools.GoogleSearch
+Script: .agentforge.tools.GoogleSearch
 ```
 
 Based on the YAML file, we construct a `payload` in Python and call the `dynamic_tool` method:
@@ -76,13 +76,12 @@ payload = {
 }
 
 # 'tool_module' is the path to the script specified under 'Script' in the YAML file
-result = tool_utils.dynamic_tool("agentforge.tools.GoogleSearch", payload)
+result = tool_utils.dynamic_tool(".agentforge.tools.GoogleSearch", payload)
 
 # The result of the execution will be handled by the tool_utils object
 ```
 
-#### Note on Tool Attributes:
-Not all attributes defined in the tool's YAML file are used when executing the tool with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the tool for use. They inform the LLM about the tool's purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the tool.
+>**Note on Tool Attributes**: Not all attributes defined in the tool's YAML file are used when executing the tool with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the tool for use. They inform the LLM about the tool's purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the tool.
 
 ## Implementing Custom Tools
 
