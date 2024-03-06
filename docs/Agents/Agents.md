@@ -1,6 +1,6 @@
 # Agents Overview
 
-Welcome to the heart of the **AgentForge** framework—the **Agents**. These entities are the driving force behind the system, managing data, rending prompts, and ensuring seamless operations. Here, you'll get a comprehensive understanding of how agents function, the methods they employ, the prompts guiding them, and how you can craft your own custom agents.
+Welcome to the heart of the **AgentForge** framework—the **Agents**. These entities are the driving force behind the system, managing data, rendering prompts, and ensuring seamless operations. Here, you'll get a comprehensive understanding of how agents function, the methods they employ, the prompts guiding them, and how you can craft your own custom agents.
 
 ---
 
