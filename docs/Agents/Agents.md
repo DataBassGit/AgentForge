@@ -16,7 +16,7 @@ Welcome to the heart of the **AgentForge** framework—the **Agents**. These ent
 ### **[Custom Agents](CustomAgents.md)**
 - Want to build your own agent? Here, you'll learn how to craft custom agents tailored to fit specific needs. Discover how to derive from the base `Agent` class, override methods, and create corresponding prompt files.
 
-### **[Module Agents](../Modules/KnowledgeGraphs.md)**
+### **[Module Agents](../Modules/Modules.md)**
 - Get inspired by exploring some of our module agents. These agents, built using the **AgentForge** framework, showcase the potential of method overriding and how it can be employed in multi-agent script to implement custom behaviors.
 
 ### **[Overriding LLM Settings](../Settings/Models.md)**
