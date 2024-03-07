@@ -43,7 +43,7 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 
 ### **Installation and Usage:**
 
-- **[Getting Started with AgentForge](docs/Guides/InstallationGuide.md)**: Begin your journey with a straightforward setup guide, covering everything from initial installation to launching your first bot.
+- **[Getting Started with AgentForge](docs/Guides/InstallationGuide.md)**: Begin your journey with a straightforward setup guide, covering everything from initial installation to usage.
 
 ### **Core Concepts:**
 
