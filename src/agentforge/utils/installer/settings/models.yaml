@@ -26,6 +26,8 @@ ModelLibrary:
     models:
       claude:
         name: claude-2
+      claude-3:
+        name: claude-3-opus-20240229
   gemini_api:
     module: "gemini"
     class: "Gemini"

@@ -9,11 +9,11 @@ def get_long_description():
 
 
 setup(
-    name=".agentforge",
-    version="0.1.36",
+    name="agentforge",
+    version="0.2.3",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
-    author_email="contact@.agentforge.net",
+    author_email="contact@agentforge.net",
     url="https://github.com/DataBassGit/HiAGI",
     include_package_data=True,
     packages=find_packages(where="src"),
@@ -29,9 +29,9 @@ setup(
         "spacy~=3.5.2",
         "termcolor~=2.3.0",
         "openai~=1.3.0",
-        "chromadb~=0.4.8",
+        "chromadb~=0.4.23",
         "sentence_transformers==2.2.2",
-        "anthropic==0.3.11",
+        "anthropic==0.19.1",
         "google-api-python-client",
         "beautifulsoup4~=4.12.2",
         "browse~=1.0.1",
@@ -66,14 +66,16 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     python_requires=">=3.9",
-    package_data={
-        ".agentforge.utils.installer": ["*", "**/*"],
-        ".agentforge.utils.guiutils": ["*", "**/*"],
-    },
-    entry_points={
-        'console_scripts': [
-            '.agentforge=.agentforge.utils.installer.agentforge_cli:main',
-        ],
-    }
+    # package_data={
+    #     ".agentforge.utils.installer": ["*", "**/*"],
+    #     ".agentforge.utils.guiutils": ["*", "**/*"],
+    # },
+    # entry_points={
+    #     'console_scripts': [
+    #         '.agentforge=.agentforge.utils.installer.agentforge_cli:main',
+    #     ],
+    # }
 
 )
+#
+#

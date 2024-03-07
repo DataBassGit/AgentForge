@@ -77,10 +77,11 @@ class Claude:
                     temperature=params["temperature"],
                     top_p=params["top_p"]
                 )
+                # print(f"Response:{response}\n")
                 self.logger.log_response(response.completion)
                 break
 
-            except anthropic as e:
+            except Exception as e:
                 self.logger.log(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}", 'warning')
                 time.sleep(backoff)
 
