@@ -6,14 +6,14 @@ Prompts:
     The knowledge graph currently contains these entries. Ensure that new selections offer distinct and valuable information, unless the knowledge graph is empty, in which case, prioritize capturing foundational knowledge:
     
     ```
-    {kg}
+    {existing_knowledge}
     ```
 
   Chunk: |+
     Analyze this text to find new and important knowledge:
     
     ```
-    {chunk}
+    {text_chunk}
     ```
 
   Instruction: |+

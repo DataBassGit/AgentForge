@@ -2,7 +2,7 @@ import os
 import shutil
 import argparse
 import pkg_resources
-import subprocess
+# import subprocess
 import sys
 
 help_message = """
@@ -90,15 +90,15 @@ def init_command():
 #         sys.exit(1)
 
 
-def gui():
-    try:
-        print("Launching GUI...")
-        gui_path = pkg_resources.resource_filename(".agentforge.utils.guiutils", "gui.py")
-        subprocess.run(["python", gui_path])
-        print("GUI launched successfully.\n")
-    except Exception as e:
-        print(f"Error launching GUI: {e}")
-        sys.exit(1)
+# def gui():
+#     try:
+#         print("Launching GUI...")
+#         gui_path = pkg_resources.resource_filename(".agentforge.utils.guiutils", "gui.py")
+#         subprocess.run(["python", gui_path])
+#         print("GUI launched successfully.\n")
+#     except Exception as e:
+#         print(f"Error launching GUI: {e}")
+#         sys.exit(1)
 
 
 def main():
@@ -114,7 +114,7 @@ def main():
     # Define sub-commands
     init_parser = subparsers.add_parser('init', help="Copy necessary files and set up directories.")
     # salience_parser = subparsers.add_parser('salience', help="Copy the salience.py file.")
-    gui_parser = subparsers.add_parser('gui', help="Launch the graphical user interface.")
+    # gui_parser = subparsers.add_parser('gui', help="Launch the graphical user interface.")
 
     args = parser.parse_args()
 
@@ -123,8 +123,8 @@ def main():
             init_command()
         # elif args.command == "salience":
         #     copy_salience()
-        elif args.command == "gui":
-            gui()
+        # elif args.command == "gui":
+        #     gui()
         else:
             display_custom_help()
     except Exception as e:
