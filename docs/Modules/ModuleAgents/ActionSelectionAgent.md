@@ -4,7 +4,7 @@
 
 The `ActionSelectionAgent` extends the foundational `Agent` class with specialized capabilities for action selection based on current tasks and parameters. This agent showcases the flexibility of the agent framework by incorporating advanced error handling and dynamic action processing based on task-specific data.
 
-Each instance of the `ActionSelectionAgent` is configured through a specific YAML file that dictates its interactions through predefined prompt templates. These templates are crucial for guiding the agent's behavior during execution. For details on prompt structure and usage, refer to the [Prompts Documentation](../../Agents/AgentPrompts.md). The specific prompts for the `ActionSelectionAgent` can be found in its [YAML](../../../src/agentforge/utils/installer/agents/ModuleAgents/ActionSelectionAgent.yaml) file.
+Each instance of the `ActionSelectionAgent` is configured through a specific YAML file that dictates its interactions through predefined prompt templates. These templates are crucial for guiding the agent's behavior during execution. For details on prompt structure and usage, refer to the [Prompts Documentation](../../Agents/AgentPrompts.md). The specific prompts for the `ActionSelectionAgent` can be found in its [YAML](../../../src/agentforge/setup_files/agents/ModuleAgents/ActionSelectionAgent.yaml) file.
 
 ## Import Statements
 ```python

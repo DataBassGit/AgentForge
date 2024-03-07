@@ -67,12 +67,12 @@ setup(
     ],
     python_requires=">=3.9",
     # package_data={
-    #     ".agentforge.utils.installer": ["*", "**/*"],
+    #     ".agentforge.utils.setup_files": ["*", "**/*"],
     #     ".agentforge.utils.guiutils": ["*", "**/*"],
     # },
     # entry_points={
     #     'console_scripts': [
-    #         '.agentforge=.agentforge.utils.installer.agentforge_cli:main',
+    #         '.agentforge=.agentforge.utils.setup_files.agentforge_cli:main',
     #     ],
     # }
 
