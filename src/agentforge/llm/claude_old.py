@@ -17,17 +17,8 @@ def parse_prompts(prompts):
     Returns:
         str: A formatted prompt string combining human and AI prompt indicators with the original prompt content.
     """
-    prompt = [
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "".join(prompts[1:])
-                }
-            ]
-        }
-    ]
+    prompt = ''.join(prompts[0:])
+    prompt = f"{anthropic.HUMAN_PROMPT} {prompt}{anthropic.AI_PROMPT}"
 
     return prompt
 
@@ -78,18 +69,16 @@ class Claude:
         for attempt in range(self.num_retries):
             backoff = 2 ** (attempt + 2)
             try:
-                response = client.messages.create(
-                    messages=prompt,
-                    system=prompts[0],
+                response = client.completions.create(
+                    prompt=prompt,
                     # stop_sequences=[anthropic.HUMAN_PROMPT],
                     model=self._model,
-                    max_tokens=params["max_new_tokens"],
+                    max_tokens_to_sample=params["max_new_tokens"],
                     temperature=params["temperature"],
                     top_p=params["top_p"]
                 )
                 # print(f"Response:{response}\n")
-                # print(f"Content: {response.content[0].text}\n")
-                self.logger.log_response(str(response.content[0].text))
+                self.logger.log_response(response.completion)
                 break
 
             except Exception as e:
@@ -98,8 +87,5 @@ class Claude:
 
         if response is None:
             self.logger.log("\n\nError: Failed to get Anthropic Response", 'critical')
-        else:
-            usage = str(response.usage)
-            self.logger.log(f"Claude Token Usage: {usage}\n", 'debug')
 
-        return response.content[0].text
+        return response.completion

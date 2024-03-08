@@ -20,12 +20,16 @@ ModelLibrary:
         name: gpt-4-1106-preview
         params: # Specific parameters for the model
           max_new_tokens: 2500
-  claude_api:
-    module: "anthropic"
+  claude_old:
+    module: "claude_old"
     class: "Claude"
     models:
       claude:
         name: claude-2
+  claude3_api:
+    module: "anthropic"
+    class: "Claude"
+    models:
       claude-3:
         name: claude-3-opus-20240229
   gemini_api:
@@ -48,10 +52,12 @@ ModelLibrary:
 ModelSettings:
 #  API: gemini_api
 #  Model: gemini-pro
-  API: claude_api
-  Model: claude
+#  API: claude_old
+#  Model: claude
 #  API: openai_api
 #  Model: smart_fast_model
+  API: claude3_api
+  Model: claude-3
   Params:
     max_new_tokens: 2000
     temperature: 0.5
