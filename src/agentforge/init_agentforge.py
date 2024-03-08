@@ -10,14 +10,16 @@ def copy_directory(root, src, dst, override_all=False, skip_all=False):
     with options to override or skip existing files.
     """
     for src_dir, dirs, files in os.walk(src):
+        # Skip __pycache__ directories
+        dirs[:] = [d for d in dirs if d != '__pycache__']
         dst_dir = src_dir.replace(str(src), str(dst), 1)
         if not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
             print(f"Created directory {dst_dir}")
 
         for file_ in files:
-            # Skip __init__.py files
-            if file_ == '__init__.py':
+            # Skip __init__.py files and any .pyc files
+            if file_ == '__init__.py' or file_.endswith('.pyc'):
                 continue
 
             src_file_path = os.path.join(src_dir, file_)
