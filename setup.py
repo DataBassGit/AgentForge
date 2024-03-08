@@ -66,6 +66,9 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     python_requires=">=3.9",
+    package_data={
+        '': ['*.yaml'],  # Include your file types as needed
+    },
     # package_data={
     #     ".agentforge.utils.setup_files": ["*", "**/*"],
     #     ".agentforge.utils.guiutils": ["*", "**/*"],
