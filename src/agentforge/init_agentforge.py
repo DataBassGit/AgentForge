@@ -16,6 +16,10 @@ def copy_directory(root, src, dst, override_all=False, skip_all=False):
             print(f"Created directory {dst_dir}")
 
         for file_ in files:
+            # Skip __init__.py files
+            if file_ == '__init__.py':
+                continue
+
             src_file_path = os.path.join(src_dir, file_)
             dst_file_path = os.path.join(dst_dir, file_)
 
