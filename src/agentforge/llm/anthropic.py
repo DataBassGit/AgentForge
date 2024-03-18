@@ -71,7 +71,7 @@ class Claude:
         """
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
         prompt = parse_prompts(prompts)
-        self.logger.log_prompt(prompt)
+        self.logger.log_prompt(f"System: {prompts[0]}\n\nUser: {prompt}")
 
         # Will retry to get chat if a rate limit or bad gateway error is received from the chat
         response = None
