@@ -117,7 +117,7 @@ The `self.data` variable within an Agent class is a central repository for all d
 
 ### Loading Agent Configuration Data
 
-When the `load_agent_data` method is invoked, it compiles essential data elements from the agent's configuration settings, specifically targeting parameters and prompts necessary for the agent's operation:
+When the `load_agent_data` method is invoked, it compiles essential data elements from the agent's configuration settings, specifically targeting parameters and prompt templates necessary for the agent's operation:
 
 ```python
 self.data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}

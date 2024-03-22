@@ -167,7 +167,7 @@ Similarly, the `Tool`, `Path`, `Results`, and `Context` sub-prompts require the 
 
 ## Conclusion
 
-The power of this system lies in its dynamism and flexibility. By using variable placeholders in the form of Sub-Prompts, the system can adapt the conversation flow based on the provided persona file or information available. This dynamic rendering of prompts allows for rich, context-aware interactions that are tailored to the agent's knowledge at any given moment.
+The power of this system lies in its dynamism and flexibility. By using variable placeholders inside Sub-Prompts, the system can adapt the conversation flow based on the provided persona file or information available. This dynamic rendering of prompts allows for rich, context-aware interactions that are tailored to the agent's knowledge at any given moment.
 
 At the same time, the system also accommodates static prompts that don't require any particular set of information to render, like the `Instruction` sub-prompt in the above example. This enables you to provide constant elements or instructions in the prompt, irrespective of other variables.
 

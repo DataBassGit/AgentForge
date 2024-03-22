@@ -2,48 +2,52 @@
 
 ## Overview
 
-In the **AgentForge** framework, **Modules** represent a sophisticated orchestration layer that sits above individual agents. While agents are the executors of specific tasks, modules are the conductors, coordinating various agents to manage information flow and decision-making processes. This higher level of orchestration ensures that diverse agents work in harmony to achieve complex, overarching objectives.
+In the **AgentForge** framework, **Modules** act as sophisticated orchestrators, coordinating various agents to execute complex, integrated tasks. These modules ensure that agents, each an expert in a specific domain, collaborate effectively to accomplish broader, multi-faceted objectives.
 
 ### The Role of Modules
 
-Modules are designed to:
+Modules serve key functions within the **AgentForge** ecosystem:
 
-- Coordinate multiple agents and their interactions.
-- Handle complex decision-making processes that require input from various sources.
-- Manage the overarching logic that guides agents towards a common goal.
+- **Coordination**: They orchestrate the interactions between multiple agents, ensuring cohesive and goal-aligned behaviors.
+- **Complex Decision-Making**: Modules manage intricate decision-making processes that require synthesized inputs from diverse sources.
+- **Logic Management**: They oversee the overarching logic, steering individual agents towards the collective achievement of complex goals.
 
-By integrating modules into the framework, users can create intricate workflows that are both scalable and adaptable to new challenges.
+Modules, being generic, are versatile entities adaptable to a wide array of use cases, facilitating the construction of dynamic, intelligent workflows.
 
-### Generic Scope
+## Module Examples
 
-Modules are generic in scope, providing a framework that can be applied to a wide range of use cases.
-They are not limited to specific tasks but are instead built to be versatile,
-capable of handling tasks that benefit from multi-agent coordination.
+**AgentForge**'s evolving suite of modules includes:
 
-## Detailed Examples
+- **[Action Execution Module](ActionExecution.md)**: Orchestrates the dynamic execution of tool based actions integrating yhe outputs from one tool onto the next one.
+  - Uses the **[Action Selection Agent](ModuleAgents/ActionSelectionAgent.md)** to select the most apt action from a given set.
+  - Utilizes the **[Action Priming Agent](ModuleAgents/ActionPrimingAgent.md)** to prime the selected action, setting the stage for its execution.
 
-Within the **AgentForge** framework, we are developing specialized modules that leverage our robust agent system to achieve specific objectives:
+- **[InjectKG Module](InjectKG.md)**:
+  - Utilizes the **[MetadataKGAgent](ModuleAgents/MetadataKGAgent.md)** to extract and structure metadata, facilitating the enrichment of knowledge within the system's knowledge graph.
 
-- **[Action Execution Module](ActionExecution.md)**: A key component in our system, the Action Execution Module is responsible for the orderly execution of actions derived from the task list provided by the Salience Module. It ensures that each action is carried out in a manner that aligns with the system's goals and priorities.
+- **[LearnDoc Module](LearnDoc.md)**:
+  - Deploys the **[LearnKGAgent](ModuleAgents/LearnKGAgent.md)** for intelligent text analysis and knowledge extraction, enhancing the system's knowledge base.
+  - Leverages the **[InjectKG Module](InjectKG.md)** for structured knowledge ingestion, ensuring that new insights are accurately integrated into the knowledge graph.
 
-
-- **More Examples Coming Soon**
+- **[Knowledge Traversal Module](KnowledgeTraversal.md)**:
+  - Specializes in querying and traversing the knowledge base, aggregating relevant information to support informed decision-making and knowledge discovery.
 
 ## Recursive and Multi-Module Implementations
 
-Modules can be designed to call other modules, forming recursive structures or multi-module scripts. This recursive nature allows for the creation of complex cognitive architectures or bots, which can be as simple or as sophisticated as required by the task at hand.
+Modules within AgentForge can be recursive or can invoke other modules, enabling the design of intricate, layered cognitive architectures. These multi-tiered structures allow for sophisticated bot or system designs that can tackle complex problems with nuanced, multi-agent strategies.
 
 ### Integration with Other Scripts
 
-To integrate a module within another script:
+To integrate an existing module into another script or module, simply import and instantiate it as shown below:
 
 ```python
-from agentforge.modules.SpecificModule import ModuleClass
+from agentforge.modules.KnowledgeTraversal import KnowledgeTraversal
 
-module = ModuleClass()
-results = module.run() # Assuming the Module Class has a method called run
+# Initialize and use the KnowledgeTraversal module
+knowledge_traversal = KnowledgeTraversal()
+traversal_results = knowledge_traversal.query_knowledge(...)
 ```
 
-Modules can be imported and utilized just like any Python class, with their methods called and attributes passed as needed. This flexibility enables users to construct powerful cognitive architectures that leverage the full capabilities of the **AgentForge** system.
+Modules are easily incorporated into broader architectures, providing a robust toolkit for developers to craft advanced, intelligent systems within the AgentForge framework.
 
 ---

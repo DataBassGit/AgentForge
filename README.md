@@ -24,21 +24,16 @@ In summary, AgentForge is your beta-testing ground and future-proof hub for craf
 
 ## Features
 
-* Build Custom Agents And Cognitive Architectures Easily (Multi-Agent Scripts)
-* Customizable Agent Memory Management
-* Customizable Agent Template
-* Customizable Tools & Actions
+Easily Build Agents or Cognitive Architectures (Multi-Agent Scripts) with the following **AgentForge** functionality:
+
+* Customizable Agents
+* Custom Tools & Actions
+* Dynamic Prompt Templates
+* Knowledge Graph Functionality
 * LLM Agnostic Agents (Each Agent can call different LLMs if needed)
 * On-The-Fly Prompt Editing
 * OpenAI, Google & Anthropic API Support
 * Open-Source Model Support ([Oobabooga](https://github.com/oobabooga/text-generation-webui))
-
-### Partially Implemented Features
-* Knowledge Graphs:
-  * Document Consumption
-  * Knowledge Traversal and Retrieval
-
-> **Note**: While the basic implementation is there, these features still need more work before we consider them to be completed.
 
 ---
 
@@ -48,7 +43,7 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 
 ### **Installation and Usage:**
 
-- **[Getting Started with AgentForge](docs/Guides/InstallationGuide.md)**: Begin your journey with a straightforward setup guide, covering everything from initial installation to launching your first bot.
+- **[Getting Started with AgentForge](docs/Guides/InstallationGuide.md)**: Begin your journey with a straightforward setup guide, covering everything from initial installation to usage.
 
 ### **Core Concepts:**
 
@@ -56,15 +51,17 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 
 - **[Modules](docs/Modules/Modules.md)**: Explore multi-agent scripts, the hierarchies above agents. Understand how Modules coordinate various agents and manage the flow of information to achieve specific goals.
 
-- **[LLM API Integration](docs/LLMs/LLMs.md)**: Understand how AgentForge connects with various Large Language Model (LLM) APIs.
+- **[Knowledge Graphs](docs/Modules/KnowledgeGraphs.md)**: Discover how knowledge graphs form the backbone of advance knowledge creation and retrieval within **AgentForge**, empowering modules and agents with a rich, contextual data foundation.
 
-- **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage and system configurations – tweak the behavior of the system.
+- **[LLM API Integration](docs/LLMs/LLMs.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
+
+- **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage, and system configurations – tweak the behavior of the system.
 
 - **[Personas](docs/Personas/Personas.md)**: Personas encapsulate information accessible to the agents. Acting as a resource of knowledge for the system/agent, they are not limited to defining agents' personalities but can include any kind of information that could be utilized by the agents as needed.
 
-- **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: The system's utility belt. Understand the tools available and how they can be choreographed into actionable sequences.
+- **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: The system's toolbox. Understand the tools available and how they can be choreographed into actionable sequences.
 
-- **[Utilities](docs/Utils/UtilsOverview.md)**: Explore the array of utility functions and tools that supercharge the system's capabilities.  (Note: Documentation not implemented yet)
+- **[Utilities](docs/Utils/UtilsOverview.md)**: Explore the array of utility functions and tools that supercharge the system's capabilities.
 
 > **Note**: Our documentation is a living entity, continuously evolving. Some links or features may still be under development. We appreciate your patience and welcome your feedback to improve the documentation.
 

@@ -74,14 +74,12 @@ sudo apt-get install python3 python3-pip
    pip install agentforge
    ```
 
-3. **Initialize Your Bot Project**:
-   Initialize your AgentForge project:
+3. **Initialize Your Project**:
+   Initialize your **AgentForge** project by running the following command in your project's root directory:
    ```shell
-   agentforge init
+   python -m agentforge.init_agentforge
    ```
-
-4. **Done**:
-   Your project folder should have a new '.agentforge' folder with subfolders containing yaml files as shown below: 
+   This command will create a new `.agentforge` folder in your project with sub-folders containing YAML files as shown below: 
 
    ```
    my_project_root/

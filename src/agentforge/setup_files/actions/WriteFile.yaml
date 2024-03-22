@@ -1,0 +1,12 @@
+Name: Write File
+Description: >-
+  This action first reads the structure of a given directory and then utilizes the 'File Writer' tool to write or append text to a specified file within that directory. It allows checking the directory's contents before performing file operations.
+Example: >-
+  directory_structure = read_directory('path/to/folder', max_depth=2)
+  response = write_file('path/to/folder', 'filename.txt', 'This is the content', mode='a')
+Instruction: >-
+  First, use the 'Read Directory' tool to examine the directory structure by specifying the directory path and an optional max depth. 
+  Then, specify the target folder, the desired filename, and the content for the 'File Writer' tool. Optionally, include a mode ('a' for append and 'w' for overwrite) to determine how the file should be handled.
+Tools:
+  - Read Directory
+  - File Writer

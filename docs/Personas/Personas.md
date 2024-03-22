@@ -110,7 +110,7 @@ Name: Botty Mc.BotFace
 # ... more attributes ...
 ```
 
-This `Name` information can be used by an agent when running inference. By default, the system will use the **persona** selected in the [system configuration](../../src/agentforge/utils/installer/settings/system.yaml) file. This can be overridden be referencing a different **persona** file in the agent's corresponding prompt YAML file, as shown:
+This `Name` information can be used by an agent when running inference. By default, the system will use the **persona** selected in the [system configuration](../../src/agentforge/setup_files/settings/system.yaml) file. This can be overridden be referencing a different **persona** file in the agent's corresponding prompt YAML file, as shown:
 
 ```yaml
 # example_agent.yaml

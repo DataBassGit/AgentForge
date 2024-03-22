@@ -74,8 +74,7 @@ class KnowledgeTraversal:
         avoiding duplicates, primarily focusing on unique metadata entries.
 
         Parameters:
-            knowledge_base_name (str): The name of the knowledge base collection to query. If not
-                                       provided, defaults to a standard "Knowledge" collection.
+            knowledge_base_name (str): The name of the knowledge base collection to query.
             query (str): The query string to be executed against the knowledge base.
             metadata_map (Dict[str, str]): A mapping of metadata field names that dictate how the
                                            results should be filtered and merged.
@@ -91,8 +90,6 @@ class KnowledgeTraversal:
             KeyError: If 'metadatas' key is not found in the initial query results, indicating an
                       issue with the expected result structure.
         """
-        knowledge_base_name = "Knowledge" if knowledge_base_name is None else knowledge_base_name
-
         initial_results = self.storage.query_memory(collection_name=knowledge_base_name,
                                                     query=query,
                                                     num_results=initial_num_results)
