@@ -150,10 +150,14 @@ class Agent:
         """
         Saves the result of the language model generation into a specified storage.
         """
-        try:
-            self.storage.save_memory(collection_name='Results', data=[self.result])
-        except Exception as e:
-            self.logger.log(f"Error saving result: {e}", 'error')
+        if self.storage:
+            try:
+                self.storage.save_memory(collection_name='Results', data=[self.result])
+            except Exception as e:
+                self.logger.log(f"Error saving result: {e}", 'error')
+        else:
+            self.logger.log(f"Storage is turned off - "
+                            f"To turn on go to the storage.yaml file in the settings folder!", 'debug')
 
     def build_output(self):
         """

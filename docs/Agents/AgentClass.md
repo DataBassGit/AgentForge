@@ -180,7 +180,7 @@ Prompts:
         Your name is {name}. You are {description}.
         Your location: {location}. 
         Your sole purpose is as follows: {purpose}.
-		
+
     Context: |+
         Your current context: {context}
         

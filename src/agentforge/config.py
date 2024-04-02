@@ -7,7 +7,6 @@ import sys
 
 class Config:
     _instance = None
-    _override_path = None
 
     def __new__(cls, *args, **kwargs):
         """
@@ -19,7 +18,7 @@ class Config:
         """
         if not cls._instance:
             cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
-            cls._instance.__init__()
+            # cls._instance.__init__()
         return cls._instance
 
     def __init__(self):
@@ -27,17 +26,19 @@ class Config:
         Initializes the Config object, setting up the project root and configuration path.
         Calls method to load configuration data from YAML files.
         """
-        try:
-            self.project_root = self.find_project_root()
-            self.config_path = self.project_root / ".agentforge"
+        if not hasattr(self, 'is_initialized'):  # Prevent re-initialization
+            self.is_initialized = True
+            try:
+                self.project_root = self.find_project_root()
+                self.config_path = self.project_root / ".agentforge"
 
-            # Placeholders for the data the agent needs which is located in each respective YAML file
-            self.data = {}
+                # Placeholders for the data the agent needs which is located in each respective YAML file
+                self.data = {}
 
-            # Here is where we load the information from the YAML files to their corresponding attributes
-            self.load_all_configurations()
-        except Exception as e:
-            raise ValueError(f"Error during Config initialization: {e}")
+                # Here is where we load the information from the YAML files to their corresponding attributes
+                self.load_all_configurations()
+            except Exception as e:
+                raise ValueError(f"Error during Config initialization: {e}")
 
     @staticmethod
     def find_project_root():
@@ -50,14 +51,16 @@ class Config:
         Raises:
             FileNotFoundError: If the .agentforge directory cannot be found.
         """
+        print(f"\n\nCurrent working directory: {os.getcwd()}")
 
-        script_dir = pathlib.Path(sys.argv[0]).parent
+        script_dir = pathlib.Path(sys.argv[0]).resolve().parent
         current_dir = script_dir
 
         while current_dir != current_dir.parent:
             potential_dir = current_dir / ".agentforge"
-
+            print(f"Checking {potential_dir}")  # Debugging output
             if potential_dir.is_dir():
+                print(f"Found .agentforge directory at: {current_dir}")  # Debugging output
                 return current_dir
 
             current_dir = current_dir.parent
