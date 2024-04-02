@@ -8,7 +8,7 @@ Logging:
   Folder: ./Logs
   Files:
     AgentForge: error
-    ModelIO: error
+    ModelIO: debug
     Results: error
 
 Paths:
