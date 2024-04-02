@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.2.9",
+    version="0.2.11",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -30,7 +30,7 @@ setup(
         "termcolor~=2.3.0",
         "openai~=1.3.0",
         "chromadb~=0.4.23",
-        "sentence_transformers==2.2.2",
+        "sentence_transformers~=2.2.2",
         "anthropic==0.19.1",
         "google-api-python-client",
         "beautifulsoup4~=4.12.2",
