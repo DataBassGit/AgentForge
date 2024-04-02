@@ -30,7 +30,7 @@ setup(
         "termcolor~=2.3.0",
         "openai~=1.3.0",
         "chromadb~=0.4.23",
-        "sentence_transformers==2.2.2",
+        "sentence_transformers=2.2.2",
         "anthropic==0.19.1",
         "google-api-python-client",
         "beautifulsoup4~=4.12.2",
