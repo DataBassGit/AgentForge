@@ -45,7 +45,16 @@ ModelLibrary:
       oobabooga:
         name: None
         params: # Oobabooga host server url
-          host_url: "127.0.0.1:5000"
+          host_url: "127.0.0.1:11434"
+          allow_custom_value: True
+  ollama_api:
+    module: "ollama"
+    class: "Ollama"
+    models:
+      DolphinMistral:
+        name: DolphinMistral
+        params:
+          host_url: "http://localhost:11434/api/generate"
           allow_custom_value: True
 
 # Default settings for all models unless overridden
@@ -56,8 +65,12 @@ ModelSettings:
 #  Model: claude
 #  API: openai_api
 #  Model: smart_fast_model
-  API: claude3_api
-  Model: claude-3
+#  API: claude3_api
+#  Model: claude-3
+#  API: oobabooga_api
+#  Model: oobabooga
+  API: ollama_api
+  Model: DolphinMistral
   Params:
     max_new_tokens: 2000
     temperature: 0.5
