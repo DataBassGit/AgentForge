@@ -28,6 +28,7 @@ class Functions:
         Initializes the Functions class by creating instances of utility classes and handling any exceptions
         that occur during their initialization.
         """
+        # self.config = None
         self.logger = Logger(name=self.__class__.__name__)
 
         try:

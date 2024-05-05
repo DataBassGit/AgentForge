@@ -16,6 +16,37 @@ from ..config import Config
 logger = Logger(name="Chroma Utils")
 
 
+def transform_result_format(result):
+    """
+    Transforms the format of the loaded collection result from the original format to the specified new format.
+    Accounts for optional presence of 'metadatas', 'uris', and 'data'.
+
+    Parameters:
+    - result (dict): The original result dictionary from loading a collection.
+
+    Returns:
+    - dict: Transformed result in the new specified format.
+    """
+    transformed_result = {"documents": []}
+
+    for key, value in result.items():
+        if value and key not in ["documents", "metadatas"]:
+            transformed_result[key] = value
+
+    for doc_id, metadata, document in zip(result['ids'], result['metadatas'], result['documents']):
+        if not metadata:
+            metadata = {}
+
+        transformed_document = {
+            "id": doc_id,
+            "content": document,
+            "metadata": metadata,
+        }
+        transformed_result["documents"].append(transformed_document)
+
+    return transformed_result
+
+
 class ChromaUtils:
     """
     A utility class for managing interactions with ChromaDB, offering a range of functionalities including
@@ -201,8 +232,11 @@ class ChromaUtils:
         """
         params = {}
 
-        if include is not None:
-            params.update(include=include)
+        # Defaulting 'include' if None
+        if include is None:
+            include = ["documents", "metadatas"]
+
+        params.update(include=include)
 
         if where is not None:
             params.update(where=where)
@@ -213,7 +247,6 @@ class ChromaUtils:
         try:
             self.select_collection(collection_name)
             data = self.collection.get(**params)
-
             logger.log(
                 f"\nCollection: {collection_name}"
                 f"\nData: {data}",
@@ -319,14 +352,15 @@ class ChromaUtils:
                 include = ["documents", "metadatas", "distances"]
 
             if query is not None:
-                result = self.collection.query(
+                unformatted_result = self.collection.query(
                     query_texts=[query] if isinstance(query, str) else query,
                     n_results=num_results,
                     where=filter_condition,
                     include=include
                 )
+
             elif embeddings is not None:
-                result = self.collection.query(
+                unformatted_result = self.collection.query(
                     query_embeddings=embeddings,
                     n_results=num_results,
                     where=filter_condition,
@@ -335,6 +369,10 @@ class ChromaUtils:
             else:
                 raise ValueError("Error: No query nor embeddings were provided!")
 
+            result = {}
+            for key, value in unformatted_result.items():
+                if value:
+                    result[key] = value[0]
             return result
 
         except Exception as e:

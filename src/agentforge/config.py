@@ -18,7 +18,6 @@ class Config:
         """
         if not cls._instance:
             cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
-            # cls._instance.__init__()
         return cls._instance
 
     def __init__(self):
@@ -110,7 +109,7 @@ class Config:
 
     def load_all_configurations(self):
         """
-        Recursively loads all configuration data from YAML files under each subdirectory of the ..agentforge folder.
+        Recursively loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
         """
         for subdir, dirs, files in os.walk(self.config_path):
             for file in files:
@@ -119,7 +118,7 @@ class Config:
                     relative_path = subdir_path.relative_to(self.config_path)
                     nested_dict = self.get_nested_dict(self.data, relative_path.parts)
 
-                    file_path = subdir_path / file
+                    file_path = str(subdir_path / file)
                     data = get_yaml_data(file_path)
                     if data:
                         filename_without_ext = os.path.splitext(file)[0]
@@ -211,9 +210,8 @@ class Config:
         """
         Reloads configurations for an agent.
         """
-        if self.data['settings']['system']['OnTheFly'] == 'true':
+        if self.data['settings']['system']['OnTheFly']:
             self.load_all_configurations()
-
 
 # -------------------------- FUNCTIONS --------------------------
 
