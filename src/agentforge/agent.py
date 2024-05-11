@@ -63,16 +63,27 @@ class Agent:
         Parameters:
             **kwargs: Keyword arguments for additional data loading.
         """
-        self.load_agent_data(**kwargs)
+        self.load_kwargs(**kwargs)
+        self.load_agent_data()
         self.load_persona_data()
+        self.load_additional_data()
 
-    def load_agent_data(self, **kwargs):
+    def load_kwargs(self, **kwargs):
         """
-        Loads the agent's configuration data including parameters and prompts, merging them with any additional data
-        provided through kwargs.
+        Loads the variables passed to the agent as data.
 
         Parameters:
             **kwargs: Additional keyword arguments to be merged into the agent's data.
+        """
+        try:
+            for key in kwargs:
+                self.data[key] = kwargs[key]
+        except Exception as e:
+            self.logger.log(f"Error loading kwargs: {e}", 'error')
+
+    def load_agent_data(self, **kwargs):
+        """
+        Loads the agent's configuration data including parameters and prompts.
         """
         try:
             self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name).copy()
@@ -81,17 +92,8 @@ class Agent:
                 'prompts': self.agent_data['prompts'].copy()
             })
 
-            for key in kwargs:
-                self.data[key] = kwargs[key]
         except Exception as e:
             self.logger.log(f"Error loading agent data: {e}", 'error')
-
-    def load_agent_type_data(self, **kwargs):
-        """
-        Placeholder for loading data specific to the agent's type. Meant to be overridden by custom agent types as
-        needed.
-        """
-        pass
 
     def load_additional_data(self, **kwargs):
         """
