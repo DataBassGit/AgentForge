@@ -51,11 +51,11 @@ class Ollama:
 
         headers = {'Content-Type': 'application/json'}
         data = {
-            "temperature": 0.8,
+            "temperature": params["temperature"],
             "model": self._model,
             "system": model_prompt[0],
             "prompt": prompt,
-            "max_tokens": 2048,
+            "max_tokens": params["max_new_tokens"],
             "stream": False
         }
 
