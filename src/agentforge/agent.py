@@ -12,15 +12,18 @@ class Agent:
         self.agent_name = self.__class__.__name__
         self.logger = Logger(name=self.agent_name)
 
-        self.data = None
+        self.data: dict = {}
         self.prompt = None
         self.result = None
         self.output = None
 
+        if not hasattr(self, 'agent_data'):  # Prevent re-initialization
+            self.agent_data = None
+
         try:
             self.functions = Functions()
-            self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
-            self.storage = self.agent_data['storage']
+            self.storage = self.functions.agent_utils.get_storage()
+
         except Exception as e:
             self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
 
@@ -44,6 +47,7 @@ class Agent:
             self.parse_result()
             self.save_result()
             self.build_output()
+            self.data = {}
             self.logger.log(f"\n{self.agent_name} - Done!", 'info')
         except Exception as e:
             self.logger.log(f"Error running agent: {e}", 'error')
@@ -59,35 +63,39 @@ class Agent:
         Parameters:
             **kwargs: Keyword arguments for additional data loading.
         """
-        self.load_agent_data(**kwargs)
+        self.load_kwargs(**kwargs)
+        self.load_agent_data()
         self.load_persona_data()
-        self.load_agent_type_data()
         self.load_additional_data()
 
-    def load_agent_data(self, **kwargs):
+    def load_kwargs(self, **kwargs):
         """
-        Loads the agent's configuration data including parameters and prompts, merging them with any additional data
-        provided through kwargs.
+        Loads the variables passed to the agent as data.
 
         Parameters:
             **kwargs: Additional keyword arguments to be merged into the agent's data.
         """
         try:
-            self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name)
-            self.data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
             for key in kwargs:
                 self.data[key] = kwargs[key]
         except Exception as e:
+            self.logger.log(f"Error loading kwargs: {e}", 'error')
+
+    def load_agent_data(self, **kwargs):
+        """
+        Loads the agent's configuration data including parameters and prompts.
+        """
+        try:
+            self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name).copy()
+            self.data.update({
+                'params': self.agent_data.get('params').copy(),
+                'prompts': self.agent_data['prompts'].copy()
+            })
+
+        except Exception as e:
             self.logger.log(f"Error loading agent data: {e}", 'error')
 
-    def load_agent_type_data(self):
-        """
-        Placeholder for loading data specific to the agent's type. Meant to be overridden by custom agent types as
-        needed.
-        """
-        pass
-
-    def load_additional_data(self):
+    def load_additional_data(self, **kwargs):
         """
         Placeholder for loading additional data. Meant to be overridden by custom agents as needed.
         """
@@ -102,13 +110,13 @@ class Agent:
             for key in persona:
                 self.data[key.lower()] = persona[key]
 
-    def process_data(self):
+    def process_data(self, **kwargs):
         """
         Placeholder for data processing. Meant to be overridden by custom agents for specific data processing needs.
         """
         pass
 
-    def generate_prompt(self):
+    def generate_prompt(self, **kwargs):
         """
         Generates the prompt(s) for the language model based on template data. It handles the rendering of prompt
         templates and aggregates them into a list.
@@ -126,7 +134,7 @@ class Agent:
             self.logger.log(f"Error generating prompt: {e}", 'error')
             self.prompt = None
 
-    def run_llm(self):
+    def run_llm(self, **kwargs):
         """
         Executes the language model generation with the generated prompt(s) and any specified parameters.
         """
@@ -139,14 +147,14 @@ class Agent:
             self.logger.log(f"Error running LLM: {e}", 'error')
             self.result = None
 
-    def parse_result(self):
+    def parse_result(self, **kwargs):
         """
         Placeholder for result parsing. Meant to be overridden by custom agents to implement specific result parsing
         logic.
         """
         pass
 
-    def save_result(self):
+    def save_result(self, **kwargs):
         """
         Saves the result of the language model generation into a specified storage.
         """
@@ -159,7 +167,7 @@ class Agent:
             self.logger.log(f"Storage is turned off - "
                             f"To turn on go to the storage.yaml file in the settings folder!", 'debug')
 
-    def build_output(self):
+    def build_output(self, **kwargs):
         """
         Constructs the output from the result. This method can be overridden by subclasses to customize the output.
         """
