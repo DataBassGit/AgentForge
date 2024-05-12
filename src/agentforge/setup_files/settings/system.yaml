@@ -1,7 +1,8 @@
 Persona: default
 OnTheFly: true
 SaveMemory: true
-TimeStampMemory: true
+ISOTimeStampMemory: true
+UnixTimeStampMemory: true
 
 Logging:
   Enabled: true

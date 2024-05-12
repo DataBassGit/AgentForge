@@ -23,6 +23,9 @@ class AgentUtils:
         self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
 
+    def get_storage(self):
+        return self.config
+
     def load_agent_data(self, agent_name):
         """
         Loads configuration data for a specified agent, applying any overrides specified in the agent's configuration.
