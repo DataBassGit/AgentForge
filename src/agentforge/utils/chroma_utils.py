@@ -298,11 +298,17 @@ class ChromaUtils:
             raise ValueError("The length of data, ids, and metadata lists must match.")
 
         try:
-            do_time_stamp = self.config.data['settings']['system'].get('TimeStampMemory')
+            do_time_stamp = self.config.data['settings']['system'].get('ISOTimeStampMemory')
             if do_time_stamp is True:
                 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 for m in metadata:
-                    m['timestamp'] = timestamp
+                    m['isotimestamp'] = timestamp
+
+            do_time_stamp = self.config.data['settings']['system'].get('UnixTimeStampMemory')
+            if do_time_stamp is True:
+                timestamp = datetime.now().timestamp()
+                for m in metadata:
+                    m['unixtimestamp'] = timestamp
 
             self.select_collection(collection_name)
             self.collection.upsert(
