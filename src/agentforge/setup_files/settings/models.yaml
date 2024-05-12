@@ -17,7 +17,7 @@ ModelLibrary:
       smart_model:
         name: gpt-4
       smart_fast_model:
-        name: gpt-4-1106-preview
+        name: gpt-4-turbo-2024-04-09
         params: # Specific parameters for the model
           max_new_tokens: 2500
   claude_old:
@@ -56,21 +56,31 @@ ModelLibrary:
         params:
           host_url: "http://localhost:11434/api/generate"
           allow_custom_value: True
-
+  lm_studio_api:
+    module: "LMStudio"
+    class: "LMStudio"
+    models:
+      LMStudio:
+        name: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
+        params:
+          host_url: "http://localhost:11434/v1/chat/completions"
+          allow_custom_value: True
 # Default settings for all models unless overridden
 ModelSettings:
 #  API: gemini_api
 #  Model: gemini-pro
 #  API: claude_old
 #  Model: claude
-#  API: openai_api
-#  Model: smart_fast_model
+  API: openai_api
+  Model: smart_fast_model
 #  API: claude3_api
 #  Model: claude-3
 #  API: oobabooga_api
 #  Model: oobabooga
-  API: ollama_api
-  Model: DolphinMistral
+#  API: ollama_api
+#  Model: DolphinMistral
+#  API: lm_studio_api
+#  Model: LMStudio
   Params:
     max_new_tokens: 2000
     temperature: 0.5

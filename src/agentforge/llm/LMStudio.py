@@ -3,7 +3,6 @@ import json
 from agentforge.utils.functions.Logger import Logger
 
 
-
 def parse_prompts(prompts):
     """
     Formats a list of prompts into a single string formatted specifically for Anthropic's AI models.
@@ -19,7 +18,7 @@ def parse_prompts(prompts):
     return prompt
 
 
-class Ollama:
+class LMStudio:
 
     def __init__(self, model):
         """
@@ -66,20 +65,24 @@ class Ollama:
             ],
             "temperature": params["temperature"],
             "max_tokens": params["max_new_tokens"],
-            "stream": false
+            "stream": False
         }
 
         url = params.pop('host_url', None)
         if not url:
             self.logger.log("\n\nError: The CUSTOM_AI_ENDPOINT environment variable is not set", 'critical')
 
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        self.logger.log_response(response.json()['response'])
+        completion = requests.post(url, headers=headers, data=json.dumps(data))
+        response_dict = json.loads(completion.text)
+        message_content = response_dict["choices"][0]["message"]["content"]
 
-        if response.status_code == 200:
-            return response.json()['response']
+        # self.logger.log_response(response.json()['response'])
+        self.logger.log_response(message_content)
+
+        if completion.status_code == 200:
+            return message_content
         else:
-            print(f"Request error: {response}")
+            print(f"Request error: {completion}")
             return None
 
 

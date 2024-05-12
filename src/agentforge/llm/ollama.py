@@ -3,7 +3,6 @@ import json
 from agentforge.utils.functions.Logger import Logger
 
 
-
 def parse_prompts(prompts):
     """
     Formats a list of prompts into a single string formatted specifically for Anthropic's AI models.
