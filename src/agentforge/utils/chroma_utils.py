@@ -16,37 +16,6 @@ from ..config import Config
 logger = Logger(name="Chroma Utils")
 
 
-# def transform_result_format(result):
-#     """
-#     Transforms the format of the loaded collection result from the original format to the specified new format.
-#     Accounts for optional presence of 'metadatas', 'uris', and 'data'.
-#
-#     Parameters:
-#     - result (dict): The original result dictionary from loading a collection.
-#
-#     Returns:
-#     - dict: Transformed result in the new specified format.
-#     """
-#     transformed_result = {"documents": []}
-#
-#     for key, value in result.items():
-#         if value and key not in ["documents", "metadatas"]:
-#             transformed_result[key] = value
-#
-#     for doc_id, metadata, document in zip(result['ids'], result['metadatas'], result['documents']):
-#         if not metadata:
-#             metadata = {}
-#
-#         transformed_document = {
-#             "id": doc_id,
-#             "content": document,
-#             "metadata": metadata,
-#         }
-#         transformed_result["documents"].append(transformed_document)
-#
-#     return transformed_result
-
-
 class ChromaUtils:
     """
     A utility class for managing interactions with ChromaDB, offering a range of functionalities including

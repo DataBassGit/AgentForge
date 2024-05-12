@@ -49,7 +49,7 @@ text = """
         experience summaries which can be stored in l
     """
 
-result = learn.run(existing_knowledge="None",text_chunk=text)
+result = learn.run(existing_knowledge="None", text_chunk=text)
 
 print(f"Final Results: {result}")
 
