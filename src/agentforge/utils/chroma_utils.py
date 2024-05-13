@@ -1,5 +1,4 @@
 import os
-import shutil
 import uuid
 from datetime import datetime
 from typing import Optional, Union
@@ -427,3 +426,56 @@ class ChromaUtils:
         """
         self.select_collection(collection_name)
         return self.collection.count()
+
+    def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
+        """
+        Retrieves the collection entry with the minimum or maximum value for the specified metadata tag.
+
+        Args:
+            collection_name: The ChromaDB collection object.
+            metadata_tag: The name of the metadata tag to consider for finding the minimum or maximum value.
+            min_max: The type of value to retrieve. Can be either "min" for minimum or "max" for maximum.
+                     Default is "max".
+
+        Returns:
+            The collection entry with the minimum or maximum value for the specified metadata tag,
+            or None if no entries are found or if the metadata tag contains non-numeric values.
+        """
+        try:
+            # Retrieve only the document IDs and the specified metadata tag
+            self.select_collection(collection_name)
+            results = self.collection.get(include=["metadatas"])
+
+            # Extract the metadata values and document IDs
+            metadata_values = [entry["metadata"][metadata_tag] for entry in results["metadatas"]]
+            document_ids = results["ids"]
+
+            # Check if all metadata values are numeric (int or float)
+            if not all(isinstance(value, (int, float)) for value in metadata_values):
+                logger.log(f"Error: The metadata tag '{metadata_tag}' contains non-numeric values.", 'error')
+                return None
+
+            if min_max == "min":
+                target_index = metadata_values.index(min(metadata_values))
+            else:
+                target_index = metadata_values.index(max(metadata_values))
+
+            # Retrieve the full entry with the highest metadata value
+            target_entry = self.collection.get(ids=[document_ids[target_index]], include=["documents", "metadatas"])
+
+            max_metadata = {
+                "id": target_entry["ids"][0],
+                "metadata": target_entry["metadatas"][0],
+                "document": target_entry["documents"][0],
+            }
+
+            logger.log(
+                f"Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
+                'debug'
+            )
+            return max_metadata
+
+        except (KeyError, ValueError, IndexError) as e:
+            logger.log(f"Error finding max metadata: {e}", 'error')
+            return None
+        
