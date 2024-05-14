@@ -341,7 +341,7 @@ class ChromaUtils:
                     include=include
                 )
             else:
-                raise ValueError("Error: No query nor embeddings were provided!")
+                raise ValueError("Error: No query nor embeddings were provided! Try load_collection instead.")
 
             result = {}
             for key, value in unformatted_result.items():
@@ -478,4 +478,3 @@ class ChromaUtils:
         except (KeyError, ValueError, IndexError) as e:
             logger.log(f"Error finding max metadata: {e}", 'error')
             return None
-        
