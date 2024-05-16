@@ -447,7 +447,7 @@ class ChromaUtils:
             results = self.collection.get(include=["metadatas"])
 
             # Extract the metadata values and document IDs
-            metadata_values = [entry["metadata"][metadata_tag] for entry in results["metadatas"]]
+            metadata_values = [entry[metadata_tag] for entry in results["metadatas"]]
             document_ids = results["ids"]
 
             # Check if all metadata values are numeric (int or float)
@@ -464,7 +464,8 @@ class ChromaUtils:
             target_entry = self.collection.get(ids=[document_ids[target_index]], include=["documents", "metadatas"])
 
             max_metadata = {
-                "id": target_entry["ids"][0],
+                "ids": target_entry["ids"][0],
+                "target": target_entry["metadatas"][0][metadata_tag],
                 "metadata": target_entry["metadatas"][0],
                 "document": target_entry["documents"][0],
             }
@@ -476,5 +477,5 @@ class ChromaUtils:
             return max_metadata
 
         except (KeyError, ValueError, IndexError) as e:
-            logger.log(f"Error finding max metadata: {e}", 'error')
+            logger.log(f"Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')
             return None
