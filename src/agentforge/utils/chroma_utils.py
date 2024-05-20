@@ -479,3 +479,7 @@ class ChromaUtils:
         except (KeyError, ValueError, IndexError) as e:
             logger.log(f"Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')
             return None
+
+    def delete_memory(self, collection_name, doc_id):
+        self.select_collection(collection_name)
+        self.collection.delete(ids=[doc_id])

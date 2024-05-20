@@ -35,9 +35,8 @@ setup(
         "google-api-python-client",
         "beautifulsoup4~=4.12.2",
         "browse~=1.0.1",
-        "kivy~=2.2.1",
-        "flask~=2.3.2",
         "scipy",
+        "semantic-router",
         "google-generativeai"
     ],
     extras_require={
