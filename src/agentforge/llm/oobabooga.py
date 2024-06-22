@@ -45,8 +45,7 @@ class Oobabooga:
 
         # Server address
         host = params.pop('host_url', None)
-        url = f"http://{host}/v1/chat/completions"
-        # url = f"http://{host}/v1/completions"
+        url = f"{host}/v1/chat/completions"
 
         headers = {"Content-Type": "application/json"}
 
