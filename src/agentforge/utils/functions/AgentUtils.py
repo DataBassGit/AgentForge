@@ -22,9 +22,11 @@ class AgentUtils:
         """
         self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
+        self.storage = StorageInterface().storage_utils
 
     def get_storage(self):
-        return self.config
+        # return self.config
+        return self.storage
 
     def load_agent_data(self, agent_name):
         """
@@ -92,7 +94,7 @@ class AgentUtils:
                 llm=self.config.get_llm(api, model),
                 params=final_model_params,
                 prompts=agent['Prompts'],
-                storage=StorageInterface().storage_utils,
+                storage=self.storage,
                 persona=persona,
             )
 

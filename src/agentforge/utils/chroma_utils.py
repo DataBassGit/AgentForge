@@ -244,7 +244,8 @@ class ChromaUtils:
         """
 
         if self.config.data['settings']['system']['SaveMemory'] is False:
-            print("\n\nSaving memory is OFF. Enable 'SaveMemory' in the system.yaml to turn it ON.")
+            print("\nMemory Saving is Disabled. To Enable Memory Saving, set the 'SaveMemory' flag to 'true' in the "
+                  "system.yaml file.\n")
             return
 
         if not collection_name:
