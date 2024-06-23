@@ -2,8 +2,6 @@
 ModelSettings:
 #  API: gemini_api
 #  Model: gemini-pro
-#  API: claude_old
-#  Model: claude
 #  API: openai_api
 #  Model: omni_model
 #  API: claude3_api
@@ -48,12 +46,12 @@ ModelLibrary:
     models:
       omni_model:
         name: gpt-4o
+        params: # Specific parameters for the model
+          max_new_tokens: 3500
       smart_model:
         name: gpt-4
       smart_fast_model:
         name: gpt-4-turbo-2024-04-09
-        params: # Specific parameters for the model
-          max_new_tokens: 2500
       fast_model:
         name: gpt-3.5-turbo
       long_fast_model:

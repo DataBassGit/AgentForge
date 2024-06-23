@@ -1,5 +1,6 @@
 import os
 import uuid
+from pathlib import Path
 from datetime import datetime
 from typing import Optional, Union
 
@@ -31,25 +32,28 @@ class ChromaUtils:
     db_embed = None
     embedding = None
 
-    def __new__(cls, *args, **kwargs):
-        """
-        Ensures a single instance of ChromaUtils is created (singleton pattern). Initializes embeddings and storage
-        upon the first creation.
+    # def __new__(cls, *args, **kwargs):
+    #     """
+    #     Ensures a single instance of ChromaUtils is created (singleton pattern). Initializes embeddings and storage
+    #     upon the first creation.
+    #
+    #     Returns:
+    #         ChromaUtils: The singleton instance of the ChromaUtils class.
+    #     """
+    #     pass
+    #     if not cls._instance:
+    #         logger.log("Creating chroma utils", 'debug')
+    #         cls.config = Config()
+    #         cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
+    #         cls._instance.init_embeddings()
+    #         cls._instance.init_storage()
+    #     return cls._instance
 
-        Returns:
-            ChromaUtils: The singleton instance of the ChromaUtils class.
-        """
-        if not cls._instance:
-            logger.log("Creating chroma utils", 'debug')
-            cls.config = Config()
-            cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
-            cls._instance.init_embeddings()
-            cls._instance.init_storage()
-        return cls._instance
-
-    def __init__(self):
-        # Add your initialization code here
-        pass
+    def __init__(self, persona_name):
+        self.persona_name = persona_name
+        self.config = Config()
+        self.init_embeddings()
+        self.init_storage()
 
     def init_embeddings(self):
         """
@@ -118,6 +122,9 @@ class ChromaUtils:
         # Construct the absolute path of the database using the project root
         if db_path_setting:
             db_path = str(self.config.project_root / db_path_setting)
+            if self.persona_name is not None:
+                db_path = f"{db_path}/{self.persona_name}"
+
         else:
             db_path = None
 

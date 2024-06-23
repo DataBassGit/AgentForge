@@ -16,13 +16,14 @@ class Agent:
         self.prompt = None
         self.result = None
         self.output = None
+        # self.storage = None
 
         if not hasattr(self, 'agent_data'):  # Prevent re-initialization
             self.agent_data = None
 
         try:
             self.functions = Functions()
-            self.storage = self.functions.agent_utils.get_storage()
+            # self.storage = self.functions.agent_utils.get_storage()
 
         except Exception as e:
             self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
@@ -158,9 +159,9 @@ class Agent:
         """
         Saves the result of the language model generation into a specified storage.
         """
-        if self.storage:
+        if self.agent_data['storage']:
             try:
-                self.storage.save_memory(collection_name='Results', data=[self.result])
+                self.agent_data['storage'].save_memory(collection_name='Results', data=[self.result])
             except Exception as e:
                 self.logger.log(f"Error saving result: {e}", 'error')
         else:

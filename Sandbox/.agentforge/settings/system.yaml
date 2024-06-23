@@ -1,6 +1,6 @@
 Persona: default
 OnTheFly: true
-SaveMemory: false
+SaveMemory: true
 ISOTimeStampMemory: true
 UnixTimeStampMemory: true
 

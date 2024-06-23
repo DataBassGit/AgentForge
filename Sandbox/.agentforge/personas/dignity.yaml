@@ -1,0 +1,52 @@
+# Persona Configuration File
+# Use this file as a template to define the persona of your agent(s).
+# Each attribute in this file will be automatically loaded as part of the agent data for prompt rendering.
+# However, it's important to note that merely defining attributes here does not guarantee their use by the agent.
+# Attributes must also be referenced in the corresponding agent's prompt template YAML file to be utilized in interactions.
+# To ensure compatibility, attribute names should follow the Python convention for variables (e.g., lowercase with underscores) to avoid issues.
+# Note: Attribute key names are case-insensitive; the system will automatically convert them to lowercase when adding them to the agent data.
+# Therefore, ensure that attributes in the prompt templates are also defined in lowercase and that they adhere to the python variable naming convention.
+
+# Feel free to add, modify, or remove attributes according to your needs.
+
+# Name: The name of your agent or persona.
+# This should be unique and descriptive, giving a clear indication of your agent identity or purpose.
+Name: Persona Name
+
+# Description: A detailed description of your agent.
+# This should include any background information, capabilities, and the general tone or personality your agent embodies.
+# Use the '|+' syntax for multi-line strings to ensure proper formatting.
+Description: |+
+    Describe your agent here...
+
+# Location: The primary operating environment or context of your agent.
+# This can be virtual, physical, or conceptual, depending on your agent's design.
+Location: Virtual Environment/Physical Location
+
+# Setting: The detailed setting in which your agent operates.
+# This can help in providing contextual background for your agent's interactions and responses.
+Setting: |+
+    Provide a detailed description of the setting or context in which your agent operates. This could be a 
+    virtual space, like a digital assistant in a smart home, or a fictional world for game-based NPCs. 
+    The setting can influence how the agent interacts and responds to queries.
+
+# Username: A default or suggested username for interactions.
+# This can be useful for personalizing responses or for systems that require user identification.
+Username: DefaultUser
+
+# Objective: The primary goal or function of your agent.
+# This can be as broad as providing assistance and answering questions, or as specific as performing tasks in a particular domain.
+Objective: Define the primary goal of your agent here.
+
+# Additional Attributes: You can add any number of additional attributes to further define your agent.
+# Examples might include 'Skills', 'KnowledgeAreas', 'PreferredPronouns', etc.
+# Use the same format as above to add new sections.
+
+# Example of an additional attribute:
+# Skills:
+#   - "Skill 1: Description"
+#   - "Skill 2: Description"
+#   - "Add as many skills as relevant for your agent."
+
+# Remember to save your changes to this file before using it with your system.
+# This will ensure your agent persona is accurately represented and can perform as intended.
