@@ -24,12 +24,6 @@ class AgentUtils:
         self.config = Config()
         self.storage_interface = StorageInterface()
 
-    # def get_storage(self, persona_name):
-    #     return self.storage_interface.get_storage(persona_name)
-
-    # def get_storage(self):
-    #     return self.storage
-
     def load_agent_data(self, agent_name):
         """
         Loads configuration data for a specified agent, applying any overrides specified in the agent's configuration.
@@ -52,64 +46,100 @@ class AgentUtils:
             agent = self.config.find_agent_config(agent_name)
             settings = self.config.data['settings']
 
-            # Check for API and model_name overrides in the agent's ModelOverrides
-            agent_api_override = agent.get('ModelOverrides', {}).get('API', None)
-            agent_model_override = agent.get('ModelOverrides', {}).get('Model', None)
-
-            # Use overrides if available, otherwise default to the settings
-            api = agent_api_override or settings['models']['ModelSettings']['API']
-            model = agent_model_override or settings['models']['ModelSettings']['Model']
-
-            # Load default model parameter settings
-            default_params = settings['models']['ModelSettings']['Params']
-
-            # Load model-specific settings (if any)
-            model_params = settings['models']['ModelLibrary'][api]['models'].get(model, {}).get('params', {})
-
-            # Merge default settings with model-specific settings
-            combined_params = {**default_params, **model_params}
-
-            # Apply agent's parameter overrides (if any)
-            agent_params_overrides = agent.get('ModelOverrides', {}).get('Params', {})
-            final_model_params = {**combined_params, **agent_params_overrides}
-
-            # Check for a Persona override in the agent's configuration
-            agent_persona_override = agent.get('Persona', None)
-
-            # Use the overridden persona if available, or default to the system's predefined persona
-            persona_file = agent_persona_override or settings['system'].get('Persona')
-
-            persona = None
-            if persona_file is not None:
-                # Check if the selected persona exists
-                if persona_file not in self.config.data['personas']:
-                    self.logger.log(f"Selected Persona '{persona_file}' not found. Please make sure the corresponding "
-                                    f"persona file is in the personas folder", 'critical')
-
-                # Load the selected persona
-                persona = self.config.data['personas'][persona_file]
+            api, model, final_model_params = self.resolve_model_overrides(agent, settings)
+            llm = self.config.get_llm(api, model)
+            persona, persona_file = self.load_persona(agent, settings)
+            storage = self.resolve_storage(settings, persona_file)
 
             # Initialize agent data
             agent_data: Dict[str, Any] = dict(
                 name=agent_name,
                 settings=settings,
-                llm=self.config.get_llm(api, model),
+                llm=llm,
                 params=final_model_params,
-                prompts=agent['Prompts'],
-                storage=self.storage_interface.get_storage(persona_file),
                 persona=persona,
+                prompts=agent['Prompts'],
+                storage=storage,
             )
 
             return agent_data
         except FileNotFoundError as e:
-            # Handle file not found errors specifically
             self.logger.log(f"Configuration or persona file not found: {e}", 'critical')
         except KeyError as e:
-            # Handle missing keys in configuration
             self.logger.log(f"Missing key in configuration: {e}", 'critical')
         except Exception as e:
-            # Handle other general exceptions
             self.logger.log(f"Error loading agent data: {e}", 'critical')
+
+    @staticmethod
+    def resolve_model_overrides(agent, settings):
+        """
+        Resolves the model and API overrides for the agent, if any.
+
+        Parameters:
+            agent (dict): The agent's configuration data.
+            settings (dict): The application's settings.
+
+        Returns:
+            tuple: The resolved API, model, and final model parameters.
+        """
+        agent_api_override = agent.get('ModelOverrides', {}).get('API', None)
+        agent_model_override = agent.get('ModelOverrides', {}).get('Model', None)
+
+        api = agent_api_override or settings['models']['ModelSettings']['API']
+        model = agent_model_override or settings['models']['ModelSettings']['Model']
+
+        default_params = settings['models']['ModelSettings']['Params']
+        model_params = settings['models']['ModelLibrary'][api]['models'].get(model, {}).get('params', {})
+
+        combined_params = {**default_params, **model_params}
+        agent_params_overrides = agent.get('ModelOverrides', {}).get('Params', {})
+        final_model_params = {**combined_params, **agent_params_overrides}
+
+        return api, model, final_model_params
+
+    def load_persona(self, agent, settings):
+        """
+        Loads the persona for the agent, if personas are enabled.
+
+        Parameters:
+            agent (dict): The agent's configuration data.
+            settings (dict): The application's settings.
+
+        Returns:
+            tuple: The loaded persona and the persona file name.
+        """
+        persona = None
+        persona_file = None
+        persona_enabled = settings['system'].get('EnablePersonas', None)
+
+        if persona_enabled:
+            agent_persona_override = agent.get('Persona', None)
+            persona_file = agent_persona_override or settings['system'].get('Persona')
+
+            if persona_file is not None:
+                if persona_file not in self.config.data['personas']:
+                    self.logger.log(f"Selected Persona '{persona_file}' not found. Please make sure the "
+                                    f"corresponding persona file is in the personas folder", 'critical')
+
+                persona = self.config.data['personas'].get(persona_file)
+
+        return persona, persona_file
+
+    def resolve_storage(self, settings, persona_file):
+        """
+        Initializes the storage for the agent, if storage is enabled.
+
+        Parameters:
+            settings (dict): The application's settings.
+            persona_file (str): The persona file name.
+
+        Returns:
+            The initialized storage utility.
+        """
+        storage = settings['system'].get('StorageEnabled', None)
+        if storage:
+            storage = self.storage_interface.get_storage(persona_file)
+        return storage
 
     def parse_yaml_string(self, yaml_string):
         """

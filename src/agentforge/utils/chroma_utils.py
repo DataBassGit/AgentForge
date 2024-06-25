@@ -14,6 +14,7 @@ from agentforge.utils.functions.Logger import Logger
 from ..config import Config
 
 logger = Logger(name="Chroma Utils")
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class ChromaUtils:
@@ -50,6 +51,10 @@ class ChromaUtils:
     #     return cls._instance
 
     def __init__(self, persona_name):
+        """
+        Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
+        upon creation.
+        """
         self.persona_name = persona_name
         self.config = Config()
         self.init_embeddings()
