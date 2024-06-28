@@ -50,7 +50,7 @@ class ChromaUtils:
     #         cls._instance.init_storage()
     #     return cls._instance
 
-    def __init__(self, persona_name):
+    def __init__(self, persona_name="default"):
         """
         Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
         upon creation.
