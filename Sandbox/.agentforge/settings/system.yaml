@@ -19,6 +19,8 @@ Logging:
     AgentForge: error
     ModelIO: debug
     Results: error
+    Trinity: debug
+    DiscordClient: debug
 
 # Paths the system (agents) have access to read and write
 Paths:

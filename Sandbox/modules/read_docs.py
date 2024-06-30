@@ -5,7 +5,7 @@ import os
 
 gettext_instance = GetText()
 folder = '../docs'
-storage = ChromaUtils()
+storage = ChromaUtils('dignity')
 
 
 def list_files(directory):

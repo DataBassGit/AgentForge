@@ -11,6 +11,7 @@ Logging:
     AgentForge: error
     ModelIO: error
     Results: error
+    DiscordClient: info
 
 Paths:
   Files: ./Files
