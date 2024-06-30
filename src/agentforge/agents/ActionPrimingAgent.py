@@ -1,4 +1,5 @@
 from agentforge.agent import Agent
+from agentforge.utils.functions.ParsingUtils import parse_yaml_string
 
 
 class ActionPrimingAgent(Agent):
@@ -14,7 +15,7 @@ class ActionPrimingAgent(Agent):
         """
         try:
             # The 'parse_yaml_string' method takes a YAML formatted string and returns a structured object
-            self.output = self.functions.agent_utils.parse_yaml_string(self.result)
+            self.output = parse_yaml_string(self.functions.agent_utils.logger, self.result)
         except Exception as e:
             self.logger.parsing_error(self.result, e)
             raise

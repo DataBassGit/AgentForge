@@ -1,9 +1,9 @@
 # Persona Settings
-PersonasEnabled: false
+PersonasEnabled: true
 Persona: default
 
 # Storage Settings
-StorageEnable: true
+StorageEnabled: true
 SaveMemory: true # Saving Memory won't work if Storage is disabled
 ISOTimeStampMemory: true
 UnixTimeStampMemory: true

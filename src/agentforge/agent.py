@@ -16,14 +16,12 @@ class Agent:
         self.prompt = None
         self.result = None
         self.output = None
-        # self.storage = None
 
         if not hasattr(self, 'agent_data'):  # Prevent re-initialization
             self.agent_data = None
 
         try:
             self.functions = Functions()
-            # self.storage = self.functions.agent_utils.get_storage()
 
         except Exception as e:
             self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
@@ -159,6 +157,8 @@ class Agent:
         """
         Placeholder for result saving. Meant to be overridden by custom agents to implement specific result saving
         logic.
+
+        Note: The storage instance for an Agent is set at self.agent_data['storage']
         """
         pass
 

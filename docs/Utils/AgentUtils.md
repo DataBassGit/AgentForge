@@ -1,3 +1,5 @@
+from agentforge.utils.functions.ParsingUtils import parse_yaml_stringfrom agentforge.utils.functions.ParsingUtils import extract_yaml_block
+
 # Agent Utils Documentation
 
 ## Introduction
@@ -39,7 +41,7 @@ The extracted `agent_data` dictionary includes the following keys, populating `s
 ### Example Usage:
 
 ```python
-yaml_content = agent_utils.parse_yaml_string(yaml_block)
+yaml_content = parse_yaml_string(agent_utils.logger, yaml_block)
 ```
 
 ### Parsing Process:
@@ -53,7 +55,7 @@ Additionally, the class can extract YAML content from larger text blocks, a feat
 ### Example Usage:
 
 ```python
-extracted_yaml = AgentUtils.extract_yaml_block(yaml_string)
+extracted_yaml = extract_yaml_block(AgentUtils.logger, yaml_string)
 ```
 
 ### Extraction Process:

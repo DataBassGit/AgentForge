@@ -1,3 +1,5 @@
+from agentforge.utils.functions.ParsingUtils import parse_yaml_string
+
 # Action Priming Agent
 
 ## Introduction
@@ -52,22 +54,22 @@ The `ActionPrimingAgent` is a specialized agent that inherits its core functiona
 
 ```python
 def build_output(self):
-	"""
-	Overrides the build_output method from the Agent class to parse the result string into a structured format.
-	This method attempts to parse the result (assumed to be in YAML format) using the agent's utility functions
-	and sets the parsed output as the agent's output.
+    """
+    Overrides the build_output method from the Agent class to parse the result string into a structured format.
+    This method attempts to parse the result (assumed to be in YAML format) using the agent's utility functions
+    and sets the parsed output as the agent's output.
 
-	Raises:
-		Exception: If there's an error during parsing, it logs the error and re-raises the exception for
-		further handling. This approach ensures that any parsing issues are immediately flagged and can be
-		addressed in a timely manner.
-	"""
-	try:
-		# The 'parse_yaml_string' method takes a YAML formatted string and returns a structured object
-		self.output = self.functions.agent_utils.parse_yaml_string(self.result)
-	except Exception as e:
-		self.logger.parsing_error(self.result, e)  # Custom logging for parsing errors
-		raise  # Re-raises the exception to ensure it's not silently ignored
+    Raises:
+        Exception: If there's an error during parsing, it logs the error and re-raises the exception for
+        further handling. This approach ensures that any parsing issues are immediately flagged and can be
+        addressed in a timely manner.
+    """
+    try:
+        # The 'parse_yaml_string' method takes a YAML formatted string and returns a structured object
+        self.output = parse_yaml_string(self.functions.agent_utils.logger, self.result)
+    except Exception as e:
+        self.logger.parsing_error(self.result, e)  # Custom logging for parsing errors
+        raise  # Re-raises the exception to ensure it's not silently ignored
 ```
 
 > **Note**: This override emphasizes the importance of custom processing capabilities within agents, allowing them to tailor their output processing to fit specific data formats and requirements. By converting YAML formatted strings into structured objects, this method significantly enhances the usability and integration capabilities of the agent's output.

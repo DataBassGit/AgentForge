@@ -1,3 +1,4 @@
+from typing import Optional, Dict
 from ..config import Config
 
 
@@ -9,34 +10,20 @@ class StorageInterface:
     This class supports initializing different types of storage APIs like ChromaDB and Pinecone, as specified in the
     application's configuration settings. It ensures that only one instance of each storage utility is created
     throughout the application's lifecycle.
-
-    Attributes:
-        _instance (StorageInterface): A private class attribute to hold the singleton instance.
-        storage_utils: The initialized storage utility object (e.g., ChromaUtils, PineconeUtils).
     """
-    _instance = None
-    storage_utils = {}
+    _instance: Optional['StorageInterface'] = None
+    storage_utils: Dict[str, object] = {}
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs) -> 'StorageInterface':
         """
-        Ensures that only one instance of StorageInterface is created (singleton pattern). Initializes the storage
-        utility based on the application's configuration settings.
-
-        Parameters:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+        Ensures that only one instance of StorageInterface is created (singleton pattern).
 
         Returns:
             StorageInterface: The singleton instance of the StorageInterface class.
         """
-        if not cls._instance:
-            try:
-                cls.config = Config()
-                cls._instance = super(StorageInterface, cls).__new__(cls, *args, **kwargs)
-                # cls._instance.initialize_storage()
-            except Exception as e:
-                print(f"Error initializing StorageInterface: {e}")
-                raise
+        if cls._instance is None:
+            cls._instance = super(StorageInterface, cls).__new__(cls)
+            cls._instance.config = Config()  # Instance attribute
         return cls._instance
 
     def __init__(self):
@@ -46,53 +33,67 @@ class StorageInterface:
         """
         pass
 
-    def get_storage(self, persona_name):
-        self.initialize_storage(persona_name)
-        return self.storage_utils[persona_name]
+    def get_storage(self, persona_name: str = 'default') -> Optional[object]:
+        """
+        Retrieves the storage utility for the specified persona.
 
-    def initialize_storage(self, persona_name):
+        Parameters:
+            persona_name (str): The persona name for which to get the storage utility.
+
+        Returns:
+            Optional[object]: The initialized storage utility or None if initialization failed.
+        """
+        if persona_name not in self.storage_utils:
+            self.initialize_storage(persona_name)
+        return self.storage_utils.get(persona_name)
+
+    def initialize_storage(self, persona_name: str = 'default') -> None:
         """
         Determines the storage API to initialize based on the application's configuration settings.
 
-        This method reads the 'StorageAPI' setting from the configuration and calls the appropriate initialization
-        method for the specified storage utility.
+        Parameters:
+            persona_name (str): The persona name for which to initialize the storage utility.
 
         Raises:
             ValueError: If the specified StorageAPI is not supported by the application.
         """
-        if persona_name not in self.storage_utils:
-            storage_api = self.config.data['settings']['storage']['StorageAPI']
+        storage_enabled = self.config.data['settings']['system'].get('StorageEnabled', False)
 
-            if storage_api is None:
-                self.storage_utils = None
-                return
+        if not storage_enabled:
+            self.storage_utils[persona_name] = None
+            return
+
+        try:
+            storage_api = self.config.data['settings']['storage'].get('StorageAPI')
             if storage_api == 'ChromaDB':
                 self.initialize_chroma(persona_name)
-                return
-            if storage_api == 'Pinecone':
+            elif storage_api == 'Pinecone':
                 self.initialize_pinecone(persona_name)
-                return
+            else:
+                raise ValueError(f"Unsupported Storage API library: {storage_api}")
+        except ImportError as e:
+            print(f"An import error occurred: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
 
-            raise ValueError(f"Unsupported Storage API library: {storage_api}")
-
-    def initialize_chroma(self, persona_name):
+    def initialize_chroma(self, persona_name: str = 'default') -> None:
         """
         Initializes the ChromaDB storage utility and resets its memory if specified in the configuration settings.
+
+        Parameters:
+            persona_name (str): The persona name for which to initialize the storage utility.
         """
         from .chroma_utils import ChromaUtils
         self.storage_utils[persona_name] = ChromaUtils(persona_name)
 
-        if self.config.data['settings']['storage']['ChromaDB']['DBFreshStart'] is True:
-            self.storage_utils[persona_name].reset_memory()
-
-    def initialize_pinecone(self, persona_name):
+    def initialize_pinecone(self, persona_name: str = 'default') -> None:
         """
+        # CURRENTLY NOT WORKING - IMPLEMENTATION COMING SOON-ISH
+
         Initializes the Pinecone storage utility and calls its initialization method.
 
-        # CURRENTLY NOT WORKING - FIX COMING SOON-ISH
+        Parameters:
+            persona_name (str): The persona name for which to initialize the storage utility.
         """
-        try:
-            from agentforge.utils.pinecone_utils import PineconeUtils
-            self.storage_utils[persona_name] = PineconeUtils()
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        from agentforge.utils.pinecone_utils import PineconeUtils
+        self.storage_utils[persona_name] = PineconeUtils()

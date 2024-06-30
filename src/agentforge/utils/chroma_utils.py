@@ -106,6 +106,9 @@ class ChromaUtils:
                     self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
                 else:
                     self.client = chromadb.EphemeralClient()
+
+            if self.config.data['settings']['storage']['ChromaDB'].get('DBFreshStart'):
+                self.reset_memory()
         except Exception as e:
             logger.log(f"Error initializing storage: {e}", 'error')
             raise
@@ -126,9 +129,9 @@ class ChromaUtils:
 
         # Construct the absolute path of the database using the project root
         if db_path_setting:
-            db_path = str(self.config.project_root / db_path_setting)
-            if self.persona_name is not None:
-                db_path = f"{db_path}/{self.persona_name}"
+            db_path = str(self.config.project_root / db_path_setting / self.persona_name)
+            # if self.persona_name is not None:
+            #     db_path = f"{db_path}/{self.persona_name}"
 
         else:
             db_path = None

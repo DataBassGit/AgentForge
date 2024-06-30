@@ -1,5 +1,3 @@
-import yaml
-import re
 from typing import Dict, Any
 from .Logger import Logger
 from ...config import Config
@@ -24,7 +22,7 @@ class AgentUtils:
         self.config = Config()
         self.storage_interface = StorageInterface()
 
-    def load_agent_data(self, agent_name):
+    def load_agent_data(self, agent_name: str) -> Dict[str, Any]:
         """
         Loads configuration data for a specified agent, applying any overrides specified in the agent's configuration.
 
@@ -48,30 +46,31 @@ class AgentUtils:
 
             api, model, final_model_params = self.resolve_model_overrides(agent, settings)
             llm = self.config.get_llm(api, model)
-            persona, persona_file = self.load_persona(agent, settings)
+            persona_data, persona_file = self.load_persona(agent, settings)
             storage = self.resolve_storage(settings, persona_file)
 
-            # Initialize agent data
-            agent_data: Dict[str, Any] = dict(
-                name=agent_name,
-                settings=settings,
-                llm=llm,
-                params=final_model_params,
-                persona=persona,
-                prompts=agent['Prompts'],
-                storage=storage,
-            )
+            return {
+                'name': agent_name,
+                'settings': settings,
+                'llm': llm,
+                'params': final_model_params,
+                'persona': persona_data,
+                'prompts': agent.get('Prompts', {}),
+                'storage': storage,
+            }
 
-            return agent_data
         except FileNotFoundError as e:
             self.logger.log(f"Configuration or persona file not found: {e}", 'critical')
+            raise
         except KeyError as e:
             self.logger.log(f"Missing key in configuration: {e}", 'critical')
+            raise
         except Exception as e:
-            self.logger.log(f"Error loading agent data: {e}", 'critical')
+            self.logger.log(f"Unexpected error: {e}", 'critical')
+            raise
 
     @staticmethod
-    def resolve_model_overrides(agent, settings):
+    def resolve_model_overrides(agent: dict, settings: dict) -> tuple[str, str, dict]:
         """
         Resolves the model and API overrides for the agent, if any.
 
@@ -82,22 +81,21 @@ class AgentUtils:
         Returns:
             tuple: The resolved API, model, and final model parameters.
         """
-        agent_api_override = agent.get('ModelOverrides', {}).get('API', None)
-        agent_model_override = agent.get('ModelOverrides', {}).get('Model', None)
+        model_overrides = agent.get('ModelOverrides', {})
+        model_settings = settings['models']['ModelSettings']
 
-        api = agent_api_override or settings['models']['ModelSettings']['API']
-        model = agent_model_override or settings['models']['ModelSettings']['Model']
+        api = model_overrides.get('API', model_settings['API'])
+        model = model_overrides.get('Model', model_settings['Model'])
 
-        default_params = settings['models']['ModelSettings']['Params']
-        model_params = settings['models']['ModelLibrary'][api]['models'].get(model, {}).get('params', {})
+        default_params = model_settings['Params']
+        params = settings['models']['ModelLibrary'].get(api, {}).get('models', {}).get(model, {}).get('params', {})
 
-        combined_params = {**default_params, **model_params}
-        agent_params_overrides = agent.get('ModelOverrides', {}).get('Params', {})
-        final_model_params = {**combined_params, **agent_params_overrides}
+        combined_params = {**default_params, **params}
+        final_model_params = {**combined_params, **model_overrides.get('Params', {})}
 
         return api, model, final_model_params
 
-    def load_persona(self, agent, settings):
+    def load_persona(self, agent: dict, settings: dict) -> tuple[dict | None, str]:
         """
         Loads the persona for the agent, if personas are enabled.
 
@@ -108,24 +106,23 @@ class AgentUtils:
         Returns:
             tuple: The loaded persona and the persona file name.
         """
-        persona = None
-        persona_file = None
-        persona_enabled = settings['system'].get('EnablePersonas', None)
+        persona_file = 'default'
+        persona_data = None
 
-        if persona_enabled:
-            agent_persona_override = agent.get('Persona', None)
-            persona_file = agent_persona_override or settings['system'].get('Persona')
+        if not settings['system'].get('PersonasEnabled', False):
+            return persona_data, persona_file
 
-            if persona_file is not None:
-                if persona_file not in self.config.data['personas']:
-                    self.logger.log(f"Selected Persona '{persona_file}' not found. Please make sure the "
-                                    f"corresponding persona file is in the personas folder", 'critical')
+        persona_file = agent.get('Persona') or settings['system'].get('Persona', 'default')
 
-                persona = self.config.data['personas'].get(persona_file)
+        if persona_file not in self.config.data['personas']:
+            self.logger.log(f"Selected Persona '{persona_file}' not found. Please make sure the "
+                            f"corresponding persona file is in the personas folder", 'error')
+            return None, persona_file
 
-        return persona, persona_file
+        persona_data = self.config.data['personas'][persona_file]
+        return persona_data, persona_file
 
-    def resolve_storage(self, settings, persona_file):
+    def resolve_storage(self, settings: dict, persona_file: str):
         """
         Initializes the storage for the agent, if storage is enabled.
 
@@ -134,56 +131,9 @@ class AgentUtils:
             persona_file (str): The persona file name.
 
         Returns:
-            The initialized storage utility.
+            The initialized storage utility, or None if storage is not enabled.
         """
-        storage = settings['system'].get('StorageEnabled', None)
-        if storage:
-            storage = self.storage_interface.get_storage(persona_file)
-        return storage
+        if not settings['system'].get('StorageEnabled'):
+            return None
 
-    def parse_yaml_string(self, yaml_string):
-        """
-        Parses a YAML-formatted string into a Python dictionary.
-
-        Parameters:
-            yaml_string (str): The YAML string to parse.
-
-        Returns:
-            Dict[str, Any]: The parsed YAML content as a dictionary.
-
-        Raises:
-            yaml.YAMLError: If an error occurs during YAML parsing.
-        """
-        try:
-            cleaned_string = self.extract_yaml_block(yaml_string)
-            return yaml.safe_load(cleaned_string)
-        except yaml.YAMLError as e:
-            self.logger.log(f"Error decoding YAML string: {e}", 'critical')
-
-    def extract_yaml_block(self, text):
-        """
-        Extracts a YAML block from a string, typically used to parse YAML content from larger text blocks or files.
-
-        Parameters:
-            text (str): The text containing the YAML block.
-
-        Returns:
-            str: The extracted YAML block as a string, or None if no block is found.
-
-        Raises:
-            Exception: For unexpected errors during the extraction process.
-        """
-        try:
-            # Regex pattern to capture content between ```yaml and ```
-            pattern = r"```yaml(.*?)```"
-            match = re.search(pattern, text, re.DOTALL)
-
-            if match:
-                # Return the extracted content
-                return match.group(1).strip()
-            else:
-                # Return None or an empty string if no match is found
-                return None
-        except Exception as e:
-            # Handle unexpected errors during regex operation
-            self.logger.log(f"Error extracting YAML block: {e}", 'critical')
+        return self.storage_interface.get_storage(persona_file)
