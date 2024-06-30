@@ -157,16 +157,10 @@ class Agent:
 
     def save_result(self, **kwargs):
         """
-        Saves the result of the language model generation into a specified storage.
+        Placeholder for result saving. Meant to be overridden by custom agents to implement specific result saving
+        logic.
         """
-        if self.agent_data['storage']:
-            try:
-                self.agent_data['storage'].save_memory(collection_name='Results', data=[self.result])
-            except Exception as e:
-                self.logger.log(f"Error saving result: {e}", 'error')
-        else:
-            self.logger.log(f"Storage is turned off - "
-                            f"To turn on go to the storage.yaml file in the settings folder!", 'debug')
+        pass
 
     def build_output(self, **kwargs):
         """
