@@ -17,10 +17,10 @@ Logging:
   Folder: ./Logs
   Files:
     AgentForge: error
-    ModelIO: debug
+    ModelIO: error
     Results: error
-    Trinity: debug
-    DiscordClient: debug
+    Trinity: error
+    DiscordClient: error
 
 # Paths the system (agents) have access to read and write
 Paths:
