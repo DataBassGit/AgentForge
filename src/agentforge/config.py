@@ -1,8 +1,41 @@
 import importlib
-import yaml
 import os
+import yaml
 import pathlib
 import sys
+
+
+def load_yaml_file(file_path: str):
+    """
+    Reads and parses a YAML file, returning its contents as a Python dictionary.
+
+    This function attempts to safely load the contents of a YAML file specified by
+    the file path. If the file cannot be found or there's an error decoding the YAML,
+    it handles the exceptions gracefully.
+
+    Parameters:
+        file_path (str): The path to the YAML file to be read.
+
+    Returns:
+        dict: The contents of the YAML file as a dictionary. If the file is not found
+        or an error occurs during parsing, an empty dictionary is returned.
+
+    Notes:
+        - The function uses `yaml.safe_load` to prevent execution of arbitrary code
+          that might be present in the YAML file.
+        - Exceptions for file not found and YAML parsing errors are caught and logged,
+          with an empty dictionary returned to allow the calling code to continue
+          execution without interruption.
+    """
+    try:
+        with open(file_path, 'r') as yaml_file:
+            return yaml.safe_load(yaml_file)
+    except FileNotFoundError:
+        print(f"File {file_path} not found.")
+        return {}
+    except yaml.YAMLError:
+        print(f"Error decoding YAML from {file_path}")
+        return {}
 
 
 class Config:
@@ -119,7 +152,7 @@ class Config:
                     nested_dict = self.get_nested_dict(self.data, relative_path.parts)
 
                     file_path = str(subdir_path / file)
-                    data = get_yaml_data(file_path)
+                    data = load_yaml_file(file_path)
                     if data:
                         filename_without_ext = os.path.splitext(file)[0]
                         nested_dict[filename_without_ext] = data
@@ -200,7 +233,7 @@ class Config:
         try:
             path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
             if path_to_file:
-                self.data['agent'] = get_yaml_data(str(path_to_file))  # Fix warning
+                self.data['agent'] = load_yaml_file(str(path_to_file))  # Fix warning
             else:
                 raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
         except Exception as e:
@@ -213,37 +246,4 @@ class Config:
         if self.data['settings']['system']['OnTheFly']:
             self.load_all_configurations()
 
-# -------------------------- FUNCTIONS --------------------------
 
-
-def get_yaml_data(file_path: str):
-    """
-    Reads and parses a YAML file, returning its contents as a Python dictionary.
-
-    This function attempts to safely load the contents of a YAML file specified by
-    the file path. If the file cannot be found or there's an error decoding the YAML,
-    it handles the exceptions gracefully.
-
-    Parameters:
-        file_path (str): The path to the YAML file to be read.
-
-    Returns:
-        dict: The contents of the YAML file as a dictionary. If the file is not found
-        or an error occurs during parsing, an empty dictionary is returned.
-
-    Notes:
-        - The function uses `yaml.safe_load` to prevent execution of arbitrary code
-          that might be present in the YAML file.
-        - Exceptions for file not found and YAML parsing errors are caught and logged,
-          with an empty dictionary returned to allow the calling code to continue
-          execution without interruption.
-    """
-    try:
-        with open(file_path, 'r') as yaml_file:
-            return yaml.safe_load(yaml_file)
-    except FileNotFoundError:
-        print(f"File {file_path} not found.")
-        return {}
-    except yaml.YAMLError:
-        print(f"Error decoding YAML from {file_path}")
-        return {}

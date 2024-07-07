@@ -44,7 +44,7 @@ class Agent:
             self.generate_prompt()
             self.run_llm()
             self.parse_result()
-            self.save_result()
+            self.save_to_storage()
             self.build_output()
             self.data = {}
             self.logger.log(f"\n{self.agent_name} - Done!", 'info')
@@ -65,6 +65,7 @@ class Agent:
         self.load_kwargs(**kwargs)
         self.load_agent_data()
         self.load_persona_data()
+        self.load_from_storage()
         self.load_additional_data()
 
     def load_kwargs(self, **kwargs):
@@ -94,12 +95,6 @@ class Agent:
         except Exception as e:
             self.logger.log(f"Error loading agent data: {e}", 'error')
 
-    def load_additional_data(self, **kwargs):
-        """
-        Placeholder for loading additional data. Meant to be overridden by custom agents as needed.
-        """
-        pass
-
     def load_persona_data(self):
         """
         Loads the persona data for the agent if available.
@@ -108,6 +103,21 @@ class Agent:
         if persona:
             for key in persona:
                 self.data[key.lower()] = persona[key]
+
+    def load_from_storage(self):
+        """
+        Placeholder for loading from storage. Meant to be overridden by custom agents to implement specific loading
+        from storage logic.
+
+        Note: The storage instance for an Agent is set at self.agent_data['storage']
+        """
+        pass
+
+    def load_additional_data(self, **kwargs):
+        """
+        Placeholder for loading additional data. Meant to be overridden by custom agents as needed.
+        """
+        pass
 
     def process_data(self, **kwargs):
         """
@@ -153,10 +163,10 @@ class Agent:
         """
         pass
 
-    def save_result(self, **kwargs):
+    def save_to_storage(self, **kwargs):
         """
-        Placeholder for result saving. Meant to be overridden by custom agents to implement specific result saving
-        logic.
+        Placeholder for saving results to storage. Meant to be overridden by custom agents to implement specific
+        saving to storage logic.
 
         Note: The storage instance for an Agent is set at self.agent_data['storage']
         """

@@ -17,6 +17,119 @@ logger = Logger(name="Chroma Utils")
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
+def validate_inputs(collection_name: str, data: Union[list, str], ids: list, metadata: list[dict]):
+    """
+    Validates the inputs for the save_memory method.
+
+    Parameters:
+        collection_name (str): The name of the collection.
+        data (Union[list, str]): The documents to be saved.
+        ids (list): The IDs for the documents.
+        metadata (list[dict]): The metadata for the documents.
+
+    Raises:
+        ValueError: If any of the inputs are invalid.
+    """
+    if not collection_name:
+        raise ValueError("Collection name cannot be empty.")
+
+    if not data:
+        raise ValueError("Data cannot be empty.")
+
+    if not (len(data) == len(ids) == len(metadata)):
+        raise ValueError("The length of data, ids, and metadata lists must match.")
+
+
+def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[dict] = None):
+    """
+    Generates default values for ids and metadata if they are not provided.
+
+    Parameters:
+        data (Union[list, str]): The documents to be saved.
+        ids (list, optional): The IDs for the documents.
+        metadata (list[dict], optional): The metadata for the documents.
+
+    Returns:
+        tuple: A tuple containing the generated ids and metadata.
+    """
+    if isinstance(data, str):
+        data = [data]
+
+    ids = [str(uuid.uuid4()) for _ in data] if ids is None else ids
+    metadata = [{} for _ in data] if metadata is None else metadata
+
+    return ids, metadata
+
+
+def apply_timestamps(metadata: list[dict], config):
+    """
+    Applies timestamps to the metadata if required by the configuration.
+
+    Parameters:
+        metadata (list[dict]): The metadata for the documents.
+        config (dict): The configuration dictionary.
+    """
+    do_time_stamp = config['settings']['system'].get('ISOTimeStampMemory')
+    if do_time_stamp:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        for m in metadata:
+            m['isotimestamp'] = timestamp
+
+    do_time_stamp = config['settings']['system'].get('UnixTimeStampMemory')
+    if do_time_stamp:
+        timestamp = datetime.now().timestamp()
+        for m in metadata:
+            m['unixtimestamp'] = timestamp
+
+
+def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
+    """
+    Saves the data to the collection.
+
+    Parameters:
+        collection: The collection object.
+        data (list): The documents to be saved.
+        ids (list): The IDs for the documents.
+        metadata (list[dict]): The metadata for the documents.
+    """
+    collection.upsert(
+        documents=data,
+        metadatas=metadata,
+        ids=ids
+    )
+
+
+def format_metadata(metadata_list):
+    """
+    Formats metadata to ensure values are strings, converting lists into comma-separated strings.
+
+    Parameters:
+        metadata_list (list): A list of dictionaries, each representing metadata.
+
+    Returns:
+        list: The formatted metadata list.
+    """
+    # Check if the input is a list
+    if not isinstance(metadata_list, list):
+        raise TypeError("Expected a list of dictionaries")
+
+    # Iterate through each dictionary in the list
+    for metadata in metadata_list:
+        # Ensure each item in the list is a dictionary
+        if not isinstance(metadata, dict):
+            raise TypeError("Each item in the list should be a dictionary")
+
+        # Format each dictionary
+        for key, value in metadata.items():
+            # Check if the value is a list (array)
+            if isinstance(value, list):
+                # Convert list elements into a comma-separated string
+                # Update the dictionary with the formatted string
+                metadata[key] = ', '.join(map(str, value))
+
+    return metadata_list
+
+
 class ChromaUtils:
     """
     A utility class for managing interactions with ChromaDB, offering a range of functionalities including
@@ -263,43 +376,20 @@ class ChromaUtils:
                   "system.yaml file.\n")
             return
 
-        if not collection_name:
-            raise ValueError("Collection name cannot be empty.")
-
-        if not data:
-            raise ValueError("Data cannot be empty.")
-
-        # Convert to list if value comes as string
-        if isinstance(data, str):
-            data = [data]
-
-        # Default ids and metadata if None
-        ids = [str(uuid.uuid4()) for _ in data] if ids is None else ids
-        metadata = [{} for _ in data] if metadata is None else metadata
-
-        # Validate that data, metadata, and ids have the same length
-        if not (len(data) == len(ids) == len(metadata)):
-            raise ValueError("The length of data, ids, and metadata lists must match.")
-
         try:
-            do_time_stamp = self.config.data['settings']['system'].get('ISOTimeStampMemory')
-            if do_time_stamp is True:
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                for m in metadata:
-                    m['isotimestamp'] = timestamp
+            data = [data] if isinstance(data, str) else data
 
-            do_time_stamp = self.config.data['settings']['system'].get('UnixTimeStampMemory')
-            if do_time_stamp is True:
-                timestamp = datetime.now().timestamp()
-                for m in metadata:
-                    m['unixtimestamp'] = timestamp
+            ids, metadata = generate_defaults(data, ids, metadata)
+
+            validate_inputs(collection_name, data, ids, metadata)
+
+            metadata = format_metadata(metadata)
+
+            apply_timestamps(metadata, self.config.data)
 
             self.select_collection(collection_name)
-            self.collection.upsert(
-                documents=data,
-                metadatas=metadata,
-                ids=ids
-            )
+
+            save_to_collection(self.collection, data, ids, metadata)
 
         except Exception as e:
             raise ValueError(f"Error saving results. Error: {e}\n\nData:\n{data}")

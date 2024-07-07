@@ -44,7 +44,7 @@ class ParsingUtils:
             self.logger.log(f"Regex Error Extracting YAML Block: {e}", 'error')
             return None
 
-    def parse_yaml_string(self, yaml_string: str) -> Optional[Dict[str, Any]]:
+    def parse_yaml_content(self, yaml_string: str) -> Optional[Dict[str, Any]]:
         """
         Parses a YAML-formatted string into a Python dictionary.
 
