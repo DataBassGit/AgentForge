@@ -439,7 +439,7 @@ class ChromaUtils:
 
         self.client.reset()
 
-    def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.7,
+    def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.8,
                                     num_results: int = 1):
         """
         Searches the storage for documents that meet a specified similarity threshold to a query.
@@ -461,16 +461,19 @@ class ChromaUtils:
             query_emb = self.return_embedding(query)
 
             results = self.query_memory(collection_name=collection_name, embeddings=query_emb,
-                                        include=["embeddings", "documents", "metadatas", "distances"],
+                                        include=["documents", "metadatas", "distances"],
                                         num_results=num_results)
 
             # We compare against the first result's embedding and `distance.cosine` returns
             # a similarity measure. May need to adjust the logic based on the actual behavior
             # of `distance.cosine`.
-            if results and 'embeddings' in results and results['embeddings']:
-                dist = distance.cosine(query_emb[0], results['embeddings'][0])
-                if dist < threshold:
-                    return results
+            if results:
+                filtered_data = {
+                    key: [value for value, dist in zip(results[key], results['distances']) if dist < threshold]
+                    for key in results
+                }
+                if filtered_data:
+                    return filtered_data
                 else:
                     logger.log('Search by Threshold: No documents found that meet the threshold.', 'info')
             else:
