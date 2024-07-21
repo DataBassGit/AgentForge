@@ -396,7 +396,7 @@ class ChromaUtils:
 
     def query_memory(self, collection_name: str, query: Optional[Union[str, list]] = None,
                      filter_condition: Optional[dict] = None, include: Optional[list] = None,
-                     embeddings: Optional[list] = None, num_results: int = 1):
+                     embeddings: Optional[list] = None, num_results: int = 0):
         """
         Queries memory for documents matching a query within a specified collection.
 
@@ -409,7 +409,7 @@ class ChromaUtils:
                 (e.g., ["documents", "metadatas", "distances"]). Defaults to all elements if `None`.
             embeddings (Optional[list]): Query embeddings used if `query` is `None`.
                 Must be provided if `query` is not specified.
-            num_results (int): The maximum number of results to return. Default is 1.
+            num_results (int): The maximum number of results to return. Default is 0 (no limit).
 
         Returns:
             dict or None: The query results, or None if an error occurs.
@@ -419,9 +419,13 @@ class ChromaUtils:
                 raise ValueError("Collection name cannot be empty.")
 
             self.select_collection(collection_name)
-
             max_result_count = self.collection.count()
-            num_results = min(num_results, max_result_count)
+
+            # Set num_results to max_result_count if it is 0, indicating no limit.
+            if num_results == 0:
+                num_results = max_result_count
+            else:
+                num_results = min(num_results, max_result_count)
 
             if num_results <= 0:
                 logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
@@ -468,41 +472,44 @@ class ChromaUtils:
 
         self.client.reset()
 
-    def search_storage_by_threshold(self, collection_name: str, query_text: str, threshold: float = 0.7,
-                                    num_results: int = 1):
+    def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.7,
+                                    num_results: int = 0):
         """
         Searches the storage for documents that meet a specified similarity threshold to a query.
 
         Parameters:
             collection_name (str): The name of the collection to search within.
-            query_text (str): The text of the query to compare against the documents in the collection.
-            num_results (int): The maximum number of results to return. Defaults to 1.
+            query (str): The text of the query to compare against the documents in the collection.
+            num_results (int): The maximum number of results to return. Default is 0 (no limit).
             threshold (float): The similarity threshold that the documents must meet or exceed. Defaults to 0.7.
 
         Returns:
-            dict: A dictionary containing the search results if successful; otherwise, returns a dictionary
-                  indicating failure if no documents meet the threshold.
+            dict: A dictionary containing the search results if successful; otherwise, returns an empty
+             dictionary if no documents are found or meet the threshold.
 
         Raises:
             Exception: Logs an error message if an exception occurs during the search process.
         """
         try:
-            query_emb = self.return_embedding(query_text)
+            query_emb = self.return_embedding(query)
 
             results = self.query_memory(collection_name=collection_name, embeddings=query_emb,
                                         include=["embeddings", "documents", "metadatas", "distances"],
                                         num_results=num_results)
 
-            # We compare against the first result's embedding and `distance.cosine` returns a similarity measure.
-            # May need to adjust the logic based on the actual behavior of `distance.cosine`.
+            # We compare against the first result's embedding and `distance.cosine` returns
+            # a similarity measure. May need to adjust the logic based on the actual behavior
+            # of `distance.cosine`.
             if results and 'embeddings' in results and results['embeddings']:
-                dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
+                dist = distance.cosine(query_emb[0], results['embeddings'][0])
                 if dist < threshold:
                     return results
                 else:
-                    return {'failed': 'No documents found that meet the threshold.'}
+                    logger.log('Search by Threshold: No documents found that meet the threshold.', 'info')
             else:
-                return {'failed': 'No documents found.'}
+                logger.log('Search by Threshold: No documents found.', 'info')
+
+            return {}
 
         except Exception as e:
             logger.log(f"Error searching storage by threshold: {e}", 'error')

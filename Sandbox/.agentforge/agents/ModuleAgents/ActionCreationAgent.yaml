@@ -1,0 +1,47 @@
+Prompts:
+  System: |+
+    Your task is to create an action YAML file that will help achieve the following objective using the tools available in your environment:
+
+    Objective: 
+    {objective}
+
+  Context: |+
+    Use the following context to enhance your understanding of the objective: 
+    {context}
+
+  Tools: |+
+    You have access to the following tools, each with specific commands and arguments. Use these tools to create actions that accomplish the given objective. Below is a description of how to interpret the tools:
+    
+    - **Name**: The name of the tool.
+    - **Description**: A detailed explanation of what the tool does.
+    - **Example**: An example of how to use the tool in a script.
+    - **Instruction**: Detailed instructions on how to use the tool, including optional parameters and any specific behavior.
+    - **Script**: The script or module that implements the tool.
+    
+    Here are the tools available for creating actions:
+    ```
+    {tool_list}
+    ```
+
+  Instruction: |+
+    Review the objective and context provided, and create a suitable action YAML file that outlines a specific action to achieve the given objective. The action should leverage the tools listed above and should be structured to be executed by another LLM process using scripts and API tools.
+
+    Ensure that the action is specific, actionable, and detailed. Consider what the user aims to accomplish and create an action that directly addresses this goal.
+
+    The response should be formatted strictly as a YAML file, following the structure provided below. Make sure to include the action's name, description, example usage, detailed instructions, and the list of tools required for the action.
+
+  Response: |-
+    RESPONSE FORMAT:
+    ```yaml
+    Name: <action name>
+    Description: |-
+      <detailed description of what the action does, ensuring it uses specific tools to achieve the objective>
+    Example: |-
+      <an example code or usage of the action, showing how it uses the tools to achieve the objective>
+    Instruction: |-
+      <step-by-step instructions on how to perform the action using the tools>
+    Tools:
+      - <tool 1>
+      - <tool 2>
+      # Add more tools as required
+    ```
