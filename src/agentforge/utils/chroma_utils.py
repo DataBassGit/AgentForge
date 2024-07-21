@@ -99,37 +99,6 @@ def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
     )
 
 
-def format_metadata(metadata_list):
-    """
-    Formats metadata to ensure values are strings, converting lists into comma-separated strings.
-
-    Parameters:
-        metadata_list (list): A list of dictionaries, each representing metadata.
-
-    Returns:
-        list: The formatted metadata list.
-    """
-    # Check if the input is a list
-    if not isinstance(metadata_list, list):
-        raise TypeError("Expected a list of dictionaries")
-
-    # Iterate through each dictionary in the list
-    for metadata in metadata_list:
-        # Ensure each item in the list is a dictionary
-        if not isinstance(metadata, dict):
-            raise TypeError("Each item in the list should be a dictionary")
-
-        # Format each dictionary
-        for key, value in metadata.items():
-            # Check if the value is a list (array)
-            if isinstance(value, list):
-                # Convert list elements into a comma-separated string
-                # Update the dictionary with the formatted string
-                metadata[key] = ', '.join(map(str, value))
-
-    return metadata_list
-
-
 class ChromaUtils:
     """
     A utility class for managing interactions with ChromaDB, offering a range of functionalities including
@@ -383,8 +352,6 @@ class ChromaUtils:
 
             validate_inputs(collection_name, data, ids, metadata)
 
-            metadata = format_metadata(metadata)
-
             apply_timestamps(metadata, self.config.data)
 
             self.select_collection(collection_name)
@@ -396,7 +363,7 @@ class ChromaUtils:
 
     def query_memory(self, collection_name: str, query: Optional[Union[str, list]] = None,
                      filter_condition: Optional[dict] = None, include: Optional[list] = None,
-                     embeddings: Optional[list] = None, num_results: int = 0):
+                     embeddings: Optional[list] = None, num_results: int = 1):
         """
         Queries memory for documents matching a query within a specified collection.
 
@@ -409,7 +376,7 @@ class ChromaUtils:
                 (e.g., ["documents", "metadatas", "distances"]). Defaults to all elements if `None`.
             embeddings (Optional[list]): Query embeddings used if `query` is `None`.
                 Must be provided if `query` is not specified.
-            num_results (int): The maximum number of results to return. Default is 0 (no limit).
+            num_results (int): The maximum number of results to return. Default is 1.
 
         Returns:
             dict or None: The query results, or None if an error occurs.
@@ -473,14 +440,14 @@ class ChromaUtils:
         self.client.reset()
 
     def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.7,
-                                    num_results: int = 0):
+                                    num_results: int = 1):
         """
         Searches the storage for documents that meet a specified similarity threshold to a query.
 
         Parameters:
             collection_name (str): The name of the collection to search within.
             query (str): The text of the query to compare against the documents in the collection.
-            num_results (int): The maximum number of results to return. Default is 0 (no limit).
+            num_results (int): The maximum number of results to return. Default is 1.
             threshold (float): The similarity threshold that the documents must meet or exceed. Defaults to 0.7.
 
         Returns:

@@ -52,6 +52,7 @@ class Action:
         ids = id_generator(data)
         description = [value['Description'] for key, value in data.items()]
         metadata = [value for key, value in data.items()]
+        metadata = self.functions.parsing_utils.format_metadata(metadata)
 
         # print(f'\nData:\n{description}')
         # print(f'\nMeta:\n{metadata}\n')
