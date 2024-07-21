@@ -1,11 +1,28 @@
 Name: Intelligent Chunk
 Args:
   - text (str)
-  - chunk_size (int=0-3)
+  - chunk_size (int)
 Command: intelligent_chunk
 Description: |-
-  The 'Intelligent Chunk' tool splits a provided text into smaller, manageable parts or 'chunks'. The user decides the size of these chunks based on their needs.
-Example: chunks = intelligent_chunk(text, chunk_size)
+  The 'Intelligent Chunk' tool splits a provided text into smaller, manageable parts or 'chunks'. 
+  This tool is useful for processing large text by breaking it down into smaller sections. 
+  The user decides the size of these chunks based on their needs, with different chunk sizes corresponding to different numbers of sentences.
+Example: |-
+  # Example usage of the Intelligent Chunk tool:
+  text = "Your long text goes here..."
+  chunk_size = 1
+  chunks = intelligent_chunk(text, chunk_size)
+  for i, chunk in enumerate(chunks):
+      print(f"Chunk {i+1}: {chunk}")
 Instruction: |-
-  The 'intelligent_chunk' method takes a string of text and a chunk size as inputs. The chunk size is an integer that determines the number of sentences per chunk: 0 for 5 sentences, 1 for 13 sentences, 2 for 34 sentences, and 3 for 55 sentences. The function returns a list of text chunks, each containing a specified number of sentences.
+  To use the 'Intelligent Chunk' tool, follow these steps:
+  1. Call the `intelligent_chunk` function with the following arguments:
+     - `text`: A string representing the text you want to split into chunks.
+     - `chunk_size`: An integer that determines the number of sentences per chunk:
+       - 0 for chunks of approximately 5 sentences
+       - 1 for chunks of approximately 13 sentences
+       - 2 for chunks of approximately 34 sentences
+       - 3 for chunks of approximately 55 sentences
+  2. The function will return a list of text chunks, each containing the specified number of sentences.
+  3. Utilize the returned list of text chunks as needed for your application.
 Script: .agentforge.tools.IntelligentChunk

@@ -1,9 +1,19 @@
 Name: Read File
-Args: file_path (str)
+Args:
+  - file_path (str)
 Command: read_file
 Description: |-
-  The 'Read File' tool reads the content of a specified file and returns its text. Provide the full path to the file you want to read.
-Example: file_content = read_file(file_path)
+  The 'Read File' tool reads the content of a specified file and returns its text. 
+  Provide the full path to the file you want to read. This tool is useful for retrieving the contents of text files, logs, configurations, and other readable documents.
+Example: |-
+  # Example usage of the Read File tool:
+  file_path = "/path/to/your/file.txt"
+  file_content = read_file(file_path)
+  print(file_content)
 Instruction: |-
-  The 'read_file' method requires a file_path as input, which represents the path to the file you want to read. It returns the textual content of that file as a string.
+  To use the 'Read File' tool, follow these steps:
+  1. Call the `read_file` function with the following argument:
+     - `file_path`: A string representing the full path to the file you want to read.
+  2. The function will return the textual content of the specified file as a string.
+  3. Utilize the returned text as needed for your application.
 Script: .agentforge.tools.ReadFile

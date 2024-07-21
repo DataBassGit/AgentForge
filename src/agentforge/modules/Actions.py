@@ -10,11 +10,11 @@ def id_generator(data):
 
 
 def format_tool_list(tool_list, keys_to_include):
-    formatted_string = ""
+    formatted_string = "---\n"
     for tool in tool_list:
-        for key, value in tool.items():
-            if key in keys_to_include:
-                formatted_string += f"{key}: {value}\n"
+        for key in keys_to_include:
+            if key in tool:
+                formatted_string += f"{key}: {tool[key]}\n"
         formatted_string += "---\n"
     return formatted_string
 
@@ -27,7 +27,7 @@ class Action:
     This class orchestrates the flow from loading action-specific tools, executing these tools, to injecting the
     processed data into the knowledge graph.
     """
-    tool_info_to_include = ["Name", "Description", "Description"]
+    tool_info_to_include = ["Name",  "Description", "Command", "Args", "Instruction", "Example"]
 
     def __init__(self):
         """

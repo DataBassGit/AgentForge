@@ -2,16 +2,16 @@
 ModelSettings:
 #  API: gemini_api
 #  Model: gemini-flash
-#  API: openai_api
-#  Model: omni_model
+  API: openai_api
+  Model: omni_model
 #  API: claude3_api
 #  Model: claude-3
 #  API: oobabooga_api
 #  Model: oobabooga
 #  API: ollama_api
 #  Model: DolphinMistral
-  API: lm_studio_api
-  Model: LMStudio
+#  API: lm_studio_api
+#  Model: LMStudio
   Params:
     max_new_tokens: 3000
     temperature: 0.5

@@ -26,13 +26,23 @@ Args:
   - query (str)
   - number_result (int)
 Command: google_search
-Description: >-
-  The 'Google Search' tool searches the web for a specified query and retrieves a set number of results.
-  Each result consists of a URL and a short snippet describing its contents.
-Example: search_results = google_search('OpenAI', 5)
-Instruction: >-
-  The 'google_search' function takes a 'query' string and a 'number_result' integer as inputs.
-  It performs a web search and returns a list of results, with each result being a tuple containing a URL and a snippet.
+Description: |-
+  The 'Google Search' tool performs an internet search for a specified query and retrieves a specified number of results. 
+  Each result includes a URL and a brief snippet summarizing the content of the page.
+Example: |-
+  # Example usage of the Google Search tool:
+  search_results = google_search(query='OpenAI', number_result=5)
+  for result in search_results:
+      print(f"URL: {result[0]}, Snippet: {result[1]}")
+Instruction: |-
+  To use the 'Google Search' tool, follow these steps:
+  1. Call the `google_search` function with two arguments:
+     - `query`: A string representing the search query.
+     - `number_result`: An integer specifying the number of search results to retrieve.
+  2. The function will return a list of tuples, where each tuple contains:
+     - A URL (string) of the search result.
+     - A snippet (string) summarizing the content of the result.
+  3. Utilize the returned list of results as needed for your application.
 Script: .agentforge.tools.GoogleSearch
 ```
 
