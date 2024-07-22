@@ -1,10 +1,10 @@
 import os
 import uuid
-from pathlib import Path
+# from pathlib import Path
 from datetime import datetime
 from typing import Optional, Union
 
-from scipy.spatial import distance
+# from scipy.spatial import distance
 
 import chromadb
 from chromadb.config import Settings
@@ -467,6 +467,7 @@ class ChromaUtils:
             # We compare against the first result's embedding and `distance.cosine` returns
             # a similarity measure. May need to adjust the logic based on the actual behavior
             # of `distance.cosine`.
+            # dist = distance.cosine(query_emb[0], results['embeddings'][0])
             if results:
                 filtered_data = {
                     key: [value for value, dist in zip(results[key], results['distances']) if dist < threshold]
