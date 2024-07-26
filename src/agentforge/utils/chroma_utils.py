@@ -448,7 +448,7 @@ class ChromaUtils:
             collection_name (str): The name of the collection to search within.
             query (str): The text of the query to compare against the documents in the collection.
             num_results (int): The maximum number of results to return. Default is 1.
-            threshold (float): The similarity threshold that the documents must meet or exceed. Defaults to 0.7.
+            threshold (float): The similarity threshold that the documents must meet or exceed. Defaults to 0.8.
 
         Returns:
             dict: A dictionary containing the search results if successful; otherwise, returns an empty
@@ -473,7 +473,7 @@ class ChromaUtils:
                     key: [value for value, dist in zip(results[key], results['distances']) if dist < threshold]
                     for key in results
                 }
-                if filtered_data:
+                if filtered_data['documents']:
                     return filtered_data
                 else:
                     logger.log('Search by Threshold: No documents found that meet the threshold.', 'info')
