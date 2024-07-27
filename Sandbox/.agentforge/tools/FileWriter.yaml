@@ -24,4 +24,4 @@ Instruction: |-
        - 'a' for append (default)
        - 'w' for overwrite
   2. The function will ensure the target folder exists, write the provided text to the specified file, and return a message indicating the result.
-Script: .agentforge.tools.WriteFile
+Script: agentforge.tools.WriteFile

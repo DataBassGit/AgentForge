@@ -18,4 +18,4 @@ Instruction: |-
   2. The function will return the textual content of the specified webpage as a string.
   3. Ensure that the URL provided is valid and accessible.
   4. Utilize the returned text as needed for your application, whether for data analysis, processing, or other purposes.
-Script: .agentforge.tools.WebScrape
+Script: agentforge.tools.WebScrape

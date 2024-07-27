@@ -20,4 +20,4 @@ Instruction: |-
      - A URL (string) of the search result.
      - A snippet (string) summarizing the content of the result.
   3. Utilize the returned list of results as needed for your application.
-Script: .agentforge.tools.GoogleSearch
+Script: agentforge.tools.GoogleSearch

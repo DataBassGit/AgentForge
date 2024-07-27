@@ -16,4 +16,4 @@ Instruction: |-
      - `file_path`: A string representing the full path to the file you want to read.
   2. The function will return the textual content of the specified file as a string.
   3. Utilize the returned text as needed for your application.
-Script: .agentforge.tools.ReadFile
+Script: agentforge.tools.ReadFile

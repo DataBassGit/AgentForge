@@ -1,5 +1,4 @@
 import spacy
-# from ..utils.storage_interface import StorageInterface
 
 
 def intelligent_chunk(text, chunk_size):

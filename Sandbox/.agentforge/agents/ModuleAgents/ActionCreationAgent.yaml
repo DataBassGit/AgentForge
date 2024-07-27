@@ -14,10 +14,7 @@ Prompts:
 
     - **Name**: The name of the tool.
     - **Description**: A detailed explanation of what the tool does.
-    - **Command**: The command to execute the tool.
     - **Args**: The arguments required for the tool, including their data types.
-    - **Instruction**: Detailed instructions on how to use the tool, including optional parameters and any specific behavior.
-    - **Example**: An example of how to use the tool in a script.
 
     Here are the tools available for creating actions:
     
@@ -86,21 +83,21 @@ Prompts:
 
     1. **Action Name**: Provide a clear and descriptive name for the action.
     2. **Description**: Write a detailed description of what the action does, specifying how it uses the listed tools to achieve the objective.
-    3. **Example**: Include an example code snippet or usage scenario demonstrating how the action can be executed.
+    3. **Example**: Include an example code snippet or usage scenario demonstrating how the action can be executed. Do not use any code blocks within the YAML format.
     4. **Instruction**: Outline step-by-step instructions on how to perform the action using the tools.
     5. **Tools**: List the tools used in the action, ensuring they are selected strictly from the provided tool list.
 
-    The response should be formatted strictly as a YAML file, following the structure provided below.
+    The response should be formatted strictly as a YAML file, following the structure provided below. Do not include any code blocks within the YAML format.
 
   Response: |+
     **Response Format:**
     ```yaml
     Name: <action name>
-    Description: |-
+    Description: |+
       <detailed description of what the action does, ensuring it uses specific tools to achieve the objective>
-    Example: |-
+    Example: |+
       <an example code or usage of the action, showing how it uses the tools to achieve the objective>
-    Instruction: |-
+    Instruction: |+
       <step-by-step instructions on how to perform the action using the tools>
     Tools:
       - <tool name 1>

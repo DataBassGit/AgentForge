@@ -30,4 +30,4 @@ Instruction: |-
   3. If a specified path does not exist, the tool will create the directory.
   4. The tool includes error handling for permissions and file not found errors.
   5. Utilize the returned directory structure string as needed for your application.
-Script: .agentforge.tools.Directory
+Script: agentforge.tools.Directory

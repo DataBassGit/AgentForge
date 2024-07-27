@@ -46,7 +46,7 @@ class LMStudio:
         """
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
         prompt = parse_prompts(model_prompt)
-        self.logger.log_prompt(f'{model_prompt[0]}\n{prompt}')
+        self.logger.log_prompt(f'System:\n{model_prompt[0]}\n\nUser:\n{prompt}')
 
         headers = {'Content-Type': 'application/json'}
         data = {

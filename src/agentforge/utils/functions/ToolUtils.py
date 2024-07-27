@@ -17,13 +17,13 @@ class ToolUtils:
         """
         self.logger = Logger(name=self.__class__.__name__)
 
-    def dynamic_tool(self, tool_module, payload):
+    def dynamic_tool(self, tool, payload):
         """
         Dynamically loads a tool module and executes a specified command within it, using arguments provided in the
         payload.
 
         Parameters:
-            tool_module (str): The module path of the tool to be dynamically imported.
+            tool (dict): The tool to be dynamically imported.
             payload (dict): A dictionary containing the 'command' to be executed and 'args' for the command.
 
         Returns:
@@ -36,8 +36,10 @@ class ToolUtils:
             Exception: For general errors encountered during command execution.
         """
         # Extract the actual class name from the tool_class path
+
+        tool_module = tool.get('Script')
         tool_class = tool_module.split('.')[-1]
-        command = payload['command']
+        command = tool.get('Command')
         args = payload['args']
 
         self.logger.log_info(f"\nRunning {tool_class} ...")

@@ -272,7 +272,7 @@ class ChromaUtils:
             self.select_collection(collection_name)
 
             max_result_count = self.collection.count()
-            num_results = min(1, max_result_count)
+            num_results = min(10, max_result_count)
 
             if num_results > 0:
                 result = self.collection.peek()

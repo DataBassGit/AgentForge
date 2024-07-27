@@ -25,4 +25,4 @@ Instruction: |-
        - 3 for chunks of approximately 55 sentences
   2. The function will return a list of text chunks, each containing the specified number of sentences.
   3. Utilize the returned list of text chunks as needed for your application.
-Script: .agentforge.tools.IntelligentChunk
+Script: agentforge.tools.IntelligentChunk
