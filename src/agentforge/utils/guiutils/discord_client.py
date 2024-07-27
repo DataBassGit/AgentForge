@@ -26,8 +26,10 @@ class DiscordClient:
         async def on_message(message: discord.Message):
             self.logger.log(f"On Message: {message}", 'debug', 'DiscordClient')
 
-            # content = message.content.replace(f'<@!{user.id}>', f'@{mention_name}')
             content = message.content
+            for mention in message.mentions:
+                # If a mention is copy/pasted, this does not work. The mention value will come through as Null.
+                content = content.replace(f'<@{mention.id}>', f'@{mention.display_name}')
 
             message_data = {
                 "channel": str(message.channel),
@@ -35,7 +37,8 @@ class DiscordClient:
                 "message": content,
                 "author": message.author.display_name,
                 "author_id": message.author,
-                "timestamp": message.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                "timestamp": message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                "mentions": message.mentions
             }
 
             self.logger.log(f"{message.author.display_name} said: {content} in {str(message.channel)}. Channel ID: {message.channel.id}", 'info', 'DiscordClient')
