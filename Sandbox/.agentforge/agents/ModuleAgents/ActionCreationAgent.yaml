@@ -103,7 +103,7 @@ Prompts:
     Instruction: |-
       <step-by-step instructions on how to perform the action using the tools>
     Tools:
-      - <tool 1>
-      - <tool 2>
+      - <tool name 1>
+      - <tool name 2>
       # Add more tools as required
     ```

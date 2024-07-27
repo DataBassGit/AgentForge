@@ -18,6 +18,7 @@ Logging:
   Files:
     AgentForge: error
     ModelIO: debug
+    Actions: debug
     Results: error
     DiscordClient: error
 
