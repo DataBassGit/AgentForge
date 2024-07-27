@@ -114,6 +114,23 @@ class DiscordClient:
 
         asyncio.run_coroutine_threadsafe(send(), self.client.loop)
 
+    def send_dm(self, user_id, content):
+        async def send_dm_async():
+            try:
+                user = await self.client.fetch_user(user_id)
+                if user:
+                    await user.send(content)
+                else:
+                    self.logger.log(f"User {user_id} not found", 'error', 'DiscordClient')
+            except discord.errors.NotFound:
+                self.logger.log(f"User {user_id} not found", 'error', 'DiscordClient')
+            except discord.errors.Forbidden:
+                self.logger.log(f"Cannot send DM to user {user_id}. Forbidden.", 'error', 'DiscordClient')
+            except Exception as e:
+                self.logger.log(f"Error sending DM to user {user_id}: {str(e)}", 'error', 'DiscordClient')
+
+        asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop)
+
 
 if __name__ == "__main__":
     # This is just for testing the DiscordClient
