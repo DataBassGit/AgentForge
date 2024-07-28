@@ -4,6 +4,7 @@ import discord
 import os
 import asyncio
 import threading
+import yaml
 from agentforge.utils.functions.Logger import Logger
 
 
@@ -14,11 +15,14 @@ class DiscordClient:
         self.intents.message_content = True
         self.client = discord.Client(intents=self.intents)
         self.logger = Logger('DiscordClient')
+        self.tree = discord.app_commands.CommandTree(self.client)
         self.message_queue = {}
         self.running = False
+        self.load_commands()
 
         @self.client.event
         async def on_ready():
+            await self.tree.sync()
             print("Client Ready")
             self.logger.log(f'{self.client.user} has connected to Discord!', 'info', 'DiscordClient')
 
@@ -87,6 +91,7 @@ class DiscordClient:
                 'author': str,        # The display name of the message author
                 'author_id': Member,  # The Discord Member object of the author
                 'timestamp': str      # The timestamp of the message in 'YYYY-MM-DD HH:MM:SS' format
+                'mentions': list      # A list of Discord Member objects mentioned in the message
             }
 
         Yields:
@@ -100,8 +105,8 @@ class DiscordClient:
 
         if self.message_queue:
             try:
-                message = self.message_queue.popitem()
-                yield message
+                next_message = self.message_queue.popitem()
+                yield next_message
             except Exception as e:
                 print(f"Exception: {e}")
         else:
@@ -134,6 +139,52 @@ class DiscordClient:
 
         asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop)
 
+    def load_commands(self):
+        with open(".agentforge/settings/discord_commands.yaml", "r") as file:
+            commands_config = yaml.safe_load(file)
+
+        for command_data in commands_config:
+            name = command_data["name"]
+            description = command_data["description"]
+            function_name = command_data.get("function_name", "None")
+            parameters = command_data.get("parameters", [])
+
+            @discord.app_commands.command(name=name, description=description)
+            async def command_callback(interaction: discord.Interaction, arg: str):
+                kwargs = {"arg": arg}
+                await self.handle_command(interaction, name, function_name, kwargs)
+
+            for param in parameters:
+                param_name = param["name"]
+                param_description = param["description"]
+                command_callback = discord.app_commands.describe(**{param_name: param_description})(command_callback)
+
+            self.logger.log(f"Register command: {name}, Function: {function_name}", "info", "DiscordClient")
+            self.tree.add_command(command_callback)
+
+    async def handle_command(self,
+                             interaction: discord.Interaction,
+                             command_name: str,
+                             function_name: str,
+                             kwargs: dict):
+        message_data = {
+            "channel": str(interaction.channel),
+            "channel_id": interaction.channel_id,
+            "message": f"/{command_name}",
+            "author": interaction.user.display_name,
+            "author_id": interaction.user,
+            "timestamp": interaction.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            "mentions": interaction.data.get("resolved", {}).get("members", []),
+            "function_name": function_name,
+            "arg": kwargs.get('arg', None)
+        }
+
+        if interaction.channel_id not in self.message_queue:
+            self.message_queue[interaction.channel_id] = []
+        self.message_queue[interaction.channel_id].append(message_data)
+
+        await interaction.response.send_message(f"Command '{command_name}' received and added to the queue.")
+
 
 if __name__ == "__main__":
     # This is just for testing the DiscordClient
@@ -144,9 +195,9 @@ if __name__ == "__main__":
 
     while True:
         try:
-            for message in client.process_channel_messages():
+            for message_item in client.process_channel_messages():
                 time.sleep(5)
-                client.send_message(message[0], f"Processed: {message}")
+                client.send_message(message_item[0], f"Processed: {message_item}")
         except KeyboardInterrupt:
             print("Stopping...")
             client.stop()

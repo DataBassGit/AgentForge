@@ -37,6 +37,7 @@ setup(
         "browse~=1.0.1",
         "scipy",
         "semantic-router",
+        "discord.py",
         "google-generativeai"
     ],
     extras_require={

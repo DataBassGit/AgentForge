@@ -1,4 +1,7 @@
+# tools/PythonFunction.py
+
 from agentforge.utils.functions.ToolUtils import ToolUtils
+
 
 class PythonFunction:
 
@@ -7,6 +10,7 @@ class PythonFunction:
 
     @staticmethod
     def execute_function(function_name, payload):
-        tool = ToolUtils.dynamic_tool()
-        result = tool(function_name, payload)
+        tool = {'Script': function_name, 'Command': 'execute'}
+        result = ToolUtils().dynamic_tool(tool, payload)
         return result
+
