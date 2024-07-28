@@ -1,6 +1,8 @@
 # utils/guiutils/discord_client.py
 
 import discord
+from discord import app_commands
+from discord.ext import commands
 import os
 import asyncio
 import threading
@@ -140,27 +142,22 @@ class DiscordClient:
         asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop)
 
     def load_commands(self):
-        with open(".agentforge/settings/discord_commands.yaml", "r") as file:
-            commands_config = yaml.safe_load(file)
 
-        for command_data in commands_config:
-            name = command_data["name"]
-            description = command_data["description"]
-            function_name = command_data.get("function_name", "None")
-            parameters = command_data.get("parameters", [])
+        name = 'bot'
+        description = 'send a command to the bot'
+        function_name = 'bot'
 
-            @discord.app_commands.command(name=name, description=description)
-            async def command_callback(interaction: discord.Interaction, arg: str):
-                kwargs = {"arg": arg}
-                await self.handle_command(interaction, name, function_name, kwargs)
+        @app_commands.command(name=name, description=description)
+        async def command_callback(interaction: discord.Interaction, command: str):
+            kwargs = {"arg": command}
+            await self.handle_command(interaction, name, function_name, kwargs)
 
-            for param in parameters:
-                param_name = param["name"]
-                param_description = param["description"]
-                command_callback = discord.app_commands.describe(**{param_name: param_description})(command_callback)
+        param_name = "command"
+        param_description = "send a command to the bot"
+        command_callback = app_commands.describe(**{param_name: param_description})(command_callback)
 
-            self.logger.log(f"Register command: {name}, Function: {function_name}", "info", "DiscordClient")
-            self.tree.add_command(command_callback)
+        self.logger.log(f"Register command: {name}, Function: {function_name}", "info", "DiscordClient")
+        self.tree.add_command(command_callback)
 
     async def handle_command(self,
                              interaction: discord.Interaction,
