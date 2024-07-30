@@ -1,12 +1,9 @@
 # utils/guiutils/discord_client.py
 
 import discord
-from discord import app_commands
-from discord.ext import commands
 import os
 import asyncio
 import threading
-import yaml
 from agentforge.utils.functions.Logger import Logger
 
 
@@ -147,14 +144,14 @@ class DiscordClient:
         description = 'send a command to the bot'
         function_name = 'bot'
 
-        @app_commands.command(name=name, description=description)
+        @discord.app_commands.command(name=name, description=description)
         async def command_callback(interaction: discord.Interaction, command: str):
             kwargs = {"arg": command}
             await self.handle_command(interaction, name, function_name, kwargs)
 
         param_name = "command"
         param_description = "send a command to the bot"
-        command_callback = app_commands.describe(**{param_name: param_description})(command_callback)
+        command_callback = discord.app_commands.describe(**{param_name: param_description})(command_callback)
 
         self.logger.log(f"Register command: {name}, Function: {function_name}", "info", "DiscordClient")
         self.tree.add_command(command_callback)
@@ -181,6 +178,20 @@ class DiscordClient:
         self.message_queue[interaction.channel_id].append(message_data)
 
         await interaction.response.send_message(f"Command '{command_name}' received and added to the queue.")
+
+    async def set_typing_indicator(self, channel_id, is_typing):
+        channel = self.client.get_channel(channel_id)
+
+        if channel:
+            if is_typing:
+                async with channel.typing():
+                    # Keep the typing indicator on for a specific duration
+                    await asyncio.sleep(5)  # Adjust the duration as needed
+            else:
+                # Stop the typing indicator immediately
+                await asyncio.sleep(0)
+        else:
+            print(f"Channel with ID {channel_id} not found.")
 
 
 if __name__ == "__main__":

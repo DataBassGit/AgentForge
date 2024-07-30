@@ -539,26 +539,36 @@ class ChromaUtils:
                 logger.log(f"Error: The metadata tag '{metadata_tag}' contains non-numeric values.", 'error')
                 return None
 
-            if min_max == "min":
-                target_index = metadata_values.index(min(metadata_values))
+            if metadata_values:
+                if min_max == "min":
+                    target_index = metadata_values.index(min(metadata_values))
+                else:
+                    try:
+                        target_index = metadata_values.index(max(metadata_values))
+                    except:
+                        logger.log(f"Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.", 'error')
+                        target_index = 0
             else:
-                target_index = metadata_values.index(max(metadata_values))
+                target_index = 0
 
-            # Retrieve the full entry with the highest metadata value
-            target_entry = self.collection.get(ids=[document_ids[target_index]], include=["documents", "metadatas"])
+            try:
+                # Retrieve the full entry with the highest metadata value
+                target_entry = self.collection.get(ids=[document_ids[target_index]], include=["documents", "metadatas"])
 
-            max_metadata = {
-                "ids": target_entry["ids"][0],
-                "target": target_entry["metadatas"][0][metadata_tag],
-                "metadata": target_entry["metadatas"][0],
-                "document": target_entry["documents"][0],
-            }
+                max_metadata = {
+                    "ids": target_entry["ids"][0],
+                    "target": target_entry["metadatas"][0][metadata_tag],
+                    "metadata": target_entry["metadatas"][0],
+                    "document": target_entry["documents"][0],
+                }
 
-            logger.log(
-                f"Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
-                'debug'
-            )
-            return max_metadata
+                logger.log(
+                    f"Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
+                    'debug'
+                )
+                return max_metadata
+            except:
+                return None
 
         except (KeyError, ValueError, IndexError) as e:
             logger.log(f"Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')

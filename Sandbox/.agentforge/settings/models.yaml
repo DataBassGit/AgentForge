@@ -1,9 +1,9 @@
 # Default settings for all models unless overridden
 ModelSettings:
-#  API: gemini_api
-#  Model: gemini-flash
-  API: openai_api
-  Model: omni_model
+  API: gemini_api
+  Model: gemini-flash
+#  API: openai_api
+#  Model: omni_model
 #  API: claude3_api
 #  Model: claude-3
 #  API: oobabooga_api
@@ -14,7 +14,7 @@ ModelSettings:
 #  Model: LMStudio
   Params:
     max_new_tokens: 3000
-    temperature: 0.5
+    temperature: 0.8
     top_p: 0.1
     n: 1
     stop: null

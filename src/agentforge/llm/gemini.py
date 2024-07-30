@@ -1,6 +1,7 @@
 import os
 import time
 import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from agentforge.utils.functions.Logger import Logger
 
 # Get API key from Env
@@ -70,6 +71,12 @@ class Gemini:
             try:
                 response = self._model.generate_content(
                     prompt,
+                    safety_settings={
+                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                    },
                     generation_config=genai.types.GenerationConfig(
                         max_output_tokens=params["max_new_tokens"],
                         temperature=params["temperature"],

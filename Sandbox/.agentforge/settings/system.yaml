@@ -16,10 +16,10 @@ Logging:
   Enabled: true
   Folder: ./Logs
   Files:
-    AgentForge: error
+    AgentForge: debug
     ModelIO: debug
     Actions: debug
-    Results: error
+    Results: debug
     DiscordClient: error
 
 # Paths the system (agents) have access to read and write
