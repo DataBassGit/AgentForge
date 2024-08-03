@@ -33,7 +33,7 @@ class Gemini:
     Attributes:
         num_retries (int): The number of times to retry generating text upon encountering errors.
     """
-    num_retries = 5
+    num_retries = 4
 
     def __init__(self, model):
         """
@@ -67,7 +67,7 @@ class Gemini:
         # Will retry to get chat if a rate limit or bad gateway error is received from the chat
         reply = None
         for attempt in range(self.num_retries):
-            backoff = 2 ** (attempt + 2)
+            backoff = 8 ** (attempt + 2)
             try:
                 response = self._model.generate_content(
                     prompt,
