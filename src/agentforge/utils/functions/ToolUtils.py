@@ -1,5 +1,5 @@
 # utils/functions/ToolUtils.py
-
+import traceback
 import importlib
 from .Logger import Logger
 
@@ -29,7 +29,7 @@ class ToolUtils:
             payload (dict): A dictionary containing the 'command' to be executed and 'args' for the command.
 
         Returns:
-            Any: The result of executing the command within the tool, or None if an error occurs.
+            Any: The result of executing the command within the tool, or an error dictionary if an error occurs.
 
         Raises:
             ModuleNotFoundError: If the specified tool module cannot be found.
@@ -37,8 +37,6 @@ class ToolUtils:
             TypeError: If there is a mismatch in the expected arguments for the command.
             Exception: For general errors encountered during command execution.
         """
-        # Extract the actual class name from the tool_class path
-
         tool_module = tool.get('Script')
         tool_class = tool_module.split('.')[-1]
         command = tool.get('Command')
@@ -64,15 +62,18 @@ class ToolUtils:
                 self.logger.log_result(result, f"{tool_class} Result")
                 return result
         except AttributeError as e:
-            self.logger.log(f"Tool '{tool_module}' does not have a class named '{tool_class}' "
-                            f"or command named '{command}'.\nError: {e}", 'error')
-            return None
+            error_message = f"Tool '{tool_module}' does not have a class named '{tool_class}' " \
+                            f"or command named '{command}'.\nError: {e}"
+            self.logger.log(error_message, 'error')
+            return {'error': error_message, 'traceback': traceback.format_exc()}
         except TypeError as e:
-            self.logger.log(f"Error passing arguments: {e}", 'error')
-            return None
+            error_message = f"Error passing arguments: {e}"
+            self.logger.log(error_message, 'error')
+            return {'error': error_message, 'traceback': traceback.format_exc()}
         except Exception as e:
-            self.logger.log(f"Error executing command: {e}", 'error')
-            return None
+            error_message = f"Error executing command: {e}"
+            self.logger.log(error_message, 'error')
+            return {'error': error_message, 'traceback': traceback.format_exc()}
 
     def show_primed_tool(self, tool_name, payload):
         """

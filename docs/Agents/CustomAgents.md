@@ -23,7 +23,7 @@ To utilize this new agent in a different script, import it from its location and
 from your_custom_agent_location.NewAgent import NewAgent
 
 new_agent = NewAgent()
-params = { # ... Dictionary Containing Parameters Needed by the Agent ... }
+params = { # ... Dictionary Containing Parameters If Needed by the Agent ... }
 results = new_agent.run(**params)
 ```
 
@@ -31,9 +31,9 @@ results = new_agent.run(**params)
 
 ## Persona Files
 
-In AgentForge, **Personas** are utilized to encapsulate the information accessible to the agents. They are a crucial tool to define the body of knowledge that an agent can draw from during its execution. 
+In **AgentForge**, **Personas** are utilized to encapsulate the information accessible to the agents. They are a crucial tool to define the body of knowledge that an agent can draw from during its execution. 
 
-A Persona is not confined to defining the personality of an agent. Instead, it serves as a store for any kind of information – from data related to a specific subject to general world facts – that the agents might need for providing comprehensive responses to users' input.
+A **Persona** is not confined to defining the personality of an agent. Instead, it serves as a store for any kind of information – from data related to a specific subject to general world facts – that the agents might need for providing comprehensive responses to users' input.
 
 Personas are defined using .yaml files within the `.agentforge/personas` folder. You can create as many persona files as needed, allowing you to structure your agents' knowledge in an organized manner and distribute information across them as required.
 

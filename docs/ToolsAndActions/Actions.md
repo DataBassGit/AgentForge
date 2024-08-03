@@ -18,45 +18,43 @@ Each action is defined in a YAML file, which includes attributes that detail the
 - **Instruction**: Step-by-step instructions on how the action should be carried out.
 - **Tools**: A list of tools used in the action.
 
-Here's an example of a single-tool action and a multi-tool action defined in YAML format:
+Here's an example of a multi-tool action defined in YAML format:
 
-### Single Tool Action
+### Action Example
 ```yaml
 Name: Write File
-Description: >-
-  Utilizes the 'File Writer' tool to write or append text to a specified file in a given directory.
-Example: >-
-  response = write_file('path/to/folder', 'filename.txt', 'This is the content', mode='a')
-Instruction: >-
-  Specify the target folder, filename, and content to write. Optionally, provide a mode ('a' for append, 'w' for overwrite).
-Tools: File Writer
-```
-
-### Multi Tool Action
-```yaml
-Name: Web Search
-Description: >-
-  Performs a Google search from a query, scrapes text from a returned URL, and breaks the text into chunks.
-Example: >-
-  search_results = google.google_search(query, number_result);
-  url = search_results[2][0];
-  scrapped = web_scrape.get_plain_text(url)
-Instruction: >-
-  Use 'Google Search' to get search results, pick a URL, then 'Web Scrape' to scrape text from the URL.
-Tools: 
-  - Google Search
-  - Web Scrape
+Description: |-
+  The 'Write File' action combines directory examination and file writing operations. 
+  It first reads the structure of a specified directory using the 'Read Directory' tool. 
+  Then, it utilizes the 'File Writer' tool to write or append text to a specified file within that directory. 
+  This action ensures you can check the directory's contents before performing file operations.
+Example: |-
+  # Example usage of the Write File action:
+  directory_structure = read_directory('path/to/folder', max_depth=2)
+  print(directory_structure)
+  
+  selected_file = 'path/to/folder/filename.txt'
+  response = write_file(selected_file, 'This is the content', mode='a')
+  print(response)
+Instruction: |-
+  To perform the 'Write File' action, follow these steps:
+  1. Use the 'Read Directory' tool to examine the directory structure:
+     - Call the `read_directory` function with the directory path and an optional `max_depth` parameter.
+     - The function returns a string representing the directory structure.
+  2. Review the directory structure output to identify the target directory or file where you want to write or append content.
+  3. Select the target path from the directory structure.
+  4. Use the 'File Writer' tool to write or append text to the selected file:
+     - Call the `write_file` function with the selected file path, content, and an optional `mode` parameter ('a' for append, 'w' for overwrite).
+     - The function performs the file operation and returns a response indicating the success or failure of the operation.
+  5. Utilize the responses from both tools as needed for your application.
+Tools:
+  - Read Directory
+  - File Writer
 ```
 
 ## Executing Actions
 
-The `ActionExecution` module in our framework takes an action, runs each tool listed in the `Tools` attribute in sequence, and smartly feeds the result from one tool into the next. This allows for a seamless chain of operations, automating complex procedures with ease.
-
-For those interested in the underlying implementation, 
-the [ActionExecution](../Modules/ActionExecution.md) module is central to action orchestration.
-It's located at `agentforge/modules/ActionExecution.py` within the library package.
-
-
+The `Actions` class in our framework has methods designed to select, create, and execute actions. This class orchestrates the flow from loading action-specific tools, executing these tools, to injecting the processed data into the knowledge graph. The `Actions` class also includes utility methods for formatting and parsing actions and tools.
 
 ### Action Execution Process
 
@@ -66,53 +64,156 @@ It's located at `agentforge/modules/ActionExecution.py` within the library packa
 
 ## Example Action Execution Code
 
-The following example demonstrates a generic use case of executing an action within our framework. This example shows how an action can be selected, defined, and then executed using the `Action` class from the `ActionExecution` module.
+The following example demonstrates a generic use case of executing an action within our framework using the `Actions` class.
 
-### Usage Example:
+### Usage Example
 
 ```python
-from agentforge.modules.ActionExecution import Action
+from agentforge.modules.Actions import Actions
 
-# Example objective and task for context
-objective = "Perform a specific task using a combination of tools."
-task = "Describe the specific steps involved in achieving the task."
-
-# Define an action
-selected_action = {
-  "Name": "Example Action",
-  "Description": "This action demonstrates how multiple tools can be combined to perform a complex task.",
-  "Example": "result = tool1.method(param1); output = tool2.method(result)",
-  "Instruction": "First, execute 'Tool 1' with the specified parameters. Then, use the output from 'Tool 1' as input for 'Tool 2'.",
-  "Tools": "Tool 1, Tool 2"
-}
-
-class ActionExecutor:
-
-    def __init__(self):
-        self.action = Action()
-
-    def execute(self):
-        # Additional context for the action
-        self.action.data = {'objective': objective, 'task': task}
-        # Execute the action and get the result
-        result = self.action.run(selected_action)
-        return result
-
-if __name__ == '__main__':
-    executor = ActionExecutor()
-    execution_result = executor.execute()
-    print("Execution Result:", execution_result)
+objective = 'Stay up to date with current world events'
+action = Actions()
+result = action.auto_execute(objective=objective)
+print(f'\nAction Results: {result}')
 ```
 
->**Note on Action Attributes**: Not all attributes in the action's YAML file are directly used in execution. While `Name`, `Description`, `Example`, and `Instruction` give context and define the workflow, the `Tools` attribute is crucial as it lists the actual tools to be executed. The `ActionExecution` module is capable of using these definitions to prime and execute each tool, thus completing the action.
+## Methods in the `Actions` Class
 
-## Future Implementations
+---
+### `__init__()`
+Initializes the `Actions` class, setting up the logger, storage utilities, and loading necessary components for action processing. This method prepares the class for executing actions by initializing collections of actions and tools.
 
-Our vision includes the development of an 'Action Creation Agent' that can autonomously test different tools together, creating new actions without human intervention. This will significantly expand the capabilities of our system, allowing it to evolve and adapt to new tasks over time.
+---
+### `parse_actions(action_list)`
+Parses and structures the actions fetched from storage for easier handling and processing.
 
-## Best Practices for Action Definitions
+**Parameters:**
+- `action_list` (Dict): The list of actions to parse.
 
-- **Validate Your Actions**: Ensure each action is thoroughly tested to function as intended.
-- **Clear Definitions**: Maintain clarity in your YAML definitions to prevent misunderstandings during execution.
+**Returns:**
+- `Optional[Dict[str, Dict]]`: A dictionary of parsed actions, or `None` if an error occurs.
+---
+### `format_actions(action_list)`
+Formats the actions into a human-readable string and stores it in the agent's data for later use.
 
-By carefully defining your actions in YAML files and understanding how they are executed, you can leverage the full potential of the Action functionality to automate complex tasks within your system.
+**Parameters:**
+- `action_list` (Dict): The list of actions to format.
+
+**Returns:**
+- `Optional[str]`: The formatted string of actions, or `None` if an error occurs.
+---
+### `initialize_collection(collection_name)`
+Initializes a specified collection with preloaded data.
+
+**Parameters:**
+- `collection_name` (str): The name of the collection to initialize.
+
+**Returns:**
+- `None`
+---
+### `get_relevant_actions_for_objective(objective, threshold=None, num_results=1)`
+Loads actions based on the current objective and specified criteria from the storage system.
+
+**Parameters:**
+- `objective` (str): The objective to find relevant actions for.
+- `threshold` (Optional[float]): The threshold for relevance.
+- `num_results` (int): The number of results to return.
+
+**Returns:**
+- `Union[str, Dict]`: The formatted actions or an empty dictionary if no actions are found.
+---
+### `get_tool_list(num_results=20)`
+Retrieves the list of tools from storage.
+
+**Parameters:**
+- `num_results` (int): The number of tools to return.
+
+**Returns:**
+- `Optional[Dict[str, Union[List[str], None, List[Dict]]]]`: A dictionary containing all tool information, or `None` if there are no tools.
+---
+### `select_action_for_objective(objective, action_list, context=None, format_result=False)`
+Selects an action for the given objective from the provided action list.
+
+**Parameters:**
+- `objective` (str): The objective to select an action for.
+- `action_list` (str): The list of actions to select from.
+- `context` (Optional[str]): The context for action selection.
+- `format_result` (bool): Whether to format the result. Default is `False`.
+
+**Returns:**
+- `Union[str, Dict]`: The selected action or formatted result.
+---
+### `craft_action_for_objective(objective, context=None, format_result=False)`
+Crafts a new action for the given objective.
+
+**Parameters:**
+- `objective` (str): The objective to craft an action for.
+- `context` (Optional[str]): The context for action crafting.
+- `format_result` (bool): Whether to format the result. Default is `False`.
+
+**Returns:**
+- `Union[str, Dict]`: The crafted action or formatted result.
+---
+### `load_tool_from_storage(tool)`
+Loads configuration and data for a specified tool from the storage.
+
+**Parameters:**
+- `tool` (str): The name of the tool to load.
+
+**Returns:**
+- `Optional[Dict]`: The loaded tool data, or `None` if an error occurs.
+---
+### `parse_action_tools(action)`
+Loads the tools specified in the action's configuration.
+
+**Parameters:**
+- `action` (Dict): The action containing the tools to load.
+
+**Returns:**
+- `List[Dict] | None`: A list with the loaded tools or `None`.
+---
+### `prime_tool(objective, action, tool, previous_results, tool_context)`
+Prepares the tool for execution by running the `ToolPrimingAgent`.
+
+**Parameters:**
+- `objective` (str): The objective for tool priming.
+- `action` (str): The action to prime the tool for.
+- `tool` (Dict): The tool to be primed.
+- `previous_results` (Optional[str]): The results from previous tool executions.
+- `tool_context` (Optional[str]): The context for the tool.
+
+**Returns:**
+- `Dict`: The formatted payload for the tool.
+---
+### `execute_tool(tool, payload)`
+Executes the tool using the dynamic tool utility with the prepared payload.
+
+**Parameters:**
+- `tool` (Dict): The tool to be executed.
+- `payload` (Dict): The payload to execute the tool with.
+
+**Returns:**
+- `Union[Dict, None]`: The result of the tool execution or an error dictionary.
+---
+### `run_tools_in_sequence(objective, action, tools)`
+Runs the specified tools in sequence for the given objective and action.
+
+**Parameters:**
+- `objective` (str): The objective for running the tools.
+- `action` (Dict): The action containing the tools to run.
+- `tools` (List[Dict]): The list of tools to run.
+
+**Returns:**
+- `Union[Dict, None]`: The final result of the tool execution or an error dictionary.
+---
+### `auto_execute(objective, context=None)`
+Automatically executes the actions for the given objective and context.
+
+**Parameters:**
+- `objective` (str): The objective for the execution.
+- `context` (Optional[str]): The context for the execution.
+
+**Returns:**
+- `Union[Dict, None]`: The result of the execution or an error dictionary.
+---
+By using the `Actions` class, developers can efficiently manage and execute complex sequences of tools, leveraging the modular and flexible nature of the framework to automate intricate workflows.

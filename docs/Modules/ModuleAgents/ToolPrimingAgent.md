@@ -1,128 +1,118 @@
-from agentforge.utils.functions.ParsingUtils import parse_yaml_string
-
-# Action Priming Agent
+# Tool Priming Agent
 
 ## Introduction
 
-`ActionPrimingAgent` is a specialized agent that extends the base `Agent` class. This agent is specifically designed for priming tools based on defined actions, it also performs customized loading of additional data, output building, and skips the saving of results to memory.
+`ToolPrimingAgent` is a specialized agent that extends the base `Agent` class. This agent is specifically designed for priming tools based on a defined action.
 
-Each agent, including the `ActionPrimingAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../../Agents/AgentPrompts.md). To view the specific prompts associated with the `ActionPrimingAgent`, see its [YAML File](../../../src/agentforge/setup_files/agents/PredefinedAgents/ActionPrimingAgent.yaml).
-
----
-
-## Import Statements
-```python
-from agentforge.agent import Agent
-from ast import literal_eval as eval
-```
-
-In this section, the necessary libraries and modules are imported for the functionality of the `ActionPrimingAgent`. The `Agent` class is imported from the `.agentforge/` directory, serving as the base class from which `ActionPrimingAgent` will inherit its core features. Additionally, the Python standard library `ast` (Abstract Syntax Trees) is imported to assist in specific parsing operations.
+Each agent, including the `ToolPrimingAgent`, is associated with a specific prompt `YAML` file which determines its interactions. This file contains a set of pre-defined prompts templates that guide the agent's behavior during its execution. For a detailed understanding of how these prompts are structured and utilized, you can refer to our [Prompts Documentation](../../Agents/AgentPrompts.md). To view the specific prompts associated with the `ToolPrimingAgent`, see its [YAML File](../../../src/agentforge/setup_files/agents/ModuleAgents/ToolPrimingAgent.yaml).
 
 ---
 
 ## Class Definition
 
 ```python
-class ActionPrimingAgent(Agent):
-
-    def build_output(self, result, **kwargs):
-        # ...
-        
-    def save_result(self):
-        #...
-```
-
-The `ActionPrimingAgent` is a specialized agent that inherits its core functionalities from the base `Agent` class. This allows it to utilize the foundational features and methods provided by the `Agent` class. Additionally, `ActionPrimingAgent` customizes its behavior by overriding specific methods from its parent class. Specifically, the methods `build_output` and `save_result` have been overridden to implement custom functionalities tailored to the needs of this particular agent.
+from agentforge.agent import Agent
 
 
----
-
-## Overridden Agent Methods
-
-### Build Output
-### `build_output()`
-
-**Purpose**: In this specific agent implementation, the `build_output` method is tailored to parse the result from the LLM, which is assumed to be in YAML format. The method transforms the raw YAML string into a structured format, thereby refining the agent's output for more sophisticated use cases. This custom implementation demonstrates how agents can be adapted to process and deliver outputs that meet specific operational or application requirements.
-
-**Workflow**:
-1. Utilizes a utility function, `parse_yaml_string`, designed to interpret a YAML formatted string and convert it into a structured Python object.
-2. Sets the parsed structured object as the agent's output, enhancing the comprehensibility and utility of the data for downstream processes or interfaces.
-
-**Exception Handling**:
-- In case of an error during the parsing process, the method logs the error using a specialized logger method `parsing_error`, which records the raw result and the exception details.
-- Subsequently, the method re-raises the exception to signal the occurrence of a critical issue that needs attention, ensuring that error handling mechanisms can respond appropriately.
-
-```python
-def build_output(self):
-    """
-    Overrides the build_output method from the Agent class to parse the result string into a structured format.
-    This method attempts to parse the result (assumed to be in YAML format) using the agent's utility functions
-    and sets the parsed output as the agent's output.
-
-    Raises:
-        Exception: If there's an error during parsing, it logs the error and re-raises the exception for
-        further handling. This approach ensures that any parsing issues are immediately flagged and can be
-        addressed in a timely manner.
-    """
-    try:
-        # The 'parse_yaml_string' method takes a YAML formatted string and returns a structured object
-        self.output = parse_yaml_string(self.functions.agent_utils.logger, self.result)
-    except Exception as e:
-        self.logger.parsing_error(self.result, e)  # Custom logging for parsing errors
-        raise  # Re-raises the exception to ensure it's not silently ignored
-```
-
-> **Note**: This override emphasizes the importance of custom processing capabilities within agents, allowing them to tailor their output processing to fit specific data formats and requirements. By converting YAML formatted strings into structured objects, this method significantly enhances the usability and integration capabilities of the agent's output.
-
-
-### Save Result
-### `save_result()`
-
-**Purpose**: Overrides the default behavior to prevent saving the result to memory.
-
-**Workflow**: Does nothing as there's no need to save how a tool is primed.
-
-```python
-def save_result(self):
-    """
-    Overrides the save_result method from the Agent class to provide custom behavior for saving results.
-    
-    For this custom agent, the method is intentionally left empty to bypass the default saving mechanism,
-    indicating that this agent does not require saving its results in the same manner as the base Agent class.
-    """
+class ToolPrimingAgent(Agent):
     pass
 ```
+
+The `ToolPrimingAgent` is an agent that inherits its core functionalities from the base `Agent` class. This allows it to utilize the foundational features and methods provided by the `Agent` class as it does not require any custom methods to perform its task.
 
 ---
 
 ## How to Use
 
-### Initialization
-
-To utilize the `ActionPrimingAgent`, you first need to initialize it. This is done using the following line of code:
-
-```python
-from agentforge.agents.ActionPrimingAgent import ActionPrimingAgent
-action_priming_agent = ActionPrimingAgent()
-```
-
 ### Running the Agent
 
-Once the agent is initialized, you can invoke it to perform its specific tasks by calling the `run` method. This method requires certain parameters:
+To utilize the `ToolPrimingAgent`, you first need to initialize it. You can then invoke it to perform its specific tasks by calling the `run` method. This method requires certain parameters:
 
-- `tool`: Represents the tool that needs to be primed.
-- `tool_result`: Contains the results returned by the previous execution of the same or different tool. 
+- `objective`: The core objective that the tool needs to achieve.
+- `action`: The specific action selected to achieve the objective.
+- `tool_name`: The name of the tool that needs to be primed.
+- `tool_info`: Instructions explaining how to use the tool.
+- `path`: Working directories relevant to the task. - `(optional)`
+- `previous_results`: Contains the results returned by the previous execution of the same or different tool. - `(optional)`
+- `tool_context`: Context and sequence of tools within the action. - `(optional)`
 
-The `tool_result` parameter is particularly versatile. In the context of an action sequence, it holds the results from the previous tool execution, whether that's from the same tool or a different one. If this agent is priming the first tool in a sequence, or if the action consists of a single tool, `tool_result` can be set to `None`.
+The `previous_results` parameter is particularly versatile. In the context of an action sequence, it holds the results from the previous tool execution, whether that's from the same tool or a different one. If this agent is priming the first tool in a sequence, or if the action consists of a single tool, `previous_results` can be set to `None`.
 
 Here's how you would call the agent:
 
 ```python
-payload = action_priming_agent.run()
+from agentforge.agents.ToolPrimingAgent import ToolPrimingAgent
+
+tool_priming_agent = ToolPrimingAgent()
+
+payload = tool_priming_agent.run(objective=objective,
+                                 action=action,
+                                 tool_name=tool.get('Name'),
+                                 tool_info=formatted_tool,
+                                 path=work_paths,
+                                 previous_results=previous_results,
+                                 tool_context=tool_context)
 ```
 
-In this example, the `ActionPrimingAgent` receives a tool and the previous tool results, it will then return a `payload` which contains the tool in it's primed state ready to be executed.
+In this example, the `ToolPrimingAgent` receives an objective, action, tool name, tool information, working paths, previous tool results, and tool context. It will then return a `payload` which contains the tool in its primed state ready to be executed.
 
 > **Note**: For a more detailed explanation on how we use actions to string tools together in a sequence, please refer to our [Actions Documentation](../../ToolsAndActions/Overview.md)
 
 ---
+
+## Prompts
+
+The `ToolPrimingAgent` utilizes a set of predefined prompts to guide its behavior. These prompts are structured as follows:
+
+```yaml
+Prompts:
+  System: |-
+    You are a tool priming agent tasked with preparing a tool for the following core objective:
+    {objective}
+    
+    To achieve this objective, the following action has been selected:
+    ```
+    {action}
+    ```
+
+  Tool: |+
+    Your task is to prime the '{tool_name}' tool in the context of the selected action. Instructions explaining how to use the tool are as follows:
+    
+    {tool_info}
+
+  Path: |+
+    Your working directories are: 
+    
+    {path}
+
+  Results: |+
+    Use the following data from the previous tool result in order to prime the '{tool_name}' tool:
+    
+    {previous_results}
+
+  Context: |+
+    Consider the following context and the sequence of tools within the action:
+    
+    {tool_context}
+
+  Instruction: |+
+    Review the sequence of tools and understand how each tool feeds into the next to accomplish the overall objective. You must prime the '{tool_name}' tool using the data from the previous tool results if any and the provided context if given.
+    
+    Prime the tool to prepare it for execution, ensuring that it correctly receives and processes the input from the previous tool in the sequence. Do not attempt to achieve the objective directly; focus on priming the tool as a step toward the overarching goal.
+    
+    If there is a next tool in the sequence, provide the necessary context for the next tool to understand how it should be primed and used based on the results of the current tool.
+    
+    You must prime the '{tool_name}' tool using ONLY the YAML RESPONSE FORMAT provided below.
+    
+    RESPONSE FORMAT:
+    ```yaml
+    args:
+      for each argument name: <argument value>
+    thoughts:
+      reasoning: <your reasoning>
+      speak: <any feedback for the user>
+      next_tool_context: <context for the next tool, if applicable>
+    ```
+```
+
+The agent uses these prompts to systematically prepare the tool for its intended action within the overall sequence.
