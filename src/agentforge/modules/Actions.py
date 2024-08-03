@@ -1,3 +1,4 @@
+import traceback
 from agentforge.utils.function_utils import Functions
 from agentforge.utils.functions.Logger import Logger
 from agentforge.utils.chroma_utils import ChromaUtils
@@ -234,10 +235,16 @@ class Action:
 
             formatted_payload = self.functions.parsing_utils.parse_yaml_content(payload)
 
-            self.logger.log(f"Tool Payload: {formatted_payload}", 'error', 'Actions')
+            if formatted_payload is None:
+                raise Exception('Parsing Error - Model did not respond in specified format')
+
+            self.logger.log(f"Tool Payload: {formatted_payload}", 'info', 'Actions')
             return formatted_payload
         except Exception as e:
             self.logger.log(f"Error in priming tool: {e}", 'error', "Actions")
+            message = f"Error in priming tool '{tool['Name']}': {e}"
+            self.logger.log(message, 'error', "Actions")
+            return {'error': message, 'traceback': traceback.format_exc()}
 
     def execute_tool(self, tool, payload):
         """
@@ -247,15 +254,19 @@ class Action:
             Exception: If an error occurs during tool execution.
         """
         try:
-            return self.functions.tool_utils.dynamic_tool(tool, payload)
+            result = self.functions.tool_utils.dynamic_tool(tool, payload)
+            # Check if result contains an error
+            if isinstance(result, dict) and 'error' in result:
+                return result
         except Exception as e:
-            self.logger.log(f"Error in executing tool: {e}", 'error')
+            message = f"Error in executing tool '{tool['Name']}': {e}"
+            self.logger.log(message, 'error')
+            return {'error': message, 'traceback': traceback.format_exc()}
 
     def run_tools_in_sequence(self, objective, action, tools):
 
         results = None
         tool_context = None
-        # action = self.format_actions(action)
         order = ["Name", "Description", "Tools", "Instruction", "Example"]
         formatted_action = format_action(action, order)
         try:
@@ -265,13 +276,23 @@ class Action:
                                           tool=tool,
                                           previous_results=results,
                                           tool_context=tool_context)
+
+                if isinstance(payload, dict) and 'error' in payload:
+                    return payload  # Stop execution and return the error message
+
                 tool_context = payload.get('next_tool_context')
                 results = self.execute_tool(tool, payload)
+
+                # Check if an error occurred
+                if isinstance(results, dict) and 'error' in results:
+                    return results  # Stop execution and return the error message
 
             return results
 
         except Exception as e:
-            self.logger.log(f"Error in running tools in sequence: {e}", 'error')
+            error_message = f"Error in running tools in sequence: {e}"
+            self.logger.log(error_message, 'error')
+            return {'error': error_message, 'traceback': traceback.format_exc()}
 
     def auto_execute(self, objective: str, context: str = None):
         try:
@@ -295,8 +316,14 @@ class Action:
             result = self.run_tools_in_sequence(objective=objective,
                                                 action=selected_action,
                                                 tools=tools)
+            # Check if an error occurred
+            if isinstance(result, dict) and 'error' in result:
+                self.logger.log(f"\nAction Result:\n{result['error']}", 'error', 'Actions')
+                return result  # Stop execution and return the error message
+
             self.logger.log(f"\nAction Result:\n{result}", 'info', 'Actions')
             return result
         except Exception as e:
-            self.logger.log(f"Error in running action: {e}", 'error', 'Actions')
-            return None
+            error_message = f"Error in running action: {e}"
+            self.logger.log(error_message, 'error', 'Actions')
+            return {'error': error_message, 'traceback': traceback.format_exc()}
