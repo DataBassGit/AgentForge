@@ -3,8 +3,8 @@
 [![Homepage](https://img.shields.io/badge/Homepage-agentforge.net-green?style=plastic&logo=google-chrome)](https://agentforge.net/)
 
 ![AgentForge Logo](./docs/Images/AF-Banner.jpg)
-# AgentForge 0.2.X
-**AgentForge** is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents and Cognitive Architectures. Compatible with a range of LLM models — currently supporting OpenAI, Google's Gemini, Anthropic's Claude, and Oobabooga (local) — it offers the flexibility to run different models for different agents based on your specific needs.
+# AgentForge 0.3.X
+**AgentForge** is a low-code framework tailored for the rapid development, testing, and iteration of AI-powered autonomous agents and Cognitive Architectures. Compatible with a range of LLM models — currently supporting OpenAI, Google's Gemini, Anthropic's Claude, and Ollama or LMStudio for local LLMs — it offers the flexibility to run different models for different agents based on your specific needs.
 
 Whether you're a newbie looking for a user-friendly entry point or a seasoned developer aiming to build complex cognitive architectures, this framework has you covered.
 
@@ -34,7 +34,7 @@ Easily Build Agents or Cognitive Architectures (Multi-Agent Scripts) with the fo
 * LLM Agnostic Agents (Each Agent can call different LLMs if needed)
 * On-The-Fly Prompt Editing
 * OpenAI, Google & Anthropic API Support
-* Open-Source Model Support ([Oobabooga](https://github.com/oobabooga/text-generation-webui))
+* Open-Source Model Support ([Ollama](https://ollama.com),[LMStudio](https://lmstudio.ai))
 
 ---
 

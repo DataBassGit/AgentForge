@@ -138,6 +138,33 @@ class DiscordClient:
 
         asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop)
 
+    def send_embed(self, channel_id, title, fields, color='blue', image_url=None):
+        async def send_embed_async():
+            try:
+                channel = self.client.get_channel(channel_id)
+                if channel:
+                    # Convert color string to discord.Color
+                    embed_color = getattr(discord.Color, color.lower(), discord.Color.blue)()
+
+                    embed = discord.Embed(
+                        title=title,
+                        color=embed_color
+                    )
+                    if image_url:
+                        embed.set_image(url=image_url)
+                    for name, value in fields:
+                        embed.add_field(name=name, value=value, inline=False)
+
+                    await channel.send(embed=embed)
+                else:
+                    self.logger.log(f"Channel {channel_id} not found", 'error', 'DiscordClient')
+            except discord.errors.Forbidden:
+                self.logger.log(f"Cannot send embed to channel {channel_id}. Forbidden.", 'error', 'DiscordClient')
+            except Exception as e:
+                self.logger.log(f"Error sending embed to channel {channel_id}: {str(e)}", 'error', 'DiscordClient')
+
+        asyncio.run_coroutine_threadsafe(send_embed_async(), self.client.loop)
+
     def load_commands(self):
 
         name = 'bot'
@@ -192,6 +219,104 @@ class DiscordClient:
                 await asyncio.sleep(0)
         else:
             print(f"Channel with ID {channel_id} not found.")
+
+    def add_role(self, guild_id, user_id, role_name):
+        async def add_role_async():
+            try:
+                guild = self.client.get_guild(guild_id)
+                if not guild:
+                    return f"Guild with ID {guild_id} not found."
+
+                member = await guild.fetch_member(user_id)
+                if not member:
+                    return f"User with ID {user_id} not found in the guild."
+
+                role = discord.utils.get(guild.roles, name=role_name)
+                if not role:
+                    return f"Role '{role_name}' not found in the guild."
+
+                await member.add_roles(role)
+                return f"Successfully added role '{role_name}' to user {member.name}."
+            except discord.errors.Forbidden:
+                return f"Bot doesn't have permission to manage roles."
+            except Exception as e:
+                return f"Error adding role: {str(e)}"
+
+        return asyncio.run_coroutine_threadsafe(add_role_async(), self.client.loop).result()
+
+    def remove_role(self, guild_id, user_id, role_name):
+        async def remove_role_async():
+            try:
+                guild = self.client.get_guild(guild_id)
+                if not guild:
+                    return f"Guild with ID {guild_id} not found."
+
+                member = await guild.fetch_member(user_id)
+                if not member:
+                    return f"User with ID {user_id} not found in the guild."
+
+                role = discord.utils.get(guild.roles, name=role_name)
+                if not role:
+                    return f"Role '{role_name}' not found in the guild."
+
+                await member.remove_roles(role)
+                return f"Successfully removed role '{role_name}' from user {member.name}."
+            except discord.errors.Forbidden:
+                return f"Bot doesn't have permission to manage roles."
+            except Exception as e:
+                return f"Error removing role: {str(e)}"
+
+        return asyncio.run_coroutine_threadsafe(remove_role_async(), self.client.loop).result()
+
+    def has_role(self, guild_id, user_id, role_name):
+        async def has_role_async():
+            try:
+                guild = self.client.get_guild(guild_id)
+                if not guild:
+                    return f"Guild with ID {guild_id} not found."
+
+                member = await guild.fetch_member(user_id)
+                if not member:
+                    return f"User with ID {user_id} not found in the guild."
+
+                role = discord.utils.get(guild.roles, name=role_name)
+                if not role:
+                    return f"Role '{role_name}' not found in the guild."
+
+                return role in member.roles
+            except Exception as e:
+                return f"Error checking role: {str(e)}"
+
+        return asyncio.run_coroutine_threadsafe(has_role_async(), self.client.loop).result()
+
+    def list_roles(self, guild_id, user_id=None):
+        async def list_roles_async():
+            try:
+                guild = self.client.get_guild(guild_id)
+                if not guild:
+                    return f"Guild with ID {guild_id} not found."
+
+                # List all guild roles
+                all_roles = [f"{role.name} (ID: {role.id})" for role in guild.roles if role.name != "@everyone"]
+                guild_roles = "Guild Roles:\n" + "\n".join(all_roles) if all_roles else "No roles found in this guild."
+
+                # List user roles if user_id is provided
+                user_roles = ""
+                if user_id:
+                    member = await guild.fetch_member(user_id)
+                    if member:
+                        user_role_list = [f"{role.name} (ID: {role.id})" for role in member.roles if
+                                          role.name != "@everyone"]
+                        user_roles = f"\n\nRoles for user {member.name}:\n" + "\n".join(
+                            user_role_list) if user_role_list else f"\n\nUser {member.name} has no roles."
+                    else:
+                        user_roles = f"\n\nUser with ID {user_id} not found in the guild."
+
+                return guild_roles + user_roles
+            except Exception as e:
+                return f"Error listing roles: {str(e)}"
+
+        return asyncio.run_coroutine_threadsafe(list_roles_async(), self.client.loop).result()
 
 
 if __name__ == "__main__":
