@@ -1,19 +1,27 @@
 Name: Read File
 Args:
-  - file_path (str)
+  - file_name_or_url (str)
 Command: read_file
 Description: |-
-  The 'Read File' tool reads the content of a specified file and returns its text. 
-  Provide the full path to the file you want to read. This tool is useful for retrieving the contents of text files, logs, configurations, and other readable documents.
+  The 'Read File' tool reads the content of a specified file or URL and returns its text. 
+  Provide the full path to the file or the URL you want to read. This tool can handle text files, PDF files, and URLs.
 Example: |-
   # Example usage of the Read File tool:
-  file_path = "/path/to/your/file.txt"
-  file_content = read_file(file_path)
+  file_name_or_url = "/path/to/your/file.txt"
+  file_content = read_file(file_name_or_url)
+  print(file_content)
+
+  file_name_or_url = "https://example.com/sample.pdf"
+  file_content = read_file(file_name_or_url)
   print(file_content)
 Instruction: |-
   To use the 'Read File' tool, follow these steps:
   1. Call the `read_file` function with the following argument:
-     - `file_path`: A string representing the full path to the file you want to read.
-  2. The function will return the textual content of the specified file as a string.
+     - `file_name_or_url`: A string representing the full path to the file or the URL you want to read.
+  2. The function will determine the type of input (URL, PDF, or text file) and process it accordingly.
+     - For URLs: The function will fetch the content from the web address.
+     - For PDF files: The function will extract text from the PDF file.
+     - For text files: The function will read the content of the text file.
+     - For other file formats: The function will return "Unsupported file format".
   3. Utilize the returned text as needed for your application.
-Script: agentforge.tools.ReadFile
+Script: agentforge.tools.GetText

@@ -1,18 +1,16 @@
 # Default settings for all models unless overridden
 ModelSettings:
-  API: gemini_api
-  Model: gemini-flash
-#  API: openai_api
-#  Model: omni_model
+#  API: gemini_api
+#  Model: gemini-flash
+  API: openai_api
+  Model: omni_model
 #  API: claude3_api
 #  Model: claude-3
-#  API: oobabooga_api
-#  Model: oobabooga
 #  API: ollama_api
 #  Model: DolphinMistral
 #  API: lm_studio_api
 #  Model: LMStudio
-  Params:
+  Params: # Default parameter values
     max_new_tokens: 3000
     temperature: 0.8
     top_p: 0.1
@@ -88,15 +86,6 @@ ModelLibrary:
         name: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
         params:
           host_url: "http://localhost:1234/v1/chat/completions"
-          allow_custom_value: True
-  oobabooga_api:
-    module: "oobabooga"
-    class: "Oobabooga"
-    models:
-      oobabooga:
-        name: None
-        params: # Oobabooga host server url
-          host_url: "127.0.0.1:11434"
           allow_custom_value: True
   ollama_api:
     module: "ollama"

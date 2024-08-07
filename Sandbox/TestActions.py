@@ -1,6 +1,10 @@
 from agentforge.modules.Actions import Actions
 
-objective = 'Stay up to date with current world events'
+objective = 'Automate file backup'
+# context = 'Focus your scope on technology'
+context = None
+threshold = 0.5
+
 action = Actions()
-result = action.auto_execute(objective=objective)
+result = action.auto_execute(objective, context, threshold)
 print(f'\nAction Results: {result}')

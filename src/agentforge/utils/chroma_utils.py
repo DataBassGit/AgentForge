@@ -469,10 +469,15 @@ class ChromaUtils:
             # of `distance.cosine`.
             # dist = distance.cosine(query_emb[0], results['embeddings'][0])
             if results:
+                results.pop('included')
                 filtered_data = {
                     key: [value for value, dist in zip(results[key], results['distances']) if dist < threshold]
                     for key in results
                 }
+                # filtered_data = {
+                #     key: [value for value, dist in zip(results[key], results['distances']) if True]
+                #     for key in results
+                # }
                 if filtered_data['documents']:
                     return filtered_data
                 else:

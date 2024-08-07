@@ -1,15 +1,14 @@
 Prompts:
   System: |+
-    Your task is to decide whether the following objective requires the use of an action:
+    Your task is to decide whether the following objective requires the use of an action.
 
+  Objective: |+
+    Objective:
     {objective}
 
   Actions: |+
     Consider the following actions available, including the option to choose "Nothing" if no action is required:
-
-    ```
     {action_list}
-    ```
 
   Instruction: |+
     Review the actions in light of the main objective provided.

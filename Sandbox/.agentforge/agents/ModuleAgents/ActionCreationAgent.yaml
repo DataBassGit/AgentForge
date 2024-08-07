@@ -1,7 +1,8 @@
 Prompts:
-  System: |+
+  System: |-
     Your task is to create an action YAML file that will help achieve the following objective using the tools available in your environment. Ensure that each step is clear and logically follows from the previous step to achieve the objective effectively.
 
+  Objective: |+
     Objective:
     {objective}
 
@@ -17,7 +18,6 @@ Prompts:
     - **Args**: The arguments required for the tool, including their data types.
 
     Here are the tools available for creating actions:
-    
     {tool_list}
 
   Actions: |+
@@ -44,37 +44,6 @@ Prompts:
     **How Actions Work:**
     Actions are executed by running each tool listed in the `Tools` attribute in sequence. The output from one tool is used as input for the next tool, creating a seamless chain of operations that automates complex procedures efficiently.
 
-  Example: |+
-    {no_render}
-    Example of an action to write a file:
-    ```yaml
-    Name: Write File
-    Description: |-
-      The 'Write File' action combines directory examination and file writing operations. It first reads the structure of a specified directory using the 'Read Directory' tool. Then, it utilizes the 'File Writer' tool to write or append text to a specified file within that directory. This action ensures you can check the directory's contents before performing file operations.
-    Example: |-
-      # Example usage of the Write File action:
-      directory_structure = read_directory('path/to/folder', max_depth=2)
-      print(directory_structure)
-
-      selected_file = 'path/to/folder/filename.txt'
-      response = write_file(selected_file, 'This is the content', mode='a')
-      print(response)
-    Instruction: |-
-      To perform the 'Write File' action, follow these steps:
-      1. Use the 'Read Directory' tool to examine the directory structure:
-         - Call the `read_directory` function with the directory path and an optional `max_depth` parameter.
-         - The function returns a string representing the directory structure.
-      2. Review the directory structure output to identify the target directory or file where you want to write or append content.
-      3. Select the target path from the directory structure.
-      4. Use the 'File Writer' tool to write or append text to the selected file:
-         - Call the `write_file` function with the selected file path, content, and an optional `mode` parameter ('a' for append, 'w' for overwrite).
-         - The function performs the file operation and returns a response indicating the success or failure of the operation.
-      5. Utilize the responses from both tools as needed for your application.
-    Tools:
-      - Read Directory
-      - File Writer
-    ``` 
-
   Instruction: |+
     **Instructions:**
     Review the objective and context if provided, and create a suitable action YAML file that outlines a specific action to achieve the given objective. The action should leverage the tools listed above and be structured to be executed by another process using scripts and API tools.
@@ -85,7 +54,7 @@ Prompts:
     2. **Description**: Write a detailed description of what the action does, specifying how it uses the listed tools to achieve the objective.
     3. **Example**: Include an example code snippet or usage scenario demonstrating how the action can be executed. Do not use any code blocks within the YAML format.
     4. **Instruction**: Outline step-by-step instructions on how to perform the action using the tools.
-    5. **Tools**: List the tools used in the action, ensuring they are selected strictly from the provided tool list.
+    5. **Tools**: List ONLY the names of the tools used in the action, ensuring they are selected strictly from the provided tool list.
 
     The response should be formatted strictly as a YAML file, following the structure provided below. Do not include any code blocks within the YAML format.
 

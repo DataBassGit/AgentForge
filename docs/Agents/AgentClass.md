@@ -20,33 +20,34 @@ The `Agent` leverages several key attributes, serving as placeholders for import
 - `prompt`: Maintains the list of prompts generated for use with the LLM.
 - `result`: Stores the raw result as returned by the LLM.
 - `output`: Holds the final output as produced by the agent’s processing logic.
-- `agent_data`: Holds the configuration data specific to the agent, including settings and operational parameters loaded upon initialization.
+- `agent_data`: Holds the configuration data specific to the agent, including settings, storage and operational parameters loaded upon initialization.
 - `functions`: Provides access to utility functions needed for the agent’s operations.
 
 ## Initialization
 
 ```python
-def __init__(self):
-    """
-    Initializes an Agent instance, setting up its name, logger, data attributes, and agent-specific configurations.
-    It attempts to load the agent's configuration data and storage settings.
-    """
-    self.agent_name: str = self.__class__.__name__
-    self.logger: Logger = Logger(name=self.agent_name)
-
-    self.data: Dict[str, Any] = {}
-    self.prompt: Optional[List[str]] = None
-    self.result: Optional[str] = None
-    self.output: Optional[str] = None
-
-    if not hasattr(self, 'agent_data'):
-        self.agent_data: Optional[Dict[str, Any]] = None
-
-    try:
-        self.functions: Functions = Functions()
-    except Exception as e:
-        self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
-        raise
+class Agent:
+    def __init__(self):
+        """
+        Initializes an Agent instance, setting up its name, logger, data attributes, and agent-specific configurations.
+        It attempts to load the agent's configuration data and storage settings.
+        """
+        self.agent_name: str = self.__class__.__name__
+        self.logger: Logger = Logger(name=self.agent_name)
+    
+        self.data: Dict[str, Any] = {}
+        self.prompt: Optional[List[str]] = None
+        self.result: Optional[str] = None
+        self.output: Optional[str] = None
+    
+        if not hasattr(self, 'agent_data'):
+            self.agent_data: Optional[Dict[str, Any]] = None
+    
+        try:
+            self.functions: Functions = Functions()
+        except Exception as e:
+            self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
+            raise
 ```
 
 The `__init__` method is designed to prepare the agent for operation, initializing essential attributes and loading configuration data pertinent to the agent's functionality.
