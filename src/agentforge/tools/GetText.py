@@ -21,7 +21,7 @@ class GetText:
             else:
                 if file_name_or_url.endswith('.pdf'):
                     return self.read_pdf(file_name_or_url)
-                elif file_name_or_url.endswith('.txt'):
+                elif file_name_or_url.endswith('.txt') or file_name_or_url.endswith('.md'):
                     return self.read_txt(file_name_or_url)
                 else:
                     return {"status": "failure", "content": "Unsupported file format - Use URL, PDF or TXT formats."}

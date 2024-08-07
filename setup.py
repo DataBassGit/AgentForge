@@ -10,11 +10,11 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.3.0",
+    version="0.3.1",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
-    url="https://github.com/DataBassGit/HiAGI",
+    url="https://github.com/DataBassGit/AgentForge",
     include_package_data=True,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
@@ -36,7 +36,7 @@ setup(
         "beautifulsoup4~=4.12.2",
         "browse~=1.0.1",
         "scipy",
-        "semantic-router",
+        "semantic-router==0.0.55",
         "discord.py",
         "google-generativeai"
     ],
@@ -67,6 +67,7 @@ setup(
     ],
     python_requires=">=3.9",
     package_data={
+        'agentforge.utils.guiutils': ['discord_client.py'],
         '': ['*.yaml'],  # Include your file types as needed
     },
     # package_data={
