@@ -34,9 +34,9 @@ Setting: |+
 # This can be useful for personalizing responses or for systems that require user identification.
 Username: DefaultUser
 
-# Objective: The primary goal or function of your agent.
+# Goal: The primary goal or function of your agent.
 # This can be as broad as providing assistance and answering questions, or as specific as performing tasks in a particular domain.
-Objective: Define the primary goal of your agent here.
+Goal: Define the primary goal of your agent here.
 
 # Additional Attributes: You can add any number of additional attributes to further define your agent.
 # Examples might include 'Skills', 'KnowledgeAreas', 'PreferredPronouns', etc.

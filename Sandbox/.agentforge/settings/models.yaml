@@ -1,89 +1,18 @@
-EmbeddingLibrary:
-  library: sentence_transformers
-
-ModelLibrary:
-  openai_api:
-    module: "openai"
-    class: "GPT"
-    models:
-      fast_model:
-        name: gpt-3.5-turbo
-      long_fast_model:
-        name: gpt-3.5-turbo-16k
-      old_fast_model:
-        name: gpt-3.5-turbo-0613
-      old_long_fast_model:
-        name: gpt-3.5-turbo-16k-0613
-      smart_model:
-        name: gpt-4
-      smart_fast_model:
-        name: gpt-4-turbo-2024-04-09
-        params: # Specific parameters for the model
-          max_new_tokens: 2500
-  claude_old:
-    module: "claude_old"
-    class: "Claude"
-    models:
-      claude:
-        name: claude-2
-  claude3_api:
-    module: "anthropic"
-    class: "Claude"
-    models:
-      claude-3:
-        name: claude-3-opus-20240229
-  gemini_api:
-    module: "gemini"
-    class: "Gemini"
-    models:
-      gemini-pro:
-        name: gemini-pro
-  oobabooga_api:
-    module: "oobabooga"
-    class: "Oobabooga"
-    models:
-      oobabooga:
-        name: None
-        params: # Oobabooga host server url
-          host_url: "127.0.0.1:11434"
-          allow_custom_value: True
-  ollama_api:
-    module: "ollama"
-    class: "Ollama"
-    models:
-      DolphinMistral:
-        name: DolphinMistral
-        params:
-          host_url: "http://localhost:11434/api/generate"
-          allow_custom_value: True
-  lm_studio_api:
-    module: "LMStudio"
-    class: "LMStudio"
-    models:
-      LMStudio:
-        name: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
-        params:
-          host_url: "http://localhost:11434/v1/chat/completions"
-          allow_custom_value: True
 # Default settings for all models unless overridden
 ModelSettings:
 #  API: gemini_api
-#  Model: gemini-pro
-#  API: claude_old
-#  Model: claude
-#  API: openai_api
-#  Model: smart_fast_model
+#  Model: gemini-flash
+  API: openai_api
+  Model: omni_model
 #  API: claude3_api
 #  Model: claude-3
-#  API: oobabooga_api
-#  Model: oobabooga
 #  API: ollama_api
 #  Model: DolphinMistral
-  API: lm_studio_api
-  Model: LMStudio
-  Params:
-    max_new_tokens: 2000
-    temperature: 0.5
+#  API: lm_studio_api
+#  Model: LMStudio
+  Params: # Default parameter values
+    max_new_tokens: 3000
+    temperature: 0.8
     top_p: 0.1
     n: 1
     stop: null
@@ -106,3 +35,68 @@ ModelSettings:
     num_return_sequences: 1
     bad_words_ids: null
     seed: -1
+
+# Library of Models and Parameter Defaults Override
+ModelLibrary:
+  openai_api:
+    module: "openai"
+    class: "GPT"
+    models:
+      omni_model:
+        name: gpt-4o
+        params: # Specific parameters for the model
+          max_new_tokens: 3500
+      smart_model:
+        name: gpt-4
+      smart_fast_model:
+        name: gpt-4-turbo-2024-04-09
+      fast_model:
+        name: gpt-3.5-turbo
+      long_fast_model:
+        name: gpt-3.5-turbo-16k
+      old_fast_model:
+        name: gpt-3.5-turbo-0613
+      old_long_fast_model:
+        name: gpt-3.5-turbo-16k-0613
+  claude_old:
+    module: "claude_old"
+    class: "Claude"
+    models:
+      claude:
+        name: claude-2
+  claude3_api:
+    module: "anthropic"
+    class: "Claude"
+    models:
+      claude-3:
+        name: claude-3-opus-20240229
+  gemini_api:
+    module: "gemini"
+    class: "Gemini"
+    models:
+      gemini-pro:
+        name: gemini-1.5-pro
+      gemini-flash:
+        name: gemini-1.5-flash
+  lm_studio_api:
+    module: "LMStudio"
+    class: "LMStudio"
+    models:
+      LMStudio:
+        name: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
+        params:
+          host_url: "http://localhost:1234/v1/chat/completions"
+          allow_custom_value: True
+  ollama_api:
+    module: "ollama"
+    class: "Ollama"
+    models:
+      DolphinMistral:
+        name: DolphinMistral
+        params:
+          host_url: "http://localhost:11434/api/generate"
+          allow_custom_value: True
+
+# Embedding Library (Not much to see here)
+EmbeddingLibrary:
+  library: sentence_transformers

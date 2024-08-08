@@ -1,9 +1,10 @@
 import os
 import uuid
+# from pathlib import Path
 from datetime import datetime
 from typing import Optional, Union
 
-from scipy.spatial import distance
+# from scipy.spatial import distance
 
 import chromadb
 from chromadb.config import Settings
@@ -13,6 +14,89 @@ from agentforge.utils.functions.Logger import Logger
 from ..config import Config
 
 logger = Logger(name="Chroma Utils")
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+
+def validate_inputs(collection_name: str, data: Union[list, str], ids: list, metadata: list[dict]):
+    """
+    Validates the inputs for the save_memory method.
+
+    Parameters:
+        collection_name (str): The name of the collection.
+        data (Union[list, str]): The documents to be saved.
+        ids (list): The IDs for the documents.
+        metadata (list[dict]): The metadata for the documents.
+
+    Raises:
+        ValueError: If any of the inputs are invalid.
+    """
+    if not collection_name:
+        raise ValueError("Collection name cannot be empty.")
+
+    if not data:
+        raise ValueError("Data cannot be empty.")
+
+    if not (len(data) == len(ids) == len(metadata)):
+        raise ValueError("The length of data, ids, and metadata lists must match.")
+
+
+def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[dict] = None):
+    """
+    Generates default values for ids and metadata if they are not provided.
+
+    Parameters:
+        data (Union[list, str]): The documents to be saved.
+        ids (list, optional): The IDs for the documents.
+        metadata (list[dict], optional): The metadata for the documents.
+
+    Returns:
+        tuple: A tuple containing the generated ids and metadata.
+    """
+    if isinstance(data, str):
+        data = [data]
+
+    ids = [str(uuid.uuid4()) for _ in data] if ids is None else ids
+    metadata = [{} for _ in data] if metadata is None else metadata
+
+    return ids, metadata
+
+
+def apply_timestamps(metadata: list[dict], config):
+    """
+    Applies timestamps to the metadata if required by the configuration.
+
+    Parameters:
+        metadata (list[dict]): The metadata for the documents.
+        config (dict): The configuration dictionary.
+    """
+    do_time_stamp = config['settings']['system'].get('ISOTimeStampMemory')
+    if do_time_stamp:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        for m in metadata:
+            m['isotimestamp'] = timestamp
+
+    do_time_stamp = config['settings']['system'].get('UnixTimeStampMemory')
+    if do_time_stamp:
+        timestamp = datetime.now().timestamp()
+        for m in metadata:
+            m['unixtimestamp'] = timestamp
+
+
+def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
+    """
+    Saves the data to the collection.
+
+    Parameters:
+        collection: The collection object.
+        data (list): The documents to be saved.
+        ids (list): The IDs for the documents.
+        metadata (list[dict]): The metadata for the documents.
+    """
+    collection.upsert(
+        documents=data,
+        metadatas=metadata,
+        ids=ids
+    )
 
 
 class ChromaUtils:
@@ -31,25 +115,32 @@ class ChromaUtils:
     db_embed = None
     embedding = None
 
-    def __new__(cls, *args, **kwargs):
-        """
-        Ensures a single instance of ChromaUtils is created (singleton pattern). Initializes embeddings and storage
-        upon the first creation.
+    # def __new__(cls, *args, **kwargs):
+    #     """
+    #     Ensures a single instance of ChromaUtils is created (singleton pattern). Initializes embeddings and storage
+    #     upon the first creation.
+    #
+    #     Returns:
+    #         ChromaUtils: The singleton instance of the ChromaUtils class.
+    #     """
+    #     pass
+    #     if not cls._instance:
+    #         logger.log("Creating chroma utils", 'debug')
+    #         cls.config = Config()
+    #         cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
+    #         cls._instance.init_embeddings()
+    #         cls._instance.init_storage()
+    #     return cls._instance
 
-        Returns:
-            ChromaUtils: The singleton instance of the ChromaUtils class.
+    def __init__(self, persona_name="default"):
         """
-        if not cls._instance:
-            logger.log("Creating chroma utils", 'debug')
-            cls.config = Config()
-            cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
-            cls._instance.init_embeddings()
-            cls._instance.init_storage()
-        return cls._instance
-
-    def __init__(self):
-        # Add your initialization code here
-        pass
+        Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
+        upon creation.
+        """
+        self.persona_name = persona_name
+        self.config = Config()
+        self.init_embeddings()
+        self.init_storage()
 
     def init_embeddings(self):
         """
@@ -97,6 +188,9 @@ class ChromaUtils:
                     self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
                 else:
                     self.client = chromadb.EphemeralClient()
+
+            if self.config.data['settings']['storage']['ChromaDB'].get('DBFreshStart'):
+                self.reset_memory()
         except Exception as e:
             logger.log(f"Error initializing storage: {e}", 'error')
             raise
@@ -117,7 +211,10 @@ class ChromaUtils:
 
         # Construct the absolute path of the database using the project root
         if db_path_setting:
-            db_path = str(self.config.project_root / db_path_setting)
+            db_path = str(self.config.project_root / db_path_setting / self.persona_name)
+            # if self.persona_name is not None:
+            #     db_path = f"{db_path}/{self.persona_name}"
+
         else:
             db_path = None
 
@@ -175,7 +272,7 @@ class ChromaUtils:
             self.select_collection(collection_name)
 
             max_result_count = self.collection.count()
-            num_results = min(1, max_result_count)
+            num_results = min(10, max_result_count)
 
             if num_results > 0:
                 result = self.collection.peek()
@@ -244,46 +341,22 @@ class ChromaUtils:
         """
 
         if self.config.data['settings']['system']['SaveMemory'] is False:
-            print("\n\nSaving memory is OFF. Enable 'SaveMemory' in the system.yaml to turn it ON.")
+            print("\nMemory Saving is Disabled. To Enable Memory Saving, set the 'SaveMemory' flag to 'true' in the "
+                  "system.yaml file.\n")
             return
 
-        if not collection_name:
-            raise ValueError("Collection name cannot be empty.")
-
-        if not data:
-            raise ValueError("Data cannot be empty.")
-
-        # Convert to list if value comes as string
-        if isinstance(data, str):
-            data = [data]
-
-        # Default ids and metadata if None
-        ids = [str(uuid.uuid4()) for _ in data] if ids is None else ids
-        metadata = [{} for _ in data] if metadata is None else metadata
-
-        # Validate that data, metadata, and ids have the same length
-        if not (len(data) == len(ids) == len(metadata)):
-            raise ValueError("The length of data, ids, and metadata lists must match.")
-
         try:
-            do_time_stamp = self.config.data['settings']['system'].get('ISOTimeStampMemory')
-            if do_time_stamp is True:
-                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                for m in metadata:
-                    m['isotimestamp'] = timestamp
+            data = [data] if isinstance(data, str) else data
 
-            do_time_stamp = self.config.data['settings']['system'].get('UnixTimeStampMemory')
-            if do_time_stamp is True:
-                timestamp = datetime.now().timestamp()
-                for m in metadata:
-                    m['unixtimestamp'] = timestamp
+            ids, metadata = generate_defaults(data, ids, metadata)
+
+            validate_inputs(collection_name, data, ids, metadata)
+
+            apply_timestamps(metadata, self.config.data)
 
             self.select_collection(collection_name)
-            self.collection.upsert(
-                documents=data,
-                metadatas=metadata,
-                ids=ids
-            )
+
+            save_to_collection(self.collection, data, ids, metadata)
 
         except Exception as e:
             raise ValueError(f"Error saving results. Error: {e}\n\nData:\n{data}")
@@ -313,9 +386,13 @@ class ChromaUtils:
                 raise ValueError("Collection name cannot be empty.")
 
             self.select_collection(collection_name)
-
             max_result_count = self.collection.count()
-            num_results = min(num_results, max_result_count)
+
+            # Set num_results to max_result_count if it is 0, indicating no limit.
+            if num_results == 0:
+                num_results = max_result_count
+            else:
+                num_results = min(num_results, max_result_count)
 
             if num_results <= 0:
                 logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
@@ -362,41 +439,53 @@ class ChromaUtils:
 
         self.client.reset()
 
-    def search_storage_by_threshold(self, collection_name: str, query_text: str, threshold: float = 0.7,
+    def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.8,
                                     num_results: int = 1):
         """
         Searches the storage for documents that meet a specified similarity threshold to a query.
 
         Parameters:
             collection_name (str): The name of the collection to search within.
-            query_text (str): The text of the query to compare against the documents in the collection.
-            num_results (int): The maximum number of results to return. Defaults to 1.
-            threshold (float): The similarity threshold that the documents must meet or exceed. Defaults to 0.7.
+            query (str): The text of the query to compare against the documents in the collection.
+            num_results (int): The maximum number of results to return. Default is 1.
+            threshold (float): The similarity threshold that the documents must meet or exceed. Defaults to 0.8.
 
         Returns:
-            dict: A dictionary containing the search results if successful; otherwise, returns a dictionary
-                  indicating failure if no documents meet the threshold.
+            dict: A dictionary containing the search results if successful; otherwise, returns an empty
+             dictionary if no documents are found or meet the threshold.
 
         Raises:
             Exception: Logs an error message if an exception occurs during the search process.
         """
         try:
-            query_emb = self.return_embedding(query_text)
+            query_emb = self.return_embedding(query)
 
             results = self.query_memory(collection_name=collection_name, embeddings=query_emb,
-                                        include=["embeddings", "documents", "metadatas", "distances"],
+                                        include=["documents", "metadatas", "distances"],
                                         num_results=num_results)
 
-            # We compare against the first result's embedding and `distance.cosine` returns a similarity measure.
-            # May need to adjust the logic based on the actual behavior of `distance.cosine`.
-            if results and 'embeddings' in results and results['embeddings']:
-                dist = distance.cosine(query_emb[0], results['embeddings'][0][0])
-                if dist < threshold:
-                    return results
+            # We compare against the first result's embedding and `distance.cosine` returns
+            # a similarity measure. May need to adjust the logic based on the actual behavior
+            # of `distance.cosine`.
+            # dist = distance.cosine(query_emb[0], results['embeddings'][0])
+            if results:
+                results.pop('included')
+                filtered_data = {
+                    key: [value for value, dist in zip(results[key], results['distances']) if dist < threshold]
+                    for key in results
+                }
+                # filtered_data = {
+                #     key: [value for value, dist in zip(results[key], results['distances']) if True]
+                #     for key in results
+                # }
+                if filtered_data['documents']:
+                    return filtered_data
                 else:
-                    return {'failed': 'No documents found that meet the threshold.'}
+                    logger.log('Search by Threshold: No documents found that meet the threshold.', 'info')
             else:
-                return {'failed': 'No documents found.'}
+                logger.log('Search by Threshold: No documents found.', 'info')
+
+            return {}
 
         except Exception as e:
             logger.log(f"Error searching storage by threshold: {e}", 'error')
@@ -455,26 +544,36 @@ class ChromaUtils:
                 logger.log(f"Error: The metadata tag '{metadata_tag}' contains non-numeric values.", 'error')
                 return None
 
-            if min_max == "min":
-                target_index = metadata_values.index(min(metadata_values))
+            if metadata_values:
+                if min_max == "min":
+                    target_index = metadata_values.index(min(metadata_values))
+                else:
+                    try:
+                        target_index = metadata_values.index(max(metadata_values))
+                    except:
+                        logger.log(f"Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.", 'error')
+                        target_index = 0
             else:
-                target_index = metadata_values.index(max(metadata_values))
+                target_index = 0
 
-            # Retrieve the full entry with the highest metadata value
-            target_entry = self.collection.get(ids=[document_ids[target_index]], include=["documents", "metadatas"])
+            try:
+                # Retrieve the full entry with the highest metadata value
+                target_entry = self.collection.get(ids=[document_ids[target_index]], include=["documents", "metadatas"])
 
-            max_metadata = {
-                "ids": target_entry["ids"][0],
-                "target": target_entry["metadatas"][0][metadata_tag],
-                "metadata": target_entry["metadatas"][0],
-                "document": target_entry["documents"][0],
-            }
+                max_metadata = {
+                    "ids": target_entry["ids"][0],
+                    "target": target_entry["metadatas"][0][metadata_tag],
+                    "metadata": target_entry["metadatas"][0],
+                    "document": target_entry["documents"][0],
+                }
 
-            logger.log(
-                f"Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
-                'debug'
-            )
-            return max_metadata
+                logger.log(
+                    f"Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
+                    'debug'
+                )
+                return max_metadata
+            except:
+                return None
 
         except (KeyError, ValueError, IndexError) as e:
             logger.log(f"Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')

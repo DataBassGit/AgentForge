@@ -1,16 +1,27 @@
+# Persona Settings
+PersonasEnabled: true
 Persona: default
-OnTheFly: true
-SaveMemory: false
+
+# Storage Settings
+StorageEnabled: true
+SaveMemory: true # Saving Memory won't work if Storage is disabled
 ISOTimeStampMemory: true
 UnixTimeStampMemory: true
 
+# Misc. Settings
+OnTheFly: true
+
+# Logging Settings
 Logging:
   Enabled: true
   Folder: ./Logs
   Files:
-    AgentForge: error
+    AgentForge: debug
     ModelIO: debug
-    Results: error
+    Actions: debug
+    Results: debug
+    DiscordClient: error
 
+# Paths the system (agents) have access to read and write
 Paths:
   Files: ./Files

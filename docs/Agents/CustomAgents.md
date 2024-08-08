@@ -6,7 +6,7 @@ Creating a Custom Agent entails building a new class that inherits the `Agent` b
 
 To create a custom agent, you'll simply need to create a new `Python` class that inherits from the base `Agent` class. Once you've achieved this, start customizing by overriding the default methods to align them with your specific requirements. 
 
-Additionally, remember to create a corresponding `YAML` file for your agent's prompts. The filename should mirror your agent class name and the YAML file is case-sensitive. With these steps, you've successfully created a customized agent tailored to your specific need!
+Additionally, remember to create a corresponding `YAML` file for your agent's prompts. The filename should mirror your agent class name and the YAML file name is case-sensitive. With these steps, you've successfully created a customized agent tailored to your specific need!
 
 ### Example
 
@@ -23,7 +23,7 @@ To utilize this new agent in a different script, import it from its location and
 from your_custom_agent_location.NewAgent import NewAgent
 
 new_agent = NewAgent()
-params = { # ... Dictionary Containing Parameters Needed by the Agent ... }
+params = { # ... Dictionary Containing Parameters If Needed by the Agent ... }
 results = new_agent.run(**params)
 ```
 
@@ -31,11 +31,11 @@ results = new_agent.run(**params)
 
 ## Persona Files
 
-In AgentForge, **Personas** are utilized to encapsulate the information accessible to the agents. They are a crucial tool to define the body of knowledge that an agent can draw from during its execution. 
+In **AgentForge**, **Personas** are utilized to encapsulate the information accessible to the agents. They are a crucial tool to define the body of knowledge that an agent can draw from during its execution. 
 
-A Persona is not confined to defining the personality of an agent. Instead, it serves as a store for any kind of information – from data related to a specific subject to general world facts – that the agents might need for providing comprehensive responses to users' input.
+A **Persona** is not confined to defining the personality of an agent. Instead, it serves as a store for any kind of information – from data related to a specific subject to general world facts – that the agents might need for providing comprehensive responses to users' input.
 
-Personas are defined using .yaml files within the `.agentforge/personas` folder. You can create as many persona files as needed, allowing you to structure your agents' knowledge in an organized manner and distribute information across them as required.
+Personas are defined using `YAML` files within the `.agentforge/personas` folder. You can create as many persona files as needed, allowing you to structure your agents' knowledge in an organized manner and distribute information across them as required.
 
 Each custom agent can be linked to a specific persona file, providing it with the desired set of information. For more details on how to structure the `Persona YAML File`, check out the [Persona Documentation](../Personas/Personas.md).
 
@@ -64,7 +64,7 @@ class NewAgent(Agent):
         # ...
      
     
-    def save_result(self):
+    def build_output(self):
         # Custom behavior here
         # ...
 ```

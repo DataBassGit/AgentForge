@@ -1,6 +1,7 @@
 import os
 import time
 import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from agentforge.utils.functions.Logger import Logger
 
 # Get API key from Env
@@ -32,7 +33,7 @@ class Gemini:
     Attributes:
         num_retries (int): The number of times to retry generating text upon encountering errors.
     """
-    num_retries = 5
+    num_retries = 4
 
     def __init__(self, model):
         """
@@ -66,10 +67,16 @@ class Gemini:
         # Will retry to get chat if a rate limit or bad gateway error is received from the chat
         reply = None
         for attempt in range(self.num_retries):
-            backoff = 2 ** (attempt + 2)
+            backoff = 8 ** (attempt + 2)
             try:
                 response = self._model.generate_content(
                     prompt,
+                    safety_settings={
+                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                    },
                     generation_config=genai.types.GenerationConfig(
                         max_output_tokens=params["max_new_tokens"],
                         temperature=params["temperature"],

@@ -1,5 +1,2 @@
-recursive-include src/agentforge/loops *
-include src/agentforge/utils/installer/actions.json
-include src/agentforge/utils/installer/config.json
-include src/agentforge/utils/installer/default.json
-include src/agentforge/utils/installer/tools.json
+include src/agentforge/utils/guiutils/discord_client.py
+recursive-include src/agentforge/utils/ *

@@ -1,3 +1,5 @@
+from agentforge.utils.functions.ParsingUtils import parse_yaml_string
+
 # Utilities Overview
 
 ## Introduction to Utilities
@@ -27,7 +29,7 @@ from agentforge.utils.function_utils import Functions
 functions = Functions()
 
 # Utilize a specific utility
-parsed_yaml = functions.agent_utils.parse_yaml_string(yaml_string)
+parsed_yaml = parse_yaml_string(functions.agent_utils.logger, yaml_string)
 ```
 
 ## Additional Utilities

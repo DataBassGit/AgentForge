@@ -18,9 +18,9 @@ Modules, being generic, are versatile entities adaptable to a wide array of use 
 
 **AgentForge**'s evolving suite of modules includes:
 
-- **[Action Execution Module](ActionExecution.md)**: Orchestrates the dynamic execution of tool based actions integrating yhe outputs from one tool onto the next one.
+- **[Action Class](../ToolsAndActions/Actions.md)**: Provides methods for the dynamic execution of tool based actions integrating the outputs from one tool onto the next one.
   - Uses the **[Action Selection Agent](ModuleAgents/ActionSelectionAgent.md)** to select the most apt action from a given set.
-  - Utilizes the **[Action Priming Agent](ModuleAgents/ActionPrimingAgent.md)** to prime the selected action, setting the stage for its execution.
+  - Utilizes the **[Tool Priming Agent](ModuleAgents/ToolPrimingAgent.md)** to prime the selected action, setting the stage for its execution.
 
 - **[InjectKG Module](InjectKG.md)**:
   - Utilizes the **[MetadataKGAgent](ModuleAgents/MetadataKGAgent.md)** to extract and structure metadata, facilitating the enrichment of knowledge within the system's knowledge graph.

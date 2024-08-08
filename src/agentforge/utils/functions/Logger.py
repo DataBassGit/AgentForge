@@ -296,27 +296,6 @@ class Logger:
         self.log(f"Parsing Error - It is very likely the model did not respond in the required "
                  f"format\n\nModel Response:\n{model_response}\n\nError: {error}", 'error')
 
-    def log_result(self, result: str, desc: str):
-        """
-        Logs and displays a result with a description.
-
-        Parameters:
-            result (str): The result to log and display.
-            desc (str): A short description of the result.
-        """
-        try:
-            # Print the task result
-            cprint(f"***** {desc} *****", 'green', attrs=['bold'])
-            cprint(encode_msg(result), 'white')
-            cprint("*****", 'green', attrs=['bold'])
-
-            # Save the result to the log file
-            self.log(f'\n{result}', 'info', 'Results')
-        except OSError as e:
-            self.log(f"File operation error: {e}", 'error')
-        except Exception as e:
-            self.log(f"Error logging result: {e}", 'error')
-
     def log_info(self, msg: str):
         """
         Logs and displays an informational message.

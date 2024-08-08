@@ -1,4 +1,5 @@
 from .functions.AgentUtils import AgentUtils
+from .functions.ParsingUtils import ParsingUtils
 from .functions.PromptHandling import PromptHandling
 from .functions.ToolUtils import ToolUtils
 from .functions.UserInterface import UserInterface
@@ -33,6 +34,7 @@ class Functions:
 
         try:
             self.agent_utils = AgentUtils()
+            self.parsing_utils = ParsingUtils()
             self.prompt_handling = PromptHandling()
             self.tool_utils = ToolUtils()
             self.user_interface = UserInterface()
