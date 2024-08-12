@@ -95,7 +95,7 @@ class Actions:
             if action_list:
                 self.logger.log(f"\nSelecting Action for Objective:\n{objective}", 'info', 'Actions')
                 order = ["Name", "Description"]
-                available_actions = self.format_item_list(action_list, order)
+                available_actions = self.functions.tool_utils.format_item_list(action_list, order)
                 selected_action = self.select_action_for_objective(objective=objective,
                                                                    action_list=available_actions,
                                                                    context=context)
@@ -103,7 +103,7 @@ class Actions:
             else:
                 self.logger.log(f"\nCrafting Action for Objective:\n{objective}", 'info', 'Actions')
                 order = ["Name", "Description", "Args"]
-                tool_list = self.get_tool_list()
+                tool_list = self.functions.tool_utils.get_tool_list()
                 selected_action = self.craft_action_for_objective(objective=objective,
                                                                   tool_list=tool_list,
                                                                   context=context,
@@ -115,13 +115,13 @@ class Actions:
 
             action_info_order = ["Name", "Description"]
             tool_info_order = ["Name", "Description", "Args", "Instruction", "Example"]
-            result = self.run_tools_in_sequence(objective=objective,
-                                                action=selected_action,
-                                                action_info_order=action_info_order,
-                                                tool_info_order=tool_info_order)
+            result: Dict = self.run_tools_in_sequence(objective=objective,
+                                                      action=selected_action,
+                                                      action_info_order=action_info_order,
+                                                      tool_info_order=tool_info_order)
             # Check if an error occurred
-            if isinstance(result, Dict) and 'status' != 'success':
-                self.logger.log(f"\nAction Result:\n{result['error']}", 'error', 'Actions')
+            if isinstance(result, Dict) and result['status'] != 'success':
+                self.logger.log(f"\nAction Failed:\n{result['message']}", 'error', 'Actions')
                 return result  # Stop execution and return the error message
 
             self.logger.log(f"\nAction Result:\n{result['data']}", 'info', 'Actions')
@@ -160,7 +160,7 @@ class Actions:
             return {}
 
         if parse_result:
-            action_list = self.parse_item_list(action_list)
+            action_list = self.functions.tool_utils.parse_item_list(action_list)
 
         return action_list
 
@@ -180,7 +180,7 @@ class Actions:
             Union[str, Dict]: The selected action or formatted result.
         """
         if isinstance(action_list, Dict):
-            action_list = self.format_item_list(action_list)
+            action_list = self.functions.tool_utils.format_item_list(action_list)
 
         selected_action = self.action_selection.run(objective=objective, action_list=action_list, context=context)
 
@@ -206,7 +206,7 @@ class Actions:
             Union[str, Dict]: The crafted action or formatted result.
         """
         if isinstance(tool_list, Dict):
-            tool_list = self.format_item_list(tool_list, info_order)
+            tool_list = self.functions.tool_utils.format_item_list(tool_list, info_order)
 
         self.logger.log(f"\nTool List:\n{tool_list}", 'info', 'Actions')
 
@@ -223,6 +223,62 @@ class Actions:
                 return msg
 
         return new_action
+
+    def prime_tool_for_action(self, objective: str, action: Union[str, Dict], tool: Dict, previous_results: Optional[str] = None,
+                              tool_context: Optional[str] = None, action_info_order: Optional[List[str]] = None,
+                              tool_info_order: Optional[List[str]] = None) -> Dict:
+        """
+        Prepares the tool for execution by running the ToolPrimingAgent.
+
+        Parameters:
+            objective (str): The objective for tool priming.
+            action (Union[str, Dict]): The action to prime the tool for.
+                If a dictionary, it will be formatted using the tool_info_order methods.
+            tool (Dict): The tool to be primed.
+            previous_results (Optional[str]): The results from previous tool executions.
+            tool_context (Optional[str]): The context for the tool.
+            action_info_order (Optional[List[str]]): The order of action information to include in the Agent prompt.
+            tool_info_order (Optional[List[str]]): The order of tool information to include in the Agent prompt.
+
+        Returns:
+            Dict: The formatted payload for the tool.
+
+        Raises:
+            Exception: If an error occurs during tool priming.
+        """
+        formatted_tool = self.functions.tool_utils.format_item(tool, tool_info_order)
+
+        if isinstance(action, Dict):
+            action = self.functions.tool_utils.format_item(action, action_info_order)
+
+        try:
+            # Load the paths into a dictionary
+            paths_dict = self.storage.config.data['settings']['system']['Paths']
+
+            # Construct the work_paths string by iterating over the dictionary
+            work_paths = None
+            if paths_dict:
+                work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
+
+            payload = self.priming_agent.run(objective=objective,
+                                             action=action,
+                                             tool_name=tool.get('Name'),
+                                             tool_info=formatted_tool,
+                                             path=work_paths,
+                                             previous_results=previous_results,
+                                             tool_context=tool_context)
+
+            formatted_payload = self.functions.parsing_utils.parse_yaml_content(payload)
+
+            if formatted_payload is None:
+                return {'error': 'Parsing Error - Model did not respond in specified format'}
+
+            self.logger.log(f"Tool Payload: {formatted_payload}", 'info', 'Actions')
+            return formatted_payload
+        except Exception as e:
+            message = f"Error in priming tool '{tool['Name']}': {e}"
+            self.logger.log(message, 'error', "Actions")
+            return {'error': message, 'traceback': traceback.format_exc()}
 
     def run_tools_in_sequence(self, objective: str, action: Dict,
                               action_info_order: Optional[List[str]] = None,
@@ -246,20 +302,21 @@ class Actions:
         tool_context: str = ''
 
         try:
-            tools = self.parse_tools_in_action(action)
+            # tools = self.parse_tools_in_action(action)
+            tools = self.functions.tool_utils.parse_tools_in_action(action)
 
             # Check if an error occurred
             if isinstance(tools, Dict) and 'error' in tools:
                 return tools
 
             for tool in tools:
-                payload = self.prime_tool(objective=objective,
-                                          action=action,
-                                          tool=tool,
-                                          previous_results=results.get('data', None),
-                                          tool_context=tool_context,
-                                          action_info_order=action_info_order,
-                                          tool_info_order=tool_info_order)
+                payload = self.prime_tool_for_action(objective=objective,
+                                                     action=action,
+                                                     tool=tool,
+                                                     previous_results=results.get('data', None),
+                                                     tool_context=tool_context,
+                                                     action_info_order=action_info_order,
+                                                     tool_info_order=tool_info_order)
 
                 if isinstance(payload, Dict) and 'error' in payload:
                     return payload  # Stop execution and return the error message
@@ -269,213 +326,12 @@ class Actions:
 
                 # Check if an error occurred
                 if isinstance(results, Dict) and results['status'] != 'success':
-                    return results  # Stop execution and return the error message
+                    return results  # Stop loop and return the error message
 
             return results
 
         except Exception as e:
-            error_message = f"Error in running tools in sequence: {e}"
+            error_message = f"Error running tools in sequence: {e}"
             self.logger.log(error_message, 'error')
             return {'error': error_message, 'traceback': traceback.format_exc()}
 
-    # --------------------------------------------------------------------------------------------------------
-    # ------------------------------- Helper Methods for Primary Functionality -------------------------------
-    # --------------------------------------------------------------------------------------------------------
-
-    def prime_tool(self, objective: str, action: Union[str, Dict], tool: Dict, previous_results: Optional[str] = None,
-                   tool_context: Optional[str] = None, action_info_order: Optional[List[str]] = None,
-                   tool_info_order: Optional[List[str]] = None) -> Dict:
-        """
-        Prepares the tool for execution by running the ToolPrimingAgent.
-
-        Parameters:
-            objective (str): The objective for tool priming.
-            action (Union[str, Dict]): The action to prime the tool for. If a dictionary, it will be formatted using tool_info_order.
-            tool (Dict): The tool to be primed.
-            previous_results (Optional[str]): The results from previous tool executions.
-            tool_context (Optional[str]): The context for the tool.
-            action_info_order (Optional[List[str]]): The order of action information to include in the Agent prompt.
-            tool_info_order (Optional[List[str]]): The order of tool information to include in the Agent prompt.
-
-        Returns:
-            Dict: The formatted payload for the tool.
-
-        Raises:
-            Exception: If an error occurs during tool priming.
-        """
-        formatted_tool = self.format_item(tool, tool_info_order)
-
-        if isinstance(action, Dict):
-            action = self.format_item(action, action_info_order)
-
-        try:
-            # Load the paths into a dictionary
-            paths_dict = self.storage.config.data['settings']['system']['Paths']
-
-            # Construct the work_paths string by iterating over the dictionary
-            work_paths = None
-            if paths_dict:
-                work_paths = "\n".join(f"{key}: {value}" for key, value in paths_dict.items())
-
-            payload = self.priming_agent.run(objective=objective,
-                                             action=action,
-                                             tool_name=tool.get('Name'),
-                                             tool_info=formatted_tool,
-                                             path=work_paths,
-                                             previous_results=previous_results,
-                                             tool_context=tool_context)
-
-            formatted_payload = self.functions.parsing_utils.parse_yaml_content(payload)
-
-            if formatted_payload is None:
-                raise Exception('Parsing Error - Model did not respond in specified format')
-
-            self.logger.log(f"Tool Payload: {formatted_payload}", 'info', 'Actions')
-            return formatted_payload
-        except Exception as e:
-            self.logger.log(f"Error in priming tool: {e}", 'error', "Actions")
-            message = f"Error in priming tool '{tool['Name']}': {e}"
-            self.logger.log(message, 'error', "Actions")
-            return {'error': message, 'traceback': traceback.format_exc()}
-
-    def load_tool_from_storage(self, tool: str) -> Optional[Dict]:
-        """
-        Loads configuration and data for a specified tool from the storage.
-
-        Parameters:
-            tool (str): The name of the tool to load.
-
-        Returns:
-            Optional[Dict]: The loaded tool data, or None if an error occurs.
-        """
-        try:
-            result = self.storage.query_memory(collection_name='Tools', query=tool, include=["documents", "metadatas"])
-            filtered = result['metadatas'][0]
-            return filtered
-        except Exception as e:
-            self.logger.log(f"Error in loading tool: {e}", 'error')
-            return None
-
-    def get_tool_list(self, num_results: int = 20,
-                      parse_result: bool = True) -> Optional[Dict[str, Union[List[str], None, List[Dict]]]]:
-        """
-        Retrieves the list of tools from storage.
-
-        Parameters:
-            num_results (int): The number of tools to return.
-            parse_result (bool): Whether to parse the tool list for easier handling. Default is True.
-
-        Returns:
-            Optional[Dict[str, Union[List[str], None, List[Dict]]]]: A dictionary containing all tool information,
-            or None if there are no tools.
-        """
-        if self.storage.count_collection('Tools') <= num_results:
-            tool_list = self.storage.load_collection('Tools')
-
-            if parse_result:
-                tool_list = self.parse_item_list(tool_list)
-
-            return tool_list
-
-        # Need a way to query for relevant tools
-
-    # --------------------------------------------------------------------------------------------------------
-    # ----------------------------------------- Formatting Methods -------------------------------------------
-    # --------------------------------------------------------------------------------------------------------
-
-    @staticmethod
-    def format_item(item: Dict[str, Union[str, List[str]]],
-                    order: Optional[List[str]] = None) -> str:
-        """
-        Formats an item (action or tool) into a human-readable string.
-
-        Parameters:
-            item (Dict[str, Union[str, List[str]]]): The item to format.
-            order (Optional[List[str]]): The order in which to format the item's keys.
-
-        Returns:
-            str: The formatted item string.
-        """
-        if order is None:
-            order = list(item.keys())
-
-        formatted_string = ""
-        for key in order:
-            if key in ('Name', 'Command', 'Script', 'isotimestamp', 'unixtimestamp') and key in item:
-                formatted_string += f"{key}: {str(item[key]).strip()}\n"
-            elif key in ('Tools', 'Args') and key in item:
-                item_list = item[key].split(',')
-                formatted_list = "\n- ".join([items.strip() for items in item_list])
-                formatted_string += f"{key}:\n- {formatted_list}\n\n"
-            elif key in item:
-                formatted_string += f"{key}:\n{str(item[key]).strip()}\n\n"
-        return formatted_string.strip()
-
-    def format_item_list(self, item_list: Dict, order: Optional[List[str]] = None) -> Optional[str]:
-        """
-        Formats the actions into a human-readable string based on a given order and stores it in the agent's data for
-        later use.
-
-        Parameters:
-            item_list (Dict): The list of actions or tools to format.
-            order (Optional[List[str]]): The order in which to format the action's keys.
-
-        Returns:
-            Optional[str]: The formatted string of actions, or None if an error occurs.
-        """
-        try:
-            formatted_actions = []
-            for action_name, metadata in item_list.items():
-                formatted_action = self.format_item(metadata, order)
-                formatted_actions.append(formatted_action)
-            return "---\n" + "\n---\n".join(formatted_actions) + "\n---"
-        except Exception as e:
-            self.logger.log(f"Error Formatting Actions:\n{item_list}\n\nError: {e}", 'error', 'Actions')
-            return None
-
-    # --------------------------------------------------------------------------------------------------------
-    # ------------------------------------- Parsing and Utility Methods --------------------------------------
-    # --------------------------------------------------------------------------------------------------------
-
-    def parse_item_list(self, item_list: Dict) -> Optional[Dict[str, Dict]]:
-        """
-        Parses and structures the actions fetched from storage for easier handling and processing.
-
-        Parameters:
-            item_list (Dict): The list of actions or tools to parse.
-
-        Returns:
-            Optional[Dict[str, Dict]]: A dictionary of parsed actions, or None if an error occurs.
-        """
-        parsed_list = {}
-        try:
-            for metadata in item_list.get("metadatas", []):
-                metadata_name = metadata.get("Name")
-                if metadata_name:
-                    parsed_list[metadata_name] = metadata
-            return parsed_list
-        except Exception as e:
-            self.logger.log(f"Error Parsing Item:\n{item_list}\n\nError: {e}", 'error', 'Actions')
-            return None
-
-    def parse_tools_in_action(self, action: Dict) -> List[Dict] | None:
-        """
-        Loads the tools specified in the action's configuration.
-
-        Parameters:
-            action (Dict): The action containing the tools to load.
-
-        Returns:
-            List[Dict]: A list with the loaded tools or None.
-
-        Raises:
-            Exception: If an error occurs while loading action tools.
-        """
-        try:
-            tools = [self.load_tool_from_storage(tool) for tool in action['Tools']]
-        except Exception as e:
-            error_message = f"Error in loading tools from action '{action['Name']}': {e}"
-            self.logger.log(error_message, 'error', 'Actions')
-            tools = {'error': error_message, 'traceback': traceback.format_exc()}
-
-        return tools

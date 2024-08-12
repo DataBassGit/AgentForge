@@ -570,11 +570,11 @@ from agentforge.modules.Actions import Actions
 
 objective = 'Automate file backup'
 action = {
-    "Name": "Automated File Backup",
-    "Description": "This action automates the process of backing up files from a specified directory...",
-    "Example": "To back up all files from the 'documents' directory to a backup file in the 'backup' ...",
-    "Instruction": "1. Use the 'Read Directory' tool to list all files in the source directory...",
-    "Tools": ["Read Directory", "Read File", "File Writer"],
+  "Name": "Automated File Backup",
+  "Description": "This action automates the process of backing up files from a specified directory...",
+  "Example": "To back up all files from the 'documents' directory to a backup file in the 'backup' ...",
+  "Instruction": "1. Use the 'Read Directory' tool to list all files in the source directory...",
+  "Tools": ["Read Directory", "Read File", "File Writer"],
 }
 tool = {
   "Args": "directory_paths (str or list of str), max_depth (int)",
@@ -587,7 +587,7 @@ tool = {
 }
 
 actions = Actions()
-payload = actions.prime_tool(objective=objective, action=action, tool=tool)
+payload = actions.prime_tool_for_action(objective=objective, action=action, tool=tool)
 ```
 
 **Expected Output:**
@@ -870,24 +870,24 @@ Formats the actions into a human-readable string based on a given order and stor
 from agentforge.modules.Actions import Actions
 
 item_list = {
-    "Copy Files": {
-        "Name": "Copy Files",
-        "Description": "The 'Copy Files' tool copies files from one location to another...",
-        "Args": "source_path, destination_path",
-        "Instruction": "To use the 'Copy Files' tool, provide the source and destination paths...",
-        "Example": "copy_files('path/to/source', 'path/to/destination')",
-    },
-    "Move Files": {
-        "Name": "Move Files",
-        "Description": "The 'Move Files' tool moves files from one location to another...",
-        "Args": "source_path, destination_path",
-        "Instruction": "To use the 'Move Files' tool, provide the source and destination paths...",
-        "Example": "move_files('path/to/source', 'path/to/destination')",
-    },
+  "Copy Files": {
+    "Name": "Copy Files",
+    "Description": "The 'Copy Files' tool copies files from one location to another...",
+    "Args": "source_path, destination_path",
+    "Instruction": "To use the 'Copy Files' tool, provide the source and destination paths...",
+    "Example": "copy_files('path/to/source', 'path/to/destination')",
+  },
+  "Move Files": {
+    "Name": "Move Files",
+    "Description": "The 'Move Files' tool moves files from one location to another...",
+    "Args": "source_path, destination_path",
+    "Instruction": "To use the 'Move Files' tool, provide the source and destination paths...",
+    "Example": "move_files('path/to/source', 'path/to/destination')",
+  },
 }
 
 actions = Actions()
-formatted_list = actions.format_item_list(item_list=item_list)
+formatted_list = actions.format_item_list(items=item_list)
 ```
 
 **Expected Output:**

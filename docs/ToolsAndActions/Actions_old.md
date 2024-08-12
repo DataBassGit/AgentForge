@@ -352,7 +352,7 @@ tool = {
 previous_results = None
 tool_context = None
 
-payload = actions.prime_tool(objective, action, tool, previous_results, tool_context)
+payload = actions.prime_tool_for_action(objective, action, tool, previous_results, tool_context)
 print(payload)
 ```
 
