@@ -1,4 +1,4 @@
-from customagents.DocsAgent import DocsAgent
+from CustomAgents.DocsAgent import DocsAgent
 from agentforge.utils.chroma_utils import ChromaUtils
 
 docs_agent = DocsAgent()
