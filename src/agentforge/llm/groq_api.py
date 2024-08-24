@@ -1,5 +1,3 @@
-
-import json
 import os
 from groq import Groq
 from agentforge.utils.functions.Logger import Logger
@@ -7,7 +5,7 @@ from agentforge.utils.functions.Logger import Logger
 
 def parse_prompts(prompts):
     """
-    Formats a list of prompts into a single string formatted specifically for Anthropic's AI models.
+    Formats a list of prompts into a single string formatted specifically for Groq's AI models.
 
     Parameters:
         prompts (list): A list of strings, each representing a segment of the overall prompt.
@@ -73,17 +71,11 @@ class GroqAPI:
             top_p=params['top_p'],
         )
 
-        # url = params.pop('host_url', None)
-        # if not url:
-        #     self.logger.log("\n\nError: The CUSTOM_AI_ENDPOINT environment variable is not set", 'critical')
-
-        # response = requests.post(url, headers=headers, data=json.dumps(data))
-        response_text = response.json()['choices'][0]['message']['content']
+        response_text = response.choices[0].message.content
         self.logger.log_response(response_text)
 
-        if response.status_code == 200:
-            return response.choices[0].message.content
+        if response.choices and response.choices[0].message:
+            return response_text
         else:
-            print(f"Request error: {response}")
-            return None
-
+            self.logger.log(f"Request error: {response}", 'error')
+            return response

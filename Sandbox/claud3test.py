@@ -1,6 +1,6 @@
-from agentforge.agents.LearnKGAgent import LearnKGAgent
+from CustomAgents.TestAgent import TestAgent
 
-learn = LearnKGAgent()
+learn = TestAgent()
 
 text = """
         Large language models (LLMs) have been increasingly used to interact with exter-
@@ -50,6 +50,7 @@ text = """
     """
 
 result = learn.run(existing_knowledge="None", text_chunk=text)
-
+# import os
+# result = os.getenv('GROQ_API_KEY')
 print(f"Final Results: {result}")
 

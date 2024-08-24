@@ -60,6 +60,12 @@ ModelLibrary:
         name: gpt-3.5-turbo-0613
       old_long_fast_model:
         name: gpt-3.5-turbo-16k-0613
+  groq_api:
+    module: "groq_api"
+    class: "GroqAPI"
+    models:
+      llama31:
+        name: llama-3.1-70b-versatile
   claude_old:
     module: "claude_old"
     class: "Claude"
