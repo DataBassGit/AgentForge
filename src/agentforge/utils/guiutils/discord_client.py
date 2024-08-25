@@ -59,6 +59,7 @@ class DiscordClient:
                 "channel": str(message.channel),
                 "channel_id": message.channel.id,
                 "message": content,
+                "message_id": message.id,
                 "author": message.author.display_name,
                 "author_id": message.author,
                 "timestamp": message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -476,9 +477,9 @@ class DiscordClient:
 
         return asyncio.run_coroutine_threadsafe(list_roles_async(), self.client.loop).result()
 
-    def create_thread(self, channel_id, name, message=None, auto_archive_duration=1440):
+    def create_thread(self, channel_id, message_id, name, auto_archive_duration=1440, remove_author=True):
         """
-        Create a new thread in a specified channel.
+        Create a new thread in a specified channel, attached to a specific message.
 
         This method uses asyncio.run_coroutine_threadsafe to safely schedule the
         asynchronous thread creation operation in the Discord client's event loop,
@@ -486,10 +487,11 @@ class DiscordClient:
 
         Args:
             channel_id (int): The ID of the channel to create the thread in.
+            message_id (int): The ID of the message to attach the thread to.
             name (str): The name of the new thread.
-            message (str, optional): The content of the starting message for the thread.
             auto_archive_duration (int, optional): Duration in minutes after which the thread
                                                    will automatically archive. Default is 1440 (24 hours).
+            remove_author (bool, optional): Whether to remove the message author from the thread. Default is False.
 
         Returns:
             int: The ID of the created thread, or None if creation failed.
@@ -501,11 +503,18 @@ class DiscordClient:
                     self.logger.log(f"Channel {channel_id} not found", 'error', 'DiscordClient')
                     return None
 
-                thread = await channel.create_thread(name=name, auto_archive_duration=auto_archive_duration)
-                if message:
-                    await thread.send(message)
-                
+                message = await channel.fetch_message(message_id)
+                if not message:
+                    self.logger.log(f"Message {message_id} not found in channel {channel_id}", 'error', 'DiscordClient')
+                    return None
+
+                thread = await message.create_thread(name=name, auto_archive_duration=auto_archive_duration)
                 self.logger.log(f"Thread '{name}' created successfully", 'info', 'DiscordClient')
+
+                if remove_author:
+                    await thread.remove_user(message.author)
+                    self.logger.log(f"Removed author {message.author} from thread '{name}'", 'info', 'DiscordClient')
+
                 return thread.id
             except discord.errors.Forbidden:
                 self.logger.log(f"Bot doesn't have permission to create threads in channel {channel_id}", 'error', 'DiscordClient')
@@ -513,7 +522,9 @@ class DiscordClient:
                 self.logger.log(f"Error creating thread: {str(e)}", 'error', 'DiscordClient')
             return None
 
-        return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop, timeout=10).result()
+        return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop).result()
+
+
 
     def reply_to_thread(self, thread_id, content):
         """
@@ -546,7 +557,7 @@ class DiscordClient:
                 self.logger.log(f"Error replying to thread: {str(e)}", 'error', 'DiscordClient')
             return False
 
-        return asyncio.run_coroutine_threadsafe(reply_async(), self.client.loop, timeout=10).result()
+        return asyncio.run_coroutine_threadsafe(reply_async(), self.client.loop).result()
 
 
 if __name__ == "__main__":
