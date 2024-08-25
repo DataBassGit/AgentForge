@@ -6,9 +6,30 @@ import asyncio
 import threading
 from agentforge.utils.functions.Logger import Logger
 
-
 class DiscordClient:
+    """
+    A Discord client that handles bot functionality, message processing, and role management.
+
+    This class uses a combination of asyncio and threading to manage Discord operations:
+    - The Discord client runs in a separate thread to avoid blocking the main application.
+    - Asynchronous methods are used for Discord API calls, which are then run in the client's event loop.
+    - Thread-safe methods are provided for external code to interact with the Discord client.
+
+    Attributes:
+        token (str): The Discord bot token.
+        intents (discord.Intents): The intents for the Discord client.
+        client (discord.Client): The main Discord client instance.
+        logger (Logger): A custom logger for the Discord client.
+        tree (discord.app_commands.CommandTree): The command tree for slash commands.
+        message_queue (dict): A queue to store incoming messages, keyed by channel ID.
+        running (bool): A flag indicating whether the client is running.
+        discord_thread (threading.Thread): The thread running the Discord client.
+    """
+
     def __init__(self):
+        """
+        Initialize the DiscordClient with necessary attributes and event handlers.
+        """
         self.token = str(os.getenv('DISCORD_TOKEN'))
         self.intents = discord.Intents.default()
         self.intents.message_content = True
@@ -44,6 +65,11 @@ class DiscordClient:
                 "mentions": message.mentions
             }
 
+            # Add thread information to message_data if the message is in a thread
+            if isinstance(message.channel, discord.Thread):
+                message_data["thread_id"] = message.channel.id
+                message_data["thread_name"] = message.channel.name
+
             self.logger.log(f"{message.author.display_name} said: {content} in {str(message.channel)}. Channel ID: {message.channel.id}", 'info', 'DiscordClient')
             # print(f"{author_name} said: {content} in {channel}. Channel ID: {channel_id}")
             # print(f"Mentions: {formatted_mentions}")
@@ -57,6 +83,13 @@ class DiscordClient:
                 self.logger.log(f"Message not added to queue: {message_data}", 'debug', 'DiscordClient')
 
     def run(self):
+        """
+        Start the Discord client in a separate thread.
+
+        This method creates a new thread that runs the Discord client's event loop.
+        The thread allows the Discord client to operate independently of the main
+        application thread, preventing it from blocking other operations.
+        """
         def run_discord():
             print("Client Starting")
             asyncio.run(self.client.start(self.token))
@@ -66,6 +99,12 @@ class DiscordClient:
         self.running = True
 
     def stop(self):
+        """
+        Stop the Discord client and join the client thread.
+
+        This method closes the Discord client's connection and waits for the
+        client thread to finish, ensuring a clean shutdown.
+        """
         self.running = False
         asyncio.run(self.client.close())
         self.discord_thread.join()
@@ -101,7 +140,6 @@ class DiscordClient:
         - If the message queue is empty, the function will print "No Message Found" and pass.
         - Any exceptions during message processing will be caught and printed.
         """
-
         if self.message_queue:
             try:
                 next_message = self.message_queue.popitem()
@@ -112,6 +150,17 @@ class DiscordClient:
             pass
 
     def send_message(self, channel_id, content):
+        """
+        Send a message to a specified Discord channel.
+
+        This method uses asyncio.run_coroutine_threadsafe to safely schedule the
+        asynchronous send operation in the Discord client's event loop, allowing
+        it to be called from any thread.
+
+        Args:
+            channel_id (int): The ID of the channel to send the message to.
+            content (str): The content of the message to send.
+        """
         async def send():
             channel = self.client.get_channel(channel_id)
             if channel:
@@ -122,6 +171,17 @@ class DiscordClient:
         asyncio.run_coroutine_threadsafe(send(), self.client.loop)
 
     def send_dm(self, user_id, content):
+        """
+        Send a direct message to a specified Discord user.
+
+        This method uses asyncio.run_coroutine_threadsafe to safely schedule the
+        asynchronous send operation in the Discord client's event loop, allowing
+        it to be called from any thread.
+
+        Args:
+            user_id (int): The ID of the user to send the direct message to.
+            content (str): The content of the direct message to send.
+        """
         async def send_dm_async():
             try:
                 user = await self.client.fetch_user(user_id)
@@ -139,6 +199,20 @@ class DiscordClient:
         asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop)
 
     def send_embed(self, channel_id, title, fields, color='blue', image_url=None):
+        """
+        Send an embed message to a specified Discord channel.
+
+        This method uses asyncio.run_coroutine_threadsafe to safely schedule the
+        asynchronous send operation in the Discord client's event loop, allowing
+        it to be called from any thread.
+
+        Args:
+            channel_id (int): The ID of the channel to send the embed message to.
+            title (str): The title of the embed message.
+            fields (list): A list of tuples representing the fields of the embed message.
+            color (str, optional): The color of the embed message. Defaults to 'blue'.
+            image_url (str, optional): The URL of the image to include in the embed message.
+        """
         async def send_embed_async():
             try:
                 channel = self.client.get_channel(channel_id)
@@ -166,7 +240,13 @@ class DiscordClient:
         asyncio.run_coroutine_threadsafe(send_embed_async(), self.client.loop)
 
     def load_commands(self):
+        """
+        Load slash commands for the Discord client.
 
+        This method registers a single slash command ("bot") for the Discord client.
+        The command is added to the command tree and will be available for users to
+        interact with in Discord.
+        """
         name = 'bot'
         description = 'send a command to the bot'
         function_name = 'bot'
@@ -183,11 +263,19 @@ class DiscordClient:
         self.logger.log(f"Register command: {name}, Function: {function_name}", "info", "DiscordClient")
         self.tree.add_command(command_callback)
 
-    async def handle_command(self,
-                             interaction: discord.Interaction,
-                             command_name: str,
-                             function_name: str,
-                             kwargs: dict):
+    async def handle_command(self, interaction: discord.Interaction, command_name: str, function_name: str, kwargs: dict):
+        """
+        Handle a slash command interaction.
+
+        This method is called asynchronously by the Discord client when a slash
+        command is invoked. It adds the command to the message queue for processing.
+
+        Args:
+            interaction (discord.Interaction): The interaction object for the command.
+            command_name (str): The name of the command.
+            function_name (str): The name of the function to handle the command.
+            kwargs (dict): Additional arguments for the command.
+        """
         message_data = {
             "channel": str(interaction.channel),
             "channel_id": interaction.channel_id,
@@ -207,6 +295,17 @@ class DiscordClient:
         await interaction.response.send_message(f"Command '{command_name}' received and added to the queue.")
 
     async def set_typing_indicator(self, channel_id, is_typing):
+        """
+        Set the typing indicator for a specified Discord channel.
+
+        This method uses asyncio.run_coroutine_threadsafe to safely schedule the
+        asynchronous typing indicator operation in the Discord client's event loop,
+        allowing it to be called from any thread.
+
+        Args:
+            channel_id (int): The ID of the channel to set the typing indicator for.
+            is_typing (bool): Whether to start or stop the typing indicator.
+        """
         channel = self.client.get_channel(channel_id)
 
         if channel:
@@ -221,6 +320,21 @@ class DiscordClient:
             print(f"Channel with ID {channel_id} not found.")
 
     def add_role(self, guild_id, user_id, role_name):
+        """
+        Add a role to a user in a specified guild.
+
+        This method demonstrates how to run an asynchronous operation synchronously
+        from an external thread. It uses asyncio.run_coroutine_threadsafe to schedule
+        the operation in the Discord client's event loop and waits for the result.
+
+        Args:
+            guild_id (int): The ID of the guild.
+            user_id (int): The ID of the user.
+            role_name (str): The name of the role to add.
+
+        Returns:
+            str: A message indicating the result of the operation.
+        """
         async def add_role_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -245,6 +359,21 @@ class DiscordClient:
         return asyncio.run_coroutine_threadsafe(add_role_async(), self.client.loop).result()
 
     def remove_role(self, guild_id, user_id, role_name):
+        """
+        Remove a role from a user in a specified guild.
+
+        This method demonstrates how to run an asynchronous operation synchronously
+        from an external thread. It uses asyncio.run_coroutine_threadsafe to schedule
+        the operation in the Discord client's event loop and waits for the result.
+
+        Args:
+            guild_id (int): The ID of the guild.
+            user_id (int): The ID of the user.
+            role_name (str): The name of the role to remove.
+
+        Returns:
+            str: A message indicating the result of the operation.
+        """
         async def remove_role_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -269,6 +398,21 @@ class DiscordClient:
         return asyncio.run_coroutine_threadsafe(remove_role_async(), self.client.loop).result()
 
     def has_role(self, guild_id, user_id, role_name):
+        """
+        Check if a user has a specified role in a guild.
+
+        This method demonstrates how to run an asynchronous operation synchronously
+        from an external thread. It uses asyncio.run_coroutine_threadsafe to schedule
+        the operation in the Discord client's event loop and waits for the result.
+
+        Args:
+            guild_id (int): The ID of the guild.
+            user_id (int): The ID of the user.
+            role_name (str): The name of the role to check.
+
+        Returns:
+            bool: True if the user has the role, False otherwise.
+        """
         async def has_role_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -290,6 +434,20 @@ class DiscordClient:
         return asyncio.run_coroutine_threadsafe(has_role_async(), self.client.loop).result()
 
     def list_roles(self, guild_id, user_id=None):
+        """
+        List roles in a guild and optionally for a specific user.
+
+        This method demonstrates how to run an asynchronous operation synchronously
+        from an external thread. It uses asyncio.run_coroutine_threadsafe to schedule
+        the operation in the Discord client's event loop and waits for the result.
+
+        Args:
+            guild_id (int): The ID of the guild.
+            user_id (int, optional): The ID of the user. If provided, the method will also list the user's roles.
+
+        Returns:
+            str: A formatted string listing the roles in the guild and optionally for the user.
+        """
         async def list_roles_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -317,6 +475,78 @@ class DiscordClient:
                 return f"Error listing roles: {str(e)}"
 
         return asyncio.run_coroutine_threadsafe(list_roles_async(), self.client.loop).result()
+
+    def create_thread(self, channel_id, name, message=None, auto_archive_duration=1440):
+        """
+        Create a new thread in a specified channel.
+
+        This method uses asyncio.run_coroutine_threadsafe to safely schedule the
+        asynchronous thread creation operation in the Discord client's event loop,
+        allowing it to be called from any thread.
+
+        Args:
+            channel_id (int): The ID of the channel to create the thread in.
+            name (str): The name of the new thread.
+            message (str, optional): The content of the starting message for the thread.
+            auto_archive_duration (int, optional): Duration in minutes after which the thread
+                                                   will automatically archive. Default is 1440 (24 hours).
+
+        Returns:
+            int: The ID of the created thread, or None if creation failed.
+        """
+        async def create_thread_async():
+            try:
+                channel = self.client.get_channel(channel_id)
+                if not channel:
+                    self.logger.log(f"Channel {channel_id} not found", 'error', 'DiscordClient')
+                    return None
+
+                thread = await channel.create_thread(name=name, auto_archive_duration=auto_archive_duration)
+                if message:
+                    await thread.send(message)
+                
+                self.logger.log(f"Thread '{name}' created successfully", 'info', 'DiscordClient')
+                return thread.id
+            except discord.errors.Forbidden:
+                self.logger.log(f"Bot doesn't have permission to create threads in channel {channel_id}", 'error', 'DiscordClient')
+            except Exception as e:
+                self.logger.log(f"Error creating thread: {str(e)}", 'error', 'DiscordClient')
+            return None
+
+        return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop, timeout=10).result()
+
+    def reply_to_thread(self, thread_id, content):
+        """
+        Reply to a specific thread.
+
+        This method uses asyncio.run_coroutine_threadsafe to safely schedule the
+        asynchronous reply operation in the Discord client's event loop,
+        allowing it to be called from any thread.
+
+        Args:
+            thread_id (int): The ID of the thread to reply to.
+            content (str): The content of the reply message.
+
+        Returns:
+            bool: True if the reply was sent successfully, False otherwise.
+        """
+        async def reply_async():
+            try:
+                thread = self.client.get_channel(thread_id)
+                if not thread:
+                    self.logger.log(f"Thread {thread_id} not found", 'error', 'DiscordClient')
+                    return False
+
+                await thread.send(content)
+                self.logger.log(f"Reply sent to thread {thread_id}", 'info', 'DiscordClient')
+                return True
+            except discord.errors.Forbidden:
+                self.logger.log(f"Bot doesn't have permission to reply to thread {thread_id}", 'error', 'DiscordClient')
+            except Exception as e:
+                self.logger.log(f"Error replying to thread: {str(e)}", 'error', 'DiscordClient')
+            return False
+
+        return asyncio.run_coroutine_threadsafe(reply_async(), self.client.loop, timeout=10).result()
 
 
 if __name__ == "__main__":

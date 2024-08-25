@@ -1,50 +1,64 @@
-from semantic_router.splitters import RollingWindowSplitter
+from semantic_chunkers import StatisticalChunker
 from semantic_router.encoders import FastEmbedEncoder
 
-# needed modules:
-# pip install --user semantic-router
-# pip install --user 'semantic-router[fastembed]'
+class Chunk:
+    def __init__(self, is_triggered, triggered_score, token_count, splits):
+        self.is_triggered = is_triggered
+        self.triggered_score = triggered_score
+        self.token_count = token_count
+        self.splits = splits
+        self.content = ' '.join(splits)  # Join splits for content
 
-
-def semantic_chunk(text: str) -> list:
+def semantic_chunk(text: str) -> list[Chunk]:
     """
-    Split a given text into chunks based on semantic similarity.
+    Perform semantic chunking on the input text.
 
-    This function takes a string of text and breaks it down into smaller chunks,
-    where each chunk represents a semantically similar portion of the text.
-    The chunking is performed based on the semantic meaning and coherence of the
-    text, rather than a fixed size or specific delimiters.
+    This function uses a StatisticalChunker with a FastEmbedEncoder to split the input text
+    into semantically coherent chunks. It's designed to handle large texts by breaking them
+    down into smaller, meaningful segments.
 
     Args:
         text (str): The input text to be chunked.
 
     Returns:
-        list: A list of dicts, where each dict represents a semantically
-            similar chunk of the input text. You will want the 'content' key of
-            each item in the list.
+        list[Chunk]: A list of Chunk objects, each representing a semantic chunk of the input text.
+        Each Chunk object has the following attributes:
+            - is_triggered (bool): Indicates if the chunk was triggered by the chunking algorithm.
+            - triggered_score (float): The score that triggered the chunk split.
+            - token_count (int): The number of tokens in the chunk.
+            - splits (list[str]): The individual text segments that make up the chunk.
+            - content (str): The full text content of the chunk (joined splits).
 
-    Example:
-        >>> text = "This is a sample text. It consists of multiple sentences. Each sentence conveys a specific idea or thought."
-        >>> chunks = semantic_chunk(text)
-        >>> for c in chunks:
-        >>> print(r.content)
-        ['This is a sample text.', 'It consists of multiple sentences.', 'Each sentence conveys a specific idea or thought.']
+    Note:
+        This function uses the 'sentence-transformers/all-MiniLM-L6-v2' model for encoding.
+        The chunker is configured with specific parameters for token limits and window size,
+        which can be adjusted if needed.
     """
-
     encoder = FastEmbedEncoder(name="sentence-transformers/all-MiniLM-L6-v2")
-    splitter = RollingWindowSplitter(
+    chunker = StatisticalChunker(
         encoder=encoder,
         dynamic_threshold=True,
-        min_split_tokens=100,
-        max_split_tokens=500,
+        min_split_tokens=128,
+        max_split_tokens=1024,
         window_size=2,
-        plot_splits=False,  # set this to true to visualize chunking
         enable_statistics=True  # to print chunking stats
     )
 
-    splits = splitter([text])
-    splitter.print(splits)
-    return splits
+    chunks = chunker([text])
+    chunker.print(chunks[0])
+
+    result = []
+    for chunk in chunks[0]:
+        chunk_obj = Chunk(
+            is_triggered=chunk.is_triggered,
+            triggered_score=chunk.triggered_score,
+            token_count=chunk.token_count,
+            splits=chunk.splits
+        )
+        result.append(chunk_obj)
+
+    return result
+
 
 
 if __name__ == '__main__':
