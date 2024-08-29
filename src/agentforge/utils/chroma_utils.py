@@ -680,3 +680,4 @@ class ChromaUtils:
                 unique_results['metadatas'].append(combined_results['metadatas'][i])
 
         return unique_results
+
