@@ -2,8 +2,10 @@
 ModelSettings:
 #  API: groq_api
 #  Model: llama31
-  API: gemini_api
-  Model: gemini-flash
+#  API: gemini_api
+#  Model: gemini-flash
+  API: openrouter_api
+  Model: hermes
 #  API: openai_api
 #  Model: omni_model
 #  API: claude3_api
@@ -66,6 +68,12 @@ ModelLibrary:
     models:
       llama31:
         name: llama-3.1-70b-versatile
+  openrouter_api:
+    module: "openrouter"
+    class: "OpenRouter"
+    models:
+      hermes:
+        name: nousresearch/hermes-3-llama-3.1-405b
   claude_old:
     module: "claude_old"
     class: "Claude"
