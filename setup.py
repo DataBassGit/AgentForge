@@ -38,8 +38,8 @@ setup(
         "browse~=1.0.1",
         "scipy",
         "discord.py",
-        "semantic-router[fastembed]",
-        "semantic-chunkers~=0.0.8",
+        "sentence-transformers",
+        "semantic-text-splitter",
         "google-generativeai"
     ],
     extras_require={
@@ -54,6 +54,8 @@ setup(
             "torch==2.0.0",
             "termcolor~=2.3.0",
             "umap~=0.1.1",
+            "cv2",
+            "pytesseract"
         ],
     },
     license=LICENSE,
