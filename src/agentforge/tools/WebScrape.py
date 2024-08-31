@@ -3,9 +3,9 @@ import re
 
 from bs4 import BeautifulSoup
 from ..tools.IntelligentChunk import intelligent_chunk
-from ..utils.chroma_utils import ChromaUtils as storage
+from ..utils.chroma_utils import ChromaUtils
 
-storage_instance = storage()  # Create an instance of ChromaUtils
+storage_instance = ChromaUtils()  # Create an instance of ChromaUtils
 
 
 def remove_extra_newlines(chunk):

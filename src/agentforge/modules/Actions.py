@@ -302,7 +302,6 @@ class Actions:
         tool_context: str = ''
 
         try:
-            # tools = self.parse_tools_in_action(action)
             tools = self.functions.tool_utils.parse_tools_in_action(action)
 
             # Check if an error occurred
