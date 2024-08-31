@@ -3,19 +3,32 @@ Args:
   - url (str)
 Command: get_plain_text
 Description: |-
-  The 'Web Scrape' tool is designed to extract all the textual content from a specified webpage. 
-  By providing a web address (URL), the tool fetches the content of the webpage and returns it in plain text format. 
-  This tool is useful for gathering text data from websites for analysis or processing.
+  The Web Scrape tool fetches and extracts plain text from a specified webpage.
+  Key features:
+  - Sends a GET request to the provided URL
+  - Extracts plain text from HTML content using BeautifulSoup
+  - Chunks the extracted text using the IntelligentChunk tool
+  - Saves the chunked text to memory using ChromaUtils
+  - Removes extra newlines from chunks
+  Limitations:
+  - Requires internet connection
+  - May be affected by website's robots.txt rules
+  - Depends on BeautifulSoup, requests, and custom utility modules
 Example: |-
   # Example usage of the Web Scrape tool:
-  url = "https://www.example.com"
-  scrapped_content = get_plain_text(url)
-  print(scrapped_content)
+  from agentforge.tools.WebScrape import get_plain_text
+
+  # Example with a URL
+  url = "https://example.com"
+  result = get_plain_text(url)
+  print(result)
 Instruction: |-
-  To use the 'Web Scrape' tool, follow these steps:
-  1. Call the `get_plain_text` function with the following argument:
-     - `url`: A string representing the URL of the webpage you want to scrape.
-  2. The function will return the textual content of the specified webpage as a string.
-  3. Ensure that the URL provided is valid and accessible.
-  4. Utilize the returned text as needed for your application, whether for data analysis, processing, or other purposes.
+  To use the Web Scrape tool, follow these steps:
+  1. Import the get_plain_text function from agentforge.tools.WebScrape
+  2. Call the get_plain_text function with the required argument:
+     - url: A string representing the URL of the webpage to scrape
+  3. The function will return a message indicating that the webpage was saved to memory
+  4. Process the returned message as needed
+  5. Handle any potential errors or exceptions that may be raised during the process
+  6. Note that the scraped content is automatically saved to memory using ChromaUtils
 Script: agentforge.tools.WebScrape

@@ -1,0 +1,33 @@
+Name: Tool Name
+Args:
+  - arg1_name (type)
+  - arg2_name (type)
+  # Add more arguments as needed
+Command: command_name
+Description: |-
+  A brief description of what the tool does.
+  Include key features and capabilities.
+  Mention any important limitations or requirements.
+Example: |-
+  # Example usage of the tool:
+  from package.module import ToolClass
+
+  tool = ToolClass()
+  
+  # Example with first argument
+  result1 = tool.command_name(arg1_value)
+  print(result1)
+
+  # Example with second argument
+  result2 = tool.command_name(arg2_value)
+  print(result2)
+Instruction: |-
+  To use the tool, follow these steps:
+  1. Import the necessary class or function
+  2. Initialize the tool (if it's a class)
+  3. Call the command with the required arguments:
+     - arg1_name: Description of the first argument
+     - arg2_name: Description of the second argument
+  4. Process the returned result as needed
+  5. Add any additional steps or considerations
+Script: package.module.ToolClass

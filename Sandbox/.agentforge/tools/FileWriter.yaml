@@ -3,25 +3,39 @@ Args:
   - folder (str)
   - file (str)
   - text (str)
-  - mode (str='a')
+  - mode (str, optional)
 Command: write_file
 Description: |-
-  The 'File Writer' tool writes the provided text to a specified file within a given folder. 
-  You can specify the folder path, file name, and the mode of writing (append or overwrite). 
-  The default mode is 'append' (mode='a').
-  This tool ensures the target folder exists or creates it if it doesn't.
+  The File Writer tool writes the provided text to a specified file within a given folder.
+  It ensures the target folder exists or creates it if it doesn't.
+  Key features:
+  - Writes content to files in specified folders
+  - Creates folders if they don't exist
+  - Supports both write ('w') and append ('a') modes
+  - Provides detailed error messages and success confirmations
+  - Generates a preview of the written content
 Example: |-
   # Example usage of the File Writer tool:
-  response = write_file(folder='/path/to/folder', file='example.txt', text='Hello, World!', mode='a')
-  print(response)  # This will print the response from the write_file function, indicating success or failure
+  from agentforge.tools.WriteFile import WriteFile
+
+  writer = WriteFile()
+  
+  # Example with all arguments
+  result = writer.write_file(folder='/path/to/folder', file='example.txt', text='Hello, World!', mode='a')
+  print(result)
+
+  # Example with default mode (append)
+  result = writer.write_file(folder='/path/to/folder', file='example.txt', text='Appended text')
+  print(result)
 Instruction: |-
-  To use the 'File Writer' tool, follow these steps:
-  1. Call the `write_file` function with the following arguments:
-     - `folder`: A string representing the path to the folder where the file is located or will be created.
-     - `file`: A string representing the name of the file to write to.
-     - `text`: A string containing the text you want to write to the file.
-     - `mode`: (Optional) A string representing the mode for writing to the file:
-       - 'a' for append (default)
-       - 'w' for overwrite
-  2. The function will ensure the target folder exists, write the provided text to the specified file, and return a message indicating the result.
+  To use the File Writer tool, follow these steps:
+  1. Import the WriteFile class from agentforge.tools.WriteFile
+  2. Create an instance of the WriteFile class
+  3. Call the `write_file` method with the following arguments:
+     - folder: A string representing the path to the folder where the file should be written
+     - file: A string representing the name of the file to write to
+     - text: A string containing the content to write to the file
+     - mode: (Optional) A string specifying the write mode ('w' for write, 'a' for append). Defaults to 'a'
+  4. The method will return a message indicating the result of the operation, including a preview of the written content
+  5. Handle any potential errors or exceptions that may be raised during the process
 Script: agentforge.tools.WriteFile

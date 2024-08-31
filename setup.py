@@ -19,40 +19,29 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
+        "chromadb==0.5.3",
+        # "numpy==1.26.4",
+        "sentence-transformers"
         "wheel",
         "groq",
-        "google-generativeai",
-        "pypdf~=4.0.2",
-        "colorama~=0.4.6",
-        "python-dotenv~=1.0.0",
-        "PyYAML~=6.0",
-        "requests~=2.31.0",
+        "pypdf",
+        "colorama",
         "spacy",
-        "termcolor~=2.3.0",
-        "openai~=1.42.0",
-        "chromadb~=0.5.3",
-        "sentence_transformers",
+        "termcolor==2.4.0",
+        "openai",
         "anthropic",
-        "google-api-python-client",
-        "beautifulsoup4~=4.12.2",
-        "browse~=1.0.1",
+        # "google-api-python-client",
+        "beautifulsoup4",
+        "browse",
         "scipy",
         "discord.py",
-        "sentence-transformers",
         "semantic-text-splitter",
-        "google-generativeai"
+        # "google-generativeai",
+        "setuptools>=70.0.0 ",  # not directly required, pinned by Snyk to avoid a vulnerability
     ],
     extras_require={
-        "pinecone": [
-            "pinecone-client==2.2.1",
-        ],
-        
         "other": [
-            "Flask~=2.3.1",
-            "matplotlib~=3.7.1",
-            "numpy~=1.24.3",
-            "torch==2.0.0",
-            "termcolor~=2.3.0",
+            "matplotlib~=3.9.2",
             "umap~=0.1.1",
             "cv2",
             "pytesseract"
@@ -87,3 +76,4 @@ setup(
 )
 #
 #
+# not directly required, pinned by Snyk to avoid a vulnerability
