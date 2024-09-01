@@ -158,6 +158,47 @@ class ToolUtils:
 
         # Need a way to query for relevant tools
 
+    def query_tool_list(self, num_results: int = 20, query: str = None, filter_condition: Dict = None) -> Optional[Dict[str, Dict]]:
+        """
+        Retrieves the list of tools from storage using query_memory.
+
+        Parameters:
+            num_results (int): The maximum number of tools to return.
+            query (str, optional): A query string to search for specific tools.
+            filter_condition (Dict, optional): A dictionary specifying filter conditions for the query.
+
+        Returns:
+            Optional[Dict[str, Dict]]: A dictionary containing tool information,
+            or None if there are no tools or an error occurs.
+        """
+        try:
+            collection_name = 'Tools'
+            
+            # Use query_memory instead of load_collection
+            tool_list = self.storage.query_memory(
+                collection_name=collection_name,
+                query=query,
+                filter_condition=filter_condition,
+                include=["documents", "metadatas"],
+                num_results=num_results
+            )
+
+            if not tool_list or 'documents' not in tool_list:
+                self.logger.log(f"No tools found in the {collection_name} collection.", 'warning')
+                return None
+
+            # Parse the results
+            parsed_tools = {}
+            for i, doc in enumerate(tool_list['documents']):
+                tool_name = tool_list['metadatas'][i].get('Name', f"Tool_{i}")
+                parsed_tools[tool_name] = tool_list['metadatas'][i]
+
+            return parsed_tools
+
+        except Exception as e:
+            self.logger.log(f"Error in get_tool_list: {e}", 'error')
+            return None
+
     # --------------------------------------------------------------------------------------------------------
     # ------------------------------------ Parsing and Formatting Methods ------------------------------------
     # --------------------------------------------------------------------------------------------------------
