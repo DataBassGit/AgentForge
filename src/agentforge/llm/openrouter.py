@@ -63,7 +63,7 @@ class OpenRouter:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             "HTTP-Referer": params.get("http_referer", ""),
-            "X-Title": params.get("x_title", "")
+            "X-Title": 'AgentForge'
         }
 
         data = {
