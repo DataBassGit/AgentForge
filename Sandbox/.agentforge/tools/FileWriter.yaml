@@ -3,7 +3,7 @@ Args:
   - folder (str)
   - file (str)
   - text (str)
-  - mode (str, optional)
+  - mode (str - optional)
 Command: write_file
 Description: |-
   The File Writer tool writes the provided text to a specified file within a given folder.

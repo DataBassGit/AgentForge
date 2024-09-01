@@ -85,11 +85,11 @@ class ParsingUtils:
                 raise TypeError("Each item in the list should be a dictionary")
 
             # Format each dictionary
-            for key, value in metadata.items():
-                # Check if the value is a list (array)
-                if isinstance(value, list):
-                    # Convert list elements into a comma-separated string
-                    # Update the dictionary with the formatted string
-                    metadata[key] = ', '.join(map(str, value))
+            # for key, value in metadata.items():
+            #     # Check if the value is a list (array)
+            #     if isinstance(value, list):
+            #         # Convert list elements into a comma-separated string
+            #         # Update the dictionary with the formatted string
+            #         metadata[key] = ', '.join(map(str, value))
 
         return metadata_list

@@ -135,30 +135,26 @@ class ToolUtils:
             self.logger.log(f"Error in loading tool: {e}", 'error')
             return None
 
-    def get_tool_list(self, num_results: int = 20,
-                      parse_result: bool = True) -> Optional[Dict[str, Union[List[str], None, List[Dict]]]]:
+    def get_tool_list(self, parse_result: bool = True) -> Optional[Dict[str, Union[List[str], None, List[Dict]]]]:
         """
         Retrieves the list of tools from storage.
 
         Parameters:
-            num_results (int): The number of tools to return.
             parse_result (bool): Whether to parse the tool list for easier handling. Default is True.
 
         Returns:
             Optional[Dict[str, Union[List[str], None, List[Dict]]]]: A dictionary containing all tool information,
             or None if there are no tools.
         """
-        if self.storage.count_collection('Tools') <= num_results:
-            tool_list = self.storage.load_collection('Tools')
+        tool_list = self.storage.load_collection('Tools')
 
-            if parse_result:
-                tool_list = self.parse_item_list(tool_list)
+        if parse_result:
+            tool_list = self.parse_item_list(tool_list)
 
-            return tool_list
+        return tool_list
 
-        # Need a way to query for relevant tools
-
-    def query_tool_list(self, num_results: int = 20, query: str = None, filter_condition: Dict = None) -> Optional[Dict[str, Dict]]:
+    def query_tool_list(self, num_results: int = 20, query: str = None,
+                        filter_condition: Dict = None, parse_result: bool = True) -> Optional[Dict[str, Dict]]:
         """
         Retrieves the list of tools from storage using query_memory.
 
@@ -166,6 +162,7 @@ class ToolUtils:
             num_results (int): The maximum number of tools to return.
             query (str, optional): A query string to search for specific tools.
             filter_condition (Dict, optional): A dictionary specifying filter conditions for the query.
+            parse_result (bool): Whether to parse the tool list for easier handling. Default is True.
 
         Returns:
             Optional[Dict[str, Dict]]: A dictionary containing tool information,
@@ -188,12 +185,10 @@ class ToolUtils:
                 return None
 
             # Parse the results
-            parsed_tools = {}
-            for i, doc in enumerate(tool_list['documents']):
-                tool_name = tool_list['metadatas'][i].get('Name', f"Tool_{i}")
-                parsed_tools[tool_name] = tool_list['metadatas'][i]
+            if parse_result:
+                tool_list = self.parse_item_list(tool_list)
 
-            return parsed_tools
+            return tool_list
 
         except Exception as e:
             self.logger.log(f"Error in get_tool_list: {e}", 'error')
@@ -221,14 +216,16 @@ class ToolUtils:
 
         formatted_string = ""
         for key in order:
-            if key in ('Name', 'Command', 'Script', 'isotimestamp', 'unixtimestamp') and key in item:
-                formatted_string += f"{key}: {str(item[key]).strip()}\n"
-            elif key in ('Tools', 'Args') and key in item:
-                item_list = item[key].split(',')
-                formatted_list = "\n- ".join([items.strip() for items in item_list])
-                formatted_string += f"{key}:\n- {formatted_list}\n\n"
-            elif key in item:
-                formatted_string += f"{key}:\n{str(item[key]).strip()}\n\n"
+            if key in item:
+                value = item[key]
+                if isinstance(value, list):
+                    formatted_list = "\n- ".join([str(items).strip() for items in value])
+                    formatted_string += f"{key}:\n- {formatted_list}\n\n"
+                elif isinstance(value, str):
+                    if len(value.splitlines()) > 1:
+                        formatted_string += f"{key}:\n{value.strip()}\n\n"
+                    else:
+                        formatted_string += f"{key}: {value.strip()}\n"
         return formatted_string.strip()
 
     def format_item_list(self, items: Dict, order: Optional[List[str]] = None) -> Optional[str]:

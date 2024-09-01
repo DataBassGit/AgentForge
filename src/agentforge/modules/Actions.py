@@ -42,17 +42,21 @@ class Actions:
         Initializes the Actions class, setting up logger, storage utilities, and loading necessary components for
         action processing.
         """
+        # Initialize the logger, storage, and functions
         self.logger = Logger(name=self.__class__.__name__)
         self.storage = ChromaUtils('default')
         self.functions = Functions()
+
+        # Initialize the agents
         self.action_creation = ActionCreationAgent()
         self.action_selection = ActionSelectionAgent()
         self.priming_agent = ToolPrimingAgent()
 
-        self.initialize_collection('Actions')
-        self.initialize_collection('Tools')
+        # Load the actions and tools from the config
+        self.actions = self.initialize_collection('Actions')
+        self.tools = self.initialize_collection('Tools')
 
-    def initialize_collection(self, collection_name: str) -> None:
+    def initialize_collection(self, collection_name: str) -> Dict:
         """
         Initializes a specified collection in the vector database with preloaded data. Mainly used to load the
         actions and tools data into the database, allowing for semantic search.
@@ -62,13 +66,19 @@ class Actions:
         """
         data = self.functions.agent_utils.config.data[collection_name.lower()]
         ids = id_generator(data)
-        description = [value['Description'] for key, value in data.items()]
-        metadata = [value for key, value in data.items()]
-        metadata = self.functions.parsing_utils.format_metadata(metadata)
+
+        # Add ID to each action in the data dictionary
+        for (key, value), act_id in zip(data.items(), ids):
+            value['ID'] = act_id
+
+        description = [value['Description'] for value in data.values()]
+        metadata = [{'Name': key} for key, value in data.items()]
 
         # Save the item into the selected collection
         self.storage.save_memory(collection_name=collection_name, data=description, ids=ids, metadata=metadata)
         self.logger.log(f"\n{collection_name} collection initialized", 'info', 'Actions')
+
+        return data
 
     # --------------------------------------------------------------------------------------------------------
     # ------------------------------------ Primary Functionality Methods -------------------------------------
@@ -91,8 +101,8 @@ class Actions:
             Exception: If an error occurs during execution.
         """
         try:
-            action_list = self.get_relevant_actions_for_objective(objective=objective, threshold=threshold,
-                                                                  num_results=10)
+            action_list = self.get_relevant_items_for_objective(collection_name='Actions', objective=objective,
+                                                                threshold=threshold, num_results=10)
             if action_list:
                 self.logger.log(f"\nSelecting Action for Objective:\n{objective}", 'info', 'Actions')
                 order = ["Name", "Description"]
@@ -104,9 +114,13 @@ class Actions:
             else:
                 self.logger.log(f"\nCrafting Action for Objective:\n{objective}", 'info', 'Actions')
                 order = ["Name", "Description", "Args"]
-                tool_list = self.functions.tool_utils.get_tool_list()
+                # tool_list = self.functions.tool_utils.query_tool_list(query=objective, num_results=5)
+                threshold = 1
+                tool_list = self.get_relevant_items_for_objective(collection_name='Tools', objective=objective,
+                                                                  threshold=threshold, num_results=10)
+                available_tools = self.functions.tool_utils.format_item_list(tool_list, order)
                 selected_action = self.craft_action_for_objective(objective=objective,
-                                                                  tool_list=tool_list,
+                                                                  tool_list=available_tools,
                                                                   context=context,
                                                                   info_order=order)
                 self.logger.log(f"\nCrafted Action:\n{selected_action}", 'info', 'Actions')
@@ -132,38 +146,45 @@ class Actions:
             self.logger.log(error_message, 'error', 'Actions')
             return {'error': error_message, 'traceback': traceback.format_exc()}
 
-    def get_relevant_actions_for_objective(self, objective: str, threshold: Optional[float] = None,
-                                           num_results: int = 1, parse_result: bool = True) -> Dict:
+    def get_relevant_items_for_objective(self, collection_name: str, objective: str, threshold: Optional[float] = None,
+                                         num_results: int = 1, parse_result: bool = True) -> Dict:
         """
-        Loads actions based on the current object and specified criteria.
+        Loads items (actions or tools) based on the current object and specified criteria.
 
         Parameters:
-            objective (str): The objective to find relevant actions for.
-            threshold (Optional[float]): The threshold for action relevance (Lower is stricter).
+            collection_name (str): The name of the collection to search in ('Actions' or 'Tools').
+            objective (str): The objective to find relevant items for.
+            threshold (Optional[float]): The threshold for item relevance (Lower is stricter).
             num_results (int): The number of results to return. Default is 1.
-            parse_result (bool): Whether to parse the result. Default is True.
-            Not used if format_result is False.
+            parse_result (bool): Whether to parse the result. Default is True. 
+                If False, returns the results as they come from the database.
+                If True, parses the results to include only items that are loaded in the system.
 
         Returns:
-            Dict: The action list or an empty dictionary if no actions are found.
+            Dict: The item list or an empty dictionary if no items are found.
         """
-        action_list = {}
+        item_list = {}
         try:
-            action_list = self.storage.search_storage_by_threshold(collection_name='Actions',
-                                                                   query=objective,
-                                                                   threshold=threshold,
-                                                                   num_results=num_results)
+            item_list = self.storage.search_storage_by_threshold(collection_name=collection_name,
+                                                                 query=objective,
+                                                                 threshold=threshold,
+                                                                 num_results=num_results)
         except Exception as e:
-            self.logger.log(f"Error loading actions: {e}", 'error', 'Actions')
+            self.logger.log(f"Error loading {collection_name.lower()}: {e}", 'error', 'Actions')
 
-        if not action_list:
-            self.logger.log(f"No Actions Found", 'info', 'Actions')
+        if not item_list:
+            self.logger.log(f"No {collection_name} Found", 'info', 'Actions')
             return {}
 
         if parse_result:
-            action_list = self.functions.tool_utils.parse_item_list(action_list)
+            parsed_item_list = {}
+            for metadata in item_list.get('metadatas', []):
+                item_name = metadata.get('Name')
+                if item_name in getattr(self, collection_name.lower()):
+                    parsed_item_list[item_name] = getattr(self, collection_name.lower())[item_name]
+            item_list = parsed_item_list
 
-        return action_list
+        return item_list
 
     def select_action_for_objective(self, objective: str, action_list: str | Dict, context: Optional[str] = None,
                                     parse_result: bool = True) -> Union[str, Dict]:
@@ -227,13 +248,15 @@ class Actions:
                 with open(path, "w") as file:
                     yaml.dump(new_action, file)
                 # self.functions.agent_utils.config.add_item(new_action, 'Actions')
-                count = self.storage.count_documents(collection_name='actions')+1
+                count = self.storage.count_documents(collection_name='actions') + 1
                 metadata = [{'Name': new_action['Name'], 'Description': new_action['Description'], 'Path': path}]
-                self.storage.save_memory(collection_name='actions', data=new_action['Description'], ids=count, metadata=metadata)
+                self.storage.save_memory(collection_name='actions', data=new_action['Description'], ids=count,
+                                         metadata=metadata)
 
         return new_action
 
-    def prime_tool_for_action(self, objective: str, action: Union[str, Dict], tool: Dict, previous_results: Optional[str] = None,
+    def prime_tool_for_action(self, objective: str, action: Union[str, Dict], tool: Dict,
+                              previous_results: Optional[str] = None,
                               tool_context: Optional[str] = None, action_info_order: Optional[List[str]] = None,
                               tool_info_order: Optional[List[str]] = None) -> Dict:
         """
@@ -342,4 +365,3 @@ class Actions:
             error_message = f"Error running tools in sequence: {e}"
             self.logger.log(error_message, 'error')
             return {'error': error_message, 'traceback': traceback.format_exc()}
-

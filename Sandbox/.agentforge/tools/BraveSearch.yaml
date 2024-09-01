@@ -1,7 +1,7 @@
 Name: Brave Search API
 Args:
   - query (str)
-  - kwargs (dict, optional)
+  - kwargs (dict - optional)
 Command: search
 Description: |-
   The Brave Search API tool provides access to Brave's search engine capabilities.
