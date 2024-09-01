@@ -21,7 +21,7 @@ setup(
     install_requires=[
         "chromadb==0.5.3",
         # "numpy==1.26.4",
-        "sentence-transformers"
+        "sentence-transformers",
         "wheel",
         "groq",
         "pypdf",

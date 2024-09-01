@@ -6,6 +6,7 @@ from agentforge.utils.chroma_utils import ChromaUtils
 from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ActionCreationAgent import ActionCreationAgent
 from agentforge.agents.ToolPrimingAgent import ToolPrimingAgent
+import yaml
 
 
 def id_generator(data: List[Dict]) -> List[str]:
@@ -221,6 +222,14 @@ class Actions:
                 msg = {'error': "Error Creating Action"}
                 self.logger.log(msg['error'], 'error', 'Actions')
                 return msg
+            else:
+                path = f".agentforge/actions/unverified/{new_action['Name'].replace(' ', '_')}.yaml"
+                with open(path, "w") as file:
+                    yaml.dump(new_action, file)
+                # self.functions.agent_utils.config.add_item(new_action, 'Actions')
+                count = self.storage.count_documents(collection_name='actions')+1
+                metadata = [{'Name': new_action['Name'], 'Description': new_action['Description'], 'Path': path}]
+                self.storage.save_memory(collection_name='actions', data=new_action['Description'], ids=count, metadata=metadata)
 
         return new_action
 
