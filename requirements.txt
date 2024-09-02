@@ -174,3 +174,17 @@ wheel==0.44.0 ; python_version >= "3.11" and python_version < "4.0"
 wrapt==1.16.0 ; python_version >= "3.11" and python_version < "4.0"
 yarl==1.9.6 ; python_version >= "3.11" and python_version < "4.0"
 zipp==3.20.1 ; python_version >= "3.11" and python_version < "4.0"
+
+agentforge~=0.3.1
+requests~=2.31.0
+openai~=1.42.0
+groq~=0.10.0
+anthropic~=0.19.1
+pypdf~=4.0.2
+beautifulsoup4~=4.12.3
+spacy~=3.5.4
+termcolor~=2.4.0
+colorama~=0.4.6
+PyYAML~=6.0.1
+chromadb~=0.5.3
+setuptools~=70.0.0

@@ -56,112 +56,55 @@ class Actions:
         self.actions = self.initialize_collection('Actions')
         self.tools = self.initialize_collection('Tools')
 
-    def initialize_collection(self, collection_name: str) -> Dict:
+    # --------------------------------------------------------------------------------------------------------
+    # ------------------------------------------- Helper Methods ---------------------------------------------
+    # --------------------------------------------------------------------------------------------------------
+
+    def initialize_collection(self, collection_name: str) -> Dict[str, Dict]:
         """
         Initializes a specified collection in the vector database with preloaded data. Mainly used to load the
         actions and tools data into the database, allowing for semantic search.
 
         Parameters:
             collection_name (str): The name of the collection to initialize.
+
+        Returns:
+            Dict[str, Dict]: A dictionary where keys are item names and values are item details.
         """
+        item_list = {}
         data = self.functions.agent_utils.config.data[collection_name.lower()]
         ids = id_generator(data)
 
-        # Add ID to each action in the data dictionary
         for (key, value), act_id in zip(data.items(), ids):
             value['ID'] = act_id
+            item_list[value['Name']] = value
 
-        description = [value['Description'] for value in data.values()]
-        metadata = [{'Name': key} for key, value in data.items()]
+        description = [value['Description'] for value in item_list.values()]
+        metadata = [{'Name': key} for key, value in item_list.items()]
 
         # Save the item into the selected collection
         self.storage.save_memory(collection_name=collection_name, data=description, ids=ids, metadata=metadata)
         self.logger.log(f"\n{collection_name} collection initialized", 'info', 'Actions')
 
-        return data
+        return item_list
 
-    # --------------------------------------------------------------------------------------------------------
-    # ------------------------------------ Primary Functionality Methods -------------------------------------
-    # --------------------------------------------------------------------------------------------------------
-
-    def auto_execute(self, objective: str, context: Optional[str] = None,
-                     threshold: Optional[float] = 0.8) -> Union[Dict, str, None]:
+    def get_relevant_items_for_objective(self, collection_name: str, objective: str,
+                                         threshold: Optional[float] = None,
+                                         num_results: int = 1, parse_result: bool = True) -> Dict[str, Dict]:
         """
-        Automatically executes the actions for the given objective and context.
-
-        Parameters:
-            objective (str): The objective for the execution.
-            context (Optional[str]): The context for the execution.
-            threshold (Optional[float]): The threshold for action relevance (Lower is stricter). Default is 0.8.
-
-        Returns:
-            Union[Dict, str, None]: The result of the execution or an error dictionary.
-
-        Raises:
-            Exception: If an error occurs during execution.
-        """
-        try:
-            action_list = self.get_relevant_items_for_objective(collection_name='Actions', objective=objective,
-                                                                threshold=threshold, num_results=10)
-            if action_list:
-                self.logger.log(f"\nSelecting Action for Objective:\n{objective}", 'info', 'Actions')
-                order = ["Name", "Description"]
-                available_actions = self.functions.tool_utils.format_item_list(action_list, order)
-                selected_action = self.select_action_for_objective(objective=objective,
-                                                                   action_list=available_actions,
-                                                                   context=context)
-                self.logger.log(f"\nSelected Action:\n{selected_action}", 'info', 'Actions')
-            else:
-                self.logger.log(f"\nCrafting Action for Objective:\n{objective}", 'info', 'Actions')
-                order = ["Name", "Description", "Args"]
-                # tool_list = self.functions.tool_utils.query_tool_list(query=objective, num_results=5)
-                threshold = 1
-                tool_list = self.get_relevant_items_for_objective(collection_name='Tools', objective=objective,
-                                                                  threshold=threshold, num_results=10)
-                available_tools = self.functions.tool_utils.format_item_list(tool_list, order)
-                selected_action = self.craft_action_for_objective(objective=objective,
-                                                                  tool_list=available_tools,
-                                                                  context=context,
-                                                                  info_order=order)
-                self.logger.log(f"\nCrafted Action:\n{selected_action}", 'info', 'Actions')
-
-                if 'error' in selected_action:
-                    return selected_action
-
-            action_info_order = ["Name", "Description"]
-            tool_info_order = ["Name", "Description", "Args", "Instruction", "Example"]
-            result: Dict = self.run_tools_in_sequence(objective=objective,
-                                                      action=selected_action,
-                                                      action_info_order=action_info_order,
-                                                      tool_info_order=tool_info_order)
-            # Check if an error occurred
-            if isinstance(result, Dict) and result['status'] != 'success':
-                self.logger.log(f"\nAction Failed:\n{result['message']}", 'error', 'Actions')
-                return result  # Stop execution and return the error message
-
-            self.logger.log(f"\nAction Result:\n{result['data']}", 'info', 'Actions')
-            return result
-        except Exception as e:
-            error_message = f"Error in running action: {e}"
-            self.logger.log(error_message, 'error', 'Actions')
-            return {'error': error_message, 'traceback': traceback.format_exc()}
-
-    def get_relevant_items_for_objective(self, collection_name: str, objective: str, threshold: Optional[float] = None,
-                                         num_results: int = 1, parse_result: bool = True) -> Dict:
-        """
-        Loads items (actions or tools) based on the current object and specified criteria.
+        Loads items (actions or tools) based on the current objective and specified criteria.
 
         Parameters:
             collection_name (str): The name of the collection to search in ('Actions' or 'Tools').
             objective (str): The objective to find relevant items for.
             threshold (Optional[float]): The threshold for item relevance (Lower is stricter).
             num_results (int): The number of results to return. Default is 1.
-            parse_result (bool): Whether to parse the result. Default is True. 
+            parse_result (bool): Whether to parse the result. Default is True.
                 If False, returns the results as they come from the database.
                 If True, parses the results to include only items that are loaded in the system.
 
         Returns:
-            Dict: The item list or an empty dictionary if no items are found.
+            Dict[str, Dict]: The item list or an empty dictionary if no items are found.
         """
         item_list = {}
         try:
@@ -186,15 +129,41 @@ class Actions:
 
         return item_list
 
-    def select_action_for_objective(self, objective: str, action_list: str | Dict, context: Optional[str] = None,
+    def get_tools_in_action(self, action: Dict) -> Optional[List[Dict]]:
+        """
+        Loads the tools specified in the action's configuration.
+
+        Parameters:
+            action (Dict): The action containing the tools to load.
+
+        Returns:
+            Optional[List[Dict]]: A list with the loaded tools or None.
+
+        Raises:
+            Exception: If an error occurs while loading action tools.
+        """
+        try:
+            tools = [self.tools[tool] for tool in action['Tools']]
+        except Exception as e:
+            error_message = f"Error in loading tools from action '{action['Name']}': {e}"
+            self.logger.log(error_message, 'error', 'Actions')
+            tools = {'error': error_message, 'traceback': traceback.format_exc()}
+
+        return tools
+
+    # --------------------------------------------------------------------------------------------------------
+    # ----------------------------------- Primary Module (Agents) Methods ------------------------------------
+    # --------------------------------------------------------------------------------------------------------
+
+    def select_action_for_objective(self, objective: str, action_list: Union[str, Dict], context: Optional[str] = None,
                                     parse_result: bool = True) -> Union[str, Dict]:
         """
         Selects an action for the given objective from the provided action list.
 
         Parameters:
             objective (str): The objective to select an action for.
-            action_list (str | Dict): The list of actions to select from.
-            If given a Dict the method will attempt to convert to a string.
+            action_list (Union[str, Dict]): The list of actions to select from.
+                If given a Dict, the method will attempt to convert to a string.
             context (Optional[str]): The context for action selection.
             parse_result (bool): Whether to parse the result. Default is True.
 
@@ -211,26 +180,23 @@ class Actions:
 
         return selected_action
 
-    def craft_action_for_objective(self, objective: str, tool_list: Dict | str, context: Optional[str] = None,
-                                   info_order: Optional[List[str]] = None,
+    def craft_action_for_objective(self, objective: str, tool_list: Union[Dict, str], context: Optional[str] = None,
                                    parse_result: bool = True) -> Union[str, Dict]:
         """
         Crafts a new action for the given objective.
 
         Parameters:
             objective (str): The objective to craft an action for.
-            tool_list (Dict | str): The list of tools to be used. Will attempt to convert to a string if given a Dict.
+            tool_list (Union[Dict, str]): The list of tools to be used.
+                Will attempt to convert to a string if given a Dict.
             context (Optional[str]): The context for action crafting.
             parse_result (bool): Whether to parse the result. Default is True.
-            info_order (Optional[List[str]]): Tool information to include in the formatted tool list. Default is None.
 
         Returns:
             Union[str, Dict]: The crafted action or formatted result.
         """
         if isinstance(tool_list, Dict):
-            tool_list = self.functions.tool_utils.format_item_list(tool_list, info_order)
-
-        self.logger.log(f"\nTool List:\n{tool_list}", 'info', 'Actions')
+            tool_list = self.functions.tool_utils.format_item_list(tool_list)
 
         new_action = self.action_creation.run(objective=objective,
                                               context=context,
@@ -243,15 +209,15 @@ class Actions:
                 msg = {'error': "Error Creating Action"}
                 self.logger.log(msg['error'], 'error', 'Actions')
                 return msg
-            else:
-                path = f".agentforge/actions/unverified/{new_action['Name'].replace(' ', '_')}.yaml"
-                with open(path, "w") as file:
-                    yaml.dump(new_action, file)
-                # self.functions.agent_utils.config.add_item(new_action, 'Actions')
-                count = self.storage.count_documents(collection_name='actions') + 1
-                metadata = [{'Name': new_action['Name'], 'Description': new_action['Description'], 'Path': path}]
-                self.storage.save_memory(collection_name='actions', data=new_action['Description'], ids=count,
-                                         metadata=metadata)
+            # else:
+            #     path = f".agentforge/actions/unverified/{new_action['Name'].replace(' ', '_')}.yaml"
+            #     with open(path, "w") as file:
+            #         yaml.dump(new_action, file)
+            #     # self.functions.agent_utils.config.add_item(new_action, 'Actions')
+            #     count = self.storage.count_documents(collection_name='actions') + 1
+            #     metadata = [{'Name': new_action['Name'], 'Description': new_action['Description'], 'Path': path}]
+            #     self.storage.save_memory(collection_name='actions', data=new_action['Description'], ids=count,
+            #                              metadata=metadata)
 
         return new_action
 
@@ -314,7 +280,7 @@ class Actions:
 
     def run_tools_in_sequence(self, objective: str, action: Dict,
                               action_info_order: Optional[List[str]] = None,
-                              tool_info_order: Optional[List[str]] = None) -> Union[Dict, None]:
+                              tool_info_order: Optional[List[str]] = None) -> Optional[Dict]:
         """
         Runs the specified tools in sequence for the given objective and action.
 
@@ -325,7 +291,7 @@ class Actions:
             tool_info_order (Optional[List[str]]): The order of tool information to include in the Agent prompt.
 
         Returns:
-            Union[Dict, None]: The final result of the tool execution or an error dictionary.
+            Optional[Dict]: The final result of the tool execution or an error dictionary.
 
         Raises:
             Exception: If an error occurs while running the tools in sequence.
@@ -334,11 +300,11 @@ class Actions:
         tool_context: str = ''
 
         try:
-            tools = self.functions.tool_utils.parse_tools_in_action(action)
+            tools = self.get_tools_in_action(action=action)
 
             # Check if an error occurred
-            if isinstance(tools, Dict) and 'error' in tools:
-                return tools
+            if 'error' in tools:
+                return tools  # Stop execution and return the error message
 
             for tool in tools:
                 payload = self.prime_tool_for_action(objective=objective,
@@ -364,4 +330,68 @@ class Actions:
         except Exception as e:
             error_message = f"Error running tools in sequence: {e}"
             self.logger.log(error_message, 'error')
+            return {'error': error_message, 'traceback': traceback.format_exc()}
+
+    # --------------------------------------------------------------------------------------------------------
+    # ------------------------------------------ Solution Example --------------------------------------------
+    # --------------------------------------------------------------------------------------------------------
+
+    def auto_execute(self, objective: str, context: Optional[str] = None,
+                     threshold: Optional[float] = 0.8) -> Union[Dict, str, None]:
+        """
+        Automatically executes the actions for the given objective and context.
+
+        Parameters:
+            objective (str): The objective for the execution.
+            context (Optional[str]): The context for the execution.
+            threshold (Optional[float]): The threshold for action relevance (Lower is stricter). Default is 0.8.
+
+        Returns:
+            Union[Dict, str, None]: The result of the execution or an error dictionary.
+
+        Raises:
+            Exception: If an error occurs during execution.
+        """
+        try:
+            action_list = self.get_relevant_items_for_objective(collection_name='Actions', objective=objective,
+                                                                threshold=threshold, num_results=10)
+            if action_list:
+                self.logger.log(f"\nSelecting Action for Objective:\n{objective}", 'info', 'Actions')
+                order = ["Name", "Description"]
+                available_actions = self.functions.tool_utils.format_item_list(action_list, order)
+                selected_action = self.select_action_for_objective(objective=objective,
+                                                                   action_list=available_actions,
+                                                                   context=context)
+                self.logger.log(f"\nSelected Action:\n{selected_action}", 'info', 'Actions')
+            else:
+                self.logger.log(f"\nCrafting Action for Objective:\n{objective}", 'info', 'Actions')
+                order = ["Name", "Description", "Args"]
+                threshold = 1
+                tool_list = self.get_relevant_items_for_objective(collection_name='Tools', objective=objective,
+                                                                  threshold=threshold, num_results=10)
+                available_tools = self.functions.tool_utils.format_item_list(tool_list, order)
+                selected_action = self.craft_action_for_objective(objective=objective,
+                                                                  tool_list=available_tools,
+                                                                  context=context)
+                self.logger.log(f"\nCrafted Action:\n{selected_action}", 'info', 'Actions')
+
+                if 'error' in selected_action:
+                    return selected_action
+
+            action_info_order = ["Name", "Description"]
+            tool_info_order = ["Name", "Description", "Args", "Instruction", "Example"]
+            result: Dict = self.run_tools_in_sequence(objective=objective,
+                                                      action=selected_action,
+                                                      action_info_order=action_info_order,
+                                                      tool_info_order=tool_info_order)
+            # Check if an error occurred
+            if isinstance(result, Dict) and result['status'] != 'success':
+                self.logger.log(f"\nAction Failed:\n{result['message']}", 'error', 'Actions')
+                return result  # Stop execution and return the error message
+
+            self.logger.log(f"\nAction Result:\n{result['data']}", 'info', 'Actions')
+            return result
+        except Exception as e:
+            error_message = f"Error in running action: {e}"
+            self.logger.log(error_message, 'error', 'Actions')
             return {'error': error_message, 'traceback': traceback.format_exc()}
