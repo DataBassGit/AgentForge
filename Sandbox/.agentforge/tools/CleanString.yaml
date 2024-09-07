@@ -1,4 +1,4 @@
-Name: String Cleaner
+Name: Clean String
 Args:
   - text (str)
 Command: strip_invalid_chars
