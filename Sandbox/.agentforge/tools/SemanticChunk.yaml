@@ -1,0 +1,41 @@
+Name: Semantic Chunk
+Args:
+  - text (str)
+  - min_length (int, optional)
+  - max_length (int, optional)
+Command: semantic_chunk
+Description: |-
+  The Semantic Chunk tool splits input text into semantically meaningful chunks.
+  Key features:
+  - Uses the semantic_text_splitter library for intelligent text splitting
+  - Allows customization of minimum and maximum chunk lengths
+  - Returns a list of Chunk objects, each containing a portion of the input text
+  Limitations:
+  - Requires the semantic_text_splitter library to be installed
+  - May not work optimally for very short texts or extreme min/max length values
+Example: |-
+  # Example usage of the Semantic Chunk tool:
+  from agentforge.tools.SemanticChunk import semantic_chunk
+
+  # Example with default chunk sizes
+  text = "This is a sample text. It contains multiple sentences. " * 20
+  result1 = semantic_chunk(text)
+  print(f"Number of chunks: {len(result1)}")
+  for i, chunk in enumerate(result1, 1):
+      print(f"Chunk {i}: {chunk.content[:50]}...")
+
+  # Example with custom chunk sizes
+  result2 = semantic_chunk(text, min_length=100, max_length=1000)
+  print(f"Number of chunks with custom sizes: {len(result2)}")
+Instruction: |-
+  To use the Semantic Chunk tool, follow these steps:
+  1. Import the semantic_chunk function from agentforge.tools.SemanticChunk
+  2. Call the semantic_chunk function with the required arguments:
+     - text: A string containing the text to be chunked
+     - min_length: (Optional) An integer specifying the minimum chunk length (default: 200)
+     - max_length: (Optional) An integer specifying the maximum chunk length (default: 2000)
+  3. The function will return a list of Chunk objects
+  4. Process the returned Chunk objects as needed, accessing the content via the 'content' attribute
+  5. Handle any potential errors or exceptions that may be raised during the process
+  6. Ensure that the semantic_text_splitter library is installed in your environment
+Script: agentforge.tools.SemanticChunk

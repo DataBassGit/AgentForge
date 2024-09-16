@@ -1,0 +1,40 @@
+Name: Python Function Executor
+Args:
+  - function_name (str)
+  - payload (dict)
+Command: execute_function
+Description: |-
+  The Python Function Executor tool dynamically executes Python functions specified by name.
+  Key features:
+  - Executes any Python function available in the current environment
+  - Accepts function arguments as a dictionary payload
+  - Uses ToolUtils for dynamic function execution
+  Limitations:
+  - The specified function must be available in the current Python environment
+  - Only supports functions that can be called with keyword arguments
+  - Requires proper error handling for potential execution issues
+Example: |-
+  # Example usage of the Python Function Executor tool:
+  from agentforge.tools.PythonFunction import PythonFunction
+
+  # Define a sample function
+  def example_function(x, y):
+      return x + y
+
+  # Create an instance of PythonFunction
+  python_function = PythonFunction()
+  
+  # Example execution
+  result = python_function.execute_function('example_function', {'x': 5, 'y': 3})
+  print(f"Result: {result}")
+Instruction: |-
+  To use the Python Function Executor tool, follow these steps:
+  1. Import the PythonFunction class from agentforge.tools.PythonFunction
+  2. Create an instance of the PythonFunction class
+  3. Call the execute_function method with the required arguments:
+     - function_name: A string representing the name of the Python function to execute
+     - payload: A dictionary containing the arguments to pass to the function
+  4. Process the returned result as needed
+  5. Ensure that the function you want to execute is available in your Python environment
+  6. Handle any potential errors or exceptions that may be raised during the execution
+Script: agentforge.tools.PythonFunction

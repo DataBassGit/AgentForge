@@ -1,8 +1,11 @@
 # utils/functions/ToolUtils.py
 import traceback
 import importlib
+from typing import List, Dict, Optional, Union
 from .Logger import Logger
 from typing import Any, Dict
+
+from agentforge.utils.chroma_utils import ChromaUtils
 
 
 class ToolUtils:
@@ -28,6 +31,11 @@ class ToolUtils:
         Initializes the ToolUtils class with a Logger instance.
         """
         self.logger = Logger(name=self.__class__.__name__)
+        self.storage = ChromaUtils('default')
+
+    # --------------------------------------------------------------------------------------------------------
+    # ----------------------------------------- Dynamic Tool Methods -----------------------------------------
+    # --------------------------------------------------------------------------------------------------------
 
     def dynamic_tool(self, tool: Dict[str, str], payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -105,77 +113,59 @@ class ToolUtils:
         self.logger.log(error_message, 'error')
         return {'status': 'failure', 'message': error_message, 'traceback': traceback.format_exc()}
 
-# import traceback
-# import importlib
-# from .Logger import Logger
-#
-#
-# class ToolUtils:
-#     """
-#     A utility class for dynamically interacting with tools. It supports dynamically importing tool modules,
-#     executing specified commands within those modules, and handling tool priming for display purposes.
-#
-#     Attributes:
-#         logger (Logger): Logger instance for logging messages.
-#     """
-#
-#     def __init__(self):
-#         """
-#         Initializes the ToolUtils class with a Logger instance.
-#         """
-#         self.logger = Logger(name=self.__class__.__name__)
-#
-#     def dynamic_tool(self, tool, payload):
-#         """
-#         Dynamically loads a tool module and executes a specified command within it, using arguments provided in the
-#         payload.
-#
-#         Parameters:
-#             tool (dict): The tool to be dynamically imported.
-#             payload (dict): A dictionary containing the 'command' to be executed and 'args' for the command.
-#
-#         Returns:
-#             Any: The result of executing the command within the tool, or an error dictionary if an error occurs.
-#
-#         Raises:
-#             ModuleNotFoundError: If the specified tool module cannot be found.
-#             AttributeError: If the specified class or command does not exist within the module.
-#             TypeError: If there is a mismatch in the expected arguments for the command.
-#             Exception: For general errors encountered during command execution.
-#         """
-#         tool_module = tool.get('Script')
-#         tool_class = tool_module.split('.')[-1]
-#         command = tool.get('Command')
-#         args = payload['args']
-#         error_message: str
-#         self.logger.log_info(f"\nRunning {tool_class} ...")
-#
-#         try:
-#             if tool_module in ['print', 'len', 'sum', 'max', 'min']:  # Add more built-in functions if needed
-#                 command_func = eval(tool_module)
-#                 result = command_func(**args)
-#             else:
-#                 tool = importlib.import_module(tool_module)
-#                 if hasattr(tool, tool_class):
-#                     tool_instance = getattr(tool, tool_class)()
-#                     command_func = getattr(tool_instance, command)
-#                 else:
-#                     command_func = getattr(tool, command)
-#
-#                 result = command_func(**args)
-#
-#             self.logger.log(f'\n{tool_class} Result:\n{result}', 'info', 'Actions')
-#             return {'status': 'success', 'data': result}
-#         except AttributeError as e:
-#             error_message = f"Tool '{tool_module}' does not have a class named '{tool_class}' " \
-#                             f"or command named '{command}'.\nError: {e}"
-#             self.logger.log(error_message, 'error')
-#             return {'status': 'failure', 'message': error_message, 'traceback': traceback.format_exc()}
-#         except TypeError as e:
-#             error_message = f"Error passing arguments: {e}"
-#             self.logger.log(error_message, 'error')
-#             return {'status': 'failure', 'message': error_message, 'traceback': traceback.format_exc()}
-#         except Exception as e:
-#             error_message = f"Error executing command: {e}"
-#             self.logger.log(error_message, 'error')
-#             return {'status': 'failure', 'message': error_message, 'traceback': traceback.format_exc()}
+    # --------------------------------------------------------------------------------------------------------
+    # ------------------------------------ Parsing and Formatting Methods ------------------------------------
+    # --------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def format_item(item: Dict[str, Union[str, List[str]]],
+                    order: Optional[List[str]] = None) -> str:
+        """
+        Formats an item (action or tool) into a human-readable string.
+
+        Parameters:
+            item (Dict[str, Union[str, List[str]]]): The item to format.
+            order (Optional[List[str]]): The order in which to format the item's keys.
+
+        Returns:
+            str: The formatted item string.
+        """
+        if order is None:
+            order = list(item.keys())
+
+        formatted_string = ""
+        for key in order:
+            if key in item:
+                value = item[key]
+                if isinstance(value, list):
+                    formatted_list = "\n- ".join([str(items).strip() for items in value])
+                    formatted_string += f"{key}:\n- {formatted_list}\n\n"
+                elif isinstance(value, str):
+                    if len(value.splitlines()) > 1:
+                        formatted_string += f"{key}:\n{value.strip()}\n\n"
+                    else:
+                        formatted_string += f"{key}: {value.strip()}\n"
+        return formatted_string.strip()
+
+    def format_item_list(self, items: Dict, order: Optional[List[str]] = None) -> Optional[str]:
+        """
+        Formats the actions into a human-readable string based on a given order and stores it in the agent's data for
+        later use.
+
+        Parameters:
+            items (Dict): The list of actions or tools to format.
+            order (Optional[List[str]]): The order in which to format the action's keys.
+
+        Returns:
+            Optional[str]: The formatted string of actions, or None if an error occurs.
+        """
+        try:
+            formatted_actions = []
+            for item_name, metadata in items.items():
+                formatted_action = self.format_item(metadata, order)
+                formatted_actions.append(formatted_action)
+            return "---\n" + "\n---\n".join(formatted_actions) + "\n---"
+        except Exception as e:
+            self.logger.log(f"Error Formatting Item List:\n{items}\n\nError: {e}", 'error', 'Actions')
+            return None
+        

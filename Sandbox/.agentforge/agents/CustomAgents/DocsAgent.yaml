@@ -21,3 +21,4 @@ Prompts:
     ## Here is the user query:
     
     ** {query} **
+    {whatever}

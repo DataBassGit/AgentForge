@@ -1,15 +1,19 @@
 # Default settings for all models unless overridden
 ModelSettings:
+ API: groq_api
+ Model: llama31
 #  API: gemini_api
 #  Model: gemini-flash
-  API: openai_api
-  Model: omni_model
+#  API: openrouter_api
+#  Model: hermes
+#  API: openai_api
+#  Model: omni_model
 #  API: claude3_api
 #  Model: claude-3
 #  API: ollama_api
 #  Model: DolphinMistral
-#  API: lm_studio_api
-#  Model: LMStudio
+  # API: lm_studio_api
+  # Model: LMStudio
   Params: # Default parameter values
     max_new_tokens: 3000
     temperature: 0.8
@@ -58,6 +62,18 @@ ModelLibrary:
         name: gpt-3.5-turbo-0613
       old_long_fast_model:
         name: gpt-3.5-turbo-16k-0613
+  groq_api:
+    module: "groq_api"
+    class: "GroqAPI"
+    models:
+      llama31:
+        name: llama-3.1-70b-versatile
+  openrouter_api:
+    module: "openrouter"
+    class: "OpenRouter"
+    models:
+      hermes:
+        name: nousresearch/hermes-3-llama-3.1-405b
   claude_old:
     module: "claude_old"
     class: "Claude"

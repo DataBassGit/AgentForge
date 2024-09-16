@@ -1,0 +1,35 @@
+Name: Image To Text
+Args:
+  - image_path (str)
+Command: imagetotxt
+Description: |-
+  The Image to Text tool extracts text from images using Optical Character Recognition (OCR).
+  Key features:
+  - Uses OpenCV for image loading and preprocessing
+  - Employs Tesseract OCR for text extraction
+  - Supports various image formats
+  - Converts image to grayscale for improved OCR accuracy
+  Limitations:
+  - Requires OpenCV (cv2) and pytesseract libraries to be installed
+  - OCR accuracy depends on image quality and text clarity
+  - May struggle with handwritten or stylized text
+Example: |-
+  # Example usage of the Image to Text tool:
+  from agentforge.tools.ImageToTxt import imagetotxt
+
+  # Example with an image file
+  image_path = "path/to/your/image.jpg"
+  result = imagetotxt(image_path)
+  print("Extracted text:")
+  print(result)
+Instruction: |-
+  To use the Image to Text tool, follow these steps:
+  1. Import the imagetotxt function from agentforge.tools.ImageToTxt
+  2. Call the imagetotxt function with the required argument:
+     - image_path: A string representing the file path to the image
+  3. The function will return the extracted text as a string
+  4. Process or display the returned text as needed
+  5. Ensure that OpenCV (cv2) and pytesseract libraries are installed in your environment
+  6. Handle any potential errors or exceptions that may be raised during the process
+  7. For best results, use clear, high-resolution images with well-defined text
+Script: agentforge.tools.ImageToTxt

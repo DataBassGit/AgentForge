@@ -1,68 +1,79 @@
-from semantic_router.splitters import RollingWindowSplitter
-from semantic_router.encoders import FastEmbedEncoder
-
-# needed modules:
-# pip install --user semantic-router
-# pip install --user 'semantic-router[fastembed]'
+from semantic_text_splitter import TextSplitter
 
 
-def semantic_chunk(text: str) -> list:
+class Chunk:
     """
-    Split a given text into chunks based on semantic similarity.
+    Represents a chunk of text.
 
-    This function takes a string of text and breaks it down into smaller chunks,
-    where each chunk represents a semantically similar portion of the text.
-    The chunking is performed based on the semantic meaning and coherence of the
-    text, rather than a fixed size or specific delimiters.
+    Attributes:
+        content (str): The content of the chunk.
+    """
+
+    def __init__(self, content):
+        """
+        Initialize a Chunk object.
+
+        Args:
+            content (str): The content of the chunk.
+        """
+        self.content = content
+
+
+def semantic_chunk(text, min_length=200, max_length=2000):
+    """
+    Split text into semantic chunks using the semantic_text_splitter library.
+
+    This function splits the input text into chunks based on semantic meaning,
+    with each chunk having a length between min_length and max_length.
 
     Args:
         text (str): The input text to be chunked.
+        min_length (int, optional): The minimum length of each chunk. Defaults to 200.
+        max_length (int, optional): The maximum length of each chunk. Defaults to 2000.
 
     Returns:
-        list: A list of dicts, where each dict represents a semantically
-            similar chunk of the input text. You will want the 'content' key of
-            each item in the list.
+        list: A list of Chunk objects, each containing a portion of the input text.
 
-    Example:
-        >>> text = "This is a sample text. It consists of multiple sentences. Each sentence conveys a specific idea or thought."
-        >>> chunks = semantic_chunk(text)
-        >>> for c in chunks:
-        >>> print(r.content)
-        ['This is a sample text.', 'It consists of multiple sentences.', 'Each sentence conveys a specific idea or thought.']
+    Raises:
+        ValueError: If the input text is not a string, or if min_length or max_length are invalid.
+        ImportError: If the semantic_text_splitter library is not installed.
+        Exception: For any other unexpected errors during execution.
     """
+    if not isinstance(text, str):
+        raise ValueError("Input text must be a string")
+    
+    if not isinstance(min_length, int) or not isinstance(max_length, int):
+        raise ValueError("min_length and max_length must be integers")
+    
+    if min_length <= 0 or max_length <= 0 or min_length >= max_length:
+        raise ValueError("Invalid min_length or max_length values")
 
-    encoder = FastEmbedEncoder(name="sentence-transformers/all-MiniLM-L6-v2")
-    splitter = RollingWindowSplitter(
-        encoder=encoder,
-        dynamic_threshold=True,
-        min_split_tokens=100,
-        max_split_tokens=500,
-        window_size=2,
-        plot_splits=False,  # set this to true to visualize chunking
-        enable_statistics=True  # to print chunking stats
-    )
+    try:
+        splitter = TextSplitter((min_length, max_length), trim=False)
 
-    splits = splitter([text])
-    splitter.print(splits)
-    return splits
+        chunks = splitter.chunks(text)
+        result = []
+        for chunk in chunks:
+            # Preserve intentional line breaks while removing extra whitespace
+            cleaned_chunk = '\n'.join(' '.join(line.split()) for line in chunk.split('\n'))
+            chunk_obj = Chunk(content=cleaned_chunk)
+            result.append(chunk_obj)
 
+        return result
 
-if __name__ == '__main__':
-    import io
-    import requests
-    from PyPDF2 import PdfReader
+    except ImportError:
+        raise ImportError("semantic_text_splitter library is not installed. Please install it to use this function.")
+    except Exception as e:
+        raise Exception(f"An error occurred while chunking the text: {str(e)}")
 
-    url = 'https://arxiv.org/pdf/2404.16811.pdf'
-    response = requests.get(url)
+# Usage example (commented out)
+# if __name__ == "__main__":
+#     try:
+#         text = "This is a sample text. It contains multiple sentences. " * 20
+#         chunks = semantic_chunk(text)
+#         print(f"Number of chunks: {len(chunks)}")
+#         for i, chunk in enumerate(chunks, 1):
+#             print(f"Chunk {i}: {chunk.content[:50]}...")  # Print first 50 characters of each chunk
+#     except Exception as e:
+#         print(f"Error: {str(e)}")
 
-    if response.status_code == 200:
-        pdf_content = io.BytesIO(response.content)
-        pdf_reader = PdfReader(pdf_content)
-        text2 = ""
-        for page in pdf_reader.pages:
-            text2 += page.extract_text()
-        results = semantic_chunk(text2)
-        for r in results:
-            print(r.content)
-    else:
-        print(f"Failed to download the PDF. Status code: {response.status_code}")

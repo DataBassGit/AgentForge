@@ -62,34 +62,3 @@ class ParsingUtils:
         except yaml.YAMLError as e:
             self.logger.parsing_error(yaml_string, e)
             return None
-
-    @staticmethod
-    def format_metadata(metadata_list):
-        """
-        Formats metadata to ensure values are strings, converting lists into comma-separated strings.
-
-        Parameters:
-            metadata_list (list): A list of dictionaries, each representing metadata.
-
-        Returns:
-            list: The formatted metadata list.
-        """
-        # Check if the input is a list
-        if not isinstance(metadata_list, list):
-            raise TypeError("Expected a list of dictionaries")
-
-        # Iterate through each dictionary in the list
-        for metadata in metadata_list:
-            # Ensure each item in the list is a dictionary
-            if not isinstance(metadata, dict):
-                raise TypeError("Each item in the list should be a dictionary")
-
-            # Format each dictionary
-            for key, value in metadata.items():
-                # Check if the value is a list (array)
-                if isinstance(value, list):
-                    # Convert list elements into a comma-separated string
-                    # Update the dictionary with the formatted string
-                    metadata[key] = ', '.join(map(str, value))
-
-        return metadata_list

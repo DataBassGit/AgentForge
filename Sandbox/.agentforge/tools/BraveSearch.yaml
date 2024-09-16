@@ -1,0 +1,41 @@
+Name: Brave Search
+Args:
+  - query (str)
+  - kwargs (dict - optional)
+Command: search
+Description: |-
+  The Brave Search API tool provides access to Brave's search engine capabilities.
+  Key features:
+  - Performs web and video searches
+  - Generates AI-powered summaries of search results
+  - Supports additional search parameters via kwargs
+  - Parses and structures the API response for easy use
+  Limitations:
+  - Requires a valid Brave API key set as an environment variable
+  - API usage may be subject to rate limits and terms of service
+Example: |-
+  # Example usage of the Brave Search API tool:
+  from agentforge.tools.BraveSearch import BraveSearchAPI
+
+  brave = BraveSearchAPI()
+  
+  # Example with web search
+  search_results = brave.search(query='OpenAI ChatGPT', count=5)
+  print(search_results)
+
+  # Example with AI-generated summary
+  summary_results = brave.summarize(query='What is ChatGPT?')
+  print(summary_results)
+Instruction: |-
+  To use the Brave Search API tool, follow these steps:
+  1. Ensure the BRAVE_API_KEY environment variable is set with your API key
+  2. Import the BraveSearchAPI class from agentforge.tools.BraveSearch
+  3. Create an instance of the BraveSearchAPI class
+  4. Call the search or summarize method with the required arguments:
+     - query: A string containing the search query
+     - **kwargs: Optional additional parameters for the API request
+  5. The method will return a dictionary containing the parsed search results or summary
+  6. Process the returned results as needed for your application
+  7. Handle any potential errors or exceptions that may be raised during the API request
+  8. Be mindful of API usage limits and adhere to Brave's terms of service
+Script: agentforge.tools.BraveSearch

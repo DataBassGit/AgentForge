@@ -1,74 +1,274 @@
 # Custom Agents Guide
 
-## Overview
+## Introduction
 
-Creating a Custom Agent entails building a new class that inherits the `Agent` base class. This endows your class with the default behaviors defined in the `Agent` class. 
+Creating custom agents in **AgentForge** allows you to tailor agent behaviors to your specific needs. By subclassing the `Agent` base class, you inherit default functionalities and can override methods to customize behaviors. This guide will walk you through the process of creating and customizing your own agents.
 
-To create a custom agent, you'll simply need to create a new `Python` class that inherits from the base `Agent` class. Once you've achieved this, start customizing by overriding the default methods to align them with your specific requirements. 
+---
 
-Additionally, remember to create a corresponding `YAML` file for your agent's prompts. The filename should mirror your agent class name and the YAML file name is case-sensitive. With these steps, you've successfully created a customized agent tailored to your specific need!
+## Table of Contents
 
-### Example
+1. [Creating a Basic Custom Agent](#1-creating-a-basic-custom-agent)
+2. [Creating Agent Prompt Templates](#2-creating-agent-prompt-templates)
+3. [Using Persona Files](#3-using-persona-files)
+4. [Overriding Agent Methods](#4-overriding-agent-methods)
+5. [Best Practices](#5-best-practices)
+6. [Next Steps](#6-next-steps)
+
+---
+
+## 1. Creating a Basic Custom Agent
+
+To create a custom agent, you simply need to define a new Python class that inherits from the `Agent` base class.
+
+### Step-by-Step Guide
+
+**Step 1: Define Your Agent Class**
+
+Create a Python file for your agent (e.g., `my_custom_agent.py`):
 
 ```python
-from agentforge.agent import Agent
+from agentforge import Agent
 
-class NewAgent(Agent): 
-    pass
+class MyCustomAgent(Agent):
+    pass  # The agent_name is automatically set to 'MyCustomAgent'
 ```
-In this example, `NewAgent` is a mirror of its `Agent` base class template as it doesn't override any methods. 
 
-To utilize this new agent in a different script, import it from its location and provide it the necessary parameters:
-```python
-from your_custom_agent_location.NewAgent import NewAgent
+- By default, `MyCustomAgent` inherits all methods from `Agent`.
 
-new_agent = NewAgent()
-params = { # ... Dictionary Containing Parameters If Needed by the Agent ... }
-results = new_agent.run(**params)
+**Step 2: Create the Prompt Template**
+
+In the `.agentforge/agents/` directory, create a YAML file named `MyCustomAgent.yaml`:
+
+```yaml
+Prompts:
+  System: You are a helpful assistant.
+  User: |+
+    {user_input}
 ```
 
----
+- The **YAML** file name must exactly match the class name (`MyCustomAgent`) and is case-sensitive.
 
-## Persona Files
+**Step 3: Use Your Custom Agent**
 
-In **AgentForge**, **Personas** are utilized to encapsulate the information accessible to the agents. They are a crucial tool to define the body of knowledge that an agent can draw from during its execution. 
+Create a script to run your agent (e.g., `run_my_custom_agent.py`):
 
-A **Persona** is not confined to defining the personality of an agent. Instead, it serves as a store for any kind of information – from data related to a specific subject to general world facts – that the agents might need for providing comprehensive responses to users' input.
-
-Personas are defined using `YAML` files within the `.agentforge/personas` folder. You can create as many persona files as needed, allowing you to structure your agents' knowledge in an organized manner and distribute information across them as required.
-
-Each custom agent can be linked to a specific persona file, providing it with the desired set of information. For more details on how to structure the `Persona YAML File`, check out the [Persona Documentation](../Personas/Personas.md).
-
----
-
-## Agent Prompt Templates
-
-Each custom agent has its own `YAML` file located in the `./agentforge/agents/` folder. This file contains the specific prompt templates used by that agent. The naming convention is crucial here: the filename must match the class name of your agent, and is case-sensitive. So, if you've got a custom agent class named `NewAgent`, your `YAML` file should be `NewAgent.yaml`.
-
-By adhering to this naming convention and populating your `YAML` file with prompt templates, you can create a unique custom agent that inherits default behaviors from the `Agent` base class but also has its own tailored interactions. This approach greatly simplifies and streamlines the agent creation process, making it easier for you to focus on what your agent should do, rather than how it should do it.
-
-For more details on how to structure your agent's prompts, you can refer to the [Agent Prompts Documentation](AgentPrompts.md).
-
----
-
-## Overriding Agent Methods
-
-If you need to customize the behavior of a custom agent, you can override any of the inherited [Agent Methods](AgentMethods.md). This allows for flexibility in how the agent behaves without affecting the overall architecture.
-
-### Example
 ```python
-class NewAgent(Agent):
+from my_custom_agent import MyCustomAgent
+
+agent = MyCustomAgent()
+response = agent.run(user_input="Hello, AgentForge!")
+print(response)
+```
+
+**Step 4: Execute the Script**
+
+Ensure your virtual environment is activated and run the script:
+
+```bash
+python run_my_custom_agent.py
+```
+
+**Example Output:**
+
+```
+Hello! How can I assist you today?
+```
+
+*Note: The actual output depends on the LLM configuration.*
+
+---
+
+## 2. Creating Agent Prompt Templates
+
+Prompt templates define how your agent interacts with users and the LLM. They are stored in **YAML** files within the `.agentforge/agents/` directory.
+
+### Naming Convention
+
+- The **YAML** file name must match the agent class name exactly (case-sensitive).
+- For `MyCustomAgent`, the prompt file is `MyCustomAgent.yaml`.
+
+### Example Prompt Template
+
+```yaml
+Prompts:
+  System: You are a knowledgeable assistant specializing in {specialty}.
+  User: |+
+    {user_input}
+```
+
+- **Variables**: `{specialty}` and `{user_input}` are placeholders that will be replaced at runtime.
+- **Sub-Prompts**: `System` and `User` are sub-prompts that structure the conversation.
+
+---
+
+## 3. Using Persona Files
+
+Personas provide additional context and information to agents. They are defined in YAML files within the `.agentforge/personas/` directory.
+
+### Creating a Persona File
+
+**Example Persona File (`MyCustomAgent.yaml`):**
+
+```yaml
+Name: Expert Assistant
+Specialty: artificial intelligence
+Background: |+
+  You have a Ph.D. in computer science and specialize in AI.
+```
+
+- **Variables**: `Name`, `Specialty`, and `Background` can be referenced in your prompts.
+
+### Linking Persona to Agent
+
+In your agent's prompt file (`MyCustomAgent.yaml`), reference the persona:
+
+```yaml
+Prompts:
+  System: |+
+    You are {Name}, specializing in {Specialty}.
+    {Background}
+  User: |+
+    {user_input}
+```
+
+- The agent will replace `{Name}`, `{Specialty}`, and `{Background}` with values from the persona file.
+
+**Note:** Ensure that the persona file name matches the agent class name unless specified otherwise in the agent configuration.
+
+---
+
+## 4. Overriding Agent Methods
+
+To customize agent behavior, you can override methods inherited from the `Agent` base class.
+
+### Common Methods to Override
+
+- **`load_from_storage()`**
+- **`load_additional_data()`**
+- **`process_data()`**
+- **`parse_result()`**
+- **`save_to_storage()`**
+- **`build_output()`**
+
+### Example: Overriding Methods
+
+```python
+from agentforge import Agent
+
+class MyCustomAgent(Agent):
 
     def process_data(self):
-        # Custom behavior here
-        # ...
-     
-    
+        # Custom data processing
+        self.data['user_input'] = self.data['user_input'].lower()
+
     def build_output(self):
-        # Custom behavior here
-        # ...
+        # Custom output formatting
+        self.output = f"Response: {self.result}"
 ```
 
-In this example, `NewAgent` overrides the `process_data` and `save_result` methods to implement custom behavior. When a method is overridden, the agent's `run` method will automatically call the new version instead of the default one. Want the best of both worlds? You can actually call the default method within your overridden version using the `super()` function. This way, you can extend the default behavior while adding your own special sauce.
+- **Calling Base Methods**: Use `super()` to retain base class functionality.
+
+```python
+    def run(self):
+        # Initial Logic
+        super().run()
+        # Additional processing
+```
 
 ---
+
+## 5. Putting It All Together: Custom Agent Example
+
+Let's create a custom agent that summarizes a given text and returns the summary.
+
+### Step 1: Define the Custom Agent
+
+```python
+from agentforge import Agent
+import json
+
+class SummarizeAgent(Agent):
+    def parse_result(self):
+        # Parse the LLM's response as JSON
+        try:
+            self.data['parsed_result'] = json.loads(self.result)
+        except json.JSONDecodeError:
+            self.data['parsed_result'] = {'summary': self.result}
+
+    def build_output(self):
+        summary = self.data['parsed_result'].get('summary', 'No summary found.')
+        self.output = f"Summary:\n{summary}"
+```
+
+### Step 2: Create the Prompt Template (`SummarizeAgent.yaml`)
+
+```yaml
+Prompts:
+  System: You are an assistant that summarizes text.
+  User: |+
+    Please summarize the following text and return the summary in JSON format with the key "summary":
+
+    {text}
+```
+
+### Step 3: Run the Agent
+
+```python
+# run_summarize_agent.py
+from summarize_agent import SummarizeAgent
+
+agent = SummarizeAgent()
+text_to_summarize = """
+AgentForge is a powerful framework that allows developers to create agents that interact with Large Language Models in a flexible and customizable way. It simplifies the process of building, managing, and deploying AI agents.
+"""
+
+response = agent.run(text=text_to_summarize)
+print(response)
+```
+
+### Output
+
+Assuming the LLM returns a response in JSON format:
+
+```
+Summary:
+AgentForge simplifies building and deploying AI agents by providing a flexible framework for interacting with Large Language Models.
+```
+
+---
+
+## 6. Best Practices
+
+- **Consistent Naming**: Ensure your class name, **YAML** prompt file, and persona file names match exactly.
+- **Use Valid Variable Names**: Variables in prompts and personas should be valid Python identifiers.
+- **Avoid Name Conflicts**: Be cautious of variable names overlapping between personas and runtime data.
+- **Test Incrementally**: Test your agent after each change to identify issues early.
+- **Leverage Personas**: Use personas to enrich your agent with background information and context.
+- **Document Your Agent**: Keep notes on custom behaviors and overridden methods for future reference.
+
+---
+
+## 7. Next Steps
+
+- **Explore Agent Methods**: Dive deeper into customizing agents by reading the [Agent Methods Guide](AgentMethods.md).
+- **Learn About Prompts**: Enhance your prompts by reviewing the [Agent Prompts Guide](AgentPrompts.md).
+- **Utilize Utilities**: Understand utility functions in the [Utilities Overview](../Utils/UtilsOverview.md).
+
+---
+
+### **Conclusion**
+
+By following this guide, you can create custom agents tailored to your specific needs. The **AgentForge** framework provides the flexibility to build simple or complex agents, leveraging the power of LLMs with ease.
+
+---
+
+**Need Help?**
+
+If you have questions or need assistance, feel free to reach out:
+
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
+- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+
+---
+

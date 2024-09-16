@@ -582,3 +582,102 @@ class ChromaUtils:
     def delete_memory(self, collection_name, doc_id):
         self.select_collection(collection_name)
         self.collection.delete(ids=[doc_id])
+
+    def rerank_results(self, query_results: dict, query: str, temp_collection_name: str, num_results: int = None):
+        """
+        Reranks the query results using a temporary collection.
+
+        Args:
+            query_results (dict): A dictionary containing the initial query results.
+                Expected keys: 'documents', 'ids', 'metadatas', 'query'
+            query (str): Query string to rerank against.
+            temp_collection_name (str): The name of the temporary collection to use for reranking.
+            num_results (int, optional): The number of results to return after reranking.
+                If not provided or greater than the number of documents, all documents will be returned.
+
+        Returns:
+            dict: The reranked results, or None if an error occurs.
+        """
+        try:
+            # Check if query_results contains the expected keys
+            expected_keys = ['documents', 'ids', 'metadatas']
+            if not all(key in query_results for key in expected_keys):
+                raise KeyError(f"Missing expected keys in query_results. Expected: {expected_keys}")
+
+            # Check if documents is empty
+            if not query_results['documents']:
+                logger.log("No documents found in query_results. Skipping reranking.", 'warning')
+                return query_results
+
+            # Save the query results to a temporary collection
+            self.save_memory(
+                collection_name=temp_collection_name,
+                data=query_results['documents'],
+                ids=query_results['ids'],
+                metadata=query_results['metadatas']
+            )
+
+            # Determine the number of results to return
+            if num_results is None or num_results > len(query_results['documents']):
+                num_results = len(query_results['documents'])
+
+            # Perform reranking on the temporary collection
+            reranked_results = self.query_memory(
+                collection_name=temp_collection_name,
+                query=query,
+                num_results=num_results
+            )
+            count=self.count_collection(temp_collection_name)
+            print(f"Count: {count}")
+
+            # Delete the temporary collection
+            self.delete_collection(temp_collection_name)
+
+            return reranked_results
+        except KeyError as e:
+            logger.log(f"KeyError occurred while reranking results: {e}", 'error')
+            return None
+        except Exception as e:
+            logger.log(f"Unexpected error occurred while reranking results: {e}", 'error')
+            return None
+
+    @staticmethod
+    def combine_query_results(*query_results):
+        """
+        Combine the query results from multiple queries and remove duplicates.
+
+        Args:
+            *query_results: Variable number of query result dictionaries.
+
+        Returns:
+            dict: Combined query results with duplicates removed and new IDs assigned.
+        """
+        combined_results = {
+            'documents': [],
+            'ids': [],
+            'metadatas': []
+        }
+
+        for query_result in query_results:
+            combined_results['documents'].extend(query_result['documents'])
+            combined_results['ids'].extend(query_result['ids'])
+            combined_results['metadatas'].extend(query_result['metadatas'])
+
+        # Remove duplicates based on the 'documents' field
+        unique_results = {
+            'documents': [],
+            'ids': [],
+            'metadatas': []
+        }
+        seen_documents = set()
+
+        for i in range(len(combined_results['documents'])):
+            document = combined_results['documents'][i]
+            if document not in seen_documents:
+                seen_documents.add(document)
+                unique_results['documents'].append(document)
+                unique_results['ids'].append(str(len(unique_results['ids']) + 1))  # Assign new ID
+                unique_results['metadatas'].append(combined_results['metadatas'][i])
+
+        return unique_results
+

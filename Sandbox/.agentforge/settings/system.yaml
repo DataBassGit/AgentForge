@@ -25,3 +25,11 @@ Logging:
 # Paths the system (agents) have access to read and write
 Paths:
   Files: ./Files
+
+# Evergreen tools will always be included
+EvergreenTools:
+  - ReadFile
+  - FileWriter
+  - CommandExecutor
+  - WebScrape
+  - PythonFunction
