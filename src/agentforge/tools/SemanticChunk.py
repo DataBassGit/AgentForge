@@ -54,7 +54,9 @@ def semantic_chunk(text, min_length=200, max_length=2000):
         chunks = splitter.chunks(text)
         result = []
         for chunk in chunks:
-            chunk_obj = Chunk(content=chunk)
+            # Preserve intentional line breaks while removing extra whitespace
+            cleaned_chunk = '\n'.join(' '.join(line.split()) for line in chunk.split('\n'))
+            chunk_obj = Chunk(content=cleaned_chunk)
             result.append(chunk_obj)
 
         return result

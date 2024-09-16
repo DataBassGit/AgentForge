@@ -39,6 +39,6 @@ Instruction: |-
      - The function returns a list of text chunks.
   5. Utilize the outputs from each tool as needed for your application.
 Tools:
-  - Google Search
+  - Brave Search
   - Web Scrape
-  - Intelligent Chunk
+  - Semantic Chunk

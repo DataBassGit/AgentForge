@@ -1,7 +1,7 @@
 import os
 import requests
 
-class BraveSearchAPI:
+class BraveSearch:
     """
     A Python wrapper for the Brave Search API.
 
@@ -157,7 +157,7 @@ class BraveSearchAPI:
 
 if __name__ == '__main__':
 
-    brave = BraveSearchAPI()
+    brave = BraveSearch()
     import json
 
     # Perform a web search with additional parameters

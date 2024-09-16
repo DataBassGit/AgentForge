@@ -5,6 +5,7 @@ import os
 import asyncio
 import threading
 from agentforge.utils.functions.Logger import Logger
+from agentforge.tools.SemanticChunk import semantic_chunk
 
 class DiscordClient:
     """
@@ -163,9 +164,17 @@ class DiscordClient:
             content (str): The content of the message to send.
         """
         async def send():
+            messages = semantic_chunk(content, min_length=200, max_length=1900)
             channel = self.client.get_channel(channel_id)
             if channel:
-                await channel.send(content)
+                for msg in messages:
+                    if len(msg.content) > 2000:
+                        # Re-chunk the oversized message
+                        sub_messages = semantic_chunk(msg.content, min_length=200, max_length=1900)
+                        for sub_msg in sub_messages:
+                            await channel.send(sub_msg.content)
+                    else:
+                        await channel.send(msg.content)
             else:
                 self.logger.log(f"Channel {channel_id} not found", 'error', 'DiscordClient')
 
@@ -187,7 +196,15 @@ class DiscordClient:
             try:
                 user = await self.client.fetch_user(user_id)
                 if user:
-                    await user.send(content)
+                    messages = semantic_chunk(content, min_length=200, max_length=1900)
+                    for msg in messages:
+                        if len(msg.content) > 2000:
+                            # Re-chunk the oversized message
+                            sub_messages = semantic_chunk(msg.content, min_length=200, max_length=1900)
+                            for sub_msg in sub_messages:
+                                await user.send(sub_msg.content)
+                        else:
+                            await user.send(msg.content)
                 else:
                     self.logger.log(f"User {user_id} not found", 'error', 'DiscordClient')
             except discord.errors.NotFound:
@@ -548,7 +565,14 @@ class DiscordClient:
                     self.logger.log(f"Thread {thread_id} not found", 'error', 'DiscordClient')
                     return False
 
-                await thread.send(content)
+                # Split the content into semantic chunks
+                chunks = semantic_chunk(content, min_length=200, max_length=1900)
+                for i, chunk in enumerate(chunks, 1):
+                    message = chunk.content
+                    # if len(chunks) > 1:
+                    #     message = f"Part {i}/{len(chunks)}:\n{message}"
+                    await thread.send(message)
+                
                 self.logger.log(f"Reply sent to thread {thread_id}", 'info', 'DiscordClient')
                 return True
             except discord.errors.Forbidden:

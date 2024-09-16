@@ -1,4 +1,4 @@
-Name: Image to Text
+Name: Image To Text
 Args:
   - image_path (str)
 Command: imagetotxt

@@ -1,4 +1,4 @@
-Name: Brave Search API
+Name: Brave Search
 Args:
   - query (str)
   - kwargs (dict - optional)

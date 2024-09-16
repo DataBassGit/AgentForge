@@ -92,15 +92,19 @@ class OpenRouter:
                 break
 
             except requests.exceptions.RequestException as e:
+                error_message = f"\n\nError: {str(e)}"
+                try:
+                    error_message += f"\nResponse JSON: {response.json()}"
+                except ValueError:
+                    error_message += "\nUnable to parse response JSON"
+                
                 if response.status_code == 429:  # Rate limit error
-                    self.logger.log("\n\nError: Reached API rate limit, retrying in 20 seconds...", 'warning')
-                    time.sleep(20)
+                    self.logger.log(error_message + f", retrying in {backoff} seconds...", 'warning')
                 elif response.status_code == 502:  # Bad gateway
-                    self.logger.log("\n\nError: Connection issue, retrying in 2 seconds...", 'warning')
-                    time.sleep(backoff)
+                    self.logger.log(error_message + f", retrying in {backoff} seconds...", 'warning')
                 else:
-                    self.logger.log(f"\n\nError: {str(e)}, retrying in {backoff} seconds...", 'warning')
-                    time.sleep(backoff)
+                    self.logger.log(error_message + f", retrying in {backoff} seconds...", 'warning')
+                time.sleep(backoff)
 
         if reply is None:
             self.logger.log("\n\nError: Failed to get OpenRouter Response", 'critical')

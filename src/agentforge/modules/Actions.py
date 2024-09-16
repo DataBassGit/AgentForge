@@ -44,7 +44,7 @@ class Actions:
         """
         # Initialize the logger, storage, and functions
         self.logger = Logger(name=self.__class__.__name__)
-        self.storage = ChromaUtils('default')
+        self.storage = ChromaUtils()
         self.functions = Functions()
 
         # Initialize the agents
@@ -362,6 +362,7 @@ class Actions:
                 selected_action = self.select_action_for_objective(objective=objective,
                                                                    action_list=available_actions,
                                                                    context=context)
+                selected_action = self.actions[selected_action['action']]
                 self.logger.log(f"\nSelected Action:\n{selected_action}", 'info', 'Actions')
             else:
                 self.logger.log(f"\nCrafting Action for Objective:\n{objective}", 'info', 'Actions')
