@@ -1,449 +1,340 @@
-# Agent Methods
+# Agent Methods Guide
 
-Welcome to the Agent Methods documentation! In this section, we'll walk you through the key methods within the `Agent` base class which are the most relevant for creating [Custom Agents](CustomAgents.md). Understanding these methods will help you customize and extend the capabilities of your agents effectively.
-
----
-
-## 📌 Important Note: The Essence of Agents
-
-All the methods outlined in this documentation serve a dual purpose:
-
-1. **Customization & Specialization**: These methods act as access points for specialization. You can override them to implement specific functionalities without changing the entire code base. This allows each subclass to be a specialized version of the base `Agent` class, extending or modifying its behaviors.
-
-2. **Default Behavior & Streamlining**: The methods also serve as the default behavior for any agent, making the creation of new agents incredibly streamlined. Just create a new subclass of the `Agent` class, add its prompts, and you're good to go!
-
-In other words, the `Agent` base class serves as a generic agent, while each subclass is a specialized agent.
-
-For more details on how to create and specialize agents, see [Custom Agents](CustomAgents.md).
+Welcome to the **Agent Methods** guide! This section provides an in-depth look at the key methods within the `Agent` base class. Understanding these methods is crucial for creating custom agents by subclassing the `Agent` class, allowing you to extend and customize agent behaviors effectively.
 
 ---
 
-## Methods
-1. [Run](#run)
-2. [Load Data](#load-data)
-3. [Load Kwargs](#load-kwargs)
-4. [Load Agent Data](#load-agent-data)
-5. [Load Persona Data](#load-persona-data)
-6. [Load from Storage](#load-from-storage)
-7. [Load Additional Data](#load-additional-data)
-8. [Process Data](#process-data)
-9. [Generate Prompt](#generate-prompt)
-10. [Run LLM](#run-llm)
-11. [Parse Result](#parse-result)
-12. [Save to Storage](#save-to-storage)
-13. [Build Output](#build-output)
-14. [Additional Functions](#note-additional-functions)
+## Introduction
+
+The `Agent` base class provides a robust template for building agents in **AgentForge**. By subclassing `Agent`, you can create new agents quickly and customize their behaviors by overriding specific methods.
+
+**Why Override Methods?**
+
+- **Customization**: Tailor agent behaviors to fit specific tasks.
+- **Specialization**: Implement unique processing logic or data handling.
+- **Extensibility**: Add new functionalities without altering the base class.
 
 ---
 
-## Run
+## Method Categories
 
-### `run(**kwargs)`
+For better understanding, we've grouped the methods into the following categories:
 
-**Purpose**: This method orchestrates the execution of the agent's workflow, encompassing the sequence of loading data, processing it, generating prompts, running language models, parsing results, saving those results, and ultimately constructing the output. It incorporates robust error handling to ensure smooth operation throughout this workflow.
+1. [Core Workflow Methods](#1-core-workflow-methods)
+2. [Data Loading Methods](#2-data-loading-methods)
+3. [Data Processing Methods](#3-data-processing-methods)
+4. [LLM Interaction Methods](#4-llm-interaction-methods)
+5. [Result Handling Methods](#5-result-handling-methods)
+6. [Customization Hooks](#6-customization-hooks)
 
-**Arguments**:
-- `**kwargs`: Additional keyword arguments that may be utilized during the data loading phase.
+---
 
-**Workflow**:
-1. Log the start of the run process with the agent's name.
-2. Load data by invoking `self.load_data(**kwargs)`.
-3. Process the loaded data through `self.process_data()`.
-4. Generate the prompt for the language model using `self.generate_prompt()`.
-5. Execute the language model task with `self.run_llm()`.
-6. Parse the result obtained from the language model with `self.parse_result()`.
-7. Save the parsed result via `self.save_to_storage()`.
-8. Build the final output using `self.build_output()`.
-9. Clear the internal data storage.
-10. Log the completion of the process.
-11. Return the built output or `None` if an exception occurs during execution.
+## 1. Core Workflow Methods
 
-**Error Handling**:
-- The method includes a `try-except` block to catch and log any exceptions that occur during the execution of the agent's workflow. If an error is encountered, the method logs the error and returns `None`, indicating that the process did not complete successfully.
+### `run(self, **kwargs)`
 
-**Code Example**:
+**Purpose**: The central method that orchestrates the agent's workflow, executing a sequence of steps to generate the final output.
+
+**Workflow Steps**:
+
+1. **Load Data**: `self.load_data(**kwargs)`
+2. **Process Data**: `self.process_data()`
+3. **Generate Prompt**: `self.generate_prompt()`
+4. **Run LLM**: `self.run_llm()`
+5. **Parse Result**: `self.parse_result()`
+6. **Save to Storage**: `self.save_to_storage()`
+7. **Build Output**: `self.build_output()`
+
+**Usage**:
+
+- Call `run()` with any necessary keyword arguments.
+- The method handles error logging and returns the final output or `None` if an error occurs.
+
+**Example**:
 
 ```python
-def run(self, **kwargs: Any) -> Optional[str]:
-    """
-    Orchestrates the execution of the agent's workflow: loading data, processing data, generating prompts,
-    running language models, parsing results, saving results, and building the output.
+class CustomAgent(Agent):
+    pass
 
-    Parameters:
-        **kwargs (Any): Keyword arguments that will form part of the agent's data.
-
-    Returns:
-        Optional[str]: The output generated by the agent or None if an error occurred during execution.
-    """
-    try:
-        self.logger.log(f"\n{self.agent_name} - Running...", 'info')
-        self.load_data(**kwargs)
-        self.process_data()
-        self.generate_prompt()
-        self.run_llm()
-        self.parse_result()
-        self.save_to_storage()
-        self.build_output()
-        self.data = {}
-        self.logger.log(f"\n{self.agent_name} - Done!", 'info')
-    except Exception as e:
-        self.logger.log(f"Error running agent: {e}", 'error')
-        return None
-
-    return self.output
+agent = CustomAgent()
+output = agent.run(user_input="Hello, AgentForge!")
+print(output)
 ```
 
 ---
 
-## Load Data
+## 2. Data Loading Methods
+
+These methods handle loading various types of data into the agent.
 
 ### `load_data(self, **kwargs)`
 
-**Purpose**: This method centralizes the data loading process for the agent. It orchestrates the loading of various types of data, including keyword arguments, agent-specific data, persona data, storage data, and any additional data. This ensures a comprehensive and structured approach to populating the agent's internal `data` attribute with all necessary information required for its operation.
+**Purpose**: Centralizes the data loading process.
 
-**Arguments**:
-- `**kwargs`: Additional keyword arguments that facilitate further customization and flexibility in data loading.
+**What It Does**:
 
-**Workflow**:
-1. Load keyword arguments using `self.load_kwargs(**kwargs)`.
-2. Load agent data by invoking `self.load_agent_data()`.
-3. Load persona data with `self.load_persona_data()`.
-4. Load data from storage using `self.load_from_storage()`.
-5. Load any additional data through `self.load_additional_data()`.
+- Loads keyword arguments.
+- Loads agent configuration data.
+- Loads persona data.
+- Loads data from storage.
+- Loads any additional data.
 
-**Code Example**:
+**When to Override**:
 
-```python
-def load_data(self, **kwargs: Any) -> None:
-    """
-    Central method for data loading that orchestrates the loading of agent data, persona-specific data,
-    storage data, and any additional data.
-
-    Parameters:
-        **kwargs (Any): Keyword arguments for additional data loading.
-    """
-    self.load_kwargs(**kwargs)
-    self.load_agent_data()
-    self.load_persona_data()
-    self.load_from_storage()
-    self.load_additional_data()
-```
-
----
-
-## Load Kwargs
+- Typically, you don't need to override this method. Instead, override the specific data loading methods as needed.
 
 ### `load_kwargs(self, **kwargs)`
 
-**Purpose**: This method loads variables passed to the agent as data through keyword arguments, integrating them into the agent's internal `data` attribute. This allows for dynamic customization of the agent's data at runtime based on specific needs or inputs.
+**Purpose**: Loads variables passed as keyword arguments into `self.data`.
 
-**Arguments**:
-- `**kwargs`: Additional keyword arguments to be merged into the agent's data.
+**Usage**:
 
-**Workflow**:
-1. Iterate through `**kwargs` and integrate each key-value pair into the agent's `data` attribute.
+- Automatically called by `load_data()`.
 
-**Code Example**:
+**Example**:
 
 ```python
-def load_kwargs(self, **kwargs: Any) -> None:
-    """
-    Loads the variables passed to the agent as data.
-
-    Parameters:
-        **kwargs (Any): Additional keyword arguments to be merged into the agent's data.
-    """
-    try:
-        for key in kwargs:
-            self.data[key] = kwargs[key]
-    except Exception as e:
-        self.logger.log(f"Error loading kwargs: {e}", 'error')
+def load_kwargs(self, **kwargs):
+    self.data.update(kwargs)
 ```
 
 ---
-
-## Load Agent Data
 
 ### `load_agent_data(self)`
 
-**Purpose**: This method is tasked with loading the agent's configuration data, including parameters and prompts. It efficiently merges these configurations into the agent's internal `data` attribute, ensuring comprehensive preparation for the agent's operation.
+**Purpose**: Loads the agent's configuration data, including parameters and prompts.
 
-**Arguments**: None
+**Usage**:
 
-**Workflow**:
-1. Fetch the agent's configuration data, including parameters and prompt templates, using `self.functions.agent_utils.load_agent_data(self.agent_name)`.
-2. Update the agent's `data` attribute with the fetched parameters and prompts.
-
-**Code Example**:
-
-```python
-def load_agent_data(self) -> None:
-    """
-    Loads the agent's configuration data including parameters and prompts.
-    """
-    try:
-        self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name).copy()
-        self.data.update({
-            'params': self.agent_data.get('params').copy(),
-            'prompts': self.agent_data['prompts'].copy()
-        })
-    except Exception as e:
-        self.logger.log(f"Error loading agent data: {e}", 'error')
-```
+- Automatically called by `load_data()`.
 
 ---
-
-## Load Persona Data
 
 ### `load_persona_data(self)`
 
-**Purpose**: This method enriches agents with persona-specific knowledge, allowing them to access and utilize personality traits, general knowledge, or any other information defined in their persona configuration. The method seamlessly loads this data from the agent's configuration, making it effortless to imbue agents with a rich, dynamic personality.
+**Purpose**: Loads persona-specific data, enriching the agent's context.
 
-**Arguments**: None
+**Usage**:
 
-**Workflow**:
-1. Retrieve the persona data from the agent's configuration.
-2. Integrate the persona data into the agent's `data` attribute.
-
-**Code Example**:
-
-```python
-def load_persona_data(self) -> None:
-    """
-    Loads the persona data for the agent if available.
-    """
-    persona = self.agent_data.get('persona', {})
-    if persona:
-        for key in persona:
-            self.data[key.lower()] = persona[key]
-```
+- Automatically called by `load_data()`.
+- Integrates data from the persona **YAML** file into `self.data`.
 
 ---
-
-## Load from Storage
 
 ### `load_from_storage(self)`
 
-**Purpose**: This method is a placeholder for loading data from storage. It is designed to be overridden by custom agents to implement specific loading logic from storage systems.
+**Purpose**: Placeholder for loading data from storage systems.
 
-**Arguments**: None
+**Usage**:
 
-**Workflow**:
-1. This method does not perform any operations by default. It is intended to be overridden by custom agents.
+- **Override this method** if your agent needs to load data from a database or file system.
 
-**Code Example**:
+**Example Override**:
 
 ```python
-def load_from_storage(self) -> None:
-    """
-    Placeholder for loading from storage. Meant to be overridden by custom agents to implement specific loading
-    from storage logic.
-
-    Note: The storage instance for an Agent is set at self.agent_data['storage']
-    """
-    pass
+def load_from_storage(self):
+    self.data['stored_value'] = self.agent_data['storage'].load('key')
 ```
 
 ---
-
-## Load Additional Data
 
 ### `load_additional_data(self)`
 
-**Purpose**: This method is tailored for the intricacies of final, specialized agent classes within the hierarchy. It offers a dedicated avenue for loading bespoke data crucial to an agent
+**Purpose**: Placeholder for loading any additional data.
 
-'s unique operational needs. It is a customizable point for agents to incorporate specific data sets that are pivotal for their designated tasks and functionalities.
+**Usage**:
 
-**Arguments**: None
+- **Override this method** to load custom data required by your agent.
 
-**Workflow**:
-1. This method does not perform any operations by default. It is intended to be overridden by custom agents.
-
-**Code Example**:
+**Example Override**:
 
 ```python
-def load_additional_data(self) -> None:
-    """
-    Placeholder for loading additional data. Meant to be overridden by custom agents as needed.
-    """
-    pass
+def load_additional_data(self):
+    self.data['timestamp'] = datetime.now().isoformat()
 ```
 
 ---
 
-## Process Data
+## 3. Data Processing Methods
 
 ### `process_data(self)`
 
-**Purpose**: This method acts as a scaffold for any data processing that needs to occur before data is utilized within the agent. It is intentionally left empty to be customized by developers according to the unique processing requirements of their custom agents.
+**Purpose**: Placeholder for processing the loaded data before it's used in prompt generation.
 
-**Arguments**: None
+**Default Behavior**: None
 
-**Workflow**:
-1. This method does not perform any operations by default. It is intended to be overridden by custom agents.
+**Usage**:
 
-**Code Example**:
+- **Override this method** to implement custom data processing logic.
+
+**Example Override**:
 
 ```python
-def process_data(self) -> None:
-    """
-    Placeholder for data processing. Meant to be overridden by custom agents for specific data processing needs.
-    """
-    pass
+def process_data(self):
+    self.data['user_input'] = self.data['user_input'].upper()
 ```
 
 ---
 
-## Generate Prompt
+## 4. LLM Interaction Methods
 
 ### `generate_prompt(self)`
 
-**Purpose**: This method prepares the prompts for the language model, crafting them based on specific templates and the data loaded into the agent. It ensures that each prompt is meticulously generated to align with the agent's objectives and data context, optimizing the interaction between the agent and the LLM.
-
-**Arguments**: None
+**Purpose**: Renders the prompt templates using `self.data`.
 
 **Workflow**:
-1. Create an empty list named `rendered_prompts`.
-2. Loop through each `prompt_template` found in the agent's `data['prompts']` attribute.
-3. Fetch and validate each prompt template using `self.functions.prompt_handling.handle_prompt_template`.
-4. Render the template with the agent's data to create a prompt.
-5. Append the rendered prompt to the `rendered_prompts` list.
-6. Assign the list of `rendered_prompts` to the agent's `prompt` attribute.
-7. Implement error handling to catch and log exceptions.
 
-**Code Example**:
+- Iterates over prompt templates.
+- Renders each template with current data.
+- Stores the rendered prompts in `self.prompt`.
 
-```python
-def generate_prompt(self) -> None:
-    """
-    Generates the prompt(s) for the language model based on template data. It handles the rendering of prompt
-    templates and aggregates them into a list.
-    """
-    try:
-        rendered_prompts: List[str] = []
-        for prompt_template in self.data['prompts'].values():
-            template = self.functions.prompt_handling.handle_prompt_template(prompt_template, self.data)
-            if template:
-                rendered_prompt = self.functions.prompt_handling.render_prompt_template(template, self.data)
-                rendered_prompts.append(rendered_prompt)
+**When to Override**:
 
-        self.prompt = rendered_prompts
-    except Exception as e:
-        self.logger.log(f"Error generating prompt: {e}", 'error')
-        self.prompt = None
-```
+- Typically, you don't need to override this method. Only override this method if you need custom prompt rendering logic.
 
 ---
-
-## Run LLM
 
 ### `run_llm(self)`
 
-**Purpose**: This method is responsible for engaging the Large Language Model (LLM) to generate responses based on the previously rendered prompts. It leverages the agent's `prompt` attribute as input for the LLM. The output from the LLM is processed and stored within the agent's `result` attribute.
-
-**Arguments**: None
+**Purpose**: Executes the language model using the generated prompts.
 
 **Workflow**:
-1. Access the LLM instance stored within `self.agent_data['llm']`.
-2. Retrieve any additional parameters designated for the LLM execution.
-3. Dynamically add the agent's name to the parameters.
-4. Invoke the `generate_text` method on the LLM instance, passing in the `prompt` and parameters.
-5. Trim any excess whitespace from the generated text and store it in `self.result`.
-6. Implement error handling to catch and log exceptions.
 
-**Code Example**:
+- Uses the LLM instance from `self.agent_data['llm']`.
+- Passes in `self.prompt` and parameters.
+- Stores the result in `self.result`.
+
+**When to Override**:
+
+- If you need to modify how the LLM is called.
+
+**Example Override**:
 
 ```python
-def run_llm(self) -> None:
-    """
-    Executes the language model generation with the generated prompt(s) and any specified parameters.
-    """
-    try:
-        model: LLM = self.agent_data['llm']
-        params: Dict[str, Any] = self.agent_data.get("params", {})
-        params['agent_name'] = self.agent_name
-        self.result = model.generate_text(self.prompt, **params).strip()
-    except Exception as e:
-        self.logger.log(f"Error running LLM: {e}", 'error')
-        self.result = None
+def run_llm(self):
+    # Custom LLM execution
+    self.result = "Simulated LLM output"
 ```
 
 ---
 
-## Parse Result
+## 5. Result Handling Methods
 
 ### `parse_result(self)`
 
-**Purpose**: The `parse_result` method serves as a foundational structure for developers to implement custom parsing logic for the responses generated by the LLM. This method is intentionally left as a no-operation (no-op) placeholder within the base agent class, providing a clear point of extension for custom behaviors.
+**Purpose**: Placeholder for parsing raw result from the LLM.
 
-**Arguments**: None
+**Usage**:
 
-**Workflow**:
-1. This method does not perform any operations by default. It is intended to be overridden by custom agents.
+- **Override this method** to implement custom parsing logic.
 
-**Code Example**:
+**Example Override**:
 
 ```python
-def parse_result(self) -> None:
-    """
-    Placeholder for result parsing. Meant to be overridden by custom agents to implement specific result parsing
-    logic.
-    """
-    pass
+def parse_result(self):
+    self.data['parsed_result'] = json.loads(self.result)
 ```
 
 ---
-
-## Save to Storage
 
 ### `save_to_storage(self)`
 
-**Purpose**: This method is designed to preserve the outcomes generated by the LLM. It acts as the agent's mechanism for storing valuable information, enabling it to recall and utilize results in future operations or decision-making processes.
+**Purpose**: Placeholder for saving data to storage.
 
-**Arguments**: None
+**Usage**:
 
-**Workflow**:
-1. This method does not perform any operations by default. It is intended to be overridden by custom agents to implement specific saving to storage logic.
+- **Override this method** if your agent needs to save data persistently.
 
-**Code Example**:
+**Example Override**:
 
 ```python
-def save_to_storage(self) -> None:
-    """
-    Placeholder for saving results to storage. Meant to be overridden by custom agents to implement specific
-    saving to storage logic.
-
-    Note: The storage instance for an Agent is set at self.agent_data['storage']
-    """
-    pass
+def save_to_storage(self):
+    data = # logic for data to be saved
+    metadata = # metadata for the data being saved
+    self.agent_data['storage'].save_memory(collection_name='Results', data=data, metadata=metadata)
 ```
 
 ---
-
-## Build Output
 
 ### `build_output(self)`
 
-**Purpose**: The `build_output` method is responsible for assembling the agent's final output from the results obtained through the LLM's inference. In its basic form, this method equates the `self.output` with the `self.result`, effectively finalizing the agent's response to be delivered.
+**Purpose**: Constructs the final output from the processed data.
 
-**Arguments**: None
+**Default Behavior**:
 
-**Workflow**:
-1. Assign the value of `self.result` to `self.output`, thereby establishing the agent's final output.
+- Sets `self.output = self.result`
 
-**Code Example**:
+**When to Override**:
+
+- To customize the final output format.
+
+**Example Override**:
 
 ```python
-def build_output(self) -> None:
-    """
-    Constructs the output from the result. This method can be overridden by subclasses to customize the output.
-    By default, it simply returns the model's response.
-    """
-    self.output = self.result
+def build_output(self):
+    self.output = f"Processed Output: {self.data['parsed_result']}"
 ```
 
 ---
 
-## Note: Additional Functions
+## 6. Customization Hooks
 
-While the key methods relevant for [Custom Agent](CustomAgents.md) creation have been covered in this section, the `Agent` class imports additional methods from a `Functions` utilities class. For those who want to dive deeper into its functionalities, a complete list and documentation of these extra methods can be found in the [Functions](../Utils/UtilsOverview.md) Page.
+These methods are designed to be overridden to customize agent behavior.
+
+- **`load_from_storage()`**
+- **`load_additional_data()`**
+- **`process_data()`**
+- **`parse_result()`**
+- **`save_to_storage()`**
+- **`build_output()`**
+
+---
+
+
+
+---
+
+## Tips and Best Practices
+
+- **Start Simple**: Begin by subclassing `Agent` without overriding any methods. Ensure your basic agent works before adding complexity.
+- **Override as Needed**: Only override methods that require custom logic for your agent's purpose.
+- **Test Each Step**: After overriding a method, test your agent to ensure it behaves as expected.
+- **Use Descriptive Names**: Name your agents and variables clearly to enhance readability.
+- **Leverage Inheritance**: Remember that your custom agent inherits all methods from `Agent`. You can call `super()` to utilize base class functionality.
+
+---
+
+## Additional Functions and Utilities
+
+The `Agent` class utilizes additional methods from the `Functions` utilities class. These utilities assist with tasks such as:
+
+- **Prompt Handling**
+- **Logging**
+- **Data Storage**
+
+For more details, refer to the [Utilities Overview](../Utils/UtilsOverview.md).
+
+---
+
+## Conclusion
+
+By understanding and utilizing these methods, you can create powerful custom agents tailored to your specific needs. The `Agent` base class provides a flexible foundation, and by selectively overriding methods, you can extend and customize agent behaviors efficiently.
+
+---
+
+## Next Steps
+
+- **Explore More**: Check out the [Custom Agents Guide](CustomAgents.md) for further insights into creating specialized agents.
+- **Dive into Utilities**: Learn about the utility classes and functions in the [Utilities Overview](../Utils/UtilsOverview.md).
+- **Understand Prompts**: Review the [Agent Prompts Guide](AgentPrompts.md) to master crafting effective prompts.
+
+---
+
+**Need Help?**
+
+If you have questions or need assistance, feel free to reach out:
+
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
+- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+
+---

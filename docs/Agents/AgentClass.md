@@ -1,36 +1,43 @@
 # `Agent` Class Documentation
 
-Welcome to the documentation of the `Agent` class. This foundational class is designed to facilitate the creation, management, and operation of agents within our framework. It encapsulates core functionalities essential for agents, providing a robust template for both general and specialized agent implementations.
+Welcome to the documentation of the `Agent` class. This foundational class is central to the **AgentForge** framework, enabling the creation, management, and operation of agents. It provides core functionalities essential for agents, serving as a robust template for both general and specialized implementations.
 
-## Overview
+---
 
-The `Agent` class encompasses the essential attributes and methods necessary for agent operation, including data loading, prompt generation, Large Language Model (LLM) execution, and result processing. It serves as a versatile base, ensuring that agents designed under this framework can seamlessly integrate with varying workflows and data structures.
+## Overview of the `Agent` Class
 
-## Agent as a Default Template
+The `Agent` class is designed to:
 
-The `Agent` base class serves as a default template for creating new agents. By providing basic functionalities and methods that can be overridden, it simplifies the process of defining specialized agents. For more details on how to create custom agents by extending this class, refer to the [Custom Agents](CustomAgents.md) page.
+- Serve as a base for all agents within the framework.
+- Provide essential attributes and methods for agent operation.
+- Facilitate seamless integration with various workflows and data structures.
+- Simplify the creation of custom agents through method overriding.
 
-## Class Attributes
+---
 
-The `Agent` leverages several key attributes, serving as placeholders for important operational data:
+## Class Definition
 
-- `agent_name`: Reflects the name of the agent, typically set to the class name.
-- `logger`: A Logger instance initialized with the agent’s name for logging messages.
-- `data`: A dictionary to store data relevant for agent prompt rendering and inference.
-- `prompt`: Maintains the list of prompts generated for use with the LLM.
-- `result`: Stores the raw result as returned by the LLM.
-- `output`: Holds the final output as produced by the agent’s processing logic.
-- `agent_data`: Holds the configuration data specific to the agent, including settings, storage and operational parameters loaded upon initialization.
-- `functions`: Provides access to utility functions needed for the agent’s operations.
+### Class Attributes
 
-## Initialization
+The `Agent` class utilizes several key attributes:
+
+- **`agent_name`**: The name of the agent, typically set to the class name.
+- **`logger`**: A logger instance initialized with the agent’s name for logging messages.
+- **`data`**: A dictionary to store data relevant for prompt rendering and inference.
+- **`prompt`**: A list of prompts generated for use with the LLM.
+- **`result`**: Stores the raw result returned by the LLM.
+- **`output`**: Holds the final output after processing the LLM's response.
+- **`agent_data`**: Configuration data specific to the agent, including settings and operational parameters.
+- **`functions`**: Access to utility functions needed for the agent's operations.
+
+### Initialization
 
 ```python
 class Agent:
     def __init__(self):
         """
-        Initializes an Agent instance, setting up its name, logger, data attributes, and agent-specific configurations.
-        It attempts to load the agent's configuration data and storage settings.
+        Initializes an Agent instance by setting up its name, logger, data attributes,
+        and loading agent-specific configurations.
         """
         self.agent_name: str = self.__class__.__name__
         self.logger: Logger = Logger(name=self.agent_name)
@@ -50,23 +57,25 @@ class Agent:
             raise
 ```
 
-The `__init__` method is designed to prepare the agent for operation, initializing essential attributes and loading configuration data pertinent to the agent's functionality.
+The `__init__` method prepares the agent for operation by initializing essential attributes and loading configuration data pertinent to its functionality.
 
-## Core Method
+---
 
-### `run(self, **kwargs)`
+## Core Method `run`
+
+The `run` method is the central executor of the agent's workflow, coordinating the sequence of operations from data loading to output generation.
 
 ```python
 def run(self, **kwargs: Any) -> Optional[str]:
     """
-    Orchestrates the execution of the agent's workflow: loading data, processing data, generating prompts,
-    running language models, parsing results, saving results, and building the output.
+    Executes the agent's workflow: loading data, processing data, generating prompts,
+    running the LLM, parsing results, saving results, and building the output.
 
     Parameters:
-        **kwargs (Any): Keyword arguments that will form part of the agent's data.
+        **kwargs (Any): Keyword arguments that form part of the agent's data.
 
     Returns:
-        Optional[str]: The output generated by the agent or None if an error occurred during execution.
+        Optional[str]: The output generated by the agent, or None if an error occurred.
     """
     try:
         self.logger.log(f"\n{self.agent_name} - Running...", 'info')
@@ -86,163 +95,52 @@ def run(self, **kwargs: Any) -> Optional[str]:
     return self.output
 ```
 
-The `run` method acts as the central executor for the agent's task flow, coordinating the sequence of operations from data loading to output generation.
+---
+
+## Key Concepts
+
+Understanding the following key concepts is essential for effectively utilizing the `Agent` class.
+
+### The `self.data` Variable
+
+#### Overview
+
+The `self.data` variable is a central repository for all data pertinent to the agent's operation, especially for rendering prompt templates and executing LLM inference. It aggregates various pieces of information, ensuring they are accessible during execution.
+
+#### Data Aggregation Process
+
+1. **Loading Agent Configuration Data**:
+   - When `load_agent_data` is called, it compiles essential data elements from the agent's configuration, including parameters and prompt templates.
+   - Example:
+     ```python
+     self.data = {
+         'params': self.agent_data.get('params').copy(),
+         'prompts': self.agent_data['prompts'].copy()
+     }
+     ```
+   - **Parameters (`params`)**: Settings that influence LLM behavior during inference.
+   - **Prompts (`prompts`)**: Templates guiding the conversation or interaction flow.
+
+2. **Integrating Additional Data**:
+   - **Keyword Arguments (`**kwargs`)**: Inject runtime-specific data or context when invoking `run()`.
+   - **Persona Data**: If available, persona attributes are added to `self.data`, allowing dynamic personalization.
+
+#### Role in Prompt Rendering
+
+During prompt rendering, `self.data` supplies the values for placeholders in prompt templates, enabling dynamic and contextually relevant interactions with the LLM.
+
+> **Note**: Understanding `self.data` is crucial for tailoring agent behavior and enhancing interaction quality.
 
 ---
 
-# Understanding the `self.data` Variable in the Agent Class
+## Next Steps
 
-## Overview
+- **Agent Prompt Rendering**: Dive deeper into how agent prompts are rendered within **AgentForge**. See the [Agent Prompts](AgentPrompts.md) guide.
 
-The `self.data` variable within an Agent class is a central repository for all data pertinent to the agent's operation, particularly in the context of rendering prompt templates and executing language model inference. This variable aggregates various pieces of information, ensuring they are readily accessible for the agent during its execution phases.
+- **Explore Custom Agents**: Learn how to create more complex agents by overriding methods in the `Agent` class. Refer to the [Custom Agents](CustomAgents.md) documentation.
 
-## Data Aggregation Process
-
-### Loading Agent Configuration Data
-
-When the `load_agent_data` method is invoked, it compiles essential data elements from the agent's configuration settings, specifically targeting parameters and prompt templates necessary for the agent's operation:
-
-```python
-self.data = {'params': self.agent_data.get('params').copy(), 'prompts': self.agent_data['prompts'].copy()}
-```
-
-- **Parameters (`params`)**: These are critical settings that influence the behavior of the language model (LLM) during inference. They are copied directly from `self.agent_data` to ensure they are isolated and mutable within the agent's operational context without altering the original configuration data.
-  
-- **Prompts (`prompts`)**: These are the prompt templates tailored to the specific agent. They are essential for guiding the conversation or interaction flow and are copied from `self.agent_data` to be dynamically filled or modified during the agent's execution.
-
-### Integrating Additional Data
-
-Additional data can be integrated into `self.data` through keyword arguments (`**kwargs`) and persona-specific information when invoking the agent's run method:
-
-- **Keyword Arguments (`self.run(**kwargs)`)**: This mechanism allows for the injection of runtime-specific data or context, enhancing the agent's flexibility and adaptability to varying operational scenarios. 
-
-- **Persona Data**: When persona information is available, it is integrated into `self.data`, providing the agent with nuanced characteristics or knowledge that can influence its interactions. Each key from the persona data is transformed to lowercase to ensure consistency and ease of reference within prompt templates.
-
-## Role in Prompt Rendering
-
-During prompt rendering, `self.data` acts as a source from which data placeholders within the prompt templates are populated. The availability of diverse data elements within `self.data` allows for the dynamic generation of contextually relevant and personalized prompts, directly influencing the efficacy and relevance of the agent's interactions with the LLM.
-
-
->**Important Note**: The `self.data` variable is instrumental in orchestrating the agent's data flow, serving as a nexus point where configuration, runtime context, and persona attributes converge to facilitate informed and context-aware LLM interactions. By understanding the composition and function of `self.data`, developers can more effectively tailor agent behavior and enhance interaction quality.
-
+- **Dive into Agent Methods**: For a detailed walkthrough of the main methods you can override, see the [Agent Methods](AgentMethods.md) page.
 
 ---
 
-# Prompt Template Rendering in AgentForge
-
-## Overview
-
-Understanding prompt template rendering is fundamental for developers working with the **AgentForge** framework. This process allows agents to generate dynamic, context-aware interactions with the language model (LLM) using data stored in the `self.data` variable. Below, we illustrate this mechanism with a practical example featuring "Botty," a bot designed to assist at the dinner table.
-
-## Persona and Prompt Template Integration
-
-### Persona YAML File
-
-Consider the following persona definition for Botty in a YAML file:
-
-```yaml
-# botty.yaml
-Name: Botty McBotFace
-Description: |+
-    a generic bot
-
-Location: Dinner Table
-Purpose: Pass the butter
-```
-
-When Botty is initialized, attributes from this persona file (name, description, location, purpose) are loaded into `self.data`, enabling these traits to be referenced dynamically in prompt templates.
-
-### Agent Prompt Template YAML File
-
-The corresponding prompt template for Botty may look like this:
-
-```yaml
-#BottyAgent.yaml
-Prompts:
-    System: |+
-        Your name is {name}. You are {description}.
-        Your location: {location}. 
-        Your sole purpose is as follows: {purpose}.
-
-    Context: |+
-        Your current context: {context}
-        
-    Feedback: |+
-        Here's some user feedback: {feedback}
-
-Persona: botty
-```
-
-The placeholders within braces `{}` correspond to keys in the `self.data` dictionary, allowing the agent to inject dynamic data or persona-specific data into the prompts.
-
-## Demonstration of Dynamic Data Integration
-
-When executing the agent's `run` method, additional data may be passed as keyword arguments, which are then merged into `self.data` and reflected in the rendered prompt.
-
-### Example 1 - No Context:
-
-```python
-from customagent.BottyAgent import BottyAgent
-
-botty = BottyAgent()
- 
-feedback = 'Include the salt!'
-
-response = botty.run(feedback=feedback)
-```
-
-The above execution populates `self.data` with the `feedback` value, which is then used in prompt rendering:
-
-**Rendered Prompt Fed To The LLM**:
-
-```
-Your name is Botty McBotFace. You are a generic bot.
-Your location: Dinner Table. 
-Your sole purpose is as follows: Pass the butter.
-
-Here's some user feedback: Include the salt!
-```
-
-### Example 2 - With Context:
-
-```python
-from customagent.BottyAgent import BottyAgent
-
-botty = BottyAgent()
- 
-feedback = 'Include the salt!'
-context = get_bot_context()  # This hypothetical function retrieves current context information.
-
-response = botty.run(feedback=feedback, context=context)
-```
-
-The above execution populates `self.data` with `feedback` and `context` values, which are then used in prompt rendering:
-
-**Rendered Prompt Fed To The LLM**:
-
-```
-Your name is Botty McBotFace. You are a generic bot.
-Your location: Dinner Table. 
-Your sole purpose is as follows: Pass the butter.
-
-Your current context: User is making an additional request.
-
-Here's some user feedback: Include the salt!
-```
-
-## Key Takeaways for Developers
-
-- **Data Unification**: Ensure attribute names in `self.data` are unified and lowercase to simplify referencing in prompt templates.
-- **Attribute Overlapping**: Avoid overlapping names among persona data, runtime arguments, and other data sources to prevent unintended data overwrites.
-- **Flexibility**: The framework's design offers flexibility to incorporate static persona data, hard-coded values, or dynamically derived data seamlessly into the agent's prompts, enhancing interaction relevance and personalization.
-
-By grasping the intricacies of prompt template rendering and the `self.data` variable utilization, developers can craft more engaging, responsive, and contextually aware agents within the **AgentForge** ecosystem.
-
----
-
-## Main Agent Methods
-
-For a detailed walkthrough of the main methods in the `Agent` class that are essential for creating [Custom Agents](CustomAgents.md), please refer to the [Agent Methods](AgentMethods.md) Page.
-
----
-
+By understanding the `Agent` class and its core components, you can harness the full potential of the **AgentForge** framework to build powerful, customized agents tailored to your specific needs.
