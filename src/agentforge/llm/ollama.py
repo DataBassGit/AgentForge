@@ -52,21 +52,30 @@ class Ollama:
         data = {
             "temperature": params["temperature"],
             "model": self._model,
-            "system": model_prompt[0],
-            "prompt": prompt,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": model_prompt[0]
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
             "max_tokens": params["max_new_tokens"],
             "stream": False
         }
 
         url = params.pop('host_url', None)
         if not url:
-            self.logger.log("\n\nError: The CUSTOM_AI_ENDPOINT environment variable is not set", 'critical')
+            self.logger.log(f"\n\nError: The CUSTOM_AI_ENDPOINT environment variable is not set: {url}", 'critical')
 
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        self.logger.log_response(response.json()['response'])
+        response = requests.post(url, headers=headers, json=data)
+        result = response.json()['choices'][0]['message']['content']
+        self.logger.log_response(result)
 
         if response.status_code == 200:
-            return response.json()['response']
+            return result
         else:
             print(f"Request error: {response}")
             return None
