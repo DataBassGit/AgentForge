@@ -290,10 +290,6 @@ These methods are designed to be overridden to customize agent behavior.
 
 ---
 
-
-
----
-
 ## Tips and Best Practices
 
 - **Start Simple**: Begin by subclassing `Agent` without overriding any methods. Ensure your basic agent works before adding complexity.

@@ -6,21 +6,6 @@ from agentforge.utils.functions.Logger import Logger
 # Get the API key from the environment variable
 api_key = os.getenv('OPENROUTER_API_KEY')
 
-def parse_prompts(prompts):
-    """
-    Transforms a list of prompt segments into a structured format expected by the OpenRouter chat interface.
-
-    Parameters: prompts (list): A list where the first element is considered the 'system' prompt and the rest are
-    'user' prompts.
-
-    Returns:
-        list: A list of dictionaries, each representing a part of the conversation with roles ('system' or 'user')
-        and their content.
-    """
-    return [
-        {"role": "system", "content": prompts[0]},
-        {"role": "user", "content": "".join(prompts[1:])}
-    ]
 
 class OpenRouter:
     """
@@ -43,21 +28,24 @@ class OpenRouter:
         self._model = model
         self.logger = None
 
-    def generate_text(self, prompts, **params):
+    def generate_text(self, model_prompt, **params):
         """
         Generates text based on the provided prompts and additional parameters for the OpenRouter model.
 
         Parameters:
-            prompts (list): A list of strings to be passed as prompts to the OpenRouter model.
+            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
             **params: Arbitrary keyword arguments providing additional options to the model and API call.
 
         Returns:
             str or None: The generated text from the OpenRouter model or None if the operation fails.
         """
-        self.logger = Logger(name=params.pop('agent_name', None))
-        self.logger.log_prompt(''.join(prompts))
+        self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
+        self.logger.log_prompt(model_prompt)
 
-        messages = parse_prompts(prompts)
+        prompt = [
+            {"role": "system", "content": model_prompt.get('System')},
+            {"role": "user", "content": model_prompt.get('User')}
+        ]
 
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -68,7 +56,7 @@ class OpenRouter:
 
         data = {
             "model": self._model,
-            "messages": messages,
+            "messages": prompt,
             "max_tokens": params.get("max_new_tokens"),
             "temperature": params.get("temperature"),
             "top_p": params.get("top_p"),

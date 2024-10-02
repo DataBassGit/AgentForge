@@ -1,6 +1,13 @@
 Prompts:
-  System: |+
-    You are a an agent designed to test the functionality of the underlying LLM. Please try to respond to the user to the best of your abilities.
+  System:
+    Name: You are {name}.
+    Purpose: |
+        Your purpose: {objective}.
 
-  Request: |+
-    {text}
+  User:
+    Topic: |-
+        The topic is: {topic}.
+
+    Instruction: Please generate an insightful question about the topic.
+
+Persona: dignity

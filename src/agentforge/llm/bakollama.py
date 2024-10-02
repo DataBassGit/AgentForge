@@ -3,7 +3,7 @@ import json
 from agentforge.utils.functions.Logger import Logger
 
 
-class Ollama:
+class BakoLlama:
 
     def __init__(self, model):
         """
@@ -36,8 +36,10 @@ class Ollama:
         data = {
             "temperature": params["temperature"],
             "model": self._model,
-            "system": model_prompt.get('System'),
-            "prompt": model_prompt.get('User'),
+            "messages": [
+                {"role": "system", "content": model_prompt.get('System')},
+                {"role": "user", "content": model_prompt.get('User')}
+            ],
             "max_tokens": params["max_new_tokens"],
             "stream": False
         }
@@ -55,10 +57,3 @@ class Ollama:
         else:
             print(f"Request error: {response}")
             return None
-
-
-# ----------------------------------------------------------------------------------------------------
-# Example usage:
-# prompt = "What does the cow say?"
-# print(request_completion(prompt))
-# print("Done!")

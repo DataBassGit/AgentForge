@@ -50,7 +50,7 @@ class Agent:
             self.data = {}
             self.logger.log(f"\n{self.agent_name} - Done!", 'info')
         except Exception as e:
-            self.logger.log(f"Error running agent: {e}", 'error')
+            self.logger.log(f"Agent execution failed: {e}", 'error')
             return None
 
         return self.output
@@ -125,23 +125,38 @@ class Agent:
         """
         pass
 
+    # def generate_prompt(self) -> None:
+    #     """
+    #     Generates the prompt(s) for the language model based on template data. It handles the rendering of prompt
+    #     templates and aggregates them into a list.
+    #     """
+    #     try:
+    #         rendered_prompts: List[str] = []
+    #         for prompt_template in self.data['prompts'].values():
+    #             template = self.functions.prompt_handling.handle_prompt_template(prompt_template, self.data)
+    #             if template:
+    #                 rendered_prompt = self.functions.prompt_handling.render_prompt_template(template, self.data)
+    #                 rendered_prompts.append(rendered_prompt)
+    #
+    #         self.prompt = rendered_prompts
+    #     except Exception as e:
+    #         self.logger.log(f"Error generating prompt: {e}", 'error')
+    #         self.prompt = None
+
     def generate_prompt(self) -> None:
         """
-        Generates the prompt(s) for the language model based on template data. It handles the rendering of prompt
-        templates and aggregates them into a list.
+        Generates the prompts for the language model based on the template data.
         """
         try:
-            rendered_prompts: List[str] = []
-            for prompt_template in self.data['prompts'].values():
-                template = self.functions.prompt_handling.handle_prompt_template(prompt_template, self.data)
-                if template:
-                    rendered_prompt = self.functions.prompt_handling.render_prompt_template(template, self.data)
-                    rendered_prompts.append(rendered_prompt)
-
-            self.prompt = rendered_prompts
+            prompts = self.data.get('prompts', {})
+            self.functions.prompt_handling.check_prompt_format(prompts)
+            rendered_prompts = self.functions.prompt_handling.render_prompts(prompts, self.data)
+            self.functions.prompt_handling.validate_rendered_prompts(rendered_prompts)
+            self.prompt = rendered_prompts  # {'System': '...', 'User': '...'}
         except Exception as e:
             self.logger.log(f"Error generating prompt: {e}", 'error')
             self.prompt = None
+            raise
 
     def run_llm(self) -> None:
         """

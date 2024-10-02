@@ -267,14 +267,21 @@ class Logger:
 
         self.loggers[logger_file].log_msg(msg_with_caller, level)
 
-    def log_prompt(self, prompt: str):
+    def log_prompt(self, model_prompt: dict[str]):
         """
         Logs a prompt to the model interaction logger.
 
         Parameters:
-            prompt (str): The prompt to log.
+            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
         """
-        self.log(f'Prompt:\n{prompt}', 'debug', 'ModelIO')
+        system_prompt = model_prompt.get('System')
+        user_prompt = model_prompt.get('User')
+        msg = (
+            f'******\nSystem Prompt\n******\n{system_prompt}\n'
+            f'******\nUser Prompt\n******\n{user_prompt}\n'
+            f'******'
+        )
+        self.log(msg, 'debug', 'ModelIO')
 
     def log_response(self, response: str):
         """
@@ -283,7 +290,8 @@ class Logger:
         Parameters:
             response (str): The model response to log.
         """
-        self.log(f'Model Response:\n{response}', 'debug', 'ModelIO')
+        msg = f'******\nModel Response\n******\n{response}\n******'
+        self.log(msg, 'debug', 'ModelIO')
 
     def parsing_error(self, model_response: str, error: Exception):
         """
@@ -294,7 +302,7 @@ class Logger:
             error (Exception): The exception object representing the parsing error.
         """
         self.log(f"Parsing Error - It is very likely the model did not respond in the required "
-                 f"format\n\nModel Response:\n{model_response}\n\nError: {error}", 'error')
+                 f"format\n\nModel Response\n******\n{model_response}\n******\n\nError: {error}", 'error')
 
     def log_info(self, msg: str):
         """

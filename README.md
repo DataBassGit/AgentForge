@@ -136,7 +136,7 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 ### **Core Concepts**
 
 - **[Agents](docs/Agents/Agents.md)**: Dive deep into the world of agents. Learn how they operate, respond, and can be customized.
-- **[Cognitive Architectures](docs/Modules/Modules.md)**: Explore multi-agent scripts that coordinate various agents to achieve specific goals.
+- **[Multi Agent Scripts](docs/Modules/Modules.md)**: Explore multi-agent scripts that coordinate various agents to achieve specific goals.
 - **[LLM API Integration](docs/LLMs/LLMs.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
 - **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
 - **[Personas](docs/Personas/Personas.md)**: Utilize personas to encapsulate information accessible to the agents, acting as a resource of knowledge.

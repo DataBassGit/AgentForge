@@ -1,7 +1,7 @@
 # Default settings for all models unless overridden
 ModelSettings:
- API: groq_api
- Model: llama31
+#  API: groq_api
+#  Model: llama31
 #  API: gemini_api
 #  Model: gemini-flash
 #  API: openrouter_api
@@ -10,10 +10,10 @@ ModelSettings:
 #  Model: omni_model
 #  API: claude3_api
 #  Model: claude-3
-#  API: ollama_api
-#  Model: DolphinMistral
-  # API: lm_studio_api
-  # Model: LMStudio
+  API: bakollama_api
+  Model: Llama3.1_70b
+#  API: lm_studio_api
+#  Model: LMStudio
   Params: # Default parameter values
     max_new_tokens: 3000
     temperature: 0.8
@@ -72,8 +72,12 @@ ModelLibrary:
     module: "openrouter"
     class: "OpenRouter"
     models:
+      phi3med:
+        name: microsoft/phi-3-medium-128k-instruct:free
       hermes:
         name: nousresearch/hermes-3-llama-3.1-405b
+      reflection:
+        name: mattshumer/reflection-70b:free
   claude_old:
     module: "claude_old"
     class: "Claude"
@@ -107,10 +111,19 @@ ModelLibrary:
     module: "ollama"
     class: "Ollama"
     models:
-      DolphinMistral:
-        name: DolphinMistral
+      Llama3.1_70b:
+        name: "llama3.1:70b"
         params:
           host_url: "http://localhost:11434/api/generate"
+          allow_custom_value: True
+  bakollama_api:
+    module: "bakollama"
+    class: "BakoLlama"
+    models:
+      Llama3.1_70b:
+        name: "llama3.1:70b"
+        params:
+          host_url: "http://text-cellium.ngrok.app/v1/chat/completions"
           allow_custom_value: True
 
 # Embedding Library (Not much to see here)
