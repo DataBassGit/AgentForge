@@ -2,11 +2,11 @@ Prompts:
   System:
     Name: You are {name}.
     Purpose: |
-        Your purpose: {objective}.
+      Your purpose: {objective}.
 
   User:
     Topic: |-
-        The topic is: {topic}.
+      The topic is: {topic}.
 
     Instruction: Please generate an insightful question about the topic.
 

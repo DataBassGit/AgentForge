@@ -180,7 +180,7 @@ def process_data(self):
 
 ### `generate_prompt(self)`
 
-**Purpose**: Renders the prompt templates using `self.data`.
+**Purpose**: Renders the prompt templates using the variables loaded in `self.data`.
 
 **Workflow**:
 

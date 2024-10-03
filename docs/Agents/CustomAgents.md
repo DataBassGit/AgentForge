@@ -12,8 +12,9 @@ Creating custom agents in **AgentForge** allows you to tailor agent behaviors to
 2. [Creating Agent Prompt Templates](#2-creating-agent-prompt-templates)
 3. [Using Persona Files](#3-using-persona-files)
 4. [Overriding Agent Methods](#4-overriding-agent-methods)
-5. [Best Practices](#5-best-practices)
-6. [Next Steps](#6-next-steps)
+5. [Custom Agent Example](#5-custom-agent-example)
+6. [Best Practices](#6-best-practices)
+7. [Next Steps](#7-next-steps)
 
 ---
 
@@ -43,7 +44,7 @@ In the `.agentforge/agents/` directory, create a YAML file named `MyCustomAgent.
 ```yaml
 Prompts:
   System: You are a helpful assistant.
-  User: |+
+  User: |
     {user_input}
 ```
 
@@ -93,7 +94,7 @@ Prompt templates define how your agent interacts with users and the LLM. They ar
 ```yaml
 Prompts:
   System: You are a knowledgeable assistant specializing in {specialty}.
-  User: |+
+  User: |
     {user_input}
 ```
 
@@ -113,8 +114,7 @@ Personas provide additional context and information to agents. They are defined 
 ```yaml
 Name: Expert Assistant
 Specialty: artificial intelligence
-Background: |+
-  You have a Ph.D. in computer science and specialize in AI.
+Background: You have a Ph.D. in computer science and specialize in AI.
 ```
 
 - **Variables**: `Name`, `Specialty`, and `Background` can be referenced in your prompts.
@@ -125,10 +125,10 @@ In your agent's prompt file (`MyCustomAgent.yaml`), reference the persona:
 
 ```yaml
 Prompts:
-  System: |+
+  System: |
     You are {Name}, specializing in {Specialty}.
     {Background}
-  User: |+
+  User: |
     {user_input}
 ```
 
@@ -178,7 +178,7 @@ class MyCustomAgent(Agent):
 
 ---
 
-## 5. Putting It All Together: Custom Agent Example
+## 5. Custom Agent Example
 
 Let's create a custom agent that summarizes a given text and returns the summary.
 
@@ -206,7 +206,7 @@ class SummarizeAgent(Agent):
 ```yaml
 Prompts:
   System: You are an assistant that summarizes text.
-  User: |+
+  User: |
     Please summarize the following text and return the summary in JSON format with the key "summary":
 
     {text}

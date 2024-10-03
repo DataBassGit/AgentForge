@@ -14,6 +14,8 @@ class PromptHandling:
 
     # Define a pattern to find all occurrences of {variable_name}
     pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
+    # pattern = r"(?<!\{)\{([a-zA-Z_][a-zA-Z0-9_]*)\}(?!\})"
+    # pattern = r"(?<!\\)\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
 
     def __init__(self):
         """
@@ -41,10 +43,13 @@ class PromptHandling:
             self.logger.log(error_message, 'error')
             raise ValueError(error_message)
 
-        # Check if 'System' and 'User' sub-prompts are dictionaries
+        # Allow 'System' and 'User' prompts to be either dicts or strings
         for prompt_type in ['System', 'User']:
-            if not isinstance(prompts.get(prompt_type, {}), dict):
-                error_message = f"Error: The '{prompt_type}' prompt should be a dictionary of sub-prompts."
+            prompt_value = prompts.get(prompt_type, {})
+            if not isinstance(prompt_value, (dict, str)):
+                error_message = (
+                    f"Error: The '{prompt_type}' prompt should be either a string or a dictionary of sub-prompts."
+                )
                 self.logger.log(error_message, 'error')
                 raise ValueError(error_message)
 
@@ -118,7 +123,11 @@ class PromptHandling:
                 return str(result)
 
             variable_pattern = re.compile(self.pattern)
+            # First, perform variable substitution
             prompt = variable_pattern.sub(replacement_function, template)
+
+            # Then, unescape any escaped braces
+            prompt = self.unescape_braces(prompt)
 
             return prompt
         except Exception as e:
@@ -144,7 +153,12 @@ class PromptHandling:
             rendered_prompts = {}
             for prompt_type in ['System', 'User']:
                 rendered_sections = []
-                prompt_sections = prompts.get(prompt_type, {})
+                prompt_content = prompts.get(prompt_type, {})
+                if isinstance(prompt_content, str):
+                    prompt_sections = {'Main': prompt_content}
+                else:
+                    prompt_sections = prompt_content
+
                 for prompt_name, prompt_template in prompt_sections.items():
                     template = self.handle_prompt_template(prompt_template, data)
                     if template:
@@ -182,3 +196,17 @@ class PromptHandling:
                 )
                 self.logger.log(error_message, 'error')
                 raise ValueError(error_message)
+
+    @staticmethod
+    def unescape_braces(template: str) -> str:
+        """
+        Replaces all instances of /{.../} with {...} in the template.
+
+        Parameters:
+            template (str): The prompt template containing escaped braces.
+
+        Returns:
+            str: The template with escaped braces unescaped.
+        """
+        # return re.sub(r'/\{(.*?)/}', r'{\1}', template)
+        return re.sub(r'/\{(.*?)/\}', r'{\1}', template)
