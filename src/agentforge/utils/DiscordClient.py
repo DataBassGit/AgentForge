@@ -1,10 +1,10 @@
-# utils/guiutils/discord_client.py
+# utils/guiutils/DiscordClient.py
 
 import discord
 import os
 import asyncio
 import threading
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 from agentforge.tools.SemanticChunk import semantic_chunk
 
 class DiscordClient:

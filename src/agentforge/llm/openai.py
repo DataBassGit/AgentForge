@@ -1,6 +1,6 @@
 import time
 from openai import OpenAI, APIError, RateLimitError, APIConnectionError
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 # Assuming you have set OPENAI_API_KEY in your environment variables
 client = OpenAI()

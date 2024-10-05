@@ -16,14 +16,8 @@ Welcome to the heart of the **AgentForge** framework—the **Agents**. These ent
 ### **[Custom Agents](CustomAgents.md)**
 - Want to build your own agent? Here, you'll learn how to craft custom agents tailored to fit your specific needs. Discover how to derive from the base `Agent` class, override methods, and create corresponding prompt files.
 
-### **[Cognitive Architectures](../Modules/Modules.md)**
-- Get inspired by exploring some of our cognitive architecture agents. These agents showcase the potential of method overriding and how it can be employed in cognitive architectures to implement custom behaviors.
-
 ### **[Overriding LLM Settings](../Settings/Models.md)**
 - Each agent holds the power to tailor the Large Language Model (LLM) settings it employs. This section delves into how agents can utilize default LLMs or opt for specific models fine-tuned for unique tasks, offering flexibility and precision.
 
 ---
 
-Journey through each section to harness the full potential of agents in the **AgentForge** framework. We encourage you to explore each section to fully leverage the capabilities of **AgentForge**.
-
----

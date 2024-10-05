@@ -3,7 +3,7 @@ import os
 import yaml
 import pathlib
 import sys
-
+from typing import Dict, Any
 
 def load_yaml_file(file_path: str):
     """
@@ -239,6 +239,66 @@ class Config:
         except Exception as e:
             print(f"Error loading agent {agent_name}: {e}")
 
+    def load_persona(self, agent: dict) -> dict | None:
+        """
+        Loads the persona for the agent, if personas are enabled.
+
+        Parameters:
+            agent (dict): The agent's configuration data.
+
+        Returns:
+            dict: The loaded persona and the persona file name.
+        """
+        persona_data = None
+
+        settings = self.data['settings']
+        if not settings['system'].get('PersonasEnabled', False):
+            return persona_data
+
+        persona_file = agent.get('Persona') or settings['system'].get('Persona', 'default')
+        if persona_file not in self.data['personas']:
+            raise FileNotFoundError(f"Selected Persona '{persona_file}' not found. Please make sure the corresponding persona file is in the personas folder")
+
+        persona_data = self.data['personas'][persona_file]
+        return persona_data
+
+    def load_agent_data(self, agent_name: str) -> Dict[str, Any]:
+        """
+        Loads configuration data for a specified agent, applying any overrides specified in the agent's configuration.
+
+        Parameters:
+            agent_name (str): The name of the agent for which to load configuration data.
+
+        Returns: None
+
+        Raises:
+            FileNotFoundError: If a required configuration or persona file is not found.
+            KeyError: If a required key is missing in the configuration.
+            Exception: For general errors encountered during the loading process.
+        """
+        try:
+            self.reload()
+
+            agent = self.find_agent_config(agent_name)
+            api, model, final_model_params = self.resolve_model_overrides(agent)
+            llm = self.get_llm(api, model)
+            persona_data = self.load_persona(agent)
+
+            return {
+                'name': agent_name,
+                'settings': self.data['settings'],
+                'llm': llm,
+                'params': final_model_params,
+                'persona': persona_data,
+                'prompts': agent.get('Prompts', {}),
+            }
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Configuration or persona file not found: {e}")
+        except KeyError as e:
+            raise KeyError(f"Missing key in configuration: {e}")
+        except Exception as e:
+            raise Exception(f"Error loading agent data: {e}")
+
     def reload(self):
         """
         Reloads configurations for an agent.
@@ -246,4 +306,28 @@ class Config:
         if self.data['settings']['system']['OnTheFly']:
             self.load_all_configurations()
 
+    def resolve_model_overrides(self, agent: dict) -> tuple[str, str, dict]:
+        """
+        Resolves the model and API overrides for the agent, if any.
 
+        Parameters:
+            agent (dict): The agent's configuration data.
+
+        Returns:
+            tuple: The resolved API, model, and final model parameters.
+        """
+        settings = self.data['settings']
+
+        model_overrides = agent.get('ModelOverrides', {})
+        model_settings = settings['models']['ModelSettings']
+
+        api = model_overrides.get('API', model_settings['API'])
+        model = model_overrides.get('Model', model_settings['Model'])
+
+        default_params = model_settings['Params']
+        params = settings['models']['ModelLibrary'].get(api, {}).get('models', {}).get(model, {}).get('params', {})
+
+        combined_params = {**default_params, **params}
+        final_model_params = {**combined_params, **model_overrides.get('Params', {})}
+
+        return api, model, final_model_params

@@ -60,7 +60,7 @@ setup(
     ],
     python_requires=">=3.9",
     package_data={
-        'agentforge.utils.guiutils': ['discord_client.py'],
+        'agentforge.utils.guiutils': ['DiscordClient.py'],
         '': ['*.yaml'],  # Include your file types as needed
     },
     # package_data={
@@ -74,6 +74,3 @@ setup(
     # }
 
 )
-#
-#
-# not directly required, pinned by Snyk to avoid a vulnerability

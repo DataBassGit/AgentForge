@@ -1,11 +1,11 @@
 # utils/functions/ToolUtils.py
 import traceback
 import importlib
-from typing import List, Dict, Optional, Union
-from .Logger import Logger
+from typing import List, Optional, Union
+from agentforge.utils.Logger import Logger
 from typing import Any, Dict
 
-from agentforge.utils.chroma_utils import ChromaUtils
+from agentforge.utils.ChromaUtils import ChromaUtils
 
 
 class ToolUtils:

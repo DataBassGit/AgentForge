@@ -108,7 +108,7 @@ To override the default settings for an agent, define a `ModelOverrides` attribu
 
 ```yaml
 Prompts: 
-  # Agent sub-prompts
+  # Agent prompts
 
 ModelOverrides:
   API: openai_api
@@ -134,7 +134,7 @@ To override the default settings for an agent, define a `ModelOverrides` attribu
 
 ```yaml
 Prompts: 
-  # Agent sub-prompts
+  # Agent prompts
 
 ModelOverrides:
   API: openai_api

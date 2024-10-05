@@ -1,5 +1,5 @@
 import re
-from .Logger import Logger
+from agentforge.utils.Logger import Logger
 
 
 class PromptHandling:

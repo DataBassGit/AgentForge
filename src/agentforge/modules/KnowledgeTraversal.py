@@ -1,4 +1,4 @@
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 from agentforge.utils.storage_interface import StorageInterface
 from typing import Any, Dict
 

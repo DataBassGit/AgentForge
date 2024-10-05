@@ -1,6 +1,5 @@
 import requests
-import json
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 
 class BakoLlama:

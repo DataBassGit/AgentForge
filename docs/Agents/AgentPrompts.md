@@ -102,9 +102,13 @@ Alternatively, you can structure your prompts using sub-prompts for better organ
 ```yaml
 Prompts:
   System:
-    Introduction: You are an assistant that echoes the user's input.
+    Name: You are {name}.
+    Description: You are an assistant that echoes the user's input.
   User:
-    Echo: {user_input}
+    Instructions: Echo what the user says.
+    Echo: |
+      user input:
+      {user_input}
 ```
 
 ### Notes:

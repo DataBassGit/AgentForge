@@ -1,13 +1,13 @@
 import traceback
 from typing import List, Dict, Optional, Union
-from agentforge.utils.function_utils import Functions
-from agentforge.utils.functions.Logger import Logger
-from agentforge.utils.chroma_utils import ChromaUtils
+from agentforge.utils.Logger import Logger
+from agentforge.utils.ChromaUtils import ChromaUtils
+from agentforge.utils.ParsingUtils import ParsingUtils
 from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ActionCreationAgent import ActionCreationAgent
 from agentforge.agents.ToolPrimingAgent import ToolPrimingAgent
-import yaml
-
+from ..config import Config
+from ..utils.ToolUtils import ToolUtils
 
 def id_generator(data: List[Dict]) -> List[str]:
     """
@@ -44,8 +44,10 @@ class Actions:
         """
         # Initialize the logger, storage, and functions
         self.logger = Logger(name=self.__class__.__name__)
+        self.config = Config()
         self.storage = ChromaUtils()
-        self.functions = Functions()
+        self.tool_utils = ToolUtils()
+        self.parsing_utils = ParsingUtils()
 
         # Initialize the agents
         self.action_creation = ActionCreationAgent()
@@ -72,7 +74,7 @@ class Actions:
             Dict[str, Dict]: A dictionary where keys are item names and values are item details.
         """
         item_list = {}
-        data = self.functions.agent_utils.config.data[collection_name.lower()]
+        data = self.config.data[collection_name.lower()]
         ids = id_generator(data)
 
         for (key, value), act_id in zip(data.items(), ids):
@@ -171,12 +173,12 @@ class Actions:
             Union[str, Dict]: The selected action or formatted result.
         """
         if isinstance(action_list, Dict):
-            action_list = self.functions.tool_utils.format_item_list(action_list)
+            action_list = self.tool_utils.format_item_list(action_list)
 
         selected_action = self.action_selection.run(objective=objective, action_list=action_list, context=context)
 
         if parse_result:
-            selected_action = self.functions.parsing_utils.parse_yaml_content(selected_action)
+            selected_action = self.parsing_utils.parse_yaml_content(selected_action)
 
         return selected_action
 
@@ -196,14 +198,14 @@ class Actions:
             Union[str, Dict]: The crafted action or formatted result.
         """
         if isinstance(tool_list, Dict):
-            tool_list = self.functions.tool_utils.format_item_list(tool_list)
+            tool_list = self.tool_utils.format_item_list(tool_list)
 
         new_action = self.action_creation.run(objective=objective,
                                               context=context,
                                               tool_list=tool_list)
 
         if parse_result:
-            new_action = self.functions.parsing_utils.parse_yaml_content(new_action)
+            new_action = self.parsing_utils.parse_yaml_content(new_action)
 
             if new_action is None:
                 msg = {'error': "Error Creating Action"}
@@ -244,10 +246,10 @@ class Actions:
         Raises:
             Exception: If an error occurs during tool priming.
         """
-        formatted_tool = self.functions.tool_utils.format_item(tool, tool_info_order)
+        formatted_tool = self.tool_utils.format_item(tool, tool_info_order)
 
         if isinstance(action, Dict):
-            action = self.functions.tool_utils.format_item(action, action_info_order)
+            action = self.tool_utils.format_item(action, action_info_order)
 
         try:
             # Load the paths into a dictionary
@@ -266,7 +268,7 @@ class Actions:
                                              previous_results=previous_results,
                                              tool_context=tool_context)
 
-            formatted_payload = self.functions.parsing_utils.parse_yaml_content(payload)
+            formatted_payload = self.parsing_utils.parse_yaml_content(payload)
 
             if formatted_payload is None:
                 return {'error': 'Parsing Error - Model did not respond in specified format'}
@@ -319,7 +321,7 @@ class Actions:
                     return payload  # Stop execution and return the error message
 
                 tool_context = payload.get('next_tool_context')
-                results = self.functions.tool_utils.dynamic_tool(tool, payload)
+                results = self.tool_utils.dynamic_tool(tool, payload)
 
                 # Check if an error occurred
                 if isinstance(results, Dict) and results['status'] != 'success':
@@ -358,7 +360,7 @@ class Actions:
             if action_list:
                 self.logger.log(f"\nSelecting Action for Objective:\n{objective}", 'info', 'Actions')
                 order = ["Name", "Description"]
-                available_actions = self.functions.tool_utils.format_item_list(action_list, order)
+                available_actions = self.tool_utils.format_item_list(action_list, order)
                 selected_action = self.select_action_for_objective(objective=objective,
                                                                    action_list=available_actions,
                                                                    context=context)
@@ -370,7 +372,7 @@ class Actions:
                 threshold = 1
                 tool_list = self.get_relevant_items_for_objective(collection_name='Tools', objective=objective,
                                                                   threshold=threshold, num_results=10)
-                available_tools = self.functions.tool_utils.format_item_list(tool_list, order)
+                available_tools = self.tool_utils.format_item_list(tool_list, order)
                 selected_action = self.craft_action_for_objective(objective=objective,
                                                                   tool_list=available_tools,
                                                                   context=context)

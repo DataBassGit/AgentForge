@@ -2,7 +2,7 @@
 
 ## Introduction to Dynamic Tools
 
-The Dynamic Tool system within our framework serves as a universal handler for executing functionalities, known as "tools," which are specified in YAML files. This system is designed to be model-agnostic, meaning that it can work with any model as long as the model is capable of responding in the correct format and possesses the requisite intelligence to execute the functions. Tools are defined and managed within a dedicated directory in the project structure, allowing for organized development and easy access.
+The **Dynamic Tool** system within our framework serves as a universal handler for executing functionalities, known as "tools," which are specified in **YAML** files. This system is designed to be model-agnostic, meaning that it can work with any model as long as the model is capable of responding in the correct format and possesses the requisite intelligence to execute the functions. Tools are defined and managed within a dedicated directory in the project structure, allowing for organized development and easy access.
 
 **Tools Directory**: The tools are located within the `tools` directory in the project. Navigate to `your_project_root/.agentforge/tools` to access the YAML files for each tool.
 
@@ -72,7 +72,7 @@ Command: google_search
 Script: .agentforge.tools.GoogleSearch
 ```
 
-Based on the YAML file, we construct a `payload` in Python and call the `dynamic_tool` method:
+Based on the **YAML** file, we construct a `payload` in Python and call the `dynamic_tool` method:
 
 ```python
 tool_utils = ToolUtils()
@@ -91,7 +91,7 @@ result = tool_utils.dynamic_tool(".agentforge.tools.GoogleSearch", payload)
 # The result of the execution will be handled by the tool_utils object
 ```
 
->**Note on Tool Attributes**: Not all attributes defined in the tool's YAML file are used when executing the tool with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the tool for use. They inform the LLM about the tool's purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the tool.
+>**Note on Tool Attributes**: Not all attributes defined in the tool's **YAML** file are used when executing the **tool** with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the **tool** for use. They inform the LLM about the tool's purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the tool.
 
 ## Implementing Custom Tools
 
@@ -110,24 +110,16 @@ Script: my_project.Custom_Tools.MyCustomToolScript
 
 Ensure that the `Script` attribute correctly points to the custom tool's script location within your project.
 
-### Utilizing Python Libraries
-
-Users are also free to reference any Python library functions or methods installed in the same environment as the project. Simply specify the library path in the `Script` attribute of the tool's YAML file.
-
-## Future Implementations
-
-Looking ahead, we plan to introduce 'Automatic Tool Creation' capabilities within our system. This will enable the system to autonomously develop and incorporate new tools based on operational data and interactions, all without direct human oversight. Such a feature promises to greatly enhance the system's adaptability and expand its functional repertoire, facilitating continuous evolution and efficiency in task automation.
-
 ## Compatibility and Requirements
 
-- **Script Path Specification**: Ensure that the `Script` path in the YAML definition matches the exact name of the module in the Python environment.
+- **Script Path Specification**: Ensure that the `Script` path in the **YAML** definition matches the exact name of the module in the Python environment.
 - **Function Compatibility**: The Python library function or method should be compatible with dynamic calling and must be defined within the specified script path.
 
 ## Best Practices for Tool Definitions
 
-- **Validate Your Definitions**: Test each YAML tool definition to ensure it functions as expected.
-- **Follow the Format**: Adhere to the YAML format provided in the example to avoid execution errors.
+- **Validate Your Definitions**: Test each **YAML** tool definition to ensure it functions as expected.
+- **Follow the Format**: Adhere to the **YAML** format provided in the example to avoid execution errors.
 
-By adhering to these guidelines and properly defining your tools in YAML files, you can leverage the Dynamic Tool functionality to enhance the automation capabilities of your system.
+By adhering to these guidelines and properly defining your tools in **YAML** files, you can leverage the Dynamic Tool functionality to enhance the automation capabilities of your system.
 
 ---

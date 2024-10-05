@@ -1,15 +1,9 @@
 # Default settings for all models unless overridden
 ModelSettings:
-#  API: groq_api
-#  Model: llama31
 #  API: gemini_api
 #  Model: gemini-flash
-#  API: openrouter_api
-#  Model: hermes
 #  API: openai_api
 #  Model: omni_model
-#  API: claude3_api
-#  Model: claude-3
   API: bakollama_api
   Model: Llama3.1_70b
 #  API: lm_studio_api

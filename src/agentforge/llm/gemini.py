@@ -2,7 +2,7 @@ import os
 import time
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 # Get API key from Env
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')

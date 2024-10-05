@@ -1,5 +1,5 @@
 from CustomAgents.DocsAgent import DocsAgent
-from agentforge.utils.chroma_utils import ChromaUtils
+from agentforge.utils.ChromaUtils import ChromaUtils
 from agentforge.utils.function_utils import Logger
 
 docs_agent = DocsAgent()

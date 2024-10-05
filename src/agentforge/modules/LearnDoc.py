@@ -2,7 +2,7 @@ from agentforge.agents.LearnKGAgent import LearnKGAgent
 from agentforge.tools.GetText import GetText
 from agentforge.tools.IntelligentChunk import intelligent_chunk
 from agentforge.modules.InjectKG import Consume
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 from agentforge.tools.CleanString import Strip
 from agentforge.utils.storage_interface import StorageInterface
 import os

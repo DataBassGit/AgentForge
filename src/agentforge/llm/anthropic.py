@@ -1,7 +1,7 @@
 import os
 import time
 import anthropic
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
 client = anthropic.Anthropic(api_key=API_KEY)

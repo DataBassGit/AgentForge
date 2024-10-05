@@ -1,6 +1,6 @@
 from agentforge.tools.SemanticChunk import semantic_chunk
 from agentforge.tools.GetText import GetText
-from agentforge.utils.chroma_utils import ChromaUtils
+from agentforge.utils.ChromaUtils import ChromaUtils
 import os
 
 gettext_instance = GetText()

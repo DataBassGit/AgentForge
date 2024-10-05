@@ -1,5 +1,5 @@
 from agentforge.modules.KnowledgeTraversal import KnowledgeTraversal
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 logger = Logger(name="KGTest")
 

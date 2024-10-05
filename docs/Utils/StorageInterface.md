@@ -104,7 +104,7 @@ The `storage_utils` provided by the `ChromaUtils` class facilitate a range of da
 
 - **`return_embedding(text_to_embed)`**: Produces an embedding vector for text, facilitating semantic comparisons and retrieval operations.
 
-For detailed examples and further information on each method's implementation, developers are encouraged to refer directly to the [ChromaUtils](../../src/agentforge/utils/chroma_utils.py) source code.
+For detailed examples and further information on each method's implementation, developers are encouraged to refer directly to the [ChromaUtils](../../src/agentforge/utils/ChromaUtils.py) source code.
 
 ---
 

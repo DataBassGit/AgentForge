@@ -10,7 +10,7 @@ import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 from ..config import Config
 
 logger = Logger(name="Chroma Utils")
@@ -115,23 +115,6 @@ class ChromaUtils:
     db_embed = None
     embedding = None
 
-    # def __new__(cls, *args, **kwargs):
-    #     """
-    #     Ensures a single instance of ChromaUtils is created (singleton pattern). Initializes embeddings and storage
-    #     upon the first creation.
-    #
-    #     Returns:
-    #         ChromaUtils: The singleton instance of the ChromaUtils class.
-    #     """
-    #     pass
-    #     if not cls._instance:
-    #         logger.log("Creating chroma utils", 'debug')
-    #         cls.config = Config()
-    #         cls._instance = super(ChromaUtils, cls).__new__(cls, *args, **kwargs)
-    #         cls._instance.init_embeddings()
-    #         cls._instance.init_storage()
-    #     return cls._instance
-
     def __init__(self, persona_name="default"):
         """
         Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
@@ -212,8 +195,6 @@ class ChromaUtils:
         # Construct the absolute path of the database using the project root
         if db_path_setting:
             db_path = str(self.config.project_root / db_path_setting / self.persona_name)
-            # if self.persona_name is not None:
-            #     db_path = f"{db_path}/{self.persona_name}"
 
         else:
             db_path = None
@@ -471,7 +452,7 @@ class ChromaUtils:
             if results:
                 results.pop('included')
                 filtered_data = {
-                    key: [value for value, dist in zip(results[key], results['distances']) if dist < threshold]
+                    key: [value for value, dist in zip(results[key], results['distances']) if float(dist) < threshold]
                     for key in results
                 }
                 # filtered_data = {

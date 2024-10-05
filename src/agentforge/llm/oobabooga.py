@@ -1,6 +1,6 @@
 # import sseclient  # pip install sseclient-py
 import requests
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 
 class Oobabooga:

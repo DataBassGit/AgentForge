@@ -1,7 +1,7 @@
 import re
 import yaml
 from typing import Optional, Dict, Any
-from .Logger import Logger
+from agentforge.utils.Logger import Logger
 
 
 class ParsingUtils:

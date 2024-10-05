@@ -3,7 +3,7 @@ import re
 
 from bs4 import BeautifulSoup
 from ..tools.IntelligentChunk import intelligent_chunk
-from ..utils.chroma_utils import ChromaUtils
+from ..utils.ChromaUtils import ChromaUtils
 
 storage_instance = ChromaUtils()  # Create an instance of ChromaUtils
 

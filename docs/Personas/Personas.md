@@ -144,7 +144,7 @@ Please introduce yourself.
 
 Each attribute defined in the persona file can be used in a similar way, allowing for highly adaptable and context-aware agent interactions.
 
->**Important Note**: Attribute key names in the persona file are case-insensitive; the system will automatically convert them to lowercase when adding them to the agent data. Therefore, when referencing these attributes in the prompt templates, ensure you use them in lowercase and that they adhere to the python variable naming convention. 
+>**Important Note**: Attribute key names in the persona file are **case-insensitive**; the system will automatically convert them to lowercase when adding them to the agent data. Therefore, when referencing these attributes in the prompt templates, ensure you use them in lowercase and that they adhere to the python variable naming convention. 
 
 ## Conclusion
 

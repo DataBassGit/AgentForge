@@ -1,7 +1,6 @@
 import os
 import logging
-from ...config import Config
-from ...utils.functions.UserInterface import UserInterface
+from agentforge.config import Config
 
 from termcolor import cprint
 from colorama import init
@@ -38,7 +37,6 @@ class BaseLogger:
             log_level (str): The initial log level for the logger.
         """
         self.config = Config()
-        self.UI = UserInterface()
 
         # Retrieve the logging enabled flag from configuration
         logging_enabled = self.config.data['settings']['system']['Logging']['Enabled']

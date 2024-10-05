@@ -98,18 +98,3 @@ class Agent:
 ### Integrating New LLM APIs
 
 Integrating a new LLM API involves creating a corresponding Python file in the `llm` directory. This file must implement the `generate_text` method, adhering to the established interface pattern. The system will then be able to use this new API file to communicate with the associated LLM.
-
-### Special Note on Oobabooga API
-
-The `oobabooga_api` requires a unique configuration due to its external hosting:
-
-```yaml
-oobabooga_api:
-  # ... configuration details ...
-  params:
-    host_url: "127.0.0.1:5000" # The host server URL for the Oobabooga model
-```
-
-For the `oobabooga_api`, the host URL is defined as the model is hosted externally and accessed via this URL.
-
-For more information on the Oobabooga implementation and other models, please see our [Models documentation](../Settings/Models.md).

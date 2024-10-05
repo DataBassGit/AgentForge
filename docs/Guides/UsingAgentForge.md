@@ -26,8 +26,7 @@ Inside the `.agentforge/agents/` directory, create a **YAML** file named `EchoAg
 ```yaml
 Prompts:
   System: You are an assistant that echoes the user's input.
-  User: |
-    {user_input}
+  User: {user_input}
 ```
 > Note: This prompt template uses a variable placeholder `{user_input}`. This variable will be replaced with actual data at runtime. To understand how agent prompts are rendered within **AgentForge**, see the [Agent Prompts](../Agents/AgentPrompts.md) guide.
 
@@ -104,7 +103,7 @@ Inside the `.agentforge/agents/` directory, create a **YAML** file named `Questi
 Prompts:
   System: You are a helpful assistant that generates insightful questions based on the user's topic.
   User: |
-    {topic}
+    Topic: {topic}
 ```
 
 #### `AnswerAgent.yaml`
@@ -115,7 +114,7 @@ Also in the `.agentforge/agents/` directory, create a **YAML** file named `Answe
 Prompts:
   System: You are a knowledgeable assistant that provides detailed answers to questions.
   User: |
-    {question}
+    Question: {question}
 ```
 
 ### 3. Write a Script to Manage Agent Interactions

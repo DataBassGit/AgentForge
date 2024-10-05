@@ -1,6 +1,6 @@
 import os
 from groq import Groq
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 
 class GroqAPI:

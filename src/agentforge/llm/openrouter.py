@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 # Get the API key from the environment variable
 api_key = os.getenv('OPENROUTER_API_KEY')
