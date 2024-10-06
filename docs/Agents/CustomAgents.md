@@ -28,7 +28,7 @@ To create a custom agent, you simply need to define a new Python class that inhe
 Create a Python file for your agent (e.g., `my_custom_agent.py`):
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class MyCustomAgent(Agent):
     pass  # The agent_name is automatically set to 'MyCustomAgent'
