@@ -1,7 +1,6 @@
 from agentforge.utils.Logger import Logger
-from agentforge.utils.storage_interface import StorageInterface
 from typing import Any, Dict
-
+from ..utils.ChromaUtils import ChromaUtils
 
 def merge_dictionaries_by_appending_unique_entries(target_dict: dict, source_dict: dict) -> dict:
     """
@@ -61,7 +60,7 @@ class KnowledgeTraversal:
         knowledge base.
         """
         self.logger = Logger(name=self.__class__.__name__)
-        self.storage = StorageInterface().storage_utils
+        self.storage = ChromaUtils()
 
     def query_knowledge(self, knowledge_base_name: str, query: str, metadata_map: Dict[str, str],
                         initial_num_results: int = 1, subquery_num_results: int = 1) -> Dict[str, Any]:

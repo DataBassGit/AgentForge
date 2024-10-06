@@ -1,6 +1,4 @@
-# AgentForge Installation Guide
-
-## Introduction
+# Installation Guide
 
 This guide will walk you through the steps required to install **AgentForge** on your system.
 
@@ -45,7 +43,7 @@ Using a virtual environment helps avoid conflicts with system-wide packages.
 
 ### 3. Install AgentForge
 
-With the virtual environment activated, install AgentForge using pip:
+With the virtual environment activated, install **AgentForge** using pip:
 
 ```shell
 pip install agentforge
@@ -59,14 +57,14 @@ Navigate to your project directory and initialize your AgentForge project:
 python -m agentforge.init_agentforge
 ```
 
-This command creates a new `.agentforge` folder in your project with sub-folders containing YAML files:
+This command creates a new `.agentforge` folder in your project with sub-folders containing **YAML** files:
 
 ```
 your_project/
   .agentforge/
     actions/
-    agents/
     personas/
+    prompts/
     settings/
     tools/
 ```
@@ -89,4 +87,4 @@ Remember to activate the virtual environment (`source venv/bin/activate` or `ven
 
 - Proceed to the [Using AgentForge Guide](UsingAgentForge.md) to learn how to run agents and build cognitive architectures.
 - Review the [Prerequisites Guide](PrerequisitesGuide.md) if you haven't set up API keys or other necessary configurations.
-
+- If you're having trouble with **AgentForge** please head over to the [Troubleshooting Guide](TroubleshootingGuide.md) for solutions to common issues.

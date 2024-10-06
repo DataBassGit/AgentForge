@@ -1,22 +1,12 @@
 # Default settings for all models unless overridden
 ModelSettings:
-#  API: gemini_api
-#  Model: gemini-pro
-#  API: claude_old
-#  Model: claude
   API: openai_api
-  Model: smart_fast_model
-#  API: claude3_api
-#  Model: claude-3
-#  API: oobabooga_api
-#  Model: oobabooga
-#  API: ollama_api
-#  Model: DolphinMistral
+  Model: omni_model
 #  API: lm_studio_api
 #  Model: LMStudio
-  Params:
+  Params: # Default parameter values
     max_new_tokens: 3000
-    temperature: 0.5
+    temperature: 0.8
     top_p: 0.1
     n: 1
     stop: null
@@ -48,12 +38,12 @@ ModelLibrary:
     models:
       omni_model:
         name: gpt-4o
+        params: # Specific parameters for the model
+          max_new_tokens: 3500
       smart_model:
         name: gpt-4
       smart_fast_model:
         name: gpt-4-turbo-2024-04-09
-        params: # Specific parameters for the model
-          max_new_tokens: 2500
       fast_model:
         name: gpt-3.5-turbo
       long_fast_model:
@@ -62,6 +52,22 @@ ModelLibrary:
         name: gpt-3.5-turbo-0613
       old_long_fast_model:
         name: gpt-3.5-turbo-16k-0613
+  groq_api:
+    module: "groq_api"
+    class: "GroqAPI"
+    models:
+      llama31:
+        name: llama-3.1-70b-versatile
+  openrouter_api:
+    module: "openrouter"
+    class: "OpenRouter"
+    models:
+      phi3med:
+        name: microsoft/phi-3-medium-128k-instruct:free
+      hermes:
+        name: nousresearch/hermes-3-llama-3.1-405b
+      reflection:
+        name: mattshumer/reflection-70b:free
   claude_old:
     module: "claude_old"
     class: "Claude"
@@ -79,7 +85,9 @@ ModelLibrary:
     class: "Gemini"
     models:
       gemini-pro:
-        name: gemini-pro
+        name: gemini-1.5-pro
+      gemini-flash:
+        name: gemini-1.5-flash
   lm_studio_api:
     module: "LMStudio"
     class: "LMStudio"
@@ -89,21 +97,12 @@ ModelLibrary:
         params:
           host_url: "http://localhost:1234/v1/chat/completions"
           allow_custom_value: True
-  oobabooga_api:
-    module: "oobabooga"
-    class: "Oobabooga"
-    models:
-      oobabooga:
-        name: None
-        params: # Oobabooga host server url
-          host_url: "127.0.0.1:11434"
-          allow_custom_value: True
   ollama_api:
     module: "ollama"
     class: "Ollama"
     models:
-      DolphinMistral:
-        name: DolphinMistral
+      Llama3.1_70b:
+        name: "llama3.1:70b"
         params:
           host_url: "http://localhost:11434/api/generate"
           allow_custom_value: True

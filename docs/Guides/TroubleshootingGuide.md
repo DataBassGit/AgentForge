@@ -1,7 +1,5 @@
 # AgentForge Troubleshooting Guide
 
-## Introduction
-
 This guide provides solutions to common issues you may encounter while using **AgentForge**.
 
 ---

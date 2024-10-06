@@ -4,10 +4,8 @@ ModelSettings:
 #  Model: gemini-flash
 #  API: openai_api
 #  Model: omni_model
-  API: bakollama_api
-  Model: Llama3.1_70b
-#  API: lm_studio_api
-#  Model: LMStudio
+  API: lm_studio_api
+  Model: LMStudio
   Params: # Default parameter values
     max_new_tokens: 3000
     temperature: 0.8
@@ -109,15 +107,6 @@ ModelLibrary:
         name: "llama3.1:70b"
         params:
           host_url: "http://localhost:11434/api/generate"
-          allow_custom_value: True
-  bakollama_api:
-    module: "bakollama"
-    class: "BakoLlama"
-    models:
-      Llama3.1_70b:
-        name: "llama3.1:70b"
-        params:
-          host_url: "http://text-cellium.ngrok.app/v1/chat/completions"
           allow_custom_value: True
 
 # Embedding Library (Not much to see here)

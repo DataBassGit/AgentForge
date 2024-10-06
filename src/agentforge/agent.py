@@ -96,8 +96,11 @@ class Agent:
 
     def load_persona_data(self) -> None:
         """
-        Loads the persona data for the agent if available.
+        Loads the persona data for the agent if available. Will not load persona data if personas is disabled in system settings.
         """
+        if not self.agent_data['settings']['system'].get('PersonasEnabled'):
+            return None
+
         persona = self.agent_data.get('persona', {})
         if persona:
             for key in persona:

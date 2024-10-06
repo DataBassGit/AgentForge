@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Prompts are at the heart of the **AgentForge** framework. They define how agents interact with users and Large Language Models (LLMs). Written in **YAML** format, prompts allow you to craft dynamic, context-aware conversations and behaviors for your agents.
+Prompt templates are at the heart of the **AgentForge** framework. They define how agents interact with users and Large Language Models (LLMs). Written in **YAML** format, prompt templates allow you to craft dynamic, context-aware conversations and behaviors for your agents.
 
 ---
 
@@ -26,23 +26,23 @@ Prompts are at the heart of the **AgentForge** framework. They define how agents
 
 ## Organizing Agent Prompt Files
 
-Each agent requires a corresponding **YAML** prompt file located within the `.agentforge/agents/` directory of your project. This file contains the prompt templates that guide the agent's interactions.
+Each agent requires a corresponding **YAML** prompt file located within the `.agentforge/prompts/` directory of your project. This file contains the prompt templates that guide the agent's interactions.
 
 ### Naming Convention
 
-- **Consistency is Key**: The **YAML** file **must** have the same name as the agent's class name defined in your code.
+- **Consistency is Key**: The prompt template **YAML** file **must** have the same name as the agent's class name defined in your code.
 
   **Example**:
 
   ```python
   # echo_agent.py
-  from agentforge import Agent
+  from agentforge.agent import Agent
 
   class EchoAgent(Agent):
       pass  # Agent name is 'EchoAgent'
   ```
 
-  - The corresponding prompt file should be named `EchoAgent.yaml` and placed in the `.agentforge/agents/` directory or any of its subdirectories.
+  - The corresponding prompt file should be named `EchoAgent.yaml` and placed in the `.agentforge/prompts/` directory or any of its subdirectories.
 
 ### Directory Structure
 
@@ -52,7 +52,7 @@ You can organize your agents and prompt files into subdirectories for better cat
 
 ```
 .agentforge/
-└── agents/
+└── prompts/
     ├── EchoAgent.yaml
     ├── topic_qanda/
     │   ├── QuestionGeneratorAgent.yaml
@@ -61,7 +61,7 @@ You can organize your agents and prompt files into subdirectories for better cat
         └── HelperAgent.yaml
 ```
 
-- The system automatically searches all subdirectories within `.agentforge/agents/` to find agent prompt files.
+- The system automatically searches all subdirectories within `.agentforge/prompts/` to find agent prompt template files.
 - **Tip**: Organize agents by functionality or project modules for easier management.
 
 ---
@@ -187,6 +187,7 @@ Prompts:
 
 - **Valid Variable Names**: Use variable names that are valid Python identifiers (letters, numbers, underscores, not starting with a number).
 - **Missing Variables**: If a required variable is missing, the entire sub-prompt is skipped.
+- **Plain Text**: If no placeholders are present in a sub-prompt, it will be rendered as plain text.
 - **Invalid Variable Placeholders**: Placeholders that are not valid variable names are left unchanged and will be considered as normal text.
 
 ---
@@ -210,8 +211,6 @@ Prompts:
 ```
 
 - `{your thoughts here}` and `{your response here}` are not valid variable names and will remain in the prompt.
-
-Certainly! Here's the updated documentation section reflecting the changes:
 
 ---
 
@@ -308,18 +307,20 @@ print(response)
   Hello! Please introduce yourself.
   ```
 
+>Note: This will only work if personas is enabled and BottyAgent is set as the persona either in the system settings or set as an agent override in the corresponding yaml file.
+
 ---
 
 ## Important Considerations
 
 ### Variable Precedence
 
-- **Persona vs. Runtime Variables**: Variables provided in the persona file override those provided at runtime.
+- **Persona vs. Runtime Variables**: Variables provided at runtime override those found in the persona file.
 - **Avoid Conflicts**: To prevent unintended overrides, ensure that variable names in persona files do not conflict with those passed at runtime unless desired.
 
 **Example**:
 
-If both the persona file and runtime arguments provide a value for `topic`, the persona's `topic` value will be used.
+If both the persona file and runtime arguments provide a value for `topic`, the runtime `topic` value will be used.
 
 ### Required Prompts
 

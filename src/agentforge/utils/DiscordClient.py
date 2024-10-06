@@ -1,4 +1,4 @@
-# utils/guiutils/DiscordClient.py
+# utils/DiscordClient.py
 
 import discord
 import os

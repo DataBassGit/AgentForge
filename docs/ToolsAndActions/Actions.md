@@ -2,7 +2,7 @@
 
 ## Overview
 
-The **Actions** class provides a comprehensive suite of methods for managing and executing actions within the framework. It is designed to offer flexibility and modularity, allowing developers to create custom solutions or use generic examples. **Actions** within this framework are sequences of steps executed in a specified order to perform complex tasks. They combine the functionality of individual components into cohesive workflows.
+The **Actions** class provides a comprehensive suite of methods for managing and executing **actions** within the framework. It is designed to offer flexibility and modularity, allowing developers to create custom solutions or use generic examples. **Actions** within this framework are sequences of steps executed in a specified order to perform complex tasks. They combine the functionality of individual components into cohesive workflows.
 
 **Actions** are defined in **YAML** files and managed within the `actions` directory in the project, facilitating organized development and straightforward access.
 
@@ -61,7 +61,7 @@ The **Actions** class consists of several methods that work together to manage a
   - **[`__init__`](#init-method)**: Sets up the **Actions** class, initializing essential components such as logging, storage, and agents used for action processing.
 
 - **Collection Management**
-  - **[`initialize_collection`](#initialize_collection-method)**: Loads and initializes a specified collection (e.g., Actions or Tools) into the vector database, enabling efficient search and retrieval.
+  - **[`initialize_collection`](#initialize_collection-method)**: Loads and initializes a specified collection (e.g., **Actions** or **Tools**) into the vector database, enabling efficient search and retrieval.
 
 - **Automatic Action Execution**
   - **[`auto_execute`](#auto_execute-method)**: Provides a straightforward example of how to use the other methods in the class to select or craft an appropriate action and execute it based on a given objective. This method is not intended as a comprehensive or final solution but rather as a starting point. Developers are encouraged to build and customize their own workflows using the more granular methods provided by the class.

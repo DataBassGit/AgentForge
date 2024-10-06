@@ -1,4 +1,0 @@
-ChromaDB:
-  persist_directory: ./DB/ChromaDB
-  DBFreshStart: True
-  embedding: all-distilroberta-v1

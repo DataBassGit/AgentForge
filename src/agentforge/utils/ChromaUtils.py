@@ -172,7 +172,7 @@ class ChromaUtils:
                 else:
                     self.client = chromadb.EphemeralClient()
 
-            if self.config.data['settings']['storage']['ChromaDB'].get('DBFreshStart'):
+            if self.config.data['settings']['system'].get('DBFreshStart'):
                 self.reset_memory()
         except Exception as e:
             logger.log(f"Error initializing storage: {e}", 'error')
@@ -186,11 +186,11 @@ class ChromaUtils:
             tuple: A tuple containing the database path and embedding settings.
         """
         # Retrieve the ChromaDB settings
-        db_settings = self.config.data['settings']['storage'].get('ChromaDB', {})
+        sys_settings = self.config.data['settings']['system']
 
         # Get the database path and embedding settings
-        db_path_setting = db_settings.get('persist_directory', None)
-        db_embed = db_settings.get('embedding', None)
+        db_path_setting = sys_settings.get('PersistDirectory', None)
+        db_embed = sys_settings.get('Embedding', None)
 
         # Construct the absolute path of the database using the project root
         if db_path_setting:

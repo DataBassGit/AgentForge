@@ -208,5 +208,4 @@ class PromptHandling:
         Returns:
             str: The template with escaped braces unescaped.
         """
-        # return re.sub(r'/\{(.*?)/}', r'{\1}', template)
-        return re.sub(r'/\{(.*?)/\}', r'{\1}', template)
+        return re.sub(r'/\{(.*?)/}', r'{\1}', template)

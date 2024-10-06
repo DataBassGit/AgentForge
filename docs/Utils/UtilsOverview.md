@@ -1,37 +1,123 @@
-# Utilities Documentation
+# Utilities Overview
 
-## Introduction to Functions
+## Introduction
 
-`Functions` is a crucial class within the **AgentForge** framework, designed to provide a suite of utility functions that facilitate various agent operations. This class is instrumental in equipping agents with the necessary configurations and data, ensuring they are primed for their designated tasks.
+The **AgentForge** framework provides a suite of utility classes that facilitate various operations within agents and the system as a whole. These utilities are designed to be imported and used as needed, offering flexibility and modularity in your projects.
 
-## Function Utilities
+---
 
-The `function_utils.py` script is a convenience class that aggregates several utility scripts, each tailored to a specific aspect of the **AgentForge** system's functionality.
+## Available Utilities
 
-### Included Utilities
+The utilities are located in the `.agentforge/utils/` directory and include the following:
 
-- **[ParsingUtils](ParsingUtils.md)**: Contains methods for parsing formatted text into python dictionaries.
-- **[PromptHandling](PromptHandling.md)**: Manages the rendering and handling of prompts that guide agent actions and responses.
-- **[ToolUtils](ToolUtils.md)**: Facilitates the dynamic execution of tools, integral to performing actions within the system.
-- **[UserInterface](UserInterface.md)**: Currently focused on console interaction, provides methods for managing user inputs and system modes.
+### [1. Chroma Utils](ChromaUtils.md)
 
-Each utility script can be accessed via the `Functions` class:
+- **Description**: A class for interacting with the vector database **ChromaDB**. It provides methods for managing and using storage, enabling agents to store and retrieve data efficiently.
+- **Use Cases**:
+  - Data persistence and retrieval.
+  - Implementing agent memory functionalities.
 
-### Logger Utilities
+### [2. Discord Client](DiscordClient.md)
 
+- **Description**: A class for connecting agents to Discord. It can be used to create Discord bots, allowing agents to interact with users through Discord channels.
+- **Use Cases**:
+  - Real-time communication with users. (Real-time is subjective as it depends on your unique implementation and LLM)
+  - Building chatbots for Discord servers.
+  - Integrating agents into Discord communities.
 
-### **Example Usage**
+### [3. Logger](Logger.md)
+
+- **Description**: Contains functions for logging to both files and the console, allowing for enhanced debugging and monitoring.
+- **Use Cases**:
+  - Debugging agent behaviors.
+  - Tracking system activities.
+  - Recording errors and important events.
+
+### [4. Parsing Utils](ParsingUtils.md)
+
+- **Description**: Provides methods for parsing formatted text into Python dictionaries.
+- **Use Cases**:
+  - Parsing agent responses formatted in **YAML**. (More Parsing Formats Coming Soon...ish)
+  - Converting structured text data into usable Python objects.
+
+### [5. Prompt Handling](PromptHandling.md)
+
+- **Description**: Manages the rendering and handling of prompts that guide agent actions and responses.
+- **Use Cases**:
+  - Dynamically generating prompts with variable substitution.
+  - Managing prompt templates.
+  - Ensuring prompts are correctly formatted for the LLM.
+
+### [6. Tool Utils](ToolUtils.md)
+
+- **Description**: Facilitates the dynamic execution of tools, integral to performing actions within the system.
+- **Use Cases**:
+  - Managing and executing agent tools.
+  - Integrating external functionalities.
+  - Extending agent capabilities with custom actions.
+
+---
+
+## Using Utilities
+
+You can import and utilize these utilities directly in your code as needed. Below is an example of how to use one of the utilities.
+
+### Example: Using `ParsingUtils`
+
 ```python
-from agentforge.utils.function_utils import Functions
+from agentforge.utils.ParsingUtils import ParsingUtils
 
-# Initialize the Functions class
-functions = Functions()
+# Initialize the ParsingUtils class
+parsing_utils = ParsingUtils()
 
-yaml_string = '# Yaml content goes here'
-# Utilize a specific utility
-parsed_yaml = functions.parsing_utils.parse_yaml_content(yaml_string)
+# Example YAML string
+yaml_string = '''
+name: AgentForge
+description: An advanced agent framework.
+'''
+
+# Parse the YAML content
+parsed_yaml = parsing_utils.parse_yaml_content(yaml_string)
+
+# Output the parsed YAML
+print(parsed_yaml)
 ```
 
-In this example we are parsing a string containing yaml into a python dictionary, this is useful for parsing agent responses formatted in **YAML**.
+**Output:**
 
+```
+{'name': 'AgentForge', 'description': 'An advanced agent framework.'}
+```
 
+In this example, we parse a **YAML**-formatted string into a Python dictionary using the `ParsingUtils` utility. This is particularly useful when processing agent responses or configuration data formatted in YAML.
+
+---
+
+## Notes
+
+- **Modularity**: Each utility is designed to be independent and can be imported as needed without unnecessary overhead.
+- **Flexibility**: Utilities can be combined to enhance agent functionalities and streamline development.
+- **Documentation**: For detailed information on each utility, refer to their respective guides:
+  - [Chroma Utils Guide](ChromaUtils.md)
+  - [Discord Client Guide](DiscordClient.md)
+  - [Logger Guide](Logger.md)
+  - [ParsingUtils Guide](ParsingUtils.md)
+  - [PromptHandling Guide](PromptHandling.md)
+  - [ToolUtils Guide](ToolUtils.md)
+
+---
+
+## Conclusion
+
+The utilities provided by **AgentForge** enhance the capabilities of your agents and simplify the development process. By leveraging these tools, you can build robust and feature-rich agents tailored to your specific needs.
+
+---
+
+**Need Help?**
+
+If you have questions or need assistance, feel free to reach out:
+
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
+- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+
+---

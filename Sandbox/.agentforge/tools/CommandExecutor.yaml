@@ -4,41 +4,25 @@ Args:
   - env_vars (dict, optional)
 Command: execute
 Description: |-
-  The Command Executor tool safely executes shell commands and returns their output.
-  Key features:
-  - Supports command chaining (using &, &&, ||, ;)
-  - Allows custom environment variables
-  - Handles command execution errors
-  - Returns command output as a string
-  Limitations:
-  - Use caution with untrusted input due to shell=True setting
-  - Only supports commands available in the system's shell environment
+  The 'Command Executor' tool executes shell commands and returns their output as a string.
+Instruction: |-
+  To use the 'Command Executor' tool, follow these steps:
+  1. Call the `execute` method with the following arguments:
+     - `cmd`: A string containing the shell command to execute.
+     - `env_vars`: (Optional) A dictionary of environment variables to set for the command.
+  2. The method returns the command's output as a string.
+  3. Use the output as needed in your application.
 Example: |-
   # Example usage of the Command Executor tool:
   from agentforge.tools.CommandExecutor import CommandExecutor
 
   executor = CommandExecutor()
-  
-  # Example with a single command
-  result1 = executor.execute("echo Hello, World!")
-  print(result1)
 
-  # Example with command chaining
-  result2 = executor.execute("echo Hello, World! && echo Goodbye, World!")
-  print(result2)
+  # Execute a simple command
+  output = executor.execute("echo Hello, World!")
+  print(output)  # Output: Hello, World!
 
-  # Example with custom environment variables
-  result3 = executor.execute("echo $MY_VAR", env_vars={"MY_VAR": "Hello from env vars!"})
-  print(result3)
-Instruction: |-
-  To use the Command Executor tool, follow these steps:
-  1. Import the CommandExecutor class from agentforge.tools.CommandExecutor
-  2. Create an instance of the CommandExecutor class
-  3. Call the execute method with the required arguments:
-     - cmd: A string containing the shell command to execute
-     - env_vars: (Optional) A dictionary of environment variables to set for the command
-  4. The method will return the command output as a string
-  5. Process or display the returned output as needed
-  6. Handle any potential errors or exceptions that may be raised during the execution
-  7. Be cautious when using this tool with untrusted input to avoid security risks
+  # Execute a command with custom environment variables
+  output = executor.execute("echo $MY_VAR", env_vars={"MY_VAR": "Hello from env vars!"})
+  print(output)  # Output: Hello from env vars!
 Script: agentforge.tools.CommandExecutor

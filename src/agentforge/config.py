@@ -138,7 +138,7 @@ class Config:
                         return result
             return None
 
-        return search_nested_dict(self.data.get('agents', {}), agent_name)
+        return search_nested_dict(self.data.get('prompts', {}), agent_name)
 
     def load_all_configurations(self):
         """
@@ -231,7 +231,7 @@ class Config:
             Exception: For any errors encountered while loading the agent.
         """
         try:
-            path_to_file = self.find_file_in_directory("agents", f"{agent_name}.yaml")
+            path_to_file = self.find_file_in_directory("prompts", f"{agent_name}.yaml")
             if path_to_file:
                 self.data['agent'] = load_yaml_file(str(path_to_file))  # Fix warning
             else:
