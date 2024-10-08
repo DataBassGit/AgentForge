@@ -28,7 +28,7 @@ When you create an agent, if storage is enabled, the agent will have access to a
 **Example in Agent Context**:
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class MyAgent(Agent):
     def process_data(self):
