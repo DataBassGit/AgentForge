@@ -46,6 +46,8 @@ All the settings from the `Models` and `System` configurations are available to 
 **Example Usage in an Agent**:
 
 ```python
+from agentforge.agent import Agent
+
 class MyCustomAgent(Agent):
     def load_additional_data(self):
         # Accessing model settings
