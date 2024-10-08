@@ -232,6 +232,8 @@ Agents can access these settings through `self.agent_data['settings']['system']`
 **Example**:
 
 ```python
+from agentforge.agent import Agent
+
 class MyAgent(Agent):
     def load_additional_data(self):
         system_settings = self.agent_data['settings']['system']
