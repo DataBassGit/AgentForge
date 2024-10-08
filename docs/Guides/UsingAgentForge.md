@@ -11,10 +11,10 @@ This guide will help you get started with running agents and multi-agent scripts
 Create a Python file named `echo_agent.py` in your project root:
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class EchoAgent(Agent):
-    pass  # The agent_name is automatically set to 'EchoAgent'
+    pass  # The agent name is automatically set to 'EchoAgent'
 ```
 
 ### 2. Create the Prompt Template (`EchoAgent.yaml`)
