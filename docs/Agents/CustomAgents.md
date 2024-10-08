@@ -197,7 +197,7 @@ To customize agent behavior, you can override methods inherited from the `Agent`
 ### Example: Overriding Methods
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class MyCustomAgent(Agent):
 
@@ -228,7 +228,7 @@ Let's create a custom agent that summarizes a given text and returns the summary
 ### Step 1: Define the Custom Agent
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 import json
 
 class SummarizeAgent(Agent):
