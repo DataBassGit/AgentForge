@@ -74,10 +74,10 @@ To create a script that uses multiple agents working together, we'll create two 
 Create a Python file named `question_generator_agent.py` in your project root:
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class QuestionGeneratorAgent(Agent):
-    pass  # The agent_name is automatically set to 'QuestionGeneratorAgent'
+    pass  # The agent name is automatically set to 'QuestionGeneratorAgent'
 ```
 
 #### `answer_agent.py`
@@ -85,10 +85,10 @@ class QuestionGeneratorAgent(Agent):
 Create another Python file named `answer_agent.py` in your project root:
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class AnswerAgent(Agent):
-    pass  # The agent_name is automatically set to 'AnswerAgent'
+    pass  # The agent name is automatically set to 'AnswerAgent'
 ```
 
 ### 2. Create the Prompt Templates
