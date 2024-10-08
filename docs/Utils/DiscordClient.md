@@ -368,7 +368,7 @@ print(roles_info)
 Here's how you might integrate the `DiscordClient` within an agent to send and receive messages:
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 from agentforge.utils.DiscordClient import DiscordClient
 
 class DiscordAgent(Agent):
