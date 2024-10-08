@@ -73,7 +73,7 @@ When developing custom agents by subclassing the `Agent` class, you have access 
 **Example:**
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class MyCustomAgent(Agent):
     def process_data(self):
@@ -216,7 +216,7 @@ This method logs the message and prints it to the console in a highlighted forma
 ## Example: Putting It All Together
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class MyCustomAgent(Agent):
     def load_data(self, **kwargs):
