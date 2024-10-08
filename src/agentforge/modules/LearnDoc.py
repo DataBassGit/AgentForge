@@ -2,9 +2,9 @@ from agentforge.agents.LearnKGAgent import LearnKGAgent
 from agentforge.tools.GetText import GetText
 from agentforge.tools.IntelligentChunk import intelligent_chunk
 from agentforge.modules.InjectKG import Consume
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 from agentforge.tools.CleanString import Strip
-from agentforge.utils.storage_interface import StorageInterface
+from ..utils.ChromaUtils import ChromaUtils
 import os
 
 
@@ -29,7 +29,7 @@ class FileProcessor:
         self.learn_kg = LearnKGAgent()
         self.consumer = Consume()
         self.strip = Strip()
-        self.store = StorageInterface()
+        self.store = ChromaUtils()
 
     def process_file(self, knowledge_base_name: str, file_path: str) -> None:
         """
@@ -77,7 +77,7 @@ class FileProcessor:
         for chunk in chunks:
             try:
                 # Steps within the loop for learning and injecting data
-                kg_results = self.store.storage_utils.query_memory(chunk)
+                kg_results = self.store.query_memory(chunk)
                 data = self.learn_kg.run(text_chunk=chunk, existing_knowledge=kg_results)
 
                 if data is not None and 'sentences' in data and data['sentences']:

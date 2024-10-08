@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Creating custom agents in **AgentForge** allows you to tailor agent behaviors to your specific needs. By subclassing the `Agent` base class, you inherit default functionalities and can override methods to customize behaviors. This guide will walk you through the process of creating and customizing your own agents.
+Creating custom agents in **AgentForge** allows you to tailor agent behaviors to your specific needs. By subclassing the `Agent` base class, you inherit default functionalities and can override methods to customize behaviors. This guide will walk you through the process of creating and customizing your own agents, as well as how to organize your project for scalability.
 
 ---
 
@@ -10,16 +10,18 @@ Creating custom agents in **AgentForge** allows you to tailor agent behaviors to
 
 1. [Creating a Basic Custom Agent](#1-creating-a-basic-custom-agent)
 2. [Creating Agent Prompt Templates](#2-creating-agent-prompt-templates)
-3. [Using Persona Files](#3-using-persona-files)
-4. [Overriding Agent Methods](#4-overriding-agent-methods)
-5. [Best Practices](#5-best-practices)
-6. [Next Steps](#6-next-steps)
+3. [Organizing Agents and Project Structure](#3-organizing-agents-and-project-structure)
+4. [Using Persona Files](#4-using-persona-files)
+5. [Overriding Agent Methods](#5-overriding-agent-methods)
+6. [Custom Agent Example](#6-custom-agent-example)
+7. [Best Practices](#7-best-practices)
+8. [Next Steps](#8-next-steps)
 
 ---
 
 ## 1. Creating a Basic Custom Agent
 
-To create a custom agent, you simply need to define a new Python class that inherits from the `Agent` base class.
+To create a custom agent, you need to define a new Python class that inherits from the `Agent` base class.
 
 ### Step-by-Step Guide
 
@@ -43,7 +45,7 @@ In the `.agentforge/agents/` directory, create a YAML file named `MyCustomAgent.
 ```yaml
 Prompts:
   System: You are a helpful assistant.
-  User: |+
+  User: |
     {user_input}
 ```
 
@@ -93,7 +95,7 @@ Prompt templates define how your agent interacts with users and the LLM. They ar
 ```yaml
 Prompts:
   System: You are a knowledgeable assistant specializing in {specialty}.
-  User: |+
+  User: |
     {user_input}
 ```
 
@@ -102,19 +104,58 @@ Prompts:
 
 ---
 
-## 3. Using Persona Files
+## 3. Organizing Agents and Project Structure
 
-Personas provide additional context and information to agents. They are defined in YAML files within the `.agentforge/personas/` directory.
+Proper organization of your agent prompt templates and Python scripts is crucial for **AgentForge** to function correctly.
+
+### Directory Structure
+
+- **Agent Prompt Templates**:
+  - Stored in the `.agentforge/prompts/` directory.
+  - You can organize prompt templates into subdirectories within this directory.
+  - **AgentForge** automatically discovers all prompt **YAML** files within `.agentforge/prompts/` and its subdirectories.
+
+### Agent Python Scripts
+
+- **Location**: Python scripts (the files containing your agent classes) can be located anywhere within your project's root directory or its subdirectories.
+- **Naming Convention**: The **class name** of your agent must **exactly match** the corresponding prompt template **YAML** file name (case-sensitive).
+  - Example: If your agent class is named `TestAgent`, the prompt template file must be named `TestAgent.yaml`.
+
+### Example Structure
+
+```
+your_project/
+│
+├── .agentforge/
+│   └── prompts/
+│       ├── TestAgent.yaml
+│       └── subdirectory/
+│           └── AnotherAgent.yaml
+│
+├── custom_agents/
+│   └── test_agent.py
+├── another_agent.py
+└── run_agents.py
+```
+
+### Running Scripts
+
+- It is recommended to run your main script (the one that imports and runs your agents) from the project's root directory to avoid path issues.
+
+---
+
+## 4. Using Persona Files
+
+Personas provide additional context and information to agents. They are defined in **YAML** files within the `.agentforge/personas/` directory.
 
 ### Creating a Persona File
 
-**Example Persona File (`MyCustomAgent.yaml`):**
+**Example Persona File (`MyCustomAgent.yaml`)**:
 
 ```yaml
 Name: Expert Assistant
 Specialty: artificial intelligence
-Background: |+
-  You have a Ph.D. in computer science and specialize in AI.
+Background: You have a Ph.D. in computer science and specialize in AI.
 ```
 
 - **Variables**: `Name`, `Specialty`, and `Background` can be referenced in your prompts.
@@ -125,20 +166,22 @@ In your agent's prompt file (`MyCustomAgent.yaml`), reference the persona:
 
 ```yaml
 Prompts:
-  System: |+
+  System: |
     You are {Name}, specializing in {Specialty}.
     {Background}
-  User: |+
+  User: |
     {user_input}
+
+Persona: MyCustomAgent
 ```
 
 - The agent will replace `{Name}`, `{Specialty}`, and `{Background}` with values from the persona file.
 
-**Note:** Ensure that the persona file name matches the agent class name unless specified otherwise in the agent configuration.
+>Note: If no persona file is provided to the prompt template the system will default to using the `default.yaml` persona file unless personas is disabled in the system settings.
 
 ---
 
-## 4. Overriding Agent Methods
+## 5. Overriding Agent Methods
 
 To customize agent behavior, you can override methods inherited from the `Agent` base class.
 
@@ -178,7 +221,7 @@ class MyCustomAgent(Agent):
 
 ---
 
-## 5. Putting It All Together: Custom Agent Example
+## 6. Custom Agent Example
 
 Let's create a custom agent that summarizes a given text and returns the summary.
 
@@ -206,7 +249,7 @@ class SummarizeAgent(Agent):
 ```yaml
 Prompts:
   System: You are an assistant that summarizes text.
-  User: |+
+  User: |
     Please summarize the following text and return the summary in JSON format with the key "summary":
 
     {text}
@@ -238,7 +281,7 @@ AgentForge simplifies building and deploying AI agents by providing a flexible f
 
 ---
 
-## 6. Best Practices
+## 7. Best Practices
 
 - **Consistent Naming**: Ensure your class name, **YAML** prompt file, and persona file names match exactly.
 - **Use Valid Variable Names**: Variables in prompts and personas should be valid Python identifiers.
@@ -249,7 +292,7 @@ AgentForge simplifies building and deploying AI agents by providing a flexible f
 
 ---
 
-## 7. Next Steps
+## 8. Next Steps
 
 - **Explore Agent Methods**: Dive deeper into customizing agents by reading the [Agent Methods Guide](AgentMethods.md).
 - **Learn About Prompts**: Enhance your prompts by reviewing the [Agent Prompts Guide](AgentPrompts.md).

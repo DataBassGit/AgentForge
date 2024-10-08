@@ -1,6 +1,6 @@
 # main.py
 
-from agentforge.utils.guiutils.discord_client import DiscordClient
+from agentforge.utils.DiscordClient import DiscordClient
 import time
 import yaml
 

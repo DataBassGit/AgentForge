@@ -3,32 +3,18 @@ Args:
   - url (str)
 Command: get_plain_text
 Description: |-
-  The Web Scrape tool fetches and extracts plain text from a specified webpage.
-  Key features:
-  - Sends a GET request to the provided URL
-  - Extracts plain text from HTML content using BeautifulSoup
-  - Chunks the extracted text using the IntelligentChunk tool
-  - Saves the chunked text to memory using ChromaUtils
-  - Removes extra newlines from chunks
-  Limitations:
-  - Requires internet connection
-  - May be affected by website's robots.txt rules
-  - Depends on BeautifulSoup, requests, and custom utility modules
+  The 'Web Scrape' tool fetches and extracts plain text from a specified webpage.
+Instruction: |-
+  To use the 'Web Scrape' tool, follow these steps:
+  1. Call the `get_plain_text` function with the following argument:
+     - `url`: A string representing the URL of the webpage to scrape.
+  2. The function returns a message indicating that the webpage was saved to memory.
+  3. Use the output as needed in your application.
 Example: |-
   # Example usage of the Web Scrape tool:
   from agentforge.tools.WebScrape import get_plain_text
 
-  # Example with a URL
   url = "https://example.com"
   result = get_plain_text(url)
-  print(result)
-Instruction: |-
-  To use the Web Scrape tool, follow these steps:
-  1. Import the get_plain_text function from agentforge.tools.WebScrape
-  2. Call the get_plain_text function with the required argument:
-     - url: A string representing the URL of the webpage to scrape
-  3. The function will return a message indicating that the webpage was saved to memory
-  4. Process the returned message as needed
-  5. Handle any potential errors or exceptions that may be raised during the process
-  6. Note that the scraped content is automatically saved to memory using ChromaUtils
+  print(result)  # Output: Webpage saved to memory! URL: https://example.com
 Script: agentforge.tools.WebScrape

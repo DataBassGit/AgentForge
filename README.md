@@ -78,13 +78,12 @@ Get started with **AgentForge** in just a few steps:
    
    ### 2. Create the Prompt Template (`EchoAgent.yaml`)
 
-   Inside the `.agentforge/agents/` directory, create a **YAML** file named `EchoAgent.yaml`:
+   Inside the `.agentforge/prompts/` directory, create a **YAML** file named `EchoAgent.yaml`:
 
    ```yaml
    Prompts:
      System: You are an assistant that echoes the user's input.
-     User: |+
-       {user_input}
+     User: {user_input}
    ```
 
    ### 3. Write a Script to Run the Agent
@@ -118,7 +117,7 @@ Get started with **AgentForge** in just a few steps:
    Hello, AgentForge!
    ```
 
-   *Note: The actual response will depend on the LLM used and its configuration. This is just a very crude example.*
+>*Note: The actual response will depend on the LLM used and its configuration. This is just a very crude example.*
 
 ---
 
@@ -136,10 +135,9 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 ### **Core Concepts**
 
 - **[Agents](docs/Agents/Agents.md)**: Dive deep into the world of agents. Learn how they operate, respond, and can be customized.
-- **[Cognitive Architectures](docs/Modules/Modules.md)**: Explore multi-agent scripts that coordinate various agents to achieve specific goals.
 - **[LLM API Integration](docs/LLMs/LLMs.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
-- **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
 - **[Personas](docs/Personas/Personas.md)**: Utilize personas to encapsulate information accessible to the agents, acting as a resource of knowledge.
+- **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
 - **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: Discover the system's toolbox and learn how to choreograph tools into actionable sequences.
 - **[Utilities](docs/Utils/UtilsOverview.md)**: Explore utility functions and tools that enhance the system's capabilities.
 

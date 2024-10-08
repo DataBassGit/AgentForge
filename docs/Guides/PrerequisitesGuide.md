@@ -1,7 +1,5 @@
 # AgentForge Prerequisites Guide
 
-## Introduction
-
 Before you begin using **AgentForge**, ensure your system meets the necessary requirements and configurations.
 
 ---

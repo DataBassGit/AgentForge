@@ -1,49 +1,123 @@
-from agentforge.utils.functions.ParsingUtils import parse_yaml_string
-
 # Utilities Overview
 
-## Introduction to Utilities
+## Introduction
 
-Utilities in the **AgentForge** system are a collection of support scripts and classes that enhance the functionality and user experience. They serve as the backbone for various operations within the framework, from handling prompts and tasks to providing user interfaces and parsing data.
+The **AgentForge** framework provides a suite of utility classes that facilitate various operations within agents and the system as a whole. These utilities are designed to be imported and used as needed, offering flexibility and modularity in your projects.
 
-This document provides an overview of the Utilities available, focusing on their usability and how they can be leveraged to build and maintain a robust **AgentForge** implementation.
+---
 
-## Function Utilities
+## Available Utilities
 
-The `function_utils.py` script is a convenience class that aggregates several utility scripts, each tailored to a specific aspect of the **AgentForge** system's functionality.
+The utilities are located in the `.agentforge/utils/` directory and include the following:
 
-### Included Utilities
+### [1. Chroma Utils](ChromaUtils.md)
 
-- **[AgentUtils](AgentUtils.md)**: Offers functions related to agent operations, including data loading and parsing.
-- **[Logger](Logger)**: Contains functions for logging to both files and the console, allowing for more debugging control.
-- **[PromptHandling](PromptHandling.md)**: Manages the rendering and handling of prompts that guide agent actions and responses.
-- **[ToolUtils](ToolUtils.md)**: Facilitates the dynamic execution of tools, integral to performing actions within the system.
-- **[UserInterface](UserInterface.md)**: Currently focused on console interaction, provides methods for managing user inputs and system modes.
+- **Description**: A class for interacting with the vector database **ChromaDB**. It provides methods for managing and using storage, enabling agents to store and retrieve data efficiently.
+- **Use Cases**:
+  - Data persistence and retrieval.
+  - Implementing agent memory functionalities.
 
-Each utility script can be accessed via the `Functions` class:
+### [2. Discord Client](DiscordClient.md)
+
+- **Description**: A class for connecting agents to Discord. It can be used to create Discord bots, allowing agents to interact with users through Discord channels.
+- **Use Cases**:
+  - Real-time communication with users. (Real-time is subjective as it depends on your unique implementation and LLM)
+  - Building chatbots for Discord servers.
+  - Integrating agents into Discord communities.
+
+### [3. Logger](Logger.md)
+
+- **Description**: Contains functions for logging to both files and the console, allowing for enhanced debugging and monitoring.
+- **Use Cases**:
+  - Debugging agent behaviors.
+  - Tracking system activities.
+  - Recording errors and important events.
+
+### [4. Parsing Utils](ParsingUtils.md)
+
+- **Description**: Provides methods for parsing formatted text into Python dictionaries.
+- **Use Cases**:
+  - Parsing agent responses formatted in **YAML**. (More Parsing Formats Coming Soon...ish)
+  - Converting structured text data into usable Python objects.
+
+### [5. Prompt Handling](PromptHandling.md)
+
+- **Description**: Manages the rendering and handling of prompts that guide agent actions and responses.
+- **Use Cases**:
+  - Dynamically generating prompts with variable substitution.
+  - Managing prompt templates.
+  - Ensuring prompts are correctly formatted for the LLM.
+
+### [6. Tool Utils](ToolUtils.md)
+
+- **Description**: Facilitates the dynamic execution of tools, integral to performing actions within the system.
+- **Use Cases**:
+  - Managing and executing agent tools.
+  - Integrating external functionalities.
+  - Extending agent capabilities with custom actions.
+
+---
+
+## Using Utilities
+
+You can import and utilize these utilities directly in your code as needed. Below is an example of how to use one of the utilities.
+
+### Example: Using `ParsingUtils`
 
 ```python
-from agentforge.utils.function_utils import Functions
+from agentforge.utils.ParsingUtils import ParsingUtils
 
-# Initialize the Functions class
-functions = Functions()
+# Initialize the ParsingUtils class
+parsing_utils = ParsingUtils()
 
-# Utilize a specific utility
-parsed_yaml = parse_yaml_string(functions.agent_utils.logger, yaml_string)
+# Example YAML string
+yaml_string = '''
+name: AgentForge
+description: An advanced agent framework.
+'''
+
+# Parse the YAML content
+parsed_yaml = parsing_utils.parse_yaml_content(yaml_string)
+
+# Output the parsed YAML
+print(parsed_yaml)
 ```
 
-## Additional Utilities
+**Output:**
 
-Beyond the foundational function utilities, AgentForge encompasses scripts that facilitate integration with external services and data management systems:
+```
+{'name': 'AgentForge', 'description': 'An advanced agent framework.'}
+```
 
-- **[Storage Interface](StorageInterface.md).**: Acts as the central hub for data storage and retrieval operations within **AgentForge**, offering a standardized interface for interacting with various databases or filesystems. It's designed with flexibility in mind, allowing it to connect with different database implementations by using consistent method names across the board.
-  
-- **[ChromaUtils](../../src/agentforge/utils/chroma_utils.py)**: Integrates ChromaDB with the StorageInterface Utility, providing a specialized database for the system. While ChromaDB is the default, the framework is adaptable to other databases such as SQL or Pinecone, provided they have corresponding utility scripts with matching method signatures.
+In this example, we parse a **YAML**-formatted string into a Python dictionary using the `ParsingUtils` utility. This is particularly useful when processing agent responses or configuration data formatted in YAML.
 
-- **[PineconeUtils](../../src/agentforge/utils/pinecone_utils.py)**: Similar to ChromaUtils, PineconeUtils connects Pinecone — a vector database optimized for machine learning models — with the StorageInterface. This allows the system to leverage Pinecone's capabilities for managing vector data efficiently. **Note: Currently Non-Functional**
+---
 
-These utilities play an instrumental role in augmenting the **AgentForge** system, ensuring seamless interactions with a variety of data sources and external services.
+## Notes
 
-For in-depth information on how to utilize the StorageInterface class
-and integrate various databases within your **AgentForge** setup,
-please refer to our [Storage Interface Detailed Documentation](StorageInterface.md).
+- **Modularity**: Each utility is designed to be independent and can be imported as needed without unnecessary overhead.
+- **Flexibility**: Utilities can be combined to enhance agent functionalities and streamline development.
+- **Documentation**: For detailed information on each utility, refer to their respective guides:
+  - [Chroma Utils Guide](ChromaUtils.md)
+  - [Discord Client Guide](DiscordClient.md)
+  - [Logger Guide](Logger.md)
+  - [ParsingUtils Guide](ParsingUtils.md)
+  - [PromptHandling Guide](PromptHandling.md)
+  - [ToolUtils Guide](ToolUtils.md)
+
+---
+
+## Conclusion
+
+The utilities provided by **AgentForge** enhance the capabilities of your agents and simplify the development process. By leveraging these tools, you can build robust and feature-rich agents tailored to your specific needs.
+
+---
+
+**Need Help?**
+
+If you have questions or need assistance, feel free to reach out:
+
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
+- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+
+---

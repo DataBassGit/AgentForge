@@ -1,30 +1,10 @@
 import os
 import time
 import anthropic
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
 client = anthropic.Anthropic(api_key=API_KEY)
-
-
-def parse_prompts(prompts):
-    """
-    Formats a list of prompts into a single string formatted specifically for Anthropic's AI models.
-
-    Parameters:
-        prompts (list): A list of strings, each representing a segment of the overall prompt.
-
-    Returns:
-        str: A formatted prompt string combining human and AI prompt indicators with the original prompt content.
-    """
-    prompt = [
-        {
-            'role': 'user',
-            'content': ''.join(prompts[1:])
-        }
-    ]
-
-    return prompt
 
 
 class Claude:
@@ -49,12 +29,12 @@ class Claude:
         self._model = model
         self.logger = None
 
-    def generate_text(self, prompts, **params):
+    def generate_text(self, model_prompt, **params):
         """
         Generates text based on the provided prompts and additional parameters for the Claude model.
 
         Parameters:
-            prompts (list): A list of strings to be passed as prompts to the Claude model.
+            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
             **params: Arbitrary keyword arguments providing additional options to the model such as
                       'max_new_tokens', 'temperature', and 'top_p'.
 
@@ -65,9 +45,9 @@ class Claude:
         specified number of times with exponential backoff in case of errors. It logs the process and outcomes.
         """
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
-        prompt = parse_prompts(prompts)
-        print(f"Prompt: {prompt}\n\n")
-        self.logger.log_prompt(f"System: {prompts[0]}\n\nUser: {prompt[0]['content']}")
+        self.logger.log_prompt(model_prompt)
+
+        prompt = [{'role': 'user', 'content': model_prompt.get('User')}]
 
         # Will retry to get chat if a rate limit or bad gateway error is received from the chat
         response = None
@@ -76,15 +56,13 @@ class Claude:
             try:
                 response = client.messages.create(
                     messages=prompt,
-                    system=prompts[0],
+                    system=model_prompt.get('System'),
                     # stop_sequences=[anthropic.HUMAN_PROMPT],
                     model=self._model,
                     max_tokens=params["max_new_tokens"],
                     temperature=params["temperature"],
                     top_p=params["top_p"]
                 )
-                # print(f"Response:{response}\n")
-                # print(f"Content: {response.content[0].text}\n")
                 self.logger.log_response(str(response.content[0].text))
                 break
 

@@ -1,21 +1,5 @@
 import requests
-import json
-from agentforge.utils.functions.Logger import Logger
-
-
-def parse_prompts(prompts):
-    """
-    Formats a list of prompts into a single string formatted specifically for Anthropic's AI models.
-
-    Parameters:
-        prompts (list): A list of strings, each representing a segment of the overall prompt.
-
-    Returns:
-        str: A formatted prompt string combining human and AI prompt indicators with the original prompt content.
-    """
-    prompt = ''.join(prompts[1:])
-
-    return prompt
+from agentforge.utils.Logger import Logger
 
 
 class Ollama:
@@ -35,7 +19,7 @@ class Ollama:
         expected to generate text based on the input prompt. The endpoint URL is read from an environment variable.
 
         Parameters:
-            model_prompt (list): The prompt text to send to the model for generating a completion.
+            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
             **params: Arbitrary keyword arguments for future extensibility, not used currently.
 
         Returns:
@@ -45,28 +29,28 @@ class Ollama:
         is not set or if the request fails, appropriate error messages are logged.
         """
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
-        prompt = parse_prompts(model_prompt)
-        self.logger.log_prompt(prompt)
+        self.logger.log_prompt(model_prompt)
 
         headers = {'Content-Type': 'application/json'}
         data = {
             "temperature": params["temperature"],
             "model": self._model,
-            "system": model_prompt[0],
-            "prompt": prompt,
+            "system": model_prompt.get('System'),
+            "prompt": model_prompt.get('User'),
             "max_tokens": params["max_new_tokens"],
             "stream": False
         }
 
         url = params.pop('host_url', None)
         if not url:
-            self.logger.log("\n\nError: The CUSTOM_AI_ENDPOINT environment variable is not set", 'critical')
+            self.logger.log(f"\n\nError: The CUSTOM_AI_ENDPOINT environment variable is not set: {url}", 'critical')
 
-        response = requests.post(url, headers=headers, data=json.dumps(data))
-        self.logger.log_response(response.json()['response'])
+        response = requests.post(url, headers=headers, json=data)
+        result = response.json()['choices'][0]['message']['content']
+        self.logger.log_response(result)
 
         if response.status_code == 200:
-            return response.json()['response']
+            return result
         else:
             print(f"Request error: {response}")
             return None

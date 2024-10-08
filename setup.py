@@ -10,7 +10,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.3.2",
+    version="0.4.0",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -36,7 +36,7 @@ setup(
         "scipy",
         "discord.py",
         "semantic-text-splitter",
-        # "google-generativeai",
+        "google-generativeai",
         "setuptools>=70.0.0 ",  # not directly required, pinned by Snyk to avoid a vulnerability
     ],
     extras_require={
@@ -60,7 +60,7 @@ setup(
     ],
     python_requires=">=3.9",
     package_data={
-        'agentforge.utils.guiutils': ['discord_client.py'],
+        'agentforge.utils.guiutils': ['DiscordClient.py'],
         '': ['*.yaml'],  # Include your file types as needed
     },
     # package_data={
@@ -74,6 +74,3 @@ setup(
     # }
 
 )
-#
-#
-# not directly required, pinned by Snyk to avoid a vulnerability

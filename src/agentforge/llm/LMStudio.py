@@ -1,22 +1,6 @@
 import requests
 import json
-from agentforge.utils.functions.Logger import Logger
-
-
-def parse_prompts(prompts):
-    """
-    Formats a list of prompts into a single string formatted specifically for Anthropic's AI models.
-
-    Parameters:
-        prompts (list): A list of strings, each representing a segment of the overall prompt.
-
-    Returns:
-        str: A formatted prompt string combining human and AI prompt indicators with the original prompt content.
-    """
-    prompt = ''.join(prompts[1:])
-
-    return prompt
-
+from agentforge.utils.Logger import Logger
 
 class LMStudio:
 
@@ -35,7 +19,7 @@ class LMStudio:
         expected to generate text based on the input prompt. The endpoint URL is read from an environment variable.
 
         Parameters:
-            model_prompt (list): The prompt text to send to the model for generating a completion.
+            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
             **params: Arbitrary keyword arguments for future extensibility, not used currently.
 
         Returns:
@@ -45,23 +29,14 @@ class LMStudio:
         is not set or if the request fails, appropriate error messages are logged.
         """
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
-        prompt = parse_prompts(model_prompt)
-        self.logger.log_prompt(f'System:\n{model_prompt[0]}\n\nUser:\n{prompt}')
+        self.logger.log_prompt(model_prompt)
 
         headers = {'Content-Type': 'application/json'}
         data = {
-            "temperature": 0.8,
-            "model": self._model,
-            "system": model_prompt[0],
-            "prompt": prompt,
-            "max_tokens": 2048,
-            "stream": False
-        }
-        data = {
             "model": self._model,
             "messages": [
-              {"role": "system", "content": model_prompt[0]},
-              {"role": "user", "content": prompt}
+                {"role": "system", "content": model_prompt.get('System')},
+                {"role": "user", "content": model_prompt.get('User')}
             ],
             "temperature": params["temperature"],
             "max_tokens": params["max_new_tokens"],

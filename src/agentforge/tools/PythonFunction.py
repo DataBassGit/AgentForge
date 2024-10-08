@@ -1,6 +1,6 @@
 # tools/PythonFunction.py
 
-from agentforge.utils.functions.ToolUtils import ToolUtils
+from agentforge.utils.ToolUtils import ToolUtils
 
 
 class PythonFunction:

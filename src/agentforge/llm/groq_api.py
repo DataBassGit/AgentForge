@@ -1,6 +1,6 @@
 import os
 from groq import Groq
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 
 class GroqAPI:
@@ -23,7 +23,7 @@ class GroqAPI:
         expected to generate text based on the input prompt. The endpoint URL is read from an environment variable.
 
         Parameters:
-            model_prompt (list): The prompt text to send to the model for generating a completion.
+            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
             **params: Arbitrary keyword arguments for future extensibility, not used currently.
 
         Returns:
@@ -33,22 +33,16 @@ class GroqAPI:
         is not set or if the request fails, appropriate error messages are logged.
         """
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
-        prompt = self.parse_prompts(model_prompt)
-        self.logger.log_prompt(self.prompt_log)
+        self.logger.log_prompt(model_prompt)
+
         api_key = os.getenv("GROQ_API_KEY")
         # url = "https://api.groq.com/openai/v1/models"
         client = Groq(api_key=api_key)
 
         response = client.chat.completions.create(
             messages=[
-                {
-                    "role": "system",
-                    "content": model_prompt[0]
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "system", "content": model_prompt.get('System')},
+                {"role": "user", "content": model_prompt.get('User')}
             ],
             model=self._model,
             max_tokens=params['max_new_tokens'],
@@ -66,18 +60,3 @@ class GroqAPI:
         else:
             self.logger.log(f"Request error: {response}", 'error')
             return response
-
-    def parse_prompts(self, prompts):
-        """
-        Formats a list of prompts into a single string formatted specifically for Groq's AI models.
-
-        Parameters:
-            prompts (list): A list of strings, each representing a segment of the overall prompt.
-
-        Returns:
-            str: A formatted prompt string combining human and AI prompt indicators with the original prompt content.
-        """
-        self.prompt = ''.join(prompts[1:])
-        self.prompt_log = ''.join(prompts[0:])
-
-        return self.prompt

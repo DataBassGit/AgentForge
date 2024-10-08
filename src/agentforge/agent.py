@@ -1,7 +1,9 @@
 from typing import Any, Dict, List, Optional
 from agentforge.llm import LLM
-from agentforge.utils.functions.Logger import Logger
-from agentforge.utils.function_utils import Functions
+from agentforge.utils.Logger import Logger
+from .config import Config
+from agentforge.utils.PromptHandling import PromptHandling
+
 
 
 class Agent:
@@ -12,6 +14,8 @@ class Agent:
         """
         self.agent_name: str = self.__class__.__name__
         self.logger: Logger = Logger(name=self.agent_name)
+        self.config = Config()
+        self.prompt_handling = PromptHandling()
 
         self.data: Dict[str, Any] = {}
         self.prompt: Optional[List[str]] = None
@@ -20,12 +24,6 @@ class Agent:
 
         if not hasattr(self, 'agent_data'):  # Prevent re-initialization
             self.agent_data: Optional[Dict[str, Any]] = None
-
-        try:
-            self.functions: Functions = Functions()
-        except Exception as e:
-            self.logger.log(f"Error during initialization of {self.agent_name}: {e}", 'error')
-            raise
 
     def run(self, **kwargs: Any) -> Optional[str]:
         """
@@ -50,7 +48,7 @@ class Agent:
             self.data = {}
             self.logger.log(f"\n{self.agent_name} - Done!", 'info')
         except Exception as e:
-            self.logger.log(f"Error running agent: {e}", 'error')
+            self.logger.log(f"Agent execution failed: {e}", 'error')
             return None
 
         return self.output
@@ -63,11 +61,12 @@ class Agent:
         Parameters:
             **kwargs (Any): Keyword arguments for additional data loading.
         """
-        self.load_kwargs(**kwargs)
         self.load_agent_data()
         self.load_persona_data()
+        self.resolve_storage()
         self.load_from_storage()
         self.load_additional_data()
+        self.load_kwargs(**kwargs)
 
     def load_kwargs(self, **kwargs: Any) -> None:
         """
@@ -87,7 +86,7 @@ class Agent:
         Loads the agent's configuration data including parameters and prompts.
         """
         try:
-            self.agent_data = self.functions.agent_utils.load_agent_data(self.agent_name).copy()
+            self.agent_data = self.config.load_agent_data(self.agent_name).copy()
             self.data.update({
                 'params': self.agent_data.get('params').copy(),
                 'prompts': self.agent_data['prompts'].copy()
@@ -97,8 +96,11 @@ class Agent:
 
     def load_persona_data(self) -> None:
         """
-        Loads the persona data for the agent if available.
+        Loads the persona data for the agent if available. Will not load persona data if personas is disabled in system settings.
         """
+        if not self.agent_data['settings']['system'].get('PersonasEnabled'):
+            return None
+
         persona = self.agent_data.get('persona', {})
         if persona:
             for key in persona:
@@ -109,7 +111,9 @@ class Agent:
         Placeholder for loading from storage. Meant to be overridden by custom agents to implement specific loading
         from storage logic.
 
-        Note: The storage instance for an Agent is set at self.agent_data['storage']
+        Notes:
+            - The storage instance for an Agent is set at self.agent_data['storage'].
+            - The 'StorageEnabled' setting is the system.yaml file must be set to 'True'.
         """
         pass
 
@@ -127,21 +131,18 @@ class Agent:
 
     def generate_prompt(self) -> None:
         """
-        Generates the prompt(s) for the language model based on template data. It handles the rendering of prompt
-        templates and aggregates them into a list.
+        Generates the prompts for the language model based on the template data.
         """
         try:
-            rendered_prompts: List[str] = []
-            for prompt_template in self.data['prompts'].values():
-                template = self.functions.prompt_handling.handle_prompt_template(prompt_template, self.data)
-                if template:
-                    rendered_prompt = self.functions.prompt_handling.render_prompt_template(template, self.data)
-                    rendered_prompts.append(rendered_prompt)
-
-            self.prompt = rendered_prompts
+            prompts = self.data.get('prompts', {})
+            self.prompt_handling.check_prompt_format(prompts)
+            rendered_prompts = self.prompt_handling.render_prompts(prompts, self.data)
+            self.prompt_handling.validate_rendered_prompts(rendered_prompts)
+            self.prompt = rendered_prompts  # {'System': '...', 'User': '...'}
         except Exception as e:
             self.logger.log(f"Error generating prompt: {e}", 'error')
             self.prompt = None
+            raise
 
     def run_llm(self) -> None:
         """
@@ -156,6 +157,18 @@ class Agent:
             self.logger.log(f"Error running LLM: {e}", 'error')
             self.result = None
 
+    def resolve_storage(self):
+        """
+        Initializes the storage for the agent, if storage is enabled.
+
+        Returns: None
+        """
+        if not self.agent_data['settings']['system'].get('StorageEnabled'):
+            return None
+
+        from .utils.ChromaUtils import ChromaUtils
+        self.agent_data['storage'] = ChromaUtils(self.agent_data['persona']['Name'])
+
     def parse_result(self) -> None:
         """
         Placeholder for result parsing. Meant to be overridden by custom agents to implement specific result parsing
@@ -168,7 +181,9 @@ class Agent:
         Placeholder for saving results to storage. Meant to be overridden by custom agents to implement specific
         saving to storage logic.
 
-        Note: The storage instance for an Agent is set at self.agent_data['storage']
+        Notes:
+            - The storage instance for an Agent is set at self.agent_data['storage'].
+            - The 'StorageEnabled' setting is the system.yaml file must be set to 'True'.
         """
         pass
 

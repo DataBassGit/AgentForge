@@ -4,32 +4,23 @@ Args:
   - number_result (int, optional)
 Command: google_search
 Description: |-
-  The Google Search tool performs a web search using the Google Custom Search API.
-  It returns a specified number of search results, each containing a URL and a brief description.
-  Key features:
-  - Customizable number of search results (default is 5)
-  - Returns both URLs and snippets for each result
-  - Handles API errors and provides informative error messages
-  - Requires GOOGLE_API_KEY and SEARCH_ENGINE_ID environment variables to be set
+  The 'Google Search' tool performs a web search using the Google Custom Search API. It returns a specified number of search results, each containing a URL and a brief description.
+Instruction: |-
+  To use the 'Google Search' tool, follow these steps:
+  1. Call the `google_search` function with the following arguments:
+     - `query`: A string representing the search query.
+     - `number_result`: (Optional) An integer specifying the number of results to return. Defaults to 5.
+  2. The function returns a formatted string containing the search results.
+  3. Use the output as needed in your application.
 Example: |-
   # Example usage of the Google Search tool:
   from agentforge.tools.GoogleSearch import google_search
 
-  # Example with default number of results
-  result1 = google_search("Python programming")
-  print(result1)
+  # Search with default number of results
+  results = google_search("Python programming")
+  print(results)
 
-  # Example with custom number of results
-  result2 = google_search("Machine learning", number_result=10)
-  print(result2)
-Instruction: |-
-  To use the Google Search tool, follow these steps:
-  1. Ensure GOOGLE_API_KEY and SEARCH_ENGINE_ID environment variables are set
-  2. Import the google_search function from agentforge.tools.GoogleSearch
-  3. Call the google_search function with the required arguments:
-     - query: A string representing the search query
-     - number_result: (Optional) An integer specifying the number of results to return (default is 5)
-  4. The function will return a formatted string containing the search results
-  5. Handle any potential errors or exceptions that may be raised during the process
-  6. Parse the returned string to extract the URLs and descriptions as needed
+  # Search with custom number of results
+  results = google_search("Machine learning", number_result=10)
+  print(results)
 Script: agentforge.tools.GoogleSearch

@@ -1,28 +1,9 @@
 import time
 from openai import OpenAI, APIError, RateLimitError, APIConnectionError
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 # Assuming you have set OPENAI_API_KEY in your environment variables
 client = OpenAI()
-
-
-def parse_prompts(prompts):
-    """
-    Transforms a list of prompt segments into a structured format expected by the GPT chat interface.
-
-    Parameters: prompts (list): A list where the first element is considered the 'system' prompt and the rest are
-    'user' prompts.
-
-    Returns:
-        list: A list of dictionaries, each representing a part of the conversation with roles ('system' or 'user')
-        and their content.
-    """
-    prompt = [
-        {"role": "system", "content": prompts[0]},
-        {"role": "user", "content": "".join(prompts[1:])}
-    ]
-
-    return prompt
 
 
 class GPT:
@@ -48,12 +29,12 @@ class GPT:
         self._model = model
         self.logger = None
 
-    def generate_text(self, prompts, **params):
+    def generate_text(self, model_prompt, **params):
         """
         Generates text based on the provided prompts and additional parameters for the GPT model.
 
         Parameters:
-            prompts (list): A list of strings to be passed as prompts to the GPT model.
+            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
             **params: Arbitrary keyword arguments providing additional options to the model (e.g., temperature, max tokens).
 
         Returns:
@@ -62,10 +43,13 @@ class GPT:
         Raises:
             APIError: If an API error occurs not related to rate limits or bad gateway responses.
         """
-        self.logger = Logger(name=params.pop('agent_name', None))
-        self.logger.log_prompt(''.join(prompts))
+        self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
+        self.logger.log_prompt(model_prompt)
 
-        prompt = parse_prompts(prompts)
+        prompt = [
+            {"role": "system", "content": model_prompt.get('System')},
+            {"role": "user", "content": model_prompt.get('User')}
+        ]
 
         # Will retry to get chat if a rate limit or bad gateway error is received from the chat
         reply = None

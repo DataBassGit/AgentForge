@@ -1,14 +1,12 @@
 # Using AgentForge
 
-## Introduction
-
-This guide will help you get started with running agents, creating custom agents, and building cognitive architectures using **AgentForge**.
+This guide will help you get started with running agents and multi-agent scripts using **AgentForge**.
 
 ---
 
 ## Running an Agent
 
-### 1. Define the Agent Class
+### 1. Define an Agent Class
 
 Create a Python file named `echo_agent.py` in your project root:
 
@@ -21,13 +19,12 @@ class EchoAgent(Agent):
 
 ### 2. Create the Prompt Template (`EchoAgent.yaml`)
 
-Inside the `.agentforge/agents/` directory, create a **YAML** file named `EchoAgent.yaml`:
+Inside the `.agentforge/prompts/` directory, create a **YAML** file named `EchoAgent.yaml`:
 
 ```yaml
 Prompts:
   System: You are an assistant that echoes the user's input.
-  User: |+
-    {user_input}
+  User: {user_input}
 ```
 > Note: This prompt template uses a variable placeholder `{user_input}`. This variable will be replaced with actual data at runtime. To understand how agent prompts are rendered within **AgentForge**, see the [Agent Prompts](../Agents/AgentPrompts.md) guide.
 
@@ -62,7 +59,7 @@ Assuming the agent is connected to an LLM, the output might be:
 Hello, AgentForge!
 ```
 
-*Note: The actual response will depend on the LLM used and its configuration.*
+> *Note: The actual response will depend on the LLM used and its configuration.*
 
 ---
 
@@ -98,24 +95,24 @@ class AnswerAgent(Agent):
 
 #### `QuestionGeneratorAgent.yaml`
 
-Inside the `.agentforge/agents/` directory, create a **YAML** file named `QuestionGeneratorAgent.yaml`:
+Inside the `.agentforge/prompts/` directory, create a **YAML** file named `QuestionGeneratorAgent.yaml`:
 
 ```yaml
 Prompts:
   System: You are a helpful assistant that generates insightful questions based on the user's topic.
-  User: |+
-    {topic}
+  User: |
+    Topic: {topic}
 ```
 
 #### `AnswerAgent.yaml`
 
-Also in the `.agentforge/agents/` directory, create a **YAML** file named `AnswerAgent.yaml`:
+Also in the `.agentforge/prompts/` directory, create a **YAML** file named `AnswerAgent.yaml`:
 
 ```yaml
 Prompts:
   System: You are a knowledgeable assistant that provides detailed answers to questions.
-  User: |+
-    {question}
+  User: |
+    Question: {question}
 ```
 
 ### 3. Write a Script to Manage Agent Interactions
@@ -157,43 +154,28 @@ Generated Question: What are the ethical implications of artificial intelligence
 Answer: The ethical implications of artificial intelligence (AI) in modern society include concerns about privacy, job displacement due to automation, decision-making transparency, bias in AI algorithms, and the potential for AI to be used in harmful ways such as surveillance or autonomous weapons. Addressing these issues requires careful regulation, ethical guidelines, and ongoing public dialogue to ensure that AI technologies benefit society as a whole.
 ```
 
-*Note: The actual output will depend on the LLM used and its configuration.*
-
----
-
-## Custom Agents
-
-With **AgentForge**, you have the flexibility to create any number of custom agents tailored to your specific needs.
-
-### Organizing Agents
-
-- **Directory Structure**:
-
-  - Agents are stored in the `.agentforge/agents/` directory.
-  - You can organize agents in subdirectories as needed.
-
-- **Agent Discovery**:
-
-  - **AgentForge** automatically discovers agent **YAML** files within the `.agentforge/agents/` directory and its subdirectories.
+>*Note: The actual output will depend on the LLM used and its configuration.*
 
 ---
 
 ## Additional Resources
 
-- **Settings**:
+- **Custom Agents Guide**:
+  - Learn how to create and customize agents in detail. [Custom Agents Guide](../Agents/CustomAgents.md)
 
+- **Settings**:
   - Customize model settings in `.agentforge/settings/`.
   - Specify default LLMs, temperature, max tokens, and more.
+  - Learn more in the [Settings Guide](../Settings/Settings.md).
 
 - **Personas**:
-
   - Use personas to encapsulate information accessible to agents.
   - Store personas in `.agentforge/personas/`.
-
+  - Learn more in the [Personas Guide](../Personas/Personas.md).
+  
 ---
 
 **Next Steps**:
 
 - Explore the [Agents Documentation](../Agents/Agents.md) for more advanced agent configurations.
 - Learn about integrating different LLM APIs in the [LLM API Integration Guide](../LLMs/LLMs.md).
-

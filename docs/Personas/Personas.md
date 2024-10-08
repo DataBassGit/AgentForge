@@ -38,7 +38,7 @@ Name: Persona Name
 # Description: A detailed description of your agent.
 # This should include any background information, capabilities, and the general tone or personality your agent embodies.
 # Use the '|+' syntax for multi-line strings to ensure proper formatting.
-Description: |+
+Description: |
     Describe your agent here...
 
 # Location: The primary operating environment or context of your agent.
@@ -47,7 +47,7 @@ Location: Virtual Environment/Physical Location
 
 # Setting: The detailed setting in which your agent operates.
 # This can help in providing contextual background for your agent's interactions and responses.
-Setting: |+
+Setting: |
     Provide a detailed description of the setting or context in which your agent operates. This could be a 
     virtual space, like a digital assistant in a smart home, or a fictional world for game-based NPCs. 
     The setting can influence how the agent interacts and responds to queries.
@@ -90,7 +90,10 @@ Persona: default # <--- Name of the Persona YAML File in the .agentforge/persona
 ```yaml
 # agent.yaml
 Prompts: 
-  # Agent sub-prompts
+  System:
+    # System template or sub-prompts
+  User:
+    # User template or sub-prompts
 
 Persona: persona_name # Optional: Override persona set by system
 ```
@@ -115,22 +118,33 @@ This `Name` information can be used by an agent when running inference. By defau
 ```yaml
 # example_agent.yaml
 Prompts:
-  System: |+
-    Your name is {name}.
-# ... other sub prompts ... 
+  System:
+    Name: Your name is {name}.
+    # ... other system sub prompts ...
+  
+  User: 
+    Introduction: Please introduce yourself.
+    # ... other user sub prompts ...
+ 
 
 Persona: botty # Optional | We tell the agent to use this persona - Use the persona YAML file name without the extension.
 ```
 
-The text `{name}` in the prompt file will be replaced with the `Name` value from the **persona** file when it's rendered. So a possible rendered prompt when sent to the LLM would look like this:
+The text `{name}` in the system prompt file will be replaced with the `Name` value from the **persona** file when it's rendered. So a possible rendered prompt when sent to the LLM would look like this:
 
+**System Prompt:**
 ```text
 Your name is Botty Mc.BotFace.
 ```
 
+**User Prompt:**
+```text
+Please introduce yourself.
+```
+
 Each attribute defined in the persona file can be used in a similar way, allowing for highly adaptable and context-aware agent interactions.
 
->**Important Note**: Attribute key names in the persona file are case-insensitive; the system will automatically convert them to lowercase when adding them to the agent data. Therefore, when referencing these attributes in the prompt templates, ensure you use them in lowercase and that they adhere to the python variable naming convention. 
+>**Important Note**: Attribute key names in the persona file are **case-insensitive**; the system will automatically convert them to lowercase when adding them to the agent data. Therefore, when referencing these attributes in the prompt templates, ensure you use them in lowercase and that they adhere to the python variable naming convention. 
 
 ## Conclusion
 

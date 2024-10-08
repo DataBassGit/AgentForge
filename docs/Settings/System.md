@@ -1,101 +1,274 @@
 # System YAML Configuration
 
-This configuration file provides options for customizing the system according to your needs. Here is a map to guide you through each section of your `system.yaml` file. 
+## Introduction
 
-## System Configuration File
+The `system.yaml` configuration file in **AgentForge** allows you to customize various system-level settings, including persona usage, storage options, logging, and accessible paths. This guide provides a concise explanation of each configuration option to help you tailor **AgentForge** to your needs.
+
+---
+
+## Default `system.yaml` Configuration
+
+Here's the default `system.yaml` configuration file:
 
 ```yaml
+# Persona Settings
+PersonasEnabled: true
 Persona: default
-OnTheFly: true
-SaveMemory: true
-TimeStampMemory: true
 
+# Storage Settings
+StorageEnabled: true
+SaveMemory: true  # Requires StorageEnabled: true
+ISOTimeStampMemory: true
+UnixTimeStampMemory: true
+PersistDirectory: ./DB/ChromaDB  # Relative path for persistent storage
+DBFreshStart: true  # Wipes storage every time the system is initialized
+Embedding: all-distilroberta-v1  # Embedding model for the vector database (ChromaDB)
+
+# Misc. Settings
+OnTheFly: true
+
+# Logging Settings
 Logging:
   Enabled: true
   Folder: ./Logs
   Files:
-    AgentForge: warning
+    AgentForge: debug
     ModelIO: debug
-    Results: warning
+    Actions: debug
+    Results: debug
+    DiscordClient: error
 
+# Paths the system (agents) have access to read and write
 Paths:
   Files: ./Files
 ```
----
 
-## Configuration Settings
+This file is located at:
 
-- `Persona`: The default system persona. It's the name of the persona file located in the Persona folder. The default setting is the 'default' persona template.
-
-- `OnTheFly`: A boolean setting that enables on-the-fly prompting. If set to `true`, the agent prompt YAML files can be updated in real time without needing to restart the system - an essential feature for quickly tweaking and debugging prompts.
-
-- `SaveMemory`: This setting determines if the agents can save their results to the data store. By default, it's set to `true`. This is separate from the log files.
-
-- `TimeStampMemory`: A boolean setting that controls whether each memory the agent saves to the datastore will have a timestamp associated with it.
-
----
-
-## Logging Configuration and Usage
-
-The logging system within **AgentForge** is designed to provide flexible and detailed logging capabilities. It is configurable through system settings, allowing for selective logging based on the developer's needs or system requirements.
-
-### Configuration Settings
-
-The logging behavior is controlled through the following settings:
-
-- **`Enabled`**: Determines if logging is active. If set to `false`, logging will be disabled across the system.
-  
-- **`Folder`**: Defines the directory path, relative to the project root, where log files are stored. This path is used by the logger to organize log output.
-  
-- **`Files`**: Specifies the different log files to be generated, each with a designated purpose and log level. The default log files include:
-  - **`AgentForge`**: Captures general system activities and events.
-  - **`ModelIO`**: Records interactions between the system and models, such as prompts and responses.
-  - **`Results`**: Logs the outcomes or results processed by the system.
-
-### Log Levels
-
-Each log file can be set to record messages at or above a specified severity level:
-
-- **`debug`**: Captures detailed diagnostic information useful for debugging.
-- **`info`**: Records general informational messages about system operations.
-- **`warning`**: Indicates potential issues that are not immediately harmful.
-- **`error`**: Logs serious issues that might prevent operation or lead to significant problems causing the process to terminate.
-- **`critical`**: Records very severe error events that might cause the application to terminate.
-
-### Directing Logs to Specific Files
-
-Logs can be directed to specific files by specifying the file name (without the `.log` extension) as the last parameter in the logging method. For example, to log a model prompt at the debug level to the `ModelIO` log file:
-
-```python
-logger.log(f'Prompt:\n{prompt}', 'debug', 'ModelIO')
+```
+your_project_root/.agentforge/settings/system.yaml
 ```
 
-### Custom Log Files
+---
 
-Developers can define additional log files by adding entries to the `Files` configuration. Each new log file should have an associated log level. Logs can then be directed to any defined file using the method shown above, ensuring versatile and organized logging across different system components.
+## Configuration Options Cheatsheet
 
-### Practical Implications
-
-By leveraging these logging capabilities, developers can maintain a granular understanding of their system's operations, troubleshoot issues efficiently, and keep a record of significant events or decisions made by the application, fostering transparency and reliability.
+| Setting                 | Type    | Description                                                                                           | Default                     |
+|-------------------------|---------|-------------------------------------------------------------------------------------------------------|-----------------------------|
+| **PersonasEnabled**     | Boolean | Enables or disables persona usage.                                                                    | `true`                      |
+| **Persona**             | String  | Default persona name.                                                                                 | `'default'`                 |
+| **StorageEnabled**      | Boolean | Enables or disables the storage system.                                                               | `true`                      |
+| **SaveMemory**          | Boolean | Determines if agents save data to storage (requires `StorageEnabled: true`).                          | `true`                      |
+| **ISOTimeStampMemory**  | Boolean | Includes ISO 8601 timestamps when saving data.                                                        | `true`                      |
+| **UnixTimeStampMemory** | Boolean | Includes Unix timestamps when saving data.                                                            | `true`                      |
+| **PersistDirectory**    | String  | Relative path for persistent storage.                                                                 | `'./DB/ChromaDB'`           |
+| **DBFreshStart**        | Boolean | Wipes storage every time the system is initialized.                                                   | `true`                      |
+| **Embedding**           | String  | Embedding model for the vector database (ChromaDB).                                                   | `'all-distilroberta-v1'`    |
+| **OnTheFly**            | Boolean | Enables on-the-fly prompting (agents reload prompts without restart).                                 | `true`                      |
+| **Logging**             | Section | Configures logging settings (enabled, folder, files, levels).                                          | See Logging Settings Below  |
+| **Paths**               | Section | Specifies directories that agents can access.                                                         | See Paths Configuration     |
 
 ---
 
-## Paths Configuration
+## Configuration Settings Explained
 
-The `Paths` section in the **AgentForge** system configuration file allows you to specify directory paths that agents can interact with during their operation. These paths are crucial for enabling agents to read from and write to specific locations, enhancing their functionality and integration with external resources.
+### 1. Persona Settings
 
-### Configuration Details
+#### **`PersonasEnabled`**
 
-- **Relative Paths**: All paths defined in this section are be relative to the project root directory. This relative addressing ensures that your configurations are portable and consistent across different environments or deployment scenarios.
+- **Type**: Boolean
+- **Description**: Enables or disables the use of personas by agents.
+- **Values**:
+  - `true`: Agents can load and use persona data.
+  - `false`: Agents won't access persona data.
 
-- **Unrestricted Quantity**: You can define as many paths as necessary for your project needs. This flexibility supports various use cases, from simple data logging to complex interactions involving multiple data sources or output directories.
+#### **`Persona`**
 
-- **Supported File Types**: Currently, the system is configured to allow agents to access text (.txt) and PDF (.pdf) files within these paths. This limitation focuses on the most common file types for text processing and document consumption.
+- **Type**: String
+- **Description**: Specifies the default persona to use when one isn't specified by an agent.
+- **Usage**: Should match the name of a persona file in `.agentforge/personas/`.
+- **Default**: `'default'`
 
-- **Future Extensions**: Plans are in place to expand the supported file types to include other media, broadening the scope of agent capabilities and the types of data they can manipulate.
+### 2. Storage Settings
 
-### Practical Use
+#### **`StorageEnabled`**
 
-Defining paths is particularly beneficial when leveraging [Tools & Actions](../ToolsAndActions/Overview.md) within **AgentForge**, as it provides agents with necessary access to interact with and manipulate files as part of their operational logic.
+- **Type**: Boolean
+- **Description**: Enables or disables the storage system.
+- **Values**:
+  - `true`: Agents can save and load data from storage.
+  - `false`: Storage functionalities are disabled.
 
->**Note**: Ensure that the paths you provide are accessible and writable as required by your agent's operations to avoid runtime errors or access issues.
+#### **`SaveMemory`**
+
+- **Type**: Boolean
+- **Description**: Determines if agents save their results or memory to the storage system.
+- **Dependency**: Requires `StorageEnabled: true`.
+- **Values**:
+  - `true`: Agents save data to storage.
+  - `false`: Agents do not save data to storage.
+
+#### **`ISOTimeStampMemory`**
+
+- **Type**: Boolean
+- **Description**: Includes ISO 8601 timestamps when saving data.
+- **Values**:
+  - `true`: Data saved will include an ISO timestamp.
+  - `false`: No ISO timestamp is included.
+
+#### **`UnixTimeStampMemory`**
+
+- **Type**: Boolean
+- **Description**: Includes Unix timestamps when saving data.
+- **Values**:
+  - `true`: Data saved will include a Unix timestamp.
+  - `false`: No Unix timestamp is included.
+
+#### **`PersistDirectory`**
+
+- **Type**: String
+- **Description**: Relative path for persistent storage.
+- **Usage**: Specifies where the vector database (ChromaDB) will store data.
+- **Default**: `'./DB/ChromaDB'`
+
+#### **`DBFreshStart`**
+
+- **Type**: Boolean
+- **Description**: Determines if the storage database is wiped clean each time the system is initialized.
+- **Values**:
+  - `true`: Wipes storage on initialization (useful for development).
+  - `false`: Keeps existing data between sessions.
+
+#### **`Embedding`**
+
+- **Type**: String
+- **Description**: Specifies the embedding model used by the vector database (ChromaDB).
+- **Usage**: Choose an embedding model compatible with ChromaDB.
+- **Default**: `'all-distilroberta-v1'`
+
+### 3. Miscellaneous Settings
+
+#### **`OnTheFly`**
+
+- **Type**: Boolean
+- **Description**: Enables or disables on-the-fly prompting.
+- **Values**:
+  - `true`: Agents can update their prompt template **YAML** files in real time without restarting the system.
+  - `false`: Changes to prompt files require a system restart.
+
+### 4. Logging Settings
+
+The logging system provides flexible and detailed logging capabilities.
+
+#### **`Logging.Enabled`**
+
+- **Type**: Boolean
+- **Description**: Enables or disables logging.
+- **Values**:
+  - `true`: Logging is active.
+  - `false`: Logging is disabled.
+
+#### **`Logging.Folder`**
+
+- **Type**: String
+- **Description**: Directory path (relative to the project root) where log files are stored.
+- **Default**: `'./Logs'`
+
+#### **`Logging.Files`**
+
+- **Type**: Dictionary
+- **Description**: Defines log files and their log levels.
+- **Log Files and Levels**:
+  - **`AgentForge`**: `'debug'` - General system activities.
+  - **`ModelIO`**: `'debug'` - Interactions with LLMs.
+  - **`Actions`**: `'debug'` - Agent actions and tool usage.
+  - **`Results`**: `'debug'` - Generic log for custom use.
+  - **`DiscordClient`**: `'error'` - Logs for Discord client integration.
+
+#### Directing Logs to Specific Files
+
+Use the `logger.log` method with the file name to direct logs:
+
+```python
+logger.log('This is a debug message.', 'debug', 'ModelIO')
+```
+
+#### Custom Log Files
+
+Add custom log files by extending the `Files` section:
+
+```yaml
+Files:
+  AgentForge: debug
+  CustomLog: info
+```
+
+Then log to it in your code:
+
+```python
+logger.log('Custom log message.', 'info', 'CustomLog')
+```
+
+### 5. Paths Configuration
+
+#### **`Paths.Files`**
+
+- **Type**: String
+- **Description**: Directory path (relative to the project root) where agents can access files.
+- **Default**: `'./Files'`
+
+#### Usage Notes
+
+- **Relative Paths**: Ensure paths are relative to the project root.
+- **File Access**: Agents can read and write to the specified paths.
+- **Supported File Types**: Currently supports text (`.txt`) and PDF (`.pdf`) files.
+
+---
+
+## Example Usage in Agents
+
+Agents can access these settings through `self.agent_data['settings']['system']`.
+
+**Example**:
+
+```python
+class MyAgent(Agent):
+    def load_additional_data(self):
+        system_settings = self.agent_data['settings']['system']
+        
+        # Check if storage is enabled
+        if system_settings['StorageEnabled']:
+            # Perform storage-related operations
+            pass
+
+        # Access default persona
+        if system_settings['PersonasEnabled']:
+            default_persona = system_settings['Persona']
+            # Use persona data as needed
+```
+
+---
+
+## Best Practices
+
+- **Keep `DBFreshStart` as `false` in production** to preserve data between sessions.
+- **Use `OnTheFly: true` during development** for quick prompt iteration.
+- **Set appropriate log levels** in `Logging.Files` to control verbosity.
+- **Ensure paths are correct** and accessible by your agents.
+
+---
+
+## Conclusion
+
+By configuring the `system.yaml` file, you can fine-tune **AgentForge** to suit your project's requirements. Understanding these settings allows you to optimize performance, manage storage effectively, and customize agent behaviors.
+
+---
+
+**Need Help?**
+
+If you have questions or need assistance, feel free to reach out:
+
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
+- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+
+---

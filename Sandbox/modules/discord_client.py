@@ -1,11 +1,10 @@
-# modules/discord_client.py
+# modules/DiscordClient.py
 
 import discord
 import os
 import asyncio
 import threading
-import queue
-from agentforge.utils.functions.Logger import Logger
+from agentforge.utils.Logger import Logger
 
 
 class DiscordClient:

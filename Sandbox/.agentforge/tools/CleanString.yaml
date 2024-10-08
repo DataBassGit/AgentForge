@@ -3,40 +3,18 @@ Args:
   - text (str)
 Command: strip_invalid_chars
 Description: |-
-  The String Cleaner tool sanitizes and normalizes strings.
-  Key features:
-  - Strips invalid characters, replacing them with underscores
-  - Normalizes Unicode characters to their closest ASCII representation
-  - Removes control characters from strings
-  - Suitable for preparing strings for use in YAML or other specific contexts
-  Limitations:
-  - May alter the original string content
-  - Unicode normalization might lose some character information
+  The 'Clean String' tool sanitizes a string by removing invalid characters, making it suitable for use in contexts like YAML files or filenames. It replaces invalid characters with underscores.
+Instruction: |-
+  To use the 'Clean String' tool, follow these steps:
+  1. Call the `strip_invalid_chars` method with the following argument:
+     - `text`: The string you want to clean.
+  2. The method returns the cleaned string with invalid characters replaced by underscores.
+  3. Use the cleaned string as needed in your application.
 Example: |-
-  # Example usage of the String Cleaner tool:
+  # Example usage of the Clean String tool:
   from agentforge.tools.CleanString import Strip
 
-  # Example with invalid characters
-  result1 = Strip.strip_invalid_chars("Hello, World! 你好")
-  print(result1)
-
-  # Example with Unicode normalization
-  result2 = Strip.normalize_unicode("Café")
-  print(result2)
-
-  # Example with control character removal
-  result3 = Strip.remove_control_characters("Hello\x00World")
-  print(result3)
-Instruction: |-
-  To use the String Cleaner tool, follow these steps:
-  1. Import the Strip class from agentforge.tools.CleanString
-  2. Call the desired static method with the required argument:
-     - text: A string to be cleaned or normalized
-  3. The method will return the processed string
-  4. Available methods:
-     - strip_invalid_chars: Removes characters not suitable for YAML
-     - normalize_unicode: Converts Unicode to ASCII representation
-     - remove_control_characters: Removes control characters from the string
-  5. Process or use the returned cleaned string as needed
-  6. Handle any potential errors or exceptions that may be raised during the process
+  text = "Hello, World! 你好"
+  cleaned_text = Strip.strip_invalid_chars(text)
+  print(cleaned_text)  # Output: "Hello,_World!_____"
 Script: agentforge.tools.CleanString

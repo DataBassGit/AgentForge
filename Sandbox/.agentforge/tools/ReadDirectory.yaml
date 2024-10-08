@@ -4,42 +4,27 @@ Args:
   - max_depth (int, optional)
 Command: read_directory
 Description: |-
-  The Read Directory tool generates a tree-like representation of directory structures.
-  Key features:
-  - Supports single or multiple directory paths
-  - Customizable maximum depth for directory traversal
-  - Excludes specified file types and file names
-  - Creates directories if they don't exist
-  - Handles empty directories and permission errors
-  - Pretty prints the directory structure
-  Limitations:
-  - May be slow for very large directory structures
-  - Requires appropriate file system permissions
+  The 'Read Directory' tool generates a tree-like representation of the specified directory structures.
+Instruction: |-
+  To use the 'Read Directory' tool, follow these steps:
+  1. Create an instance of the `Directory` class.
+  2. Call the `read_directory` method with the following arguments:
+     - `directory_paths`: A string or a list of strings representing the directory path(s).
+     - `max_depth`: (Optional) An integer specifying the maximum depth to traverse.
+  3. The method returns a string representation of the directory structure(s).
+  4. Use the output as needed in your application.
 Example: |-
   # Example usage of the Read Directory tool:
   from agentforge.tools.Directory import Directory
 
   dir_tree = Directory()
-  
-  # Example with a single directory path
-  result1 = dir_tree.read_directory('path/to/directory', max_depth=2)
-  print(result1)
 
-  # Example with multiple directory paths
+  # Read a single directory
+  result = dir_tree.read_directory('path/to/directory', max_depth=2)
+  print(result)
+
+  # Read multiple directories
   paths = ['path/to/dir1', 'path/to/dir2']
-  result2 = dir_tree.read_directory(paths, max_depth=3)
-  print(result2)
-Instruction: |-
-  To use the Read Directory tool, follow these steps:
-  1. Import the Directory class from agentforge.tools.Directory
-  2. Create an instance of the Directory class
-  3. Optionally, set excluded file types and files:
-     - dir_tree.excluded_file_types = {'.exe', '.dll'}
-     - dir_tree.excluded_files = {'__pycache__', '__init__.py'}
-  4. Call the read_directory method with the required arguments:
-     - directory_paths: A string or list of strings representing directory path(s)
-     - max_depth: (Optional) An integer specifying the maximum depth to traverse
-  5. The method will return a string representation of the directory structure(s)
-  6. Process or display the returned string as needed
-  7. Handle any potential errors or exceptions that may be raised during the process
+  result = dir_tree.read_directory(paths, max_depth=3)
+  print(result)
 Script: agentforge.tools.Directory

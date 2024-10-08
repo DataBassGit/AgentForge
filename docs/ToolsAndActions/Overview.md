@@ -2,31 +2,44 @@
 
 ## **Tools Overview**
 
-**Tools** are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a YAML file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
+**Tools** are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a **YAML** file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
 
 **Detailed Guide**: For a comprehensive guide on Tools, including their configurations and capabilities, please see [Tools Detailed Guide](Tools.md).
 
 **Example Tool: Google Search**
 ```yaml
 Name: Google Search
-Args: 
+Args:
   - query (str)
-  - number_result (int)
+  - number_result (int, optional)
 Command: google_search
-Description: >-
-  The 'Google Search' tool searches the web for a specified query and retrieves a set number of results.
-  Each result consists of a URL and a short snippet describing its contents.
-Example: search_results = google_search(query, number_of_results)
-Instruction: >-
-  The 'google_search' function takes a query string and a number of results as inputs.
-  The query string is what you want to search for, and the number of results is how many search results you want returned.
-  The function returns a list of tuples, each tuple containing a URL and a snippet description of a search result.
-Script: .agentforge.tools.GoogleSearch
+Description: |-
+  The 'Google Search' tool performs a web search using the Google Custom Search API. It returns a specified number of search results, each containing a URL and a brief description.
+Instruction: |-
+  To use the 'Google Search' tool, follow these steps:
+  1. Call the `google_search` function with the following arguments:
+     - `query`: A string representing the search query.
+     - `number_result`: (Optional) An integer specifying the number of results to return. Defaults to 5.
+  2. The function returns a formatted string containing the search results.
+  3. Use the output as needed in your application.
+Example: |-
+  # Example usage of the Google Search tool:
+  from agentforge.tools.GoogleSearch import google_search
+
+  # Search with default number of results
+  results = google_search("Python programming")
+  print(results)
+
+  # Search with custom number of results
+  results = google_search("Machine learning", number_result=10)
+  print(results)
+Script: agentforge.tools.GoogleSearch
+
 ```
 
 ## **Actions Overview**
 
-**Actions** are structured sequences of one or more Tools, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via YAML files which describe the process flow and inter-tool dynamics.
+**Actions** are structured sequences of one or more **Tools**, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via **YAML** files which describe the process flow and inter-tool dynamics.
 
 **Detailed Guide**: To understand Actions in depth, including how to create and manage them, refer to [Actions Detailed Guide](Actions.md).
 
@@ -73,69 +86,11 @@ Instruction: |-
      - The function returns a list of text chunks.
   5. Utilize the outputs from each tool as needed for your application.
 Tools:
-  - Google Search
+  - Brave Search
   - Web Scrape
-  - Intelligent Chunk
-
+  - Semantic Chunk
 ```
 
----
-
-## **Flexibility in Argument Specifications**:
-- The `Args` and `Tools` attributes can be specified as either a list or a comma-separated string. This offers flexibility in how you define the arguments for each tool and action.
-
-### **Tool Example**
-
-- As a list: 
-```yaml
-Name: Google Search
-Args: 
-  - query (str)
-  - number_result (int)
-# ... additional fields ...
-```
-
-- As a comma-separated string: 
-```yaml
-Name: Google Search
-Args: query (str), number_result (int)
-# ... additional fields ...
-```
-
-- For a single argument: 
-```yaml
-Name: Web Scrape
-Args: url (str)
-# ... additional fields ...
-```
-
-### **Action Example**
-
-- As a list: 
-```yaml
-Name: Write File
-# ... additional fields ...
-Tools:
-  - Read Directory
-  - File Writer
-```
-
-- As a comma-separated string: 
-```yaml
-Name: Write File
-# ... additional fields ...
-Tools: Read Directory, File Writer
-```
-
-- For a single tool: 
-```yaml
-Name: Write File
-# ... additional fields ...
-Tools: File Writer
-```
-
-## **Integrating Tools and Actions**
-
-While Tools provide the fundamental functions of our system, Actions blend these functions to automate workflows and complex processes. Through the strategic use of both Tools and Actions, our system can cater to a variety of automation needs, offering users a versatile platform for their operational requirements.
+>Note: While **Tools** provide the fundamental functions of our system, **Actions** blend these functions to automate workflows and complex processes. Through the strategic use of both **Tools** and **Actions**, our system can cater to a variety of automation needs, offering users a versatile platform for their operational requirements.
 
 ---

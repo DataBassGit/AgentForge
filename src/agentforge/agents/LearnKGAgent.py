@@ -1,6 +1,5 @@
 from agentforge.agent import Agent
-from agentforge.utils.functions.ParsingUtils import parse_yaml_string
-
+from agentforge.utils.ParsingUtils import ParsingUtils
 
 class LearnKGAgent(Agent):
     def build_output(self):
@@ -16,7 +15,6 @@ class LearnKGAgent(Agent):
             provided by the logger and re-raises the exception to signal failure to the calling context.
         """
         try:
-            # The 'parse_yaml_string' method takes a YAML formatted string and returns a structured object
-            self.output = parse_yaml_string(self.functions.agent_utils.logger, self.result)
+            self.output = ParsingUtils().parse_yaml_content(self.result)
         except Exception as e:
             self.logger.parsing_error(self.result, e)
