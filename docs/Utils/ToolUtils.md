@@ -196,6 +196,8 @@ The `dynamic_tool` method allows agents to execute tools whose modules and comma
 **Example in Agent Context**:
 
 ```python
+from agentforge.agent import Agent
+
 class MyAgent(Agent):
     def perform_action(self):
         tool = {
