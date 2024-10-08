@@ -249,6 +249,8 @@ While you can use `PromptHandling` methods directly, the **Agent** base class in
 **Example in Agent Context**:
 
 ```python
+from agentforge.agent import Agent
+
 class MyAgent(Agent):
     def load_additional_data(self):
         self.data['user_name'] = 'Alice'
@@ -272,7 +274,7 @@ Prompts:
 And an agent:
 
 ```python
-from agentforge import Agent
+from agentforge.agent import Agent
 
 class GreetingAgent(Agent):
     def load_additional_data(self):
