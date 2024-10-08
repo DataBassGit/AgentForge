@@ -70,7 +70,7 @@ Get started with **AgentForge** in just a few steps:
    Create a Python file named `echo_agent.py` in your project root:
 
    ```python
-   from agentforge import Agent
+   from agentforge.agent import Agent
    
    class EchoAgent(Agent):
        pass  # The agent_name is automatically set to 'EchoAgent'
