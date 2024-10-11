@@ -17,11 +17,10 @@ Whether you're a newcomer seeking an easy entry point or a seasoned developer ai
 ## Table of Contents
 
 1. [Features](#features)
-2. [Installation and Quick Start](#installation-and-quick-start)
-3. [Documentation](#documentation)
-4. [Contributing](#contributing)
-5. [Contact Us](#contact-us)
-6. [License](#license)
+2. [Documentation](#documentation)
+3. [Contributing](#contributing)
+4. [Contact Us](#contact-us)
+5. [License](#license)
 
 ---
 
@@ -39,88 +38,6 @@ Easily build agents or cognitive architectures (multi-agent scripts) with the fo
 
 ---
 
-## Installation and Quick Start
-
-Get started with **AgentForge** in just a few steps:
-
-1. **Install AgentForge via pip**:
-
-   ```bash
-   pip install agentforge
-   ```
-
-2. **Set Up Environment Variables**:
-
-   - For OpenAI:
-
-     ```bash
-     export OPENAI_API_KEY='your-openai-api-key'
-     ```
-
-   - For Anthropic:
-
-     ```bash
-     export ANTHROPIC_API_KEY='your-anthropic-api-key'
-     ```
-
-3. **Run a Basic Agent**:
-
-   ### 1. Define the Agent Class
-
-   Create a Python file named `echo_agent.py` in your project root:
-
-   ```python
-   from agentforge.agent import Agent
-   
-   class EchoAgent(Agent):
-       pass  # The agent_name is automatically set to 'EchoAgent'
-   ```
-   
-   ### 2. Create the Prompt Template (`EchoAgent.yaml`)
-
-   Inside the `.agentforge/prompts/` directory, create a **YAML** file named `EchoAgent.yaml`:
-
-   ```yaml
-   Prompts:
-     System: You are an assistant that echoes the user's input.
-     User: {user_input}
-   ```
-
-   ### 3. Write a Script to Run the Agent
-
-   Create a separate Python script (e.g., `run_agent.py`) in your project root to import and run your custom agent:
-
-   ```python
-   from echo_agent import EchoAgent
-
-   # Initialize the agent
-   agent = EchoAgent()
-
-   # Run the agent with an input message
-   response = agent.run(user_input="Hello, AgentForge!")
-   print(response)
-   ```
-
-   ### 4. Execute the Script
-
-   Ensure your virtual environment is activated and run the script:
-
-   ```bash
-   python run_agent.py
-   ```
-
-   ### 5. **Example Response**
-
-   Assuming the agent is connected to an LLM, the output might be:
-
-   ```
-   Hello, AgentForge!
-   ```
-
->*Note: The actual response will depend on the LLM used and its configuration. This is just a very crude example.*
-
----
-
 ## Documentation
 
 Welcome to the **AgentForge** framework documentation. This comprehensive guide supports you whether you're just getting started or diving deep into custom configurations and advanced features.
@@ -128,8 +45,8 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 ### **Getting Started**
 
 - **[Installation Guide](docs/Guides/InstallationGuide.md)**: Step-by-step instructions to install **AgentForge**.
-- **[Prerequisites Guide](docs/Guides/PrerequisitesGuide.md)**: Details all pre-installation requirements and dependencies.
 - **[Using AgentForge](docs/Guides/UsingAgentForge.md)**: Learn how to run agents, create custom agents, and build cognitive architectures with examples.
+- **[Prerequisites Guide](docs/Guides/PrerequisitesGuide.md)**: Details all pre-installation requirements and dependencies.
 - **[Troubleshooting Guide](docs/Guides/TroubleshootingGuide.md)**: Find solutions to common issues and platform-specific problems.
 
 ### **Core Concepts**

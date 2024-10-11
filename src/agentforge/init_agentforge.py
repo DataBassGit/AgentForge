@@ -1,8 +1,8 @@
 import os
 import shutil
+import filecmp
 import importlib.util
 from pathlib import Path
-
 
 def copy_directory(root, src, dst, override_all=False, skip_all=False):
     """
@@ -15,7 +15,7 @@ def copy_directory(root, src, dst, override_all=False, skip_all=False):
         dst_dir = src_dir.replace(str(src), str(dst), 1)
         if not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
-            print(f"Created directory {dst_dir}")
+            print(f"Created directory '{os.path.relpath(dst_dir, start=dst)}'.")
 
         for file_ in files:
             # Skip __init__.py files and any .pyc files
@@ -25,46 +25,67 @@ def copy_directory(root, src, dst, override_all=False, skip_all=False):
             src_file_path = os.path.join(src_dir, file_)
             dst_file_path = os.path.join(dst_dir, file_)
 
-            # If the file exists, decide whether to override or skip based on user input
-            if os.path.exists(dst_file_path):
-                if not override_all and not skip_all:
-                    print(f"The file {dst_file_path} already exists.")
-                    response = input(
-                        "Select an option:\n"
-                        "[Y] Override this file\n"
-                        "[N] Skip this file\n"
-                        "[A] Override all existing files without asking again\n"
-                        "[Z] Skip all existing files without asking again\n"
-                        "Enter your choice (Y/N/A/Z): "
-                    ).lower()
+            # Ensure the file paths are strings if they're not already
+            src_file_str = str(src_file_path)
+            dst_file_str = str(dst_file_path)
 
-                    if response == 'a':
-                        override_all = True
-                    elif response == 'z':
-                        skip_all = True
-                    elif response == 'n':
-                        print(f"Skipping {dst_file_path}")
+            relative_src_path = os.path.relpath(src_file_str, start=src)
+            relative_dst_path = os.path.relpath(dst_file_str, start=dst)
+
+            if os.path.exists(dst_file_str):
+                # Compare the files
+                if filecmp.cmp(src_file_str, dst_file_str, shallow=False):
+                    # Files are the same, skip copying
+                    print(f"No changes detected in '{relative_dst_path}'. Skipping.")
+                    continue
+                else:
+                    # Files are different
+                    if skip_all:
+                        print(f"Skipped '{relative_dst_path}' (skip all is enabled).")
                         continue
-                    elif response != 'y':
-                        print("Invalid option. Skipping this file.")
-                        continue
+                    elif override_all:
+                        # Proceed to copy
+                        pass
+                    else:
+                        # Prompt the user for action
+                        print(f"\nFile '{relative_dst_path}' already exists and is different from the source.")
+                        response = input(
+                            "Select an option:\n"
+                            "[Y] Override this file\n"
+                            "[N] Skip this file\n"
+                            "[A] Override all existing files without asking again\n"
+                            "[Z] Skip all existing files without asking again\n"
+                            "Enter your choice (Y/N/A/Z): "
+                        ).lower()
 
-            if not skip_all:
-                # Ensure the file paths are strings if they're not already
-                src_file_str = str(src_file_path)
-                dst_file_str = str(dst_file_path)
-
-                shutil.copy2(src_file_str, dst_file_str)  # copy2 is used to preserve metadata
-
-                # Extract just the filename
-                filename = os.path.basename(src_file_str)
-                project_root = os.path.basename(root)
-
-                # Extract the relative destination path (assuming 'root' is the base directory)
-                relative_dst_path = os.path.relpath(dst_file_str, start=root)
-                print(f"Copied {filename} to {project_root}\\{relative_dst_path}")
+                        if response == 'a':
+                            override_all = True
+                            # Proceed to copy
+                        elif response == 'z':
+                            skip_all = True
+                            print(f"Skipped '{relative_dst_path}' (skip all is enabled).")
+                            continue
+                        elif response == 'n':
+                            print(f"Skipped '{relative_dst_path}'.")
+                            continue
+                        elif response == 'y':
+                            # Proceed to copy
+                            pass
+                        else:
+                            print("Invalid option. Skipping this file.")
+                            continue
             else:
-                print(f"Skipped {src_file_path}")
+                # Destination file does not exist, proceed to copy
+                pass
+
+            if skip_all:
+                print(f"Skipped '{relative_dst_path}' (skip all is enabled).")
+                continue
+
+            # Proceed to copy the file
+            shutil.copy2(src_file_str, dst_file_str)  # copy2 is used to preserve metadata
+
+            print(f"Copied '{relative_src_path}' to '{relative_dst_path}'.")
 
 
 def setup_agentforge():
@@ -80,7 +101,6 @@ def setup_agentforge():
             return
 
         agentforge_path = spec.submodule_search_locations[0]
-        # agentforge_path = 'D:\\Github\\AgentForge\\src\\agentforge'
 
         print(f"Found {package_name} at {agentforge_path}")
 

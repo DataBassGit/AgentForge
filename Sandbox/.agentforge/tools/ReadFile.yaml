@@ -1,31 +1,9 @@
 Name: Read File
-Args:
-  - file_name_or_url (str)
+Args: file_path (str)
 Command: read_file
-Description: |-
-  The 'Read File' tool reads the content of a specified file or URL and returns its text. It supports text files (.txt, .md), PDF files (.pdf), and URLs pointing to such files.
-Instruction: |-
-  To use the 'Read File' tool, follow these steps:
-  1. Create an instance of the `GetText` class.
-  2. Call the `read_file` method with the following argument:
-     - `file_name_or_url`: A string representing the full path to the file or the URL you want to read.
-  3. The method returns the text content of the file or URL.
-  4. Use the returned text as needed in your application.
-Example: |-
-  # Example usage of the Read File tool:
-  from agentforge.tools.GetText import GetText
-
-  getter = GetText()
-
-  # Reading a local text file
-  file_content = getter.read_file("/path/to/your/file.txt")
-  print(file_content)
-
-  # Reading a local PDF file
-  pdf_content = getter.read_file("/path/to/your/file.pdf")
-  print(pdf_content)
-
-  # Reading from a URL
-  url_content = getter.read_file("https://example.com/sample.txt")
-  print(url_content)
-Script: agentforge.tools.GetText
+Description: >-
+  The 'Read File' tool reads the content of a specified file and returns its text. Provide the full path to the file you want to read.
+Example: file_content = read_file(file_path)
+Instruction: >-
+  The 'read_file' method requires a file_path as input, which represents the path to the file you want to read. It returns the textual content of that file as a string.
+Script: .agentforge.tools.ReadFile

@@ -26,21 +26,36 @@ Prompts:
   System: You are an assistant that echoes the user's input.
   User: {user_input}
 ```
-> Note: This prompt template uses a variable placeholder `{user_input}`. This variable will be replaced with actual data at runtime. To understand how agent prompts are rendered within **AgentForge**, see the [Agent Prompts](../Agents/AgentPrompts.md) guide.
 
-### 3. Write a Script to Run the Agent
+> **Note**: This prompt template uses a variable placeholder `{user_input}`. This variable will be replaced with actual data at runtime. To understand how agent prompts are rendered within **AgentForge**, see the [Agent Prompts](../Agents/AgentPrompts.md) guide.
+
+### 3. Write a Script to Run the Agent Interactively
 
 Create a separate Python script (e.g., `run_agent.py`) in your project root to import and run your custom agent:
 
 ```python
 from echo_agent import EchoAgent
 
-# Initialize the agent
-agent = EchoAgent()
+def main():
+    # Initialize the EchoAgent
+    agent = EchoAgent()
 
-# Run the agent with an input message
-response = agent.run(user_input="Hello, AgentForge!")
-print(response)
+    print("Welcome to the EchoAgent! Type 'quit' to exit.")
+    while True:
+        # Prompt the user for input
+        user_input = input("You: ")
+
+        # Exit the loop if the user types 'quit'
+        if user_input.lower() == 'quit':
+            print("Goodbye!")
+            break
+
+        # Run the agent with the user's input and print the response
+        response = agent.run(user_input=user_input)
+        print("EchoAgent:", response)
+
+if __name__ == "__main__":
+    main()
 ```
 
 ### 4. Execute the Script
@@ -51,15 +66,31 @@ Ensure your virtual environment is activated and run the script:
 python run_agent.py
 ```
 
-### 5. **Example Response**
+### 5. **Example Interaction**
 
-Assuming the agent is connected to an LLM, the output might be:
+Assuming the agent is connected to an LLM, the interaction might look like:
 
 ```
-Hello, AgentForge!
+Welcome to the EchoAgent! Type 'quit' to exit.
+You: Hello, EchoAgent!
+EchoAgent: Hello, EchoAgent!
+You: How are you today?
+EchoAgent: How are you today?
+You: This is a test.
+EchoAgent: This is a test.
+You: quit
+Goodbye!
 ```
 
-> *Note: The actual response will depend on the LLM used and its configuration.*
+### 6. Deactivate the Virtual Environment (Optional)
+
+When you're done working, deactivate the virtual environment:
+
+```shell
+deactivate
+```
+
+Remember to activate the virtual environment (`source venv/bin/activate` or `venv\Scripts\activate`) whenever you return to work on your project.
 
 ---
 

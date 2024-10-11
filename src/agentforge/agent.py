@@ -135,6 +135,7 @@ class Agent:
         """
         try:
             prompts = self.data.get('prompts', {})
+
             self.prompt_handling.check_prompt_format(prompts)
             rendered_prompts = self.prompt_handling.render_prompts(prompts, self.data)
             self.prompt_handling.validate_rendered_prompts(rendered_prompts)

@@ -1,26 +1,14 @@
 Name: Google Search
 Args:
   - query (str)
-  - number_result (int, optional)
+  - number_result (int)
 Command: google_search
-Description: |-
-  The 'Google Search' tool performs a web search using the Google Custom Search API. It returns a specified number of search results, each containing a URL and a brief description.
-Instruction: |-
-  To use the 'Google Search' tool, follow these steps:
-  1. Call the `google_search` function with the following arguments:
-     - `query`: A string representing the search query.
-     - `number_result`: (Optional) An integer specifying the number of results to return. Defaults to 5.
-  2. The function returns a formatted string containing the search results.
-  3. Use the output as needed in your application.
-Example: |-
-  # Example usage of the Google Search tool:
-  from agentforge.tools.GoogleSearch import google_search
-
-  # Search with default number of results
-  results = google_search("Python programming")
-  print(results)
-
-  # Search with custom number of results
-  results = google_search("Machine learning", number_result=10)
-  print(results)
-Script: agentforge.tools.GoogleSearch
+Description: >-
+  The 'Google Search' tool searches the web for a specified query and retrieves a set number of results.
+  Each result consists of a URL and a short snippet describing its contents.
+Example: search_results = google_search(query, number_of_results)
+Instruction: >-
+  The 'google_search' function takes a query string and a number of results as inputs.
+  The query string is what you want to search for, and the number of results is how many search results you want returned.
+  The function returns a list of tuples, each tuple containing a URL and a snippet description of a search result.
+Script: .agentforge.tools.GoogleSearch
