@@ -1,28 +1,11 @@
 Name: Intelligent Chunk
 Args:
   - text (str)
-  - chunk_size (int)
+  - chunk_size (int=0-3)
 Command: intelligent_chunk
-Description: |-
-  The 'Intelligent Chunk' tool splits a given text into smaller segments based on sentence structure.
-Instruction: |-
-  To use the 'Intelligent Chunk' tool, follow these steps:
-  1. Call the `intelligent_chunk` function with the following arguments:
-     - `text`: The text string you want to split.
-     - `chunk_size`: An integer between 0 and 3 representing the desired chunk size:
-       - 0: Very small (5 sentences per chunk)
-       - 1: Small (13 sentences per chunk)
-       - 2: Medium (34 sentences per chunk)
-       - 3: Large (55 sentences per chunk)
-  2. The function returns a list of text chunks.
-  3. Use the chunks as needed in your application.
-Example: |-
-  # Example usage of the Intelligent Chunk tool:
-  from agentforge.tools.IntelligentChunk import intelligent_chunk
-
-  text = "This is the first sentence. This is the second sentence. This is the third sentence. This is the fourth sentence."
-
-  # Split text into very small chunks
-  chunks = intelligent_chunk(text, chunk_size=0)
-  print(chunks)
-Script: agentforge.tools.IntelligentChunk
+Description: >-
+  The 'Intelligent Chunk' tool splits a provided text into smaller, manageable parts or 'chunks'. The user decides the size of these chunks based on their needs.
+Example: chunks = intelligent_chunk(text, chunk_size)
+Instruction: >-
+  The 'intelligent_chunk' method takes a string of text and a chunk size as inputs. The chunk size is an integer that determines the number of sentences per chunk: 0 for 5 sentences, 1 for 13 sentences, 2 for 34 sentences, and 3 for 55 sentences. The function returns a list of text chunks, each containing a specified number of sentences.
+Script: .agentforge.tools.IntelligentChunk

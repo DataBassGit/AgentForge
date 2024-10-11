@@ -8,7 +8,7 @@ SaveMemory: true  # Saving Memory won't work if Storage is disabled
 ISOTimeStampMemory: true
 UnixTimeStampMemory: true
 PersistDirectory: ./DB/ChromaDB  # Relative path for persistent storage
-DBFreshStart: true # Will wipe storage everytime the system is initialized
+DBFreshStart: false # Will wipe storage everytime the system is initialized
 Embedding: all-distilroberta-v1
 
 # Misc. Settings
@@ -18,11 +18,11 @@ OnTheFly: true
 Logging:
   Enabled: true
   Folder: ./Logs
-  Files:
-    AgentForge: debug
-    ModelIO: debug
-    Actions: debug
-    Results: debug
+  Files: # Log levels: critical, error, warning, info, debug.
+    AgentForge: error
+    ModelIO: error
+    Actions: error
+    Results: error
     DiscordClient: error
 
 # Paths the system (agents) have access to read and write

@@ -541,8 +541,6 @@ class DiscordClient:
 
         return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop).result()
 
-
-
     def reply_to_thread(self, thread_id, content):
         """
         Reply to a specific thread.
@@ -568,9 +566,7 @@ class DiscordClient:
                 # Split the content into semantic chunks
                 chunks = semantic_chunk(content, min_length=200, max_length=1900)
                 for i, chunk in enumerate(chunks, 1):
-                    message = chunk.content
-                    # if len(chunks) > 1:
-                    #     message = f"Part {i}/{len(chunks)}:\n{message}"
+                    message = f"```chunk.content```"
                     await thread.send(message)
                 
                 self.logger.log(f"Reply sent to thread {thread_id}", 'info', 'DiscordClient')

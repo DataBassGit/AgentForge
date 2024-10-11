@@ -1,6 +1,7 @@
 import importlib
 import os
 import yaml
+import re
 import pathlib
 import sys
 from typing import Dict, Any
@@ -40,6 +41,7 @@ def load_yaml_file(file_path: str):
 
 class Config:
     _instance = None
+    pattern = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
 
     def __new__(cls, *args, **kwargs):
         """
@@ -283,6 +285,7 @@ class Config:
             api, model, final_model_params = self.resolve_model_overrides(agent)
             llm = self.get_llm(api, model)
             persona_data = self.load_persona(agent)
+            prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
 
             return {
                 'name': agent_name,
@@ -290,7 +293,7 @@ class Config:
                 'llm': llm,
                 'params': final_model_params,
                 'persona': persona_data,
-                'prompts': agent.get('Prompts', {}),
+                'prompts': prompts,
             }
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Configuration or persona file not found: {e}")
@@ -331,3 +334,44 @@ class Config:
         final_model_params = {**combined_params, **model_overrides.get('Params', {})}
 
         return api, model, final_model_params
+
+    def fix_prompt_placeholders(self, prompts):
+        """
+        Recursively traverse the prompts dictionary and convert any mappings
+        like {'user_input': None} into strings '{user_input}'.
+
+        Parameters:
+            prompts (dict or list or str): The prompts data structure.
+
+        Returns:
+            The fixed prompts data structure with placeholders as strings.
+        """
+        if isinstance(prompts, dict):
+            # Check if this dict is a placeholder mapping
+            if len(prompts) == 1 and list(prompts.values())[0] is None:
+                key = list(prompts.keys())[0]
+                # Verify that the key is a valid variable name
+                if re.match(self.pattern, key):
+                    # Convert to a string placeholder
+                    return f"{{{key}}}"
+                else:
+                    # If not a valid variable name, process it normally
+                    fixed_prompts = {}
+                    for k, v in prompts.items():
+                        fixed_key = self.fix_prompt_placeholders(k)
+                        fixed_value = self.fix_prompt_placeholders(v)
+                        fixed_prompts[fixed_key] = fixed_value
+                    return fixed_prompts
+            else:
+                fixed_prompts = {}
+                for key, value in prompts.items():
+                    fixed_key = self.fix_prompt_placeholders(key)
+                    fixed_value = self.fix_prompt_placeholders(value)
+                    fixed_prompts[fixed_key] = fixed_value
+                return fixed_prompts
+        elif isinstance(prompts, list):
+            return [self.fix_prompt_placeholders(item) for item in prompts]
+        elif prompts is None:
+            return ''
+        else:
+            return prompts

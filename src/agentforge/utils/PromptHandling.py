@@ -14,8 +14,6 @@ class PromptHandling:
 
     # Define a pattern to find all occurrences of {variable_name}
     pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
-    # pattern = r"(?<!\{)\{([a-zA-Z_][a-zA-Z0-9_]*)\}(?!\})"
-    # pattern = r"(?<!\\)\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
 
     def __init__(self):
         """
