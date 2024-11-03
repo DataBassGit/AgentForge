@@ -36,7 +36,7 @@ The `ParsingUtils` class offers the following key functionalities:
 
 **Example Usage**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 parsing_utils = ParsingUtils()
@@ -56,7 +56,7 @@ code_content, language = parsing_utils.extract_code_block(text_with_code_block)
 print(f"Language: {language}")
 print("Content:")
 print(code_content)
-```
+~~~
 
 **Output**:
 
