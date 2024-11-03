@@ -37,6 +37,8 @@ setup(
         "discord.py",
         "semantic-text-splitter",
         "google-generativeai",
+        "PyYAML",
+        "xmltodict",
         "setuptools>=70.0.0 ",  # not directly required, pinned by Snyk to avoid a vulnerability
     ],
     extras_require={
