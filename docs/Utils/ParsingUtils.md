@@ -47,7 +47,7 @@ Here is some text.
 ```python
 def hello_world():
     print("Hello, World!")
-```&nbsp;
+```
 
 End of message.
 '''
@@ -83,7 +83,7 @@ def hello_world():
 
 **Example Usage**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 parsing_utils = ParsingUtils()
@@ -96,12 +96,12 @@ features:
   - Custom Agents
   - Utilities
   - LLM Integration
-```&nbsp;
+```
 '''
 
 parsed_data = parsing_utils.parse_yaml_content(yaml_text)
 print(parsed_data)
-```
+~~~
 
 **Output**:
 
@@ -129,7 +129,7 @@ print(parsed_data)
 
 **Example Usage**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 parsing_utils = ParsingUtils()
@@ -141,12 +141,12 @@ json_text = '''
   "version": "1.0",
   "features": ["Custom Agents", "Utilities", "LLM Integration"]
 }
-```&nbsp;
+```
 '''
 
 parsed_data = parsing_utils.parse_json_content(json_text)
 print(parsed_data)
-```
+~~~
 
 **Output**:
 
@@ -174,7 +174,7 @@ print(parsed_data)
 
 **Example Usage**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 parsing_utils = ParsingUtils()
@@ -190,12 +190,12 @@ xml_text = '''
         <feature>LLM Integration</feature>
     </features>
 </agent>
-```&nbsp;
+```
 '''
 
 parsed_data = parsing_utils.parse_xml_content(xml_text)
 print(parsed_data)
-```
+~~~
 
 **Output**:
 
@@ -227,7 +227,7 @@ print(parsed_data)
 
 **Example Usage**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 parsing_utils = ParsingUtils()
@@ -242,12 +242,12 @@ version = 1.0
 feature1 = Custom Agents
 feature2 = Utilities
 feature3 = LLM Integration
-```&nbsp;
+```
 '''
 
 parsed_data = parsing_utils.parse_ini_content(ini_text)
 print(parsed_data)
-```
+~~~
 
 **Output**:
 
@@ -281,7 +281,7 @@ print(parsed_data)
 
 **Example Usage**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 parsing_utils = ParsingUtils()
@@ -290,12 +290,12 @@ csv_text = '''
 ```csv
 name,version,features
 AgentForge,1.0,"Custom Agents; Utilities; LLM Integration"
-```&nbsp;
+```
 '''
 
 parsed_data = parsing_utils.parse_csv_content(csv_text)
 print(parsed_data)
-```
+~~~
 
 **Output**:
 
@@ -334,7 +334,7 @@ print(parsed_data)
 
 **Example Usage**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 parsing_utils = ParsingUtils()
@@ -355,14 +355,14 @@ Based on my analysis, I conclude that the user's approach invites a deeper level
 
 ### Attempt
 Hey there! I appreciate your genuine interest in my thoughts and feelings.
-```&nbsp;
+```
 
 End of message.
 '''
 
 parsed_data = parsing_utils.parse_markdown_content(markdown_text, min_heading_level=3, max_heading_level=3)
 print(parsed_data)
-```
+~~~
 
 **Output**:
 
@@ -385,7 +385,7 @@ Agents may return responses that include structured data in various formats (YAM
 
 **Example**:
 
-```python
+~~~python
 from agentforge.utils.ParsingUtils import ParsingUtils
 
 response = '''
@@ -399,7 +399,7 @@ Thank you for your input. Here are the details:
     "action": "process"
   }
 }
-```&nbsp;
+```
 
 Let me know if you need anything else.
 '''
@@ -407,7 +407,7 @@ Let me know if you need anything else.
 parsing_utils = ParsingUtils()
 parsed_response = parsing_utils.parse_json_content(response)
 print(parsed_response['data']['user'])  # Output: John Doe
-```
+~~~
 
 ### Processing Configuration Files
 

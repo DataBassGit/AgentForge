@@ -47,3 +47,5 @@ docs/.obsidian/
 Sandbox/Logs/
 
 Sandbox/modules/Logs/
+
+src/agentforge/setup_files/settings/models.yaml
