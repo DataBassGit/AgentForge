@@ -47,7 +47,7 @@ class Gemini:
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
         self.logger.log_prompt(model_prompt)
 
-        prompt = '\n\n'.join(model_prompt)
+        prompt = '\n\n'.join([model_prompt.get('System'), model_prompt.get('User')])
 
         # Will retry to get chat if a rate limit or bad gateway error is received from the chat
         reply = None
