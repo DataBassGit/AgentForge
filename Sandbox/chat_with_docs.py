@@ -1,9 +1,8 @@
-from CustomAgents.DocsAgent import DocsAgent
+from agentforge.agent import Agent
 from agentforge.utils.ChromaUtils import ChromaUtils
-from agentforge.utils.function_utils import Logger
 
-docs_agent = DocsAgent()
-# kb = ChromaUtils()
+docs_agent = Agent(agent_name="DocsAgent")
+kb = ChromaUtils()
 
 while True:
     user_input = input("Welcome to the chat with docs!\nQuestion: ")
