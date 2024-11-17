@@ -5,23 +5,32 @@ from .config import Config
 from agentforge.utils.PromptHandling import PromptHandling
 
 
-
 class Agent:
-    def __init__(self):
+    def __init__(self, agent_name: Optional[str] = None):
         """
         Initializes an Agent instance, setting up its name, logger, data attributes, and agent-specific configurations.
         It attempts to load the agent's configuration data and storage settings.
+
+        Args:
+            agent_name (Optional[str]): The name of the agent. If not provided, the class name is used.
         """
-        self.agent_name: str = self.__class__.__name__
+        # Set agent_name to the provided name or default to the class name
+        self.agent_name: str = agent_name if agent_name is not None else self.__class__.__name__
+
+        # Initialize logger with the agent's name
         self.logger: Logger = Logger(name=self.agent_name)
+
+        # Initialize other configurations and handlers
         self.config = Config()
         self.prompt_handling = PromptHandling()
 
+        # Initialize data attributes
         self.data: Dict[str, Any] = {}
         self.prompt: Optional[List[str]] = None
         self.result: Optional[str] = None
         self.output: Optional[str] = None
 
+        # Initialize agent_data if it hasn't been set already
         if not hasattr(self, 'agent_data'):  # Prevent re-initialization
             self.agent_data: Optional[Dict[str, Any]] = None
 
@@ -68,19 +77,6 @@ class Agent:
         self.load_additional_data()
         self.load_kwargs(**kwargs)
 
-    def load_kwargs(self, **kwargs: Any) -> None:
-        """
-        Loads the variables passed to the agent as data.
-
-        Parameters:
-            **kwargs (Any): Additional keyword arguments to be merged into the agent's data.
-        """
-        try:
-            for key in kwargs:
-                self.data[key] = kwargs[key]
-        except Exception as e:
-            self.logger.log(f"Error loading kwargs: {e}", 'error')
-
     def load_agent_data(self) -> None:
         """
         Loads the agent's configuration data including parameters and prompts.
@@ -122,6 +118,19 @@ class Agent:
         Placeholder for loading additional data. Meant to be overridden by custom agents as needed.
         """
         pass
+
+    def load_kwargs(self, **kwargs: Any) -> None:
+        """
+        Loads the variables passed to the agent as data.
+
+        Parameters:
+            **kwargs (Any): Additional keyword arguments to be merged into the agent's data.
+        """
+        try:
+            for key in kwargs:
+                self.data[key] = kwargs[key]
+        except Exception as e:
+            self.logger.log(f"Error loading kwargs: {e}", 'error')
 
     def process_data(self) -> None:
         """
@@ -165,6 +174,7 @@ class Agent:
         Returns: None
         """
         if not self.agent_data['settings']['system'].get('StorageEnabled'):
+            self.agent_data['storage'] = None
             return None
 
         from .utils.ChromaUtils import ChromaUtils

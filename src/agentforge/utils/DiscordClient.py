@@ -566,7 +566,7 @@ class DiscordClient:
                 # Split the content into semantic chunks
                 chunks = semantic_chunk(content, min_length=200, max_length=1900)
                 for i, chunk in enumerate(chunks, 1):
-                    message = f"```chunk.content```"
+                    message = f"```{chunk.content}```"
                     await thread.send(message)
                 
                 self.logger.log(f"Reply sent to thread {thread_id}", 'info', 'DiscordClient')

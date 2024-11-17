@@ -12,6 +12,7 @@ The `Agent` class is designed to:
 - Provide essential attributes and methods for agent operation.
 - Facilitate seamless integration with various workflows and data structures.
 - Simplify the creation of custom agents through method overriding.
+- Allow flexible naming of agents by accepting an optional `agent_name` parameter.
 
 By subclassing the `Agent` class, developers can create custom agents that inherit default behaviors and override methods to implement specific functionalities.
 
@@ -23,7 +24,7 @@ By subclassing the `Agent` class, developers can create custom agents that inher
 
 The `Agent` class utilizes several key attributes:
 
-- **`agent_name`**: The name of the agent, typically set to the class name.
+- **`agent_name`**: The name of the agent, set to the provided `agent_name` parameter or defaults to the class name if `agent_name` is not provided.
 - **`logger`**: A logger instance initialized with the agent’s name for logging messages.
 - **`config`**: An instance of the `Config` class that handles configuration loading.
 - **`prompt_handling`**: An instance of the `PromptHandling` class for managing prompt templates.
@@ -37,28 +38,38 @@ The `Agent` class utilizes several key attributes:
 
 ```python
 class Agent:
-    def __init__(self):
+    def __init__(self, agent_name: Optional[str] = None):
         """
         Initializes an Agent instance, setting up its name, logger, data attributes, and agent-specific configurations.
         It attempts to load the agent's configuration data and storage settings.
+
+        Args:
+            name (Optional[str]): The name of the agent. If not provided, the class name is used.
         """
-        self.agent_name: str = self.__class__.__name__
+        # Set agent_name to the provided name or default to the class name
+        self.agent_name: str = agent_name if agent_name is not None else self.__class__.__name__
+
+        # Initialize logger with the agent's name
         self.logger: Logger = Logger(name=self.agent_name)
+
+        # Initialize other configurations and handlers
         self.config = Config()
         self.prompt_handling = PromptHandling()
 
+        # Initialize data attributes
         self.data: Dict[str, Any] = {}
         self.prompt: Optional[List[str]] = None
         self.result: Optional[str] = None
         self.output: Optional[str] = None
 
+        # Initialize agent_data if it hasn't been set already
         if not hasattr(self, 'agent_data'):  # Prevent re-initialization
             self.agent_data: Optional[Dict[str, Any]] = None
 ```
 
 **Explanation**:
 
-- **`self.agent_name`**: Automatically set to the class name, ensuring consistency between the agent's name and its class.
+- **`self.agent_name`**: Set to the provided `agent_name` parameter if given; otherwise, defaults to the class name. This allows for flexible naming of agents without needing to create separate subclasses.
 - **`self.logger`**: Initialized with the agent's name for consistent logging.
 - **`self.config`**: Loads the configuration settings for the agent and the system.
 - **`self.prompt_handling`**: Manages the rendering and validation of prompt templates.
@@ -261,7 +272,16 @@ class CustomAgent(Agent):
 - **Method**: `self.resolve_storage()`
 - **Process**:
   - Checks if storage is enabled in system settings.
-  - If enabled, initializes the storage instance and stores it in `self.agent_data['storage']`.
+  - Initializes the storage instance and stores it in `self.agent_data['storage']`, ensuring that `self.agent_data['storage']` exists even if storage is disabled.
+  - Example:
+    ```python
+    def resolve_storage(self):
+        if not self.agent_data['settings']['system'].get('StorageEnabled'):
+            self.agent_data['storage'] = None
+            return
+        from .utils.ChromaUtils import ChromaUtils
+        self.agent_data['storage'] = ChromaUtils(self.agent_data['persona']['Name'])
+    ```
 
 ### Saving to Storage
 
@@ -269,6 +289,7 @@ class CustomAgent(Agent):
 - **Usage**:
   - Intended to be overridden to implement specific logic for saving data.
   - Access the storage instance via `self.agent_data['storage']`.
+  - Even if storage is disabled, `self.agent_data['storage']` will be `None`, allowing for consistent handling in custom implementations.
 
 ---
 
@@ -281,6 +302,7 @@ By understanding the `Agent` class and its core components, you can harness the 
   - **Workflow**: Understand the sequence of methods executed in `run` and how they interact.
   - **Data Handling**: Utilize `self.data` effectively to manage and manipulate data within your agent.
   - **Customization**: Override methods as needed to implement custom behaviors.
+  - **Agent Naming**: Use the `name` parameter to assign custom names to agents without the need for subclassing.
 
 ---
 

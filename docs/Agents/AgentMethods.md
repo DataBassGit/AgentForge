@@ -58,13 +58,12 @@ For better understanding, we've grouped the methods into the following categorie
 ```python
 from agentforge.agent import Agent
 
-class CustomAgent(Agent):
-    pass
-
-agent = CustomAgent()
+agent = Agent(agent_name="ExampleAgent")
 output = agent.run(user_input="Hello, AgentForge!")
 print(output)
 ```
+
+>**Note**: In this case we are assuming we have a `ExampleAgent.yaml` prompt template file in the `.agentforge/prompts/` directory for the agent to use.
 
 ---
 
@@ -414,7 +413,7 @@ Prompts:
 from sentiment_agent import SentimentAgent
 
 # Initialize the agent
-agent = SentimentAgent()
+agent = SentimentAgent()  # The agent name will default to the class name `SentimentAgent` which will load the corresponding prompt template file
 
 # User input
 user_input = "  I absolutely love using AgentForge!  "
