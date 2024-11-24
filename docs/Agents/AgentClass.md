@@ -104,12 +104,12 @@ def run(self, **kwargs: Any) -> Optional[str]:
         self.logger.log(f"\n{self.agent_name} - Running...", 'info')
         self.load_data(**kwargs)
         self.process_data()
-        self.generate_prompt()
+        self.render_prompt()
         self.run_llm()
         self.parse_result()
         self.save_to_storage()
         self.build_output()
-        self.data = {}
+        self.template_data = {}
         self.logger.log(f"\n{self.agent_name} - Done!", 'info')
     except Exception as e:
         self.logger.log(f"Agent execution failed: {e}", 'error')
@@ -152,7 +152,7 @@ Understanding the following key concepts is essential for effectively utilizing 
    - Includes parameters (`params`) and prompt templates (`prompts`).
    - Example:
      ```python
-     self.data.update({
+     self.prompt_data.update({
          'params': self.agent_data.get('params').copy(),
          'prompts': self.agent_data['prompts'].copy()
      })
@@ -166,7 +166,7 @@ Understanding the following key concepts is essential for effectively utilizing 
      if self.agent_data['settings']['system'].get('PersonasEnabled'):
          persona = self.agent_data.get('persona', {})
          for key in persona:
-             self.data[key.lower()] = persona[key]
+             self.prompt_data[key.lower()] = persona[key]
      ```
 
 3. **Storage Data**:

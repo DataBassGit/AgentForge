@@ -37,9 +37,9 @@ The `ParsingUtils` class offers the following key functionalities:
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 text_with_code_block = '''
 Here is some text.
@@ -84,9 +84,9 @@ def hello_world():
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 yaml_text = '''
 ```yaml
@@ -130,9 +130,9 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 json_text = '''
 ```json
@@ -175,9 +175,9 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 xml_text = '''
 ```xml
@@ -228,9 +228,9 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 ini_text = '''
 ```ini
@@ -282,9 +282,9 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 csv_text = '''
 ```csv
@@ -335,9 +335,9 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 markdown_text = '''
 Here is some introductory text.
@@ -386,7 +386,7 @@ Agents may return responses that include structured data in various formats (YAM
 **Example**:
 
 ~~~python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
 response = '''
 Thank you for your input. Here are the details:
@@ -404,7 +404,7 @@ Thank you for your input. Here are the details:
 Let me know if you need anything else.
 '''
 
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 parsed_response = parsing_utils.parse_json_content(response)
 print(parsed_response['data']['user'])  # Output: John Doe
 ~~~

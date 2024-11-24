@@ -12,7 +12,7 @@ DBFreshStart: false # Will wipe storage everytime the system is initialized
 Embedding: all-distilroberta-v1
 
 # Misc. Settings
-OnTheFly: true
+OnTheFly: true # Reloads the configuration data each time an agent is executed.
 
 # Logging Settings
 Logging:

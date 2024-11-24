@@ -4,15 +4,11 @@ import yaml
 import re
 import pathlib
 import sys
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
-def load_yaml_file(file_path: str):
+def load_yaml_file(file_path: str) -> Dict[str, Any]:
     """
     Reads and parses a YAML file, returning its contents as a Python dictionary.
-
-    This function attempts to safely load the contents of a YAML file specified by
-    the file path. If the file cannot be found or there's an error decoding the YAML,
-    it handles the exceptions gracefully.
 
     Parameters:
         file_path (str): The path to the YAML file to be read.
@@ -20,13 +16,6 @@ def load_yaml_file(file_path: str):
     Returns:
         dict: The contents of the YAML file as a dictionary. If the file is not found
         or an error occurs during parsing, an empty dictionary is returned.
-
-    Notes:
-        - The function uses `yaml.safe_load` to prevent execution of arbitrary code
-          that might be present in the YAML file.
-        - Exceptions for file not found and YAML parsing errors are caught and logged,
-          with an empty dictionary returned to allow the calling code to continue
-          execution without interruption.
     """
     try:
         with open(file_path, 'r') as yaml_file:
@@ -38,10 +27,13 @@ def load_yaml_file(file_path: str):
         print(f"Error decoding YAML from {file_path}")
         return {}
 
-
 class Config:
     _instance = None
     pattern = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
+
+    # ---------------------------------
+    # Initialization
+    # ---------------------------------
 
     def __new__(cls, *args, **kwargs):
         """
@@ -62,17 +54,18 @@ class Config:
         """
         if not hasattr(self, 'is_initialized'):  # Prevent re-initialization
             self.is_initialized = True
-            try:
-                self.project_root = self.find_project_root()
-                self.config_path = self.project_root / ".agentforge"
+            self.project_root = self.find_project_root()
+            self.config_path = self.project_root / ".agentforge"
 
-                # Placeholders for the data the agent needs which is located in each respective YAML file
-                self.data = {}
+            # Placeholder for configuration data loaded from YAML files
+            self.data = {}
 
-                # Here is where we load the information from the YAML files to their corresponding attributes
-                self.load_all_configurations()
-            except Exception as e:
-                raise ValueError(f"Error during Config initialization: {e}")
+            # Load the configuration data
+            self.load_all_configurations()
+
+    # ---------------------------------
+    # Configuration Loading
+    # ---------------------------------
 
     @staticmethod
     def find_project_root():
@@ -92,55 +85,15 @@ class Config:
 
         while current_dir != current_dir.parent:
             potential_dir = current_dir / ".agentforge"
-            print(f"Checking {potential_dir}")  # Debugging output
+            print(f"Checking {potential_dir}")
+
             if potential_dir.is_dir():
-                print(f"Found .agentforge directory at: {current_dir}")  # Debugging output
+                print(f"Found .agentforge directory at: {current_dir}\n")
                 return current_dir
 
             current_dir = current_dir.parent
 
-        raise FileNotFoundError(f"Could not find the '.agentforge' directory at {script_dir}")
-
-    @staticmethod
-    def get_nested_dict(data: dict, path_parts: tuple):
-        """
-        Gets or creates a nested dictionary given the parts of a relative path.
-
-        Args:
-            data (dict): The top-level dictionary to start from.
-            path_parts (tuple): A tuple of path components leading to the desired nested dictionary.
-
-        Returns:
-            A reference to the nested dictionary at the end of the path.
-        """
-        for part in path_parts:
-            if part not in data:
-                data[part] = {}
-            data = data[part]
-        return data
-
-    def find_agent_config(self, agent_name: str):
-        """
-        Search for an agent's configuration by name within the nested agents' dictionary.
-
-        Parameters:
-            agent_name (str): The name of the agent to find.
-
-        Returns:
-            dict: The configuration dictionary for the specified agent, or None if not found.
-        """
-
-        def search_nested_dict(nested_dict, target):
-            for key, value in nested_dict.items():
-                if key == target:
-                    return value
-                elif isinstance(value, dict):
-                    result = search_nested_dict(value, target)
-                    if result is not None:
-                        return result
-            return None
-
-        return search_nested_dict(self.data.get('prompts', {}), agent_name)
+        raise FileNotFoundError(f"Could not find the '.agentforge' directory starting from {script_dir}")
 
     def load_all_configurations(self):
         """
@@ -159,110 +112,9 @@ class Config:
                         filename_without_ext = os.path.splitext(file)[0]
                         nested_dict[filename_without_ext] = data
 
-    def find_file_in_directory(self, directory: str, filename: str):
-        """
-        Recursively searches for a file within a directory and its subdirectories.
-
-        Parameters:
-            directory (str): The directory to search in.
-            filename (str): The name of the file to find.
-
-        Returns:
-            pathlib.Path or None: The full path to the file if found, None otherwise.
-        """
-        directory = pathlib.Path(self.get_file_path(directory))
-
-        for file_path in directory.rglob(filename):
-            return file_path
-        return None
-
-    def get_file_path(self, file_name: str):
-        """
-        Constructs the full path for a given filename within the configuration path.
-
-        Parameters:
-            file_name (str): The name of the file.
-
-        Returns:
-            pathlib.Path: The full path to the file within the configuration directory.
-        """
-        return pathlib.Path(self.config_path) / file_name
-
-    def get_llm(self, api: str, model: str):
-        """
-        Loads a specified language model based on API and model settings.
-
-        Parameters:
-            api (str): The API name.
-            model (str): The model name.
-
-        Returns:
-            object: An instance of the requested model class.
-
-        Raises:
-            Exception: If there is an error loading the model.
-        """
-        try:
-            # Retrieve the model name, module, and class from the 'models.yaml' settings.
-            model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
-            module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
-            class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
-
-            # Dynamically import the module corresponding to the LLM API.
-            module = importlib.import_module(f".llm.{module_name}", package=__package__)
-
-            # Retrieve the class from the imported module that handles the LLM connection.
-            model_class = getattr(module, class_name)
-            model_class = getattr(module, class_name)
-            args = [model_name]  # Prepare the arguments for the model class instantiation.
-            return model_class(*args)  # Instantiate the model class with the provided arguments.
-
-        except Exception as e:
-            print(f"Error Loading Model: {e}")
-            raise
-
-    def load_agent(self, agent_name: str):
-        """
-        Loads an agent's configuration from a YAML file.
-
-        Parameters:
-            agent_name (str): The name of the agent to load.
-
-        Raises:
-            FileNotFoundError: If the agent's YAML file cannot be found.
-            Exception: For any errors encountered while loading the agent.
-        """
-        try:
-            path_to_file = self.find_file_in_directory("prompts", f"{agent_name}.yaml")
-            if path_to_file:
-                self.data['agent'] = load_yaml_file(str(path_to_file))  # Fix warning
-            else:
-                raise FileNotFoundError(f"Agent {agent_name}.yaml not found.")
-        except Exception as e:
-            print(f"Error loading agent {agent_name}: {e}")
-
-    def load_persona(self, agent: dict) -> dict | None:
-        """
-        Loads the persona for the agent, if personas are enabled.
-
-        Parameters:
-            agent (dict): The agent's configuration data.
-
-        Returns:
-            dict: The loaded persona and the persona file name.
-        """
-        persona_data = None
-
-        settings = self.data['settings']
-        if not settings['system'].get('PersonasEnabled', False):
-            return persona_data
-
-        persona_file = agent.get('Persona') or settings['system'].get('Persona', 'default')
-        if persona_file not in self.data['personas']:
-            raise FileNotFoundError(f"Selected Persona '{persona_file}' not found. Please make sure the corresponding persona file is in the personas folder")
-
-        persona_data = self.data['personas'][persona_file]
-        return persona_data
+    # ---------------------------------
+    # Agent and Flow Configuration
+    # ---------------------------------
 
     def load_agent_data(self, agent_name: str) -> Dict[str, Any]:
         """
@@ -271,45 +123,55 @@ class Config:
         Parameters:
             agent_name (str): The name of the agent for which to load configuration data.
 
-        Returns: None
+        Returns:
+            dict: The agent's configuration data.
 
         Raises:
-            FileNotFoundError: If a required configuration or persona file is not found.
-            KeyError: If a required key is missing in the configuration.
-            Exception: For general errors encountered during the loading process.
+            FileNotFoundError: If the agent configuration or persona file is not found.
+            KeyError: If required keys are missing.
         """
-        try:
-            self.reload()
+        self.reload()
 
-            agent = self.find_agent_config(agent_name)
-            api, model, final_model_params = self.resolve_model_overrides(agent)
-            llm = self.get_llm(api, model)
-            persona_data = self.load_persona(agent)
-            prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
+        agent = self.find_config('prompts', agent_name)
+        if not agent:
+            raise FileNotFoundError(f"Agent '{agent_name}' not found in configuration.")
 
-            return {
-                'name': agent_name,
-                'settings': self.data['settings'],
-                'llm': llm,
-                'params': final_model_params,
-                'persona': persona_data,
-                'prompts': prompts,
-            }
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"Configuration or persona file not found: {e}")
-        except KeyError as e:
-            raise KeyError(f"Missing key in configuration: {e}")
-        except Exception as e:
-            raise Exception(f"Error loading agent data: {e}")
+        api, model, final_model_params = self.resolve_model_overrides(agent)
+        llm = self.get_llm(api, model)
+        persona_data = self.load_persona(agent)
+        prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
 
-    def reload(self):
+        return {
+            'name': agent_name,
+            'settings': self.data.get('settings', {}),
+            'llm': llm,
+            'params': final_model_params,
+            'persona': persona_data,
+            'prompts': prompts,
+        }
+
+    def load_flow_data(self, flow_name: str) -> Dict[str, Any]:
         """
-        Reloads configurations for an agent.
-        """
-        if self.data['settings']['system']['OnTheFly']:
-            self.load_all_configurations()
+        Loads configuration data for a specified flow.
 
-    def resolve_model_overrides(self, agent: dict) -> tuple[str, str, dict]:
+        Parameters:
+            flow_name (str): The name of the flow to load.
+
+        Returns:
+            dict: The configuration data for the flow.
+
+        Raises:
+            FileNotFoundError: If the flow configuration is not found.
+        """
+        self.reload()
+
+        flow = self.find_config('flows', flow_name)
+        if not flow:
+            raise FileNotFoundError(f"Flow '{flow_name}' not found in configuration.")
+
+        return flow
+
+    def resolve_model_overrides(self, agent: dict) -> tuple:
         """
         Resolves the model and API overrides for the agent, if any.
 
@@ -335,6 +197,79 @@ class Config:
 
         return api, model, final_model_params
 
+    # ---------------------------------
+    # LLM Handling
+    # ---------------------------------
+
+    def get_llm(self, api: str, model: str):
+        """
+        Loads a specified language model based on API and model settings.
+
+        Parameters:
+            api (str): The API name.
+            model (str): The model name.
+
+        Returns:
+            object: An instance of the requested model class.
+        """
+        # Retrieve the model name, module, and class from the 'models.yaml' settings.
+        model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
+        module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
+        class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
+
+        # Dynamically import the module corresponding to the LLM API.
+        module = importlib.import_module(f".llm.{module_name}", package=__package__)
+
+        # Retrieve the class from the imported module that handles the LLM connection.
+        model_class = getattr(module, class_name)
+        args = [model_name]  # Prepare the arguments for the model class instantiation.
+        return model_class(*args)  # Instantiate the model class with the provided arguments.
+
+    # ---------------------------------
+    # Utility Methods
+    # ---------------------------------
+
+    def find_config(self, category: str, config_name: str) -> Optional[Dict[str, Any]]:
+        """
+        General method to search for a configuration by name within a specified category.
+
+        Parameters:
+            category (str): The category to search in (e.g., 'prompts', 'flows').
+            config_name (str): The name of the configuration to find.
+
+        Returns:
+            dict: The configuration dictionary for the specified name, or None if not found.
+        """
+        def search_nested_dict(nested_dict, target):
+            for key, value in nested_dict.items():
+                if key == target:
+                    return value
+                elif isinstance(value, dict):
+                    result = search_nested_dict(value, target)
+                    if result is not None:
+                        return result
+            return None
+
+        return search_nested_dict(self.data.get(category, {}), config_name)
+
+    @staticmethod
+    def get_nested_dict(data: dict, path_parts: tuple):
+        """
+        Gets or creates a nested dictionary given the parts of a relative path.
+
+        Args:
+            data (dict): The top-level dictionary to start from.
+            path_parts (tuple): A tuple of path components leading to the desired nested dictionary.
+
+        Returns:
+            A reference to the nested dictionary at the end of the path.
+        """
+        for part in path_parts:
+            if part not in data:
+                data[part] = {}
+            data = data[part]
+        return data
+
     def fix_prompt_placeholders(self, prompts):
         """
         Recursively traverse the prompts dictionary and convert any mappings
@@ -354,24 +289,66 @@ class Config:
                 if re.match(self.pattern, key):
                     # Convert to a string placeholder
                     return f"{{{key}}}"
-                else:
-                    # If not a valid variable name, process it normally
-                    fixed_prompts = {}
-                    for k, v in prompts.items():
-                        fixed_key = self.fix_prompt_placeholders(k)
-                        fixed_value = self.fix_prompt_placeholders(v)
-                        fixed_prompts[fixed_key] = fixed_value
-                    return fixed_prompts
-            else:
-                fixed_prompts = {}
-                for key, value in prompts.items():
-                    fixed_key = self.fix_prompt_placeholders(key)
-                    fixed_value = self.fix_prompt_placeholders(value)
-                    fixed_prompts[fixed_key] = fixed_value
-                return fixed_prompts
-        elif isinstance(prompts, list):
+
+            # If not a valid variable name, process it normally
+            fixed_prompts = {}
+            for key, value in prompts.items():
+                fixed_key = self.fix_prompt_placeholders(key)
+                fixed_value = self.fix_prompt_placeholders(value)
+                fixed_prompts[fixed_key] = fixed_value
+            return fixed_prompts
+
+        if isinstance(prompts, list):
             return [self.fix_prompt_placeholders(item) for item in prompts]
-        elif prompts is None:
+
+        if not prompts:
             return ''
-        else:
-            return prompts
+
+        return prompts
+
+    def reload(self):
+        """
+        Reloads configurations for an agent.
+        """
+        if self.data['settings']['system'].get('OnTheFly', False):
+            self.load_all_configurations()
+
+    def find_file_in_directory(self, directory: str, filename: str):
+        """
+        Recursively searches for a file within a directory and its subdirectories.
+
+        Parameters:
+            directory (str): The directory to search in.
+            filename (str): The name of the file to find.
+
+        Returns:
+            pathlib.Path or None: The full path to the file if found, None otherwise.
+        """
+        directory = pathlib.Path(pathlib.Path(self.config_path) / directory)
+
+        for file_path in directory.rglob(filename):
+            return file_path
+        return None
+
+    def load_persona(self, agent: dict) -> Optional[Dict[str, Any]]:
+        """
+        Loads the persona for the agent, if personas are enabled.
+
+        Parameters:
+            agent (dict): The agent's configuration data.
+
+        Returns:
+            dict: The loaded persona data.
+
+        Raises:
+            FileNotFoundError: If the persona file is not found.
+        """
+        settings = self.data['settings']
+        if not settings['system'].get('PersonasEnabled', False):
+            return None
+
+        persona_file = agent.get('Persona') or settings['system'].get('Persona', 'default')
+        if persona_file not in self.data.get('personas', {}):
+            raise FileNotFoundError(f"Selected Persona '{persona_file}' not found. Please make sure the corresponding persona file is in the personas folder")
+
+        return self.data['personas'][persona_file]
