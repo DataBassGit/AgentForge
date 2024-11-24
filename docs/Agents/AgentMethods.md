@@ -149,7 +149,7 @@ These methods handle loading various types of data into the agent.
 def load_from_storage(self):
     collection_name = 'Memories'  # Name of the collection in the vector database
     query = 'User is thinking about planning a trip'  # A text query to search the specified collection
-    self.data['stored_values'] = self.agent_data['storage'].query_memory(collection_name, query)
+    self.template_data['stored_values'] = self.agent_data['storage'].query_memory(collection_name, query)
 ```
 
 ---
@@ -166,7 +166,7 @@ def load_from_storage(self):
 
 ```python
 def load_additional_data(self):
-    self.data['timestamp'] = datetime.now().isoformat()
+    self.template_data['timestamp'] = datetime.now().isoformat()
 ```
 
 ---
@@ -187,7 +187,7 @@ def load_additional_data(self):
 
 ```python
 def load_kwargs(self, **kwargs):
-    self.data.update(kwargs)
+    self.template_data.update(kwargs)
 ```
 
 ---
@@ -209,7 +209,7 @@ def load_kwargs(self, **kwargs):
 ```python
 def process_data(self):
     # Convert user input to uppercase
-    self.data['user_input'] = self.data['user_input'].upper()
+    self.template_data['user_input'] = self.template_data['user_input'].upper()
 ```
 
 ---
@@ -370,11 +370,12 @@ Let's create a custom agent that performs sentiment analysis on user input using
 # sentiment_agent.py
 from agentforge.agent import Agent
 
+
 class SentimentAgent(Agent):
     def process_data(self):
         # Clean the user input by stripping leading/trailing whitespace
-        self.data['cleaned_input'] = self.data['user_input'].strip()
-    
+        self.template_data['cleaned_input'] = self.template_data['user_input'].strip()
+
     def parse_result(self):
         # Simplify the LLM's response to extract the sentiment
         response = self.result.lower()
@@ -387,7 +388,7 @@ class SentimentAgent(Agent):
         else:
             sentiment = 'Undetermined'
         self.result = sentiment
-    
+
     def build_output(self):
         # Build the final output message
         self.output = f"Sentiment Analysis Result: {self.result}"

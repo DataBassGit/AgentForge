@@ -1,5 +1,5 @@
 from agentforge.agent import Agent
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
 class LearnKGAgent(Agent):
     def build_output(self):
@@ -15,6 +15,6 @@ class LearnKGAgent(Agent):
             provided by the logger and re-raises the exception to signal failure to the calling context.
         """
         try:
-            self.output = ParsingUtils().parse_yaml_content(self.result)
+            self.output = ParsingProcessor().parse_yaml_content(self.result)
         except Exception as e:
             self.logger.parsing_error(self.result, e)

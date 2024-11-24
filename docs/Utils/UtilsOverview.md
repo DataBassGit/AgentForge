@@ -65,10 +65,10 @@ You can import and utilize these utilities directly in your code as needed. Belo
 ### Example: Using `ParsingUtils`
 
 ```python
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 
 # Initialize the ParsingUtils class
-parsing_utils = ParsingUtils()
+parsing_utils = ParsingProcessor()
 
 # Example YAML string
 yaml_string = '''

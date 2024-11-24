@@ -326,15 +326,16 @@ To customize agent behavior, you can override methods inherited from the `Agent`
 ```python
 from agentforge.agent import Agent
 
+
 class MyCustomAgent(Agent):
 
-    def process_data(self):
-        # Custom data processing
-        self.data['user_input'] = self.data['user_input'].lower()
+  def process_data(self):
+    # Custom data processing
+    self.template_data['user_input'] = self.template_data['user_input'].lower()
 
-    def build_output(self):
-        # Custom output formatting
-        self.output = f"Response: {self.result}"
+  def build_output(self):
+    # Custom output formatting
+    self.output = f"Response: {self.result}"
 ```
 
 - **Calling Base Methods**: Use `super()` to retain base class functionality.
@@ -358,17 +359,18 @@ Let's create a custom agent that summarizes a given text and allows for differen
 from agentforge.agent import Agent
 import json
 
-class SummarizeAgent(Agent):
-    def parse_result(self):
-        # Parse the LLM's response as JSON
-        try:
-            self.data['parsed_result'] = json.loads(self.result)
-        except json.JSONDecodeError:
-            self.data['parsed_result'] = {'summary': self.result}
 
-    def build_output(self):
-        summary = self.data['parsed_result'].get('summary', 'No summary found.')
-        self.output = f"Summary:\n{summary}"
+class SummarizeAgent(Agent):
+  def parse_result(self):
+    # Parse the LLM's response as JSON
+    try:
+      self.template_data['parsed_result'] = json.loads(self.result)
+    except json.JSONDecodeError:
+      self.template_data['parsed_result'] = {'summary': self.result}
+
+  def build_output(self):
+    summary = self.template_data['parsed_result'].get('summary', 'No summary found.')
+    self.output = f"Summary:\n{summary}"
 ```
 
 ### Step 2: Create Different Prompt Templates

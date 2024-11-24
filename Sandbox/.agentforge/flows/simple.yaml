@@ -1,0 +1,13 @@
+agents:
+  - name: TestAgent
+  - name: TestoAgent
+    class: CustomAgents.CustAgent
+
+flow:
+  - step:
+      agent: TestAgent
+      next:
+        - TestoAgent
+
+  - step:
+      agent: TestoAgent

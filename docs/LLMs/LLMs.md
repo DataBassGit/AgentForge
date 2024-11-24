@@ -41,9 +41,9 @@ def get_llm(self, api: str, model: str):
     """
     try:
         # Retrieve the model name, module, and class from the 'models.yaml' settings.
-        model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
-        module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
-        class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
+        model_name = self.template_data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
+        module_name = self.template_data['settings']['models']['ModelLibrary'][api]['module']
+        class_name = self.template_data['settings']['models']['ModelLibrary'][api]['class']
 
         # Dynamically import the module corresponding to the LLM API.
         module = importlib.import_module(f".llm.{module_name}", package=__package__)

@@ -2,7 +2,7 @@ import traceback
 from typing import List, Dict, Optional, Union
 from agentforge.utils.Logger import Logger
 from agentforge.utils.ChromaUtils import ChromaUtils
-from agentforge.utils.ParsingUtils import ParsingUtils
+from agentforge.utils.ParsingProcessor import ParsingProcessor
 from agentforge.agents.ActionSelectionAgent import ActionSelectionAgent
 from agentforge.agents.ActionCreationAgent import ActionCreationAgent
 from agentforge.agents.ToolPrimingAgent import ToolPrimingAgent
@@ -47,7 +47,7 @@ class Actions:
         self.config = Config()
         self.storage = ChromaUtils()
         self.tool_utils = ToolUtils()
-        self.parsing_utils = ParsingUtils()
+        self.parsing_utils = ParsingProcessor()
 
         # Initialize the agents
         self.action_creation = ActionCreationAgent()
@@ -253,7 +253,7 @@ class Actions:
 
         try:
             # Load the paths into a dictionary
-            paths_dict = self.storage.config.data['settings']['system']['Paths']
+            paths_dict = self.storage.config.template_data['settings']['system']['Paths']
 
             # Construct the work_paths string by iterating over the dictionary
             work_paths = None

@@ -2,7 +2,7 @@ import re
 from agentforge.utils.Logger import Logger
 
 
-class PromptHandling:
+class PromptProcessor:
     """
     A utility class for handling dynamic prompt templates. It supports extracting variables from templates,
     checking for the presence of required variables in data, and rendering templates with values from provided data.

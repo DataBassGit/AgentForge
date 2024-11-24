@@ -1,6 +1,6 @@
 Prompts:
   System:
-    Name: You are /{name/}.
+    Name: You are {name/}.
     Purpose: |
       Your purpose: {objective}.
 
