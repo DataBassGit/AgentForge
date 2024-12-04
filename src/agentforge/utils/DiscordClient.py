@@ -7,6 +7,7 @@ import threading
 from agentforge.utils.Logger import Logger
 from agentforge.tools.SemanticChunk import semantic_chunk
 
+
 class DiscordClient:
     """
     A Discord client that handles bot functionality, message processing, and role management.
@@ -31,11 +32,12 @@ class DiscordClient:
         """
         Initialize the DiscordClient with necessary attributes and event handlers.
         """
+        self.discord_thread = None
         self.token = str(os.getenv('DISCORD_TOKEN'))
         self.intents = discord.Intents.default()
         self.intents.message_content = True
         self.client = discord.Client(intents=self.intents)
-        self.logger = Logger('DiscordClient')
+        self.logger = Logger('DiscordClient', 'DiscordClient')
         self.tree = discord.app_commands.CommandTree(self.client)
         self.message_queue = {}
         self.running = False
@@ -44,12 +46,11 @@ class DiscordClient:
         @self.client.event
         async def on_ready():
             await self.tree.sync()
-            print("Client Ready")
-            self.logger.log(f'{self.client.user} has connected to Discord!', 'info', 'DiscordClient')
+            self.logger.info(f'{self.client.user} has connected to Discord!')
 
         @self.client.event
         async def on_message(message: discord.Message):
-            self.logger.log(f"On Message: {message}", 'debug', 'DiscordClient')
+            self.logger.debug(f"On Message:\n{message}")
 
             content = message.content
             for mention in message.mentions:
@@ -72,17 +73,16 @@ class DiscordClient:
                 message_data["thread_id"] = message.channel.id
                 message_data["thread_name"] = message.channel.name
 
-            self.logger.log(f"{message.author.display_name} said: {content} in {str(message.channel)}. Channel ID: {message.channel.id}", 'info', 'DiscordClient')
-            # print(f"{author_name} said: {content} in {channel}. Channel ID: {channel_id}")
-            # print(f"Mentions: {formatted_mentions}")
+            self.logger.debug(
+                f"Channel: {str(message.channel)}({message.channel.id}) - {message.author.display_name} said:\n{content}")
 
             if message.author != self.client.user:
                 if message.channel.id not in self.message_queue:
                     self.message_queue[message.channel.id] = []
                 self.message_queue[message.channel.id].append(message_data)
-                self.logger.log("Message added to queue", 'debug', 'DiscordClient')
+                self.logger.debug("Message added to queue")
             else:
-                self.logger.log(f"Message not added to queue: {message_data}", 'debug', 'DiscordClient')
+                self.logger.debug(f"Message not added to queue:\n{message_data}")
 
     def run(self):
         """
@@ -92,6 +92,7 @@ class DiscordClient:
         The thread allows the Discord client to operate independently of the main
         application thread, preventing it from blocking other operations.
         """
+
         def run_discord():
             print("Client Starting")
             asyncio.run(self.client.start(self.token))
@@ -163,20 +164,21 @@ class DiscordClient:
             channel_id (int): The ID of the channel to send the message to.
             content (str): The content of the message to send.
         """
+
         async def send():
             messages = semantic_chunk(content, min_length=200, max_length=1900)
             channel = self.client.get_channel(channel_id)
             if channel:
                 for msg in messages:
                     if len(msg.content) > 2000:
-                        # Re-chunk the oversized message
+                        # Re-chunk the over-sized message
                         sub_messages = semantic_chunk(msg.content, min_length=200, max_length=1900)
                         for sub_msg in sub_messages:
                             await channel.send(sub_msg.content)
                     else:
                         await channel.send(msg.content)
             else:
-                self.logger.log(f"Channel {channel_id} not found", 'error', 'DiscordClient')
+                self.logger.error(f"Channel {channel_id} not found")
 
         asyncio.run_coroutine_threadsafe(send(), self.client.loop)
 
@@ -192,6 +194,7 @@ class DiscordClient:
             user_id (int): The ID of the user to send the direct message to.
             content (str): The content of the direct message to send.
         """
+
         async def send_dm_async():
             try:
                 user = await self.client.fetch_user(user_id)
@@ -199,20 +202,20 @@ class DiscordClient:
                     messages = semantic_chunk(content, min_length=200, max_length=1900)
                     for msg in messages:
                         if len(msg.content) > 2000:
-                            # Re-chunk the oversized message
+                            # Re-chunk the over-sized message
                             sub_messages = semantic_chunk(msg.content, min_length=200, max_length=1900)
                             for sub_msg in sub_messages:
                                 await user.send(sub_msg.content)
                         else:
                             await user.send(msg.content)
                 else:
-                    self.logger.log(f"User {user_id} not found", 'error', 'DiscordClient')
+                    self.logger.error(f"User {user_id} not found")
             except discord.errors.NotFound:
-                self.logger.log(f"User {user_id} not found", 'error', 'DiscordClient')
+                self.logger.error(f"User {user_id} not found")
             except discord.errors.Forbidden:
-                self.logger.log(f"Cannot send DM to user {user_id}. Forbidden.", 'error', 'DiscordClient')
+                self.logger.error(f"Cannot send DM to user {user_id}. Forbidden.")
             except Exception as e:
-                self.logger.log(f"Error sending DM to user {user_id}: {str(e)}", 'error', 'DiscordClient')
+                self.logger.error(f"Error sending DM to user {user_id}: {str(e)}")
 
         asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop)
 
@@ -231,6 +234,7 @@ class DiscordClient:
             color (str, optional): The color of the embed message. Defaults to 'blue'.
             image_url (str, optional): The URL of the image to include in the embed message.
         """
+
         async def send_embed_async():
             try:
                 channel = self.client.get_channel(channel_id)
@@ -249,11 +253,11 @@ class DiscordClient:
 
                     await channel.send(embed=embed)
                 else:
-                    self.logger.log(f"Channel {channel_id} not found", 'error', 'DiscordClient')
+                    self.logger.error(f"Channel with ID {channel_id} not found.")
             except discord.errors.Forbidden:
-                self.logger.log(f"Cannot send embed to channel {channel_id}. Forbidden.", 'error', 'DiscordClient')
+                self.logger.error(f"Cannot send embed to channel {channel_id}. Forbidden.")
             except Exception as e:
-                self.logger.log(f"Error sending embed to channel {channel_id}: {str(e)}", 'error', 'DiscordClient')
+                self.logger.error(f"Error sending embed to channel {channel_id}: {str(e)}")
 
         asyncio.run_coroutine_threadsafe(send_embed_async(), self.client.loop)
 
@@ -278,10 +282,11 @@ class DiscordClient:
         param_description = "send a command to the bot"
         command_callback = discord.app_commands.describe(**{param_name: param_description})(command_callback)
 
-        self.logger.log(f"Register command: {name}, Function: {function_name}", "info", "DiscordClient")
+        self.logger.info(f"Register Command: {name} - Function: {function_name}")
         self.tree.add_command(command_callback)
 
-    async def handle_command(self, interaction: discord.Interaction, command_name: str, function_name: str, kwargs: dict):
+    async def handle_command(self, interaction: discord.Interaction, command_name: str, function_name: str,
+                             kwargs: dict):
         """
         Handle a slash command interaction.
 
@@ -335,7 +340,7 @@ class DiscordClient:
                 # Stop the typing indicator immediately
                 await asyncio.sleep(0)
         else:
-            print(f"Channel with ID {channel_id} not found.")
+            self.logger.error(f"Channel with ID {channel_id} not found.")
 
     def add_role(self, guild_id, user_id, role_name):
         """
@@ -353,6 +358,7 @@ class DiscordClient:
         Returns:
             str: A message indicating the result of the operation.
         """
+
         async def add_role_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -392,6 +398,7 @@ class DiscordClient:
         Returns:
             str: A message indicating the result of the operation.
         """
+
         async def remove_role_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -431,6 +438,7 @@ class DiscordClient:
         Returns:
             bool: True if the user has the role, False otherwise.
         """
+
         async def has_role_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -466,6 +474,7 @@ class DiscordClient:
         Returns:
             str: A formatted string listing the roles in the guild and optionally for the user.
         """
+
         async def list_roles_async():
             try:
                 guild = self.client.get_guild(guild_id)
@@ -513,30 +522,31 @@ class DiscordClient:
         Returns:
             int: The ID of the created thread, or None if creation failed.
         """
+
         async def create_thread_async():
             try:
                 channel = self.client.get_channel(channel_id)
                 if not channel:
-                    self.logger.log(f"Channel {channel_id} not found", 'error', 'DiscordClient')
+                    self.logger.error(f"Channel with ID {channel_id} not found.")
                     return None
 
                 message = await channel.fetch_message(message_id)
                 if not message:
-                    self.logger.log(f"Message {message_id} not found in channel {channel_id}", 'error', 'DiscordClient')
+                    self.logger.error(f"Message with ID {message_id} not found in channel {channel_id}")
                     return None
 
                 thread = await message.create_thread(name=name, auto_archive_duration=auto_archive_duration)
-                self.logger.log(f"Thread '{name}' created successfully", 'info', 'DiscordClient')
+                self.logger.info(f"Thread '{name}' created successfully")
 
                 if remove_author:
                     await thread.remove_user(message.author)
-                    self.logger.log(f"Removed author {message.author} from thread '{name}'", 'info', 'DiscordClient')
+                    self.logger.info(f"Removed author {message.author} from thread '{name}'")
 
                 return thread.id
             except discord.errors.Forbidden:
-                self.logger.log(f"Bot doesn't have permission to create threads in channel {channel_id}", 'error', 'DiscordClient')
+                self.logger.error(f"Bot doesn't have permission to create threads in channel {channel_id}")
             except Exception as e:
-                self.logger.log(f"Error creating thread: {str(e)}", 'error', 'DiscordClient')
+                self.logger.error(f"Error creating thread: {str(e)}")
             return None
 
         return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop).result()
@@ -556,11 +566,12 @@ class DiscordClient:
         Returns:
             bool: True if the reply was sent successfully, False otherwise.
         """
+
         async def reply_async():
             try:
                 thread = self.client.get_channel(thread_id)
                 if not thread:
-                    self.logger.log(f"Thread {thread_id} not found", 'error', 'DiscordClient')
+                    self.logger.error(f"Thread {thread_id} not found")
                     return False
 
                 # Split the content into semantic chunks
@@ -568,13 +579,13 @@ class DiscordClient:
                 for i, chunk in enumerate(chunks, 1):
                     message = f"```{chunk.content}```"
                     await thread.send(message)
-                
-                self.logger.log(f"Reply sent to thread {thread_id}", 'info', 'DiscordClient')
+
+                self.logger.info(f"Reply sent to thread {thread_id}")
                 return True
             except discord.errors.Forbidden:
-                self.logger.log(f"Bot doesn't have permission to reply to thread {thread_id}", 'error', 'DiscordClient')
+                self.logger.error(f"Bot doesn't have permission to reply to thread {thread_id}")
             except Exception as e:
-                self.logger.log(f"Error replying to thread: {str(e)}", 'error', 'DiscordClient')
+                self.logger.error(f"Error replying to thread: {str(e)}")
             return False
 
         return asyncio.run_coroutine_threadsafe(reply_async(), self.client.loop).result()

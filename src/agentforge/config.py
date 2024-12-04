@@ -1,4 +1,5 @@
 import importlib
+import threading
 import os
 import yaml
 import re
@@ -29,6 +30,7 @@ def load_yaml_file(file_path: str) -> Dict[str, Any]:
 
 class Config:
     _instance = None
+    _lock = threading.Lock()  # Class-level lock for thread safety
     pattern = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
 
     # ---------------------------------
@@ -43,8 +45,9 @@ class Config:
         Returns:
             Config: The singleton instance of the Config class.
         """
-        if not cls._instance:
-            cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
+        with cls._lock:
+            if not cls._instance:
+                cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
     def __init__(self):
@@ -99,18 +102,46 @@ class Config:
         """
         Recursively loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
         """
-        for subdir, dirs, files in os.walk(self.config_path):
-            for file in files:
-                if file.endswith(('.yaml', '.yml')):
-                    subdir_path = pathlib.Path(subdir)
-                    relative_path = subdir_path.relative_to(self.config_path)
-                    nested_dict = self.get_nested_dict(self.data, relative_path.parts)
+        with self._lock:
+            for subdir, dirs, files in os.walk(self.config_path):
+                for file in files:
+                    if file.endswith(('.yaml', '.yml')):
+                        subdir_path = pathlib.Path(subdir)
+                        relative_path = subdir_path.relative_to(self.config_path)
+                        nested_dict = self.get_nested_dict(self.data, relative_path.parts)
 
-                    file_path = str(subdir_path / file)
-                    data = load_yaml_file(file_path)
-                    if data:
-                        filename_without_ext = os.path.splitext(file)[0]
-                        nested_dict[filename_without_ext] = data
+                        file_path = str(subdir_path / file)
+                        data = load_yaml_file(file_path)
+                        if data:
+                            filename_without_ext = os.path.splitext(file)[0]
+                            nested_dict[filename_without_ext] = data
+
+    # ---------------------------------
+    # Save Configuration Method
+    # ---------------------------------
+
+    def save(self):
+        """
+        Saves changes to the configuration back to the system.yaml file.
+        """
+        with Config._lock:
+            system_yaml_path = self.config_path / 'settings' / 'system.yaml'
+
+            # Load the existing system.yaml data
+            existing_data = load_yaml_file(str(system_yaml_path))
+
+            if 'settings' in self.data and 'system' in self.data['settings']:
+                # Update existing data with the current settings
+                existing_data.update(self.data['settings']['system'])
+
+                # Write back to system.yaml
+                try:
+                    with open(system_yaml_path, 'w') as yaml_file:
+                        yaml.dump(existing_data, yaml_file, default_flow_style=False)
+                except Exception as e:
+                    print(f"Error saving configuration to {system_yaml_path}: {e}")
+                return
+            print("No system settings to save.")
 
     # ---------------------------------
     # Agent and Flow Configuration
