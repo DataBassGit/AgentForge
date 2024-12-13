@@ -73,6 +73,7 @@ class Gemini:
 
                 reply = response.text
                 self.logger.log_response(reply)
+                print(response)
 
                 break
 
