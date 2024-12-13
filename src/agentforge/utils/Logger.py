@@ -247,7 +247,7 @@ class Logger:
         Parameters:
             logger_file (str): The name of the logger file to add.
         """
-        if not self.VALID_LOGGER_NAME_PATTERN.match(logger_file):
+        if logger_file and not self.VALID_LOGGER_NAME_PATTERN.match(logger_file):
             raise ValueError(
                 f"Invalid logger_file name: '{logger_file}'. Must match pattern: {self.VALID_LOGGER_NAME_PATTERN.pattern}")
 

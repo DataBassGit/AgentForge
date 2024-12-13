@@ -535,6 +535,10 @@ class DiscordClient:
                     self.logger.error(f"Message with ID {message_id} not found in channel {channel_id}")
                     return None
 
+                if message.thread:
+                    self.logger.log(f"Thread already exists for message {message_id}", 'info', 'DiscordClient')
+                    return message.thread.id
+
                 thread = await message.create_thread(name=name, auto_archive_duration=auto_archive_duration)
                 self.logger.info(f"Thread '{name}' created successfully")
 
@@ -543,10 +547,18 @@ class DiscordClient:
                     self.logger.info(f"Removed author {message.author} from thread '{name}'")
 
                 return thread.id
+            except discord.errors.HTTPException as e:
+                if e.code == 160004:  # Thread already exists error code
+                    if message.thread:
+                        return message.thread.id
+                    self.logger.log(f"Thread exists but cannot be accessed", 'error', 'DiscordClient')
+                else:
+                    self.logger.log(f"Error creating thread: {str(e)}", 'error', 'DiscordClient')
             except discord.errors.Forbidden:
-                self.logger.error(f"Bot doesn't have permission to create threads in channel {channel_id}")
+                self.logger.log(f"Bot doesn't have permission to create threads in channel {channel_id}", 'error',
+                                'DiscordClient')
             except Exception as e:
-                self.logger.error(f"Error creating thread: {str(e)}")
+                self.logger.log(f"Error creating thread: {str(e)}", 'error', 'DiscordClient')
             return None
 
         return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop).result()
