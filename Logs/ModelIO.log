@@ -1,0 +1,164 @@
+2024-12-25 13:21:58 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant.
+******
+User Prompt
+******
+What is the capital of France?
+******
+-------------------------------------------------------------
+2024-12-25 13:24:46 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant.
+******
+User Prompt
+******
+What is the capital of France?
+******
+-------------------------------------------------------------
+2024-12-25 13:25:59 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant.
+******
+User Prompt
+******
+What is the capital of France?
+******
+-------------------------------------------------------------
+2024-12-25 14:10:29 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant.
+******
+User Prompt
+******
+What is the capital of France?
+******
+-------------------------------------------------------------
+2024-12-25 14:11:29 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant.
+******
+User Prompt
+******
+What is the capital of France?
+******
+-------------------------------------------------------------
+2024-12-25 14:13:42 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant.
+******
+User Prompt
+******
+What is the capital of France?
+******
+-------------------------------------------------------------
+2024-12-25 14:13:42 - DEBUG - [TestAgent] ******
+Model Response
+******
+The capital of France is Paris.
+
+******
+-------------------------------------------------------------
+2024-12-25 14:13:43 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant that can analyze images.
+******
+User Prompt
+******
+What do you see in this image? Please describe it in detail.
+******
+-------------------------------------------------------------
+2024-12-25 14:13:46 - DEBUG - [TestAgent] ******
+Model Response
+******
+The image is a panoramic view of Paris, France, on a partly cloudy day. 
+
+
+Here's a breakdown of what's visible:
+
+* **Foreground:** The immediate foreground shows the rooftops of Parisian buildings, with grey slate roofs being prominent. A section of the Seine River is visible in the middle ground, with several bridges spanning it.  Boats are visible on the river.  The banks of the river are lined with trees.
+
+* **Midground:** The Seine River is a central feature, with several bridges visible.  Along the riverbanks, there are numerous buildings, mostly in a classic Parisian architectural style, with light-colored stone or stucco exteriors. Trees provide greenery along the river.  A large building, possibly a museum or train station, is prominent on the right bank.
+
+* **Background:**  The Eiffel Tower stands out prominently in the mid-to-far distance.  Beyond the Eiffel Tower, the cityscape stretches out, showing a dense collection of buildings that fade into the horizon.  There are hints of hills or higher ground in the far distance.  The sky is a mix of blue and fluffy white clouds.
+
+
+The overall impression is one of a classic, beautiful view of Paris, showcasing its architecture, the Seine River, and the iconic Eiffel Tower. The image suggests a high vantage point, possibly from another building or a hill overlooking the city.
+
+******
+-------------------------------------------------------------
+2024-12-25 14:13:46 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant that can analyze images.
+******
+User Prompt
+******
+What do you see in this image? Please describe it in detail.
+******
+-------------------------------------------------------------
+2024-12-25 14:13:49 - DEBUG - [TestAgent] ******
+Model Response
+******
+The image is a panoramic view of Paris, France, on a partly cloudy day. 
+
+
+Here's a breakdown of what's visible:
+
+* **Foreground:** The immediate foreground shows the rooftops of Parisian buildings,  suggesting the viewpoint is from a high elevation, potentially another building. A section of the Seine River is prominently featured, with several bridges spanning it.  Boats are visible on the river.  The riverbanks are lined with trees.
+
+* **Midground:** The midground shows a substantial portion of the city.  Buildings of varying sizes and architectural styles are densely packed.  There are trees interspersed among the buildings, creating a mix of urban and green spaces.  A large bridge crosses the Seine.
+
+* **Background:** The Eiffel Tower stands out prominently in the background, clearly identifiable. Beyond the Tower, the cityscape continues, showing the extent of Paris's urban sprawl.  In the far distance, there are hills or higher ground.
+
+The overall impression is one of a vibrant, bustling city with iconic landmarks and a blend of old and new architecture. The image is well-composed, showcasing the beauty and scale of Paris from a unique perspective. The sky is a mix of blue and fluffy white clouds, adding to the overall aesthetic appeal.
+
+******
+-------------------------------------------------------------
+2024-12-25 14:13:49 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant that can analyze images.
+******
+User Prompt
+******
+What do you see in this image? Please describe it in detail.
+******
+-------------------------------------------------------------
+2024-12-25 14:13:52 - DEBUG - [TestAgent] ******
+Model Response
+******
+This is a beautiful, wide shot of Paris, France, from a high vantage point.  The Eiffel Tower is prominently featured in the mid-ground, standing tall against a partly cloudy sky.
+
+The foreground shows the Seine River, which meanders through the city.  Several bridges span the river, with one bridge in particular in sharp focus.  Along the banks of the Seine, there are numerous buildings, mostly low-rise structures with traditional Parisian architecture.  These buildings are lined with lush green trees, providing a vibrant contrast to the grey stone.  Boats can be seen on the river.
+
+The mid-ground and background show a dense cityscape, extending as far as the eye can see.  A variety of buildings are visible, ranging in size and style, characteristic of a large and historic city. In the mid-ground, there is a large building that appears to be a museum or government building.  The distant background shows a slightly hilly landscape, further showcasing the city's expanse.
+
+The overall impression is one of a vibrant, bustling city with a rich history and impressive architecture, all framed by a partly cloudy sky that gives a sense of spaciousness and airiness to the scene.  The image is well-lit, suggesting it was taken during the day. The colors are mostly muted, with the grey of the buildings and the blue of the river dominating, but with enough vibrancy from the trees to prevent it from feeling drab.
+
+******
+-------------------------------------------------------------
+2024-12-25 14:13:52 - DEBUG - [TestAgent] ******
+System Prompt
+******
+You are a helpful assistant that can analyze images.
+******
+User Prompt
+******
+What do you see in this image? Please describe it in detail.
+******
+-------------------------------------------------------------
+2024-12-25 14:13:52 - DEBUG - [TestAgent] ******
+Model Response
+******
+Please provide me with the image you want me to analyze. I need the image data to be able to describe it.
+
+******
+-------------------------------------------------------------
