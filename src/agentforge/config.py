@@ -171,14 +171,19 @@ class Config:
         llm = self.get_llm(api, model)
         persona_data = self.load_persona(agent)
         prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
+        settings = self.data.get('settings', {})
+
+        default_debug_text = settings.get('DebuggingText', 'Default Debugging Text Missing!!!')
+        debugging_text = agent.get('DebuggingText', default_debug_text).strip()
 
         return {
             'name': agent_name,
-            'settings': self.data.get('settings', {}),
+            'settings': settings,
             'llm': llm,
             'params': final_model_params,
             'persona': persona_data,
             'prompts': prompts,
+            'debugging_text': debugging_text,
         }
 
     def load_flow_data(self, flow_name: str) -> Dict[str, Any]:

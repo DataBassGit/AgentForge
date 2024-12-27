@@ -233,6 +233,10 @@ class Agent:
         """
         Executes the language model generation with the generated prompt(s) and any specified parameters.
         """
+        if self.agent_data['settings']['system'].get('DebugMode', False):
+            self.result = self.agent_data['debugging_text']
+            return
+
         params: Dict[str, Any] = self.agent_data.get("params", {})
         params['agent_name'] = self.agent_name
         self.result = self.model.generate_text(self.prompt, **params).strip()

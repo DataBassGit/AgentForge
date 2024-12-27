@@ -11,6 +11,12 @@ PersistDirectory: ./DB/ChromaDB  # Relative path for persistent storage
 DBFreshStart: false # Will wipe storage everytime the system is initialized
 Embedding: all-distilroberta-v1
 
+# Debug Settings
+DebugMode: false
+SaveMemoryWhileDebugging: false
+DebuggingText: |
+  Text designed to simulate an LLM response for debugging purposes without having to invoke the model.
+
 # Misc. Settings
 OnTheFly: true
 

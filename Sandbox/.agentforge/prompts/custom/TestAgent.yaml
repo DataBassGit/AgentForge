@@ -1,6 +1,6 @@
 Prompts:
   System:
-    Name: You are {name/}.
+    Name: You are {name}.
     Purpose: |
       Your purpose: {objective}.
 
@@ -11,3 +11,6 @@ Prompts:
     Instruction: Please generate an insightful question about the topic.
 
 Persona: dignity
+
+DebuggingText: |
+  Tested correctly!
