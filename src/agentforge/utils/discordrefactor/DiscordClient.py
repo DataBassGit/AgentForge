@@ -50,11 +50,11 @@ class DiscordClient:
         @self.client.event
         async def on_ready():
             await self.tree.sync()
-            self.logger.info(f'{self.client.user} has connected to Discord!')
+            self.logger.info(f'[DiscordClient.on_ready] {self.client.user} has connected to Discord!')
 
         @self.client.event
         async def on_message(message: discord.Message):
-            self.logger.debug(f"On Message:\n{message}")
+            self.logger.debug(f"[DiscordClient.on_message] Received message:\n{message}")
 
             content = message.content
             for mention in message.mentions:
@@ -78,15 +78,15 @@ class DiscordClient:
                 message_data["thread_name"] = message.channel.name
 
             self.logger.debug(
-                f"Channel: {str(message.channel)}({message.channel.id}) - {message.author.display_name} said:\n{content}")
+                f"[DiscordClient.on_message] Channel: {str(message.channel)}({message.channel.id}) - {message.author.display_name} said:\n{content}")
 
             if message.author != self.client.user:
                 if message.channel.id not in self.message_queue:
                     self.message_queue[message.channel.id] = []
                 self.message_queue[message.channel.id].append(message_data)
-                self.logger.debug("Message added to queue")
+                self.logger.debug("[DiscordClient.on_message] Message added to queue")
             else:
-                self.logger.debug(f"Message not added to queue:\n{message_data}")
+                self.logger.debug(f"[DiscordClient.on_message] Message not added to queue:\n{message_data}")
 
     def run(self):
         """
@@ -98,7 +98,7 @@ class DiscordClient:
         """
 
         def run_discord():
-            print("Client Starting")
+            self.logger.info("[DiscordClient.run] Client Starting")
             asyncio.run(self.client.start(self.token))
 
         self.discord_thread = threading.Thread(target=run_discord)
@@ -115,6 +115,7 @@ class DiscordClient:
         self.running = False
         asyncio.run(self.client.close())
         self.discord_thread.join()
+        self.logger.info("[DiscordClient.stop] Client Stopped")
 
     def process_channel_messages(self):
         """
@@ -210,7 +211,7 @@ class DiscordClient:
         param_description = "send a command to the bot"
         command_callback = discord.app_commands.describe(**{param_name: param_description})(command_callback)
 
-        self.logger.info(f"Register Command: {name} - Function: {function_name}")
+        self.logger.info(f"[DiscordClient.load_commands] Register Command: {name} - Function: {function_name}")
         self.tree.add_command(command_callback)
 
     async def handle_command(self, interaction: discord.Interaction, command_name: str, function_name: str,
@@ -242,6 +243,7 @@ class DiscordClient:
         if interaction.channel_id not in self.message_queue:
             self.message_queue[interaction.channel_id] = []
         self.message_queue[interaction.channel_id].append(message_data)
+        self.logger.info(f"[DiscordClient.handle_command] Command '{command_name}' received and added to the queue")
 
         await interaction.response.send_message(f"Command '{command_name}' received and added to the queue.")
 
