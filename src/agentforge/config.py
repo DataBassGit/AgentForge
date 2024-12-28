@@ -47,17 +47,18 @@ class Config:
         """
         with cls._lock:
             if not cls._instance:
-                cls._instance = super(Config, cls).__new__(cls, *args, **kwargs)
+                cls._instance = super(Config, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, root_path: Optional[str] = None):
         """
         Initializes the Config object, setting up the project root and configuration path.
         Calls method to load configuration data from YAML files.
         """
         if not hasattr(self, 'is_initialized'):  # Prevent re-initialization
             self.is_initialized = True
-            self.project_root = self.find_project_root()
+
+            self.project_root = self.find_project_root(root_path)
             self.config_path = self.project_root / ".agentforge"
 
             # Placeholder for configuration data loaded from YAML files
@@ -66,37 +67,64 @@ class Config:
             # Load the configuration data
             self.load_all_configurations()
 
-    # ---------------------------------
-    # Configuration Loading
-    # ---------------------------------
-
     @staticmethod
-    def find_project_root():
-        """
-        Finds the project root by searching for the .agentforge directory.
+    def find_project_root(root_path: Optional[str] = None) -> pathlib.Path:
+        # If a root path was provided, use it to checking that .agentforge exists
+        if root_path:
+            custom_root = pathlib.Path(root_path).resolve()
+            agentforge_dir = custom_root / ".agentforge"
+            if agentforge_dir.is_dir():
+                print(f"\n\nUsing custom project root: {custom_root}")
+                return custom_root
+            # Early return or raise an error if .agentforge isn’t found in the custom path
+            raise FileNotFoundError(f"No .agentforge found in custom root path: {custom_root}")
 
-        Returns:
-            pathlib.Path: The path to the project root directory.
-
-        Raises:
-            FileNotFoundError: If the .agentforge directory cannot be found.
-        """
-        print(f"\n\nCurrent working directory: {os.getcwd()}")
-
+        # Otherwise, fall back to the original search logic
         script_dir = pathlib.Path(sys.argv[0]).resolve().parent
         current_dir = script_dir
+        print(f"\n\nCurrent working directory: {os.getcwd()}")
 
         while current_dir != current_dir.parent:
             potential_dir = current_dir / ".agentforge"
             print(f"Checking {potential_dir}")
-
             if potential_dir.is_dir():
                 print(f"Found .agentforge directory at: {current_dir}\n")
                 return current_dir
-
             current_dir = current_dir.parent
 
         raise FileNotFoundError(f"Could not find the '.agentforge' directory starting from {script_dir}")
+
+    # ---------------------------------
+    # Configuration Loading
+    # ---------------------------------
+
+    # @staticmethod
+    # def find_project_root():
+    #     """
+    #     Finds the project root by searching for the .agentforge directory.
+    #
+    #     Returns:
+    #         pathlib.Path: The path to the project root directory.
+    #
+    #     Raises:
+    #         FileNotFoundError: If the .agentforge directory cannot be found.
+    #     """
+    #     print(f"\n\nCurrent working directory: {os.getcwd()}")
+    #
+    #     script_dir = pathlib.Path(sys.argv[0]).resolve().parent
+    #     current_dir = script_dir
+    #
+    #     while current_dir != current_dir.parent:
+    #         potential_dir = current_dir / ".agentforge"
+    #         print(f"Checking {potential_dir}")
+    #
+    #         if potential_dir.is_dir():
+    #             print(f"Found .agentforge directory at: {current_dir}\n")
+    #             return current_dir
+    #
+    #         current_dir = current_dir.parent
+    #
+    #     raise FileNotFoundError(f"Could not find the '.agentforge' directory starting from {script_dir}")
 
     def load_all_configurations(self):
         """
