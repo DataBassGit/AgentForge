@@ -98,34 +98,6 @@ class Config:
     # Configuration Loading
     # ---------------------------------
 
-    # @staticmethod
-    # def find_project_root():
-    #     """
-    #     Finds the project root by searching for the .agentforge directory.
-    #
-    #     Returns:
-    #         pathlib.Path: The path to the project root directory.
-    #
-    #     Raises:
-    #         FileNotFoundError: If the .agentforge directory cannot be found.
-    #     """
-    #     print(f"\n\nCurrent working directory: {os.getcwd()}")
-    #
-    #     script_dir = pathlib.Path(sys.argv[0]).resolve().parent
-    #     current_dir = script_dir
-    #
-    #     while current_dir != current_dir.parent:
-    #         potential_dir = current_dir / ".agentforge"
-    #         print(f"Checking {potential_dir}")
-    #
-    #         if potential_dir.is_dir():
-    #             print(f"Found .agentforge directory at: {current_dir}\n")
-    #             return current_dir
-    #
-    #         current_dir = current_dir.parent
-    #
-    #     raise FileNotFoundError(f"Could not find the '.agentforge' directory starting from {script_dir}")
-
     def load_all_configurations(self):
         """
         Recursively loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
@@ -196,7 +168,7 @@ class Config:
             raise FileNotFoundError(f"Agent '{agent_name}' not found in configuration.")
 
         api, model, final_model_params = self.resolve_model_overrides(agent)
-        llm = self.get_llm(api, model)
+        llm = self.get_model(api, model)
         persona_data = self.load_persona(agent)
         prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
         settings = self.data.get('settings', {})
@@ -262,10 +234,10 @@ class Config:
         return api, model, final_model_params
 
     # ---------------------------------
-    # LLM Handling
+    # Model Handling
     # ---------------------------------
 
-    def get_llm(self, api: str, model: str):
+    def get_model(self, api: str, model: str):
         """
         Loads a specified language model based on API and model settings.
 
@@ -276,18 +248,24 @@ class Config:
         Returns:
             object: An instance of the requested model class.
         """
-        # Retrieve the model name, module, and class from the 'models.yaml' settings.
-        model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
-        module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
-        class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
+        library = self.data['settings']['models']['ModelLibrary']
+        api_data = library[api]
+        model_data = api_data['models'][model]
 
-        # Dynamically import the module corresponding to the LLM API.
+        model_name = model_data['name']
+        module_name = api_data['module']
+
+        # If the model itself specifies a class, use that, otherwise use the API-level default.
+        class_name = model_data.get('class', api_data.get('class'))
+
+        # Dynamically import the module
         module = importlib.import_module(f".llm.{module_name}", package=__package__)
 
-        # Retrieve the class from the imported module that handles the LLM connection.
+        # Get the appropriate class
         model_class = getattr(module, class_name)
-        args = [model_name]  # Prepare the arguments for the model class instantiation.
-        return model_class(*args)  # Instantiate the model class with the provided arguments.
+
+        # Instantiate
+        return model_class(model_name)
 
     # ---------------------------------
     # Utility Methods

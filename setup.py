@@ -30,7 +30,7 @@ setup(
         "termcolor==2.4.0",
         "openai",
         "anthropic",
-        # "google-api-python-client",
+        "google-api-python-client",
         "beautifulsoup4",
         "browse",
         "scipy",
@@ -38,6 +38,7 @@ setup(
         "semantic-text-splitter",
         "google-generativeai",
         "PyYAML",
+        "requests",
         "xmltodict",
         "setuptools>=70.0.0 ",  # not directly required, pinned by Snyk to avoid a vulnerability
     ],

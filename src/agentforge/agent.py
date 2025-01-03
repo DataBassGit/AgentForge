@@ -1,5 +1,6 @@
 from .config import Config
-from agentforge.llm import LLM
+# from agentforge.llm import LLM
+from agentforge.llm.BaseAPI import BaseModel
 from agentforge.utils.Logger import Logger
 from agentforge.utils.PromptProcessor import PromptProcessor
 from typing import Any, Dict, Optional
@@ -28,7 +29,7 @@ class Agent:
         # Initialize data attributes
         self.agent_data: Optional[Dict[str, Any]] = None
         self.persona: Optional[Dict[str, Any]] = None
-        self.model: Optional[LLM] = None
+        self.model: Optional[BaseModel] = None
         self.prompt_template: Optional[Dict[str, Any]] = None
         self.template_data: Dict[str, Any] = {}
         self.prompt: Optional[Dict[str]] = None
@@ -239,7 +240,7 @@ class Agent:
 
         params: Dict[str, Any] = self.agent_data.get("params", {})
         params['agent_name'] = self.agent_name
-        self.result = self.model.generate_text(self.prompt, **params).strip()
+        self.result = self.model.generate(self.prompt, **params).strip()
 
     # ---------------------------------
     # Result Handling

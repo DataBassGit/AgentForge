@@ -1,5 +1,6 @@
 import os
 import time
+from .BaseAPI import BaseModel
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from agentforge.utils.Logger import Logger
@@ -9,26 +10,34 @@ GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 genai.configure(api_key=GOOGLE_API_KEY)
 
 
-class Gemini:
+class Gemini(BaseModel):
     """
     A class for interacting with Google's Generative AI models to generate text based on provided prompts.
 
     Handles API calls to Google's Generative AI, including error handling for rate limits and retries failed requests.
-
-    Attributes:
-        num_retries (int): The number of times to retry generating text upon encountering errors.
     """
-    num_retries = 4
 
-    def __init__(self, model):
-        """
-        Initializes the Gemini class with a specific Generative AI model from Google.
+    @staticmethod
+    def _prepare_prompt(model_prompt):
+        return '\n\n'.join([model_prompt.get('System'), model_prompt.get('User')])
 
-        Parameters:
-            model (str): The identifier of the Google Generative AI model to use for generating text.
-        """
-        self._model = genai.GenerativeModel(model)
-        self.logger = None
+    def _do_api_call(self, prompt, **filtered_params):
+        model = genai.GenerativeModel(self.model_name)
+        response = model.generate_content(
+            prompt,
+            safety_settings={
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            },
+            generation_config=genai.types.GenerationConfig(**filtered_params)
+        )
+
+        return response
+
+    def _process_response(self, raw_response):
+        return raw_response.text
 
     def generate_text(self, model_prompt, **params):
         """

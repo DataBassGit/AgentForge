@@ -1,9 +1,7 @@
 DBFreshStart: false
 DebugMode: false
 DebuggingText: 'Text designed to simulate an LLM response for debugging purposes without
-  having to invoke the model.
-
-  '
+  having to invoke the model.'
 Embedding: all-distilroberta-v1
 ISOTimeStampMemory: true
 Logging:
