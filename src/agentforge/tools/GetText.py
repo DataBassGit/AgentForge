@@ -1,37 +1,61 @@
-import os
+# GetText.py
 import requests
 import io
+from pathlib import Path
 import pypdf
 
 
 class GetText:
-    def read_file(self, file_name_or_url: str) -> str:
+    @staticmethod
+    def resolve_path(filename: str) -> Path:
         """
-        Reads text from a file or URL based on the given input.
+        Resolves a given path to an absolute path and validates its existence.
 
         Parameters:
-        file_name_or_url (str): The file name or URL to read from.
+        filename (str): The file path to resolve.
+
+        Returns:
+        Path: A resolved absolute path.
+
+        Raises:
+        FileNotFoundError: If the file does not exist.
+        """
+        path = Path(filename).expanduser().resolve()
+
+        if not path.is_file():
+            raise FileNotFoundError(f"{path}")
+
+        return path
+
+    def read_file(self, file_name_or_url: str) -> str:
+        """
+        Reads text content from a file or URL.
+
+        Parameters:
+        file_name_or_url (str): The path to the file or the URL to read.
 
         Returns:
         str: The text content of the file or URL.
 
         Raises:
         FileNotFoundError: If the file does not exist.
-        ValueError: If the file format is unsupported or if any error occurs.
+        ValueError: If the file format is unsupported.
+        Exception: For general errors during reading.
         """
-        if file_name_or_url.startswith('http://') or file_name_or_url.startswith('https://'):
+        if file_name_or_url.startswith(('http://', 'https://')):
             return self.read_from_url(file_name_or_url)
-        else:
-            if file_name_or_url.endswith('.pdf'):
-                return self.read_pdf(file_name_or_url)
-            elif file_name_or_url.endswith('.txt') or file_name_or_url.endswith('.md'):
-                return self.read_txt(file_name_or_url)
-            else:
-                raise ValueError("Unsupported file format - Use URL, PDF, TXT, or Markdown formats.")
+
+        if file_name_or_url.endswith('.pdf'):
+            return self.read_pdf(file_name_or_url)
+
+        if file_name_or_url.endswith(('.txt', '.md')):
+            return self.read_txt(file_name_or_url)
+
+        raise ValueError("Unsupported file format - Use a URL or File with PDF, TXT, or Markdown formats.")
 
     def read_pdf(self, filename: str) -> str:
         """
-        Reads text from a PDF file.
+        Reads text content from a PDF file.
 
         Parameters:
         filename (str): The path to the PDF file.
@@ -41,19 +65,20 @@ class GetText:
 
         Raises:
         FileNotFoundError: If the file does not exist.
-        Exception: If any other error occurs during PDF reading.
+        Exception: For errors during PDF text extraction.
         """
-        if not os.path.exists(filename):
-            raise FileNotFoundError("File not found")
+        path = self.resolve_path(filename)
 
-        with open(filename, 'rb') as file:
-            content = io.BytesIO(file.read())
-            return self.extract_text_from_pdf(content)
+        try:
+            with path.open('rb') as file:
+                content = io.BytesIO(file.read())
+                return self.extract_text_from_pdf(content)
+        except Exception as e:
+            raise Exception(f"Error reading PDF file: {str(e)}")
 
-    @staticmethod
-    def read_txt(filename: str) -> str:
+    def read_txt(self, filename: str) -> str:
         """
-        Reads text from a TXT file.
+        Reads text content from a TXT file.
 
         Parameters:
         filename (str): The path to the TXT file.
@@ -63,21 +88,18 @@ class GetText:
 
         Raises:
         FileNotFoundError: If the file does not exist.
-        Exception: If any other error occurs during text file reading.
+        Exception: For errors during TXT file reading.
         """
-        if not os.path.exists(filename):
-            raise FileNotFoundError("File not found")
+        path = self.resolve_path(filename)
 
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
-                text = file.read()
-            return text
+            return path.read_text(encoding='utf-8')
         except Exception as e:
             raise Exception(f"Error reading TXT file: {str(e)}")
 
     def read_from_url(self, url: str) -> str:
         """
-        Reads text from a URL.
+        Reads text content from a URL.
 
         Parameters:
         url (str): The URL to read from.
@@ -87,47 +109,51 @@ class GetText:
 
         Raises:
         ValueError: If the file format is unsupported.
-        requests.RequestException: If any HTTP error occurs.
+        requests.RequestException: For HTTP errors during URL reading.
         """
         try:
             response = requests.get(url)
             response.raise_for_status()
+
             if url.endswith('.pdf'):
                 return self.extract_text_from_pdf(io.BytesIO(response.content))
-            elif url.endswith('.txt'):
+
+            if url.endswith('.txt') or url.endswith('.md'):
                 return response.text
-            else:
-                raise ValueError("Unsupported file format")
+
+            raise ValueError("Unsupported file format for URL - Use PDF, TXT or Markdown formats.")
         except requests.RequestException as e:
             raise Exception(f"Error reading from URL: {str(e)}")
 
     @staticmethod
     def extract_text_from_pdf(file_stream: io.BytesIO) -> str:
         """
-        Extracts text from a PDF file stream.
+        Extracts text content from a PDF file stream.
 
         Parameters:
         file_stream (io.BytesIO): The file stream of the PDF.
 
         Returns:
-        str: The text content of the PDF.
+        str: The extracted text content of the PDF.
 
         Raises:
-        Exception: If any error occurs during PDF text extraction.
+        Exception: For errors during PDF text extraction.
         """
         try:
             text = ""
             reader = pypdf.PdfReader(file_stream)
             for page in reader.pages:
-                text += page.extract_text()
-            return text
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text
+            return text.strip()
         except Exception as e:
             raise Exception(f"Error extracting text from PDF: {str(e)}")
 
 
 if __name__ == "__main__":
     gettext_instance = GetText()
-    filename_or_url = 'Documents'  # Replace with your file path or URL
+    filename_or_url = 'Documents/sample.pdf'  # Replace with your file path or URL
     try:
         file_content = gettext_instance.read_file(filename_or_url)
         print(file_content)

@@ -173,7 +173,7 @@ class Config:
         prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
         settings = self.data.get('settings', {})
 
-        default_debug_text = settings.get('DebuggingText', 'Default Debugging Text Missing!!!')
+        default_debug_text = settings['system'].get('DebuggingText', 'Default Debugging Text')
         debugging_text = agent.get('DebuggingText', default_debug_text).strip()
 
         return {
