@@ -1,6 +1,6 @@
 import requests
 import json
-from .BaseAPI import BaseModel
+from .base_api import BaseModel
 
 class Ollama(BaseModel):
 
@@ -9,6 +9,7 @@ class Ollama(BaseModel):
         return model_prompt
 
     def _do_api_call(self, prompt, **filtered_params):
+        url = filtered_params.pop('host_url', 'http://localhost:11434/api/generate')
         headers = {'Content-Type': 'application/json'}
         data = {
             "model": self.model_name,
@@ -17,7 +18,6 @@ class Ollama(BaseModel):
             **filtered_params
         }
 
-        url = filtered_params.pop('host_url', 'http://localhost:11434/api/generate')
         response = requests.post(url, headers=headers, json=data)
 
         if response.status_code != 200:

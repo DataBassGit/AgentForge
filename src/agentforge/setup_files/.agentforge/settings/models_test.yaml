@@ -1,7 +1,7 @@
 # Default model for all agents unless overridden
 Selected Model:
   API: gemini_api
-  Model: gemini_flash
+  Model: gemini-flash
 #  API: lm_studio_api
 #  Model: LMStudio
 #  API: openai_api
@@ -11,7 +11,7 @@ Selected Model:
 # Library of Models and Parameter Defaults Override
 Model Library:
   openai_api: # name of the respective api script
-    O1Series: # Name of the Class for the api
+    o1series: # Name of the Class for the api
       models: # List of model configurations
         o1:   # Model name for selection referencing
           identifier: o1 # model identifier expected by the API
@@ -23,9 +23,9 @@ Model Library:
 
       params: # Default model parameters for a model class may nor exist or be left empty without issues
 
-    GPT:
+    gpt:
       models:
-        omni_model:
+        omni:
           identifier: gpt-4o
           params: # Example of overriding default model parameters for a singular model configuration
             max_new_tokens: 15000
@@ -48,7 +48,7 @@ Model Library:
         top_p: 0.1
 
   anthropic_api:
-    Claude:
+    claude:
       models:
         claude3:
           identifier: claude-3-opus-20240229
@@ -59,7 +59,7 @@ Model Library:
       top_p: 0.1
 
   gemini_api:
-    Gemini:
+    gemini:
       models:
         gemini_pro:
           identifier: gemini-1.5-pro
@@ -74,7 +74,7 @@ Model Library:
         top_p: 0.1
 
   lm_studio_api:
-    LMStudio:
+    lmstudio:
       models:
         Llama3_8B:
           identifier: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
@@ -86,7 +86,7 @@ Model Library:
         temperature: 0.8
 
   ollama_api:
-    Ollama:
+    ollama:
       models:
         Llama3.1_70b:
           identifier: llama3.1:70b

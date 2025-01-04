@@ -1,6 +1,6 @@
 from .config import Config
 # from agentforge.llm import LLM
-from agentforge.llm.BaseAPI import BaseModel
+from agentforge.llm.base_api import BaseModel
 from agentforge.utils.Logger import Logger
 from agentforge.utils.PromptProcessor import PromptProcessor
 from typing import Any, Dict, Optional

@@ -1,5 +1,5 @@
 import os
-from .BaseAPI import BaseModel
+from .base_api import BaseModel
 from groq import Groq
 # from agentforge.utils.Logger import Logger
 

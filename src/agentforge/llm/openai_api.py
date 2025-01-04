@@ -1,4 +1,4 @@
-from .BaseAPI import BaseModel
+from .base_api import BaseModel
 from openai import OpenAI
 
 # Assuming you have set OPENAI_API_KEY in your environment variables
@@ -20,14 +20,10 @@ class GPT(BaseModel):
     def _process_response(self, raw_response):
         return raw_response.choices[0].message.content
 
-class Omni(GPT):
+class O1Series(GPT):
     """
     Concrete implementation for OpenAI GPT models.
     """
-
-    def __init__(self, model_name, **kwargs):
-        super().__init__(model_name, **kwargs)
-        self.allowed_params = {"stop"}
 
     def _prepare_prompt(self, model_prompt):
         # Format user messages in the appropriate style

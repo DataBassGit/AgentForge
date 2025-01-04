@@ -1,6 +1,6 @@
 import os
 import time
-from .BaseAPI import BaseModel
+from .base_api import BaseModel
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from agentforge.utils.Logger import Logger

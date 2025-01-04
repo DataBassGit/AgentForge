@@ -1,6 +1,6 @@
 import os
 import anthropic
-from .BaseAPI import BaseModel
+from .base_api import BaseModel
 
 API_KEY = os.getenv('ANTHROPIC_API_KEY')
 client = anthropic.Anthropic(api_key=API_KEY)

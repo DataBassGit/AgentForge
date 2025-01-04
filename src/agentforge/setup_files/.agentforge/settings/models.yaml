@@ -1,122 +1,124 @@
-# Default settings for all models unless overridden
-ModelSettings:
-#  API: openai_api
-#  Model: omni_model
+# Default model for all agents unless overridden
+Selected Model:
+  API: gemini_api
+  Model: gemini_flash
 #  API: lm_studio_api
 #  Model: LMStudio
-  API: bakollama_api
-  Model: Llama3.1_70b
-  Params: # Default parameter values
-    max_new_tokens: 3000
-    temperature: 0.8
-    top_p: 0.1
-    n: 1
-    stop: null
-    do_sample: true
-    return_prompt: false
-    return_metadata: false
-    typical_p: 0.95
-    repetition_penalty: 1.05
-    encoder_repetition_penalty: 1.0
-    top_k: 40
-    min_length: 10
-    no_repeat_ngram_size: 0
-    num_beams: 1
-    penalty_alpha: 0
-    length_penalty: 1
-    early_stopping: false
-    pad_token_id: null
-    eos_token_id: null
-    use_cache: true
-    num_return_sequences: 1
-    bad_words_ids: null
-    seed: -1
+#  API: openai_api
+#  Model: omni_model
+#  Model: o1_preview
 
 # Library of Models and Parameter Defaults Override
-ModelLibrary:
-  openai_api:
-    module: "openai"
-    class: "GPT"
-    models:
-      omni_model:
-        name: gpt-4o
-        params: # Specific parameters for the model
-          max_new_tokens: 3500
-      smart_model:
-        name: gpt-4
-      smart_fast_model:
-        name: gpt-4-turbo-2024-04-09
-      fast_model:
-        name: gpt-3.5-turbo
-      long_fast_model:
-        name: gpt-3.5-turbo-16k
-      old_fast_model:
-        name: gpt-3.5-turbo-0613
-      old_long_fast_model:
-        name: gpt-3.5-turbo-16k-0613
-  groq_api:
-    module: "groq_api"
-    class: "GroqAPI"
-    models:
-      llama31:
-        name: llama-3.1-70b-versatile
-  openrouter_api:
-    module: "openrouter"
-    class: "OpenRouter"
-    models:
-      phi3med:
-        name: microsoft/phi-3-medium-128k-instruct:free
-      hermes:
-        name: nousresearch/hermes-3-llama-3.1-405b
-      reflection:
-        name: mattshumer/reflection-70b:free
-  claude_old:
-    module: "claude_old"
-    class: "Claude"
-    models:
-      claude:
-        name: claude-2
-  claude3_api:
-    module: "anthropic"
-    class: "Claude"
-    models:
-      claude-3:
-        name: claude-3-opus-20240229
+Model Library:
+  openai_api: # name of the respective api script
+    O1Series: # Name of the Class for the api
+      models: # List of model configurations
+        o1:   # Model name for selection referencing
+          identifier: o1 # model identifier expected by the API
+          params: # model parameter overrides
+        o1_preview:
+          identifier: o1-preview
+        o1_mini:
+          identifier: o1-mini
+
+      params: # Default model parameters for a model class may nor exist or be left empty without issues
+
+    GPT:
+      models:
+        omni_model:
+          identifier: gpt-4o
+          params: # Example of overriding default model parameters for a singular model configuration
+            max_new_tokens: 15000
+
+        smart_model:
+          identifier: gpt-4
+
+        smart_fast_model:
+          identifier: gpt-4-turbo
+
+        fast_model:
+          identifier: gpt-3.5-turbo
+
+      params: # Example of model parameters for GPT class
+        max_tokens: 10000
+        n: 1
+        presence_penalty: 0
+        stop: null
+        temperature: 0.8
+        top_p: 0.1
+
+  anthropic_api:
+    Claude:
+      models:
+        claude3:
+          identifier: claude-3-opus-20240229
+
+    params:
+      max_tokens: 10000
+      temperature: 0.8
+      top_p: 0.1
+
   gemini_api:
-    module: "gemini"
-    class: "Gemini"
-    models:
-      gemini-pro:
-        name: gemini-1.5-pro
-      gemini-flash:
-        name: gemini-1.5-flash
+    Gemini:
+      models:
+        gemini_pro:
+          identifier: gemini-1.5-pro
+        gemini_flash:
+          identifier: gemini-1.5-flash
+
+      params:
+        candidate_count: 1
+        max_output_tokens: 10000
+        temperature: 0.8
+        top_k: 40
+        top_p: 0.1
+
   lm_studio_api:
-    module: "LMStudio"
-    class: "LMStudio"
-    models:
-      LMStudio:
-        name: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
-        params:
-          host_url: "http://localhost:1234/v1/chat/completions"
-          allow_custom_value: True
+    LMStudio:
+      models:
+        Llama3_8B:
+          identifier: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
+
+      params:
+        host_url: http://localhost:1234/v1/chat/completions
+        max_tokens: 10000
+        stream: false
+        temperature: 0.8
+
   ollama_api:
-    module: "ollama"
-    class: "Ollama"
-    models:
-      Llama3.1_70b:
-        name: "llama3.1:70b"
-        params:
-          host_url: "http://localhost:11434/api/generate"
-          allow_custom_value: True
-  bakollama_api:
-    module: "bakollama"
-    class: "BakoLlama"
-    models:
-      Llama3.1_70b:
-        name: "llama3.1:70b"
-        params:
-          host_url: "http://text-cellium.ngrok.app/v1/chat/completions"
-          allow_custom_value: True
+    Ollama:
+      models:
+        Llama3.1_70b:
+          identifier: llama3.1:70b
+
+      params:
+        host_url: http://localhost:11434/api/generate
+        max_tokens: 10000
+        stream: false
+        temperature: 0.8
+
+  openrouter_api:
+    OpenRouter:
+      models:
+        phi3med:
+          identifier: microsoft/phi-3-medium-128k-instruct:free
+        hermes:
+          identifier: nousresearch/hermes-3-llama-3.1-405b
+        reflection:
+          identifier: mattshumer/reflection-70b:free
+
+  groq_api:
+    GroqAPI:
+      models:
+        llama31:
+          identifier: llama-3.1-70b-versatile
+
+      params:
+        max_tokens: 10000
+        seed: -1
+        stop: null
+        temperature: 0.8
+        top_p: 0.1
 
 # Embedding Library (Not much to see here)
 EmbeddingLibrary:

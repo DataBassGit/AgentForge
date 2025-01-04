@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from agentforge import __version__
 
 LICENSE = "GNU General Public License v3 or later (GPLv3+)"
 
@@ -10,7 +11,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.4.1",
+    version="0.5.0",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -18,9 +19,16 @@ setup(
     include_package_data=True,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    entry_points={
+        "console_scripts": [
+            "agentforge=agentforge.cli:main"
+        ]
+    },
     install_requires=[
-        "chromadb==0.5.3",
-        # "numpy==1.26.4",
+        # "chromadb==0.5.3",
+        "chromadb==0.6.1",
+        "numpy<2.0.0; python_version<'3.12'",
+        "numpy>=2.0.0; python_version>='3.12'",
         "sentence-transformers",
         "wheel",
         "groq",
@@ -61,20 +69,13 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
     python_requires=">=3.9",
     package_data={
         'agentforge.utils.guiutils': ['DiscordClient.py'],
         '': ['*.yaml'],  # Include your file types as needed
     },
-    # package_data={
-    #     ".agentforge.utils.setup_files": ["*", "**/*"],
-    #     ".agentforge.utils.guiutils": ["*", "**/*"],
-    # },
-    # entry_points={
-    #     'console_scripts': [
-    #         '.agentforge=.agentforge.utils.setup_files.agentforge_cli:main',
-    #     ],
-    # }
 
 )

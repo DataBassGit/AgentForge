@@ -1,6 +1,6 @@
 import requests
 import json
-from .BaseAPI import BaseModel
+from .base_api import BaseModel
 
 class LMStudio(BaseModel):
     """
@@ -8,6 +8,7 @@ class LMStudio(BaseModel):
     """
 
     def _do_api_call(self, prompt, **filtered_params):
+        url = filtered_params.pop('host_url', 'http://localhost:1234/v1/chat/completions')
         headers = {'Content-Type': 'application/json'}
         data = {
             "model": self.model_name,
@@ -15,7 +16,6 @@ class LMStudio(BaseModel):
             **filtered_params
         }
 
-        url = filtered_params.pop('host_url', 'http://localhost:1234/v1/chat/completions')
         response = requests.post(url, headers=headers, json=data)
 
         if response.status_code != 200:

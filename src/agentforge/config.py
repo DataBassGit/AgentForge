@@ -5,7 +5,7 @@ import yaml
 import re
 import pathlib
 import sys
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from ruamel.yaml import YAML
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
@@ -34,9 +34,9 @@ class Config:
     _lock = threading.Lock()  # Class-level lock for thread safety
     pattern = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
 
-    # ---------------------------------
+    # ------------------------------------------------------------------------
     # Initialization
-    # ---------------------------------
+    # ------------------------------------------------------------------------
 
     def __new__(cls, *args, **kwargs):
         """
@@ -95,9 +95,9 @@ class Config:
 
         raise FileNotFoundError(f"Could not find the '.agentforge' directory starting from {script_dir}")
 
-    # ---------------------------------
+    # ------------------------------------------------------------------------
     # Configuration Loading
-    # ---------------------------------
+    # ------------------------------------------------------------------------
 
     def load_all_configurations(self):
         """
@@ -117,9 +117,9 @@ class Config:
                             filename_without_ext = os.path.splitext(file)[0]
                             nested_dict[filename_without_ext] = data
 
-    # ---------------------------------
+    # ------------------------------------------------------------------------
     # Save Configuration Method
-    # ---------------------------------
+    # ------------------------------------------------------------------------
 
     def save(self):
         """
@@ -143,44 +143,33 @@ class Config:
                         if isinstance(value, dict) and key in existing_data:
                             # Merge dictionaries for nested structures
                             existing_data[key].update(value)
-                        else:
-                            # Replace or add the top-level key
-                            existing_data[key] = value
+                            continue
+
+                        # Replace or add the top-level key
+                        existing_data[key] = value
 
                     # Save the updated configuration back to the file
                     with open(system_yaml_path, 'w') as yaml_file:
                         _yaml.dump(existing_data, yaml_file)
-                else:
-                    print("No system settings to save.")
+                    return
+                print("No system settings to save.")
             except Exception as e:
                 print(f"Error saving configuration to {system_yaml_path}: {e}")
 
-    # ---------------------------------
+    # ------------------------------------------------------------------------
     # Agent and Flow Configuration
-    # ---------------------------------
+    # ------------------------------------------------------------------------
 
     def load_agent_data(self, agent_name: str) -> Dict[str, Any]:
         """
-        Loads configuration data for a specified agent, applying any overrides specified in the agent's configuration.
-
-        Parameters:
-            agent_name (str): The name of the agent for which to load configuration data.
-
-        Returns:
-            dict: The agent's configuration data.
-
-        Raises:
-            FileNotFoundError: If the agent configuration or persona file is not found.
-            KeyError: If required keys are missing.
+        Loads configuration data for a specified agent, applying any overrides in the agent’s config.
+        Returns a dict containing everything needed to run that agent.
         """
-        self.reload()
-
         agent = self.find_config('prompts', agent_name)
-        if not agent:
-            raise FileNotFoundError(f"Agent '{agent_name}' not found in configuration.")
 
-        api, model, final_model_params = self.resolve_model_overrides(agent)
-        llm = self.get_model(api, model)
+        api_name, class_name, model_name, final_params = self.resolve_model_overrides(agent)
+        llm = self.get_model(api_name, class_name, model_name)
+
         persona_data = self.load_persona(agent)
         prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
         settings = self.data.get('settings', {})
@@ -192,7 +181,7 @@ class Config:
             'name': agent_name,
             'settings': settings,
             'llm': llm,
-            'params': final_model_params,
+            'params': final_params,
             'persona': persona_data,
             'prompts': prompts,
             'debugging_text': debugging_text,
@@ -219,69 +208,127 @@ class Config:
 
         return flow
 
-    def resolve_model_overrides(self, agent: dict) -> tuple:
-        """
-        Resolves the model and API overrides for the agent, if any.
+    # ------------------------------------------------------------------------
+    # Model Overrides
+    # ------------------------------------------------------------------------
 
-        Parameters:
-            agent (dict): The agent's configuration data.
-
-        Returns:
-            tuple: The resolved API, model, and final model parameters.
+    def resolve_model_overrides(self, agent: dict) -> Tuple[str, str, str, Dict[str, Any]]:
         """
-        settings = self.data['settings']
+        Orchestrates finding and merging all relevant model overrides into
+        a final 4-tuple: (api_name, class_name, model_identifier, final_params).
+        """
+        api_name, model_name, agent_params_override = self._get_agent_api_and_model(agent)
+        api_section = self._get_api_section(api_name)
+        class_name, model_data = self._find_class_for_model(api_section, model_name)
+
+        model_identifier = self._get_model_identifier(api_name, model_name, model_data)
+        final_params = self._merge_params(api_section, class_name, model_data, agent_params_override)
+
+        return api_name, class_name, model_identifier, final_params
+
+    # Step 1: Identify which API and model is needed, returning agent-level params
+    def _get_agent_api_and_model(self, agent: dict) -> Tuple[str, str, Dict[str, Any]]:
+        """
+        Reads the 'Selected Model' defaults from the YAML and merges any agent-level
+        overrides, returning (api_name, model_name, agent_params_override).
+        Raises a ValueError if no valid API/Model can be determined.
+        """
+        selected_model = self.data['settings']['models'].get('Selected Model', {})
+        default_api = selected_model.get('API')
+        default_model = selected_model.get('Model')
 
         model_overrides = agent.get('ModelOverrides', {})
-        model_settings = settings['models']['ModelSettings']
+        api_name = model_overrides.get('API', default_api)
+        model_name = model_overrides.get('Model', default_model)
+        agent_params_override = model_overrides.get('Params', {})
 
-        api = model_overrides.get('API', model_settings['API'])
-        model = model_overrides.get('Model', model_settings['Model'])
+        if not api_name or not model_name:
+            raise ValueError("No valid API/Model found in either Selected Model defaults or agent overrides.")
+        return api_name, model_name, agent_params_override
 
-        default_params = model_settings['Params']
-        params = settings['models']['ModelLibrary'].get(api, {}).get('models', {}).get(model, {}).get('params', {})
 
-        combined_params = {**default_params, **params}
-        final_model_params = {**combined_params, **model_overrides.get('Params', {})}
+    # Step 2: Retrieve the correct API section from the Model Library
+    def _get_api_section(self, api_name: str) -> Dict[str, Any]:
+        """
+        Returns the relevant subsection of the Model Library for the requested API.
+        Raises a ValueError if the API is not in the Model Library.
+        """
+        model_library = self.data['settings']['models'].get('Model Library', {})
+        if api_name not in model_library:
+            raise ValueError(f"API '{api_name}' does not exist in the Model Library.")
+        return model_library[api_name]
 
-        return api, model, final_model_params
+    # Step 3: Locate which class has the requested model and return its data
+    @staticmethod
+    def _find_class_for_model(api_section: Dict[str, Any], model_name: str) -> Tuple[str, Dict[str, Any]]:
+        """
+        Loops over the classes in the given API section to find one that has 'model_name'
+        in its 'models' dict. Returns (class_name, model_data).
+        Raises a ValueError if the model is not found.
+        """
+        for candidate_class, class_config in api_section.items():
+            if candidate_class == 'params':  # skip any top-level 'params' key
+                continue
+            models_dict = class_config.get('models', {})
+            if model_name in models_dict:
+                return candidate_class, models_dict[model_name]
 
-    # ---------------------------------
+        raise ValueError(f"Model '{model_name}' not found in this API section.")
+
+    # Step 4: Get the unique identifier for the model
+    @staticmethod
+    def _get_model_identifier(api_name: str, model_name: str, model_data: Dict[str, Any]) -> str:
+        """
+        Reads the 'identifier' for the selected model from the YAML.
+        Raises a ValueError if it doesn't exist.
+        """
+        identifier = model_data.get('identifier')
+        if not identifier:
+            raise ValueError(f"Identifier not found for Model '{model_name}' under API '{api_name}' in Model Library.")
+        return identifier
+
+    # Step 5: Merge API-level, class-level, model-level params, and agent overrides
+    @staticmethod
+    def _merge_params(api_section: Dict[str, Any], class_name: str, model_data: Dict[str, Any],
+                      agent_params_override: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Takes all the relevant parameter dicts and merges them in ascending specificity:
+           1. API-level params (api_section['params'])
+           2. class-level params (api_section[class_name]['params'])
+           3. model-level params (model_data['params'])
+           4. agent overrides (agent_params_override)
+        Returns the merged dict.
+        """
+        api_level_params = api_section.get('params', {})
+        class_level_params = api_section[class_name].get('params', {})
+        model_level_params = model_data.get('params', {})
+
+        merged_params = {**api_level_params, **class_level_params, **model_level_params, **agent_params_override}
+        return merged_params
+
+    # ------------------------------------------------------------------------
     # Model Handling
-    # ---------------------------------
+    # ------------------------------------------------------------------------
 
-    def get_model(self, api: str, model: str):
+    @staticmethod
+    def get_model(api_name: str, class_name: str, model_identifier: str) -> Any:
         """
-        Loads a specified language model based on API and model settings.
-
-        Parameters:
-            api (str): The API name.
-            model (str): The model name.
-
-        Returns:
-            object: An instance of the requested model class.
+        Dynamically imports and instantiates the Python class for the requested API/class/identifier.
+        We assume:
+         - The Python module name is derived from the API’s name (e.g. openai_api).
+         - The Python class name is exactly the same as the key used under that API (e.g. openai_api -> "O1Series", "GPT", etc.).
+         - The model’s identifier is a valid identifier.
         """
-        library = self.data['settings']['models']['ModelLibrary']
-        api_data = library[api]
-        model_data = api_data['models'][model]
-
-        model_name = model_data['name']
-        module_name = api_data['module']
-
-        # If the model itself specifies a class, use that, otherwise use the API-level default.
-        class_name = model_data.get('class', api_data.get('class'))
-
-        # Dynamically import the module
-        module = importlib.import_module(f".llm.{module_name}", package=__package__)
-
-        # Get the appropriate class
+        # Actually import:  from .llm import <python_module_name>
+        module = importlib.import_module(f".llm.{api_name}", package=__package__)
         model_class = getattr(module, class_name)
 
-        # Instantiate
-        return model_class(model_name)
+        # Instantiate the model with the identifier
+        return model_class(model_identifier)
 
-    # ---------------------------------
+    # ------------------------------------------------------------------------
     # Utility Methods
-    # ---------------------------------
+    # ------------------------------------------------------------------------
 
     def find_config(self, category: str, config_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -304,7 +351,11 @@ class Config:
                         return result
             return None
 
-        return search_nested_dict(self.data.get(category, {}), config_name)
+        config = search_nested_dict(self.data.get(category, {}), config_name)
+        if not config:
+            raise FileNotFoundError(f"Config '{config_name}' not found in configuration.")
+
+        return config
 
     @staticmethod
     def get_nested_dict(data: dict, path_parts: tuple):

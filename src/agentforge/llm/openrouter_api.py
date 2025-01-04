@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-from .BaseAPI import BaseModel
+from .base_api import BaseModel
 from agentforge.utils.Logger import Logger
 
 # Get the API key from the environment variable
@@ -17,20 +17,19 @@ class OpenRouter(BaseModel):
 
 
     def _do_api_call(self, prompt, **filtered_params):
+        url = filtered_params.pop('host_url', 'https://openrouter.ai/api/v1/chat/completions')
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": filtered_params.get("http_referer", ""),
+            "HTTP-Referer": filtered_params.pop("http_referer", ""),
             "X-Title": 'AgentForge'
         }
-
         data = {
             "model": self.model_name,
             "messages": prompt,
             **filtered_params
         }
 
-        url = filtered_params.pop('host_url', 'https://openrouter.ai/api/v1/chat/completions')
         response = requests.post(url, headers=headers, json=data)
 
         if response.status_code != 200:
