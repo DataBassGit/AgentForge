@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 
 class Agent:
-    def __init__(self, agent_name: Optional[str] = None, log_file: Optional[str] = None):
+    def __init__(self, agent_name: Optional[str] = None, log_file: Optional[str] = 'AgentForge'):
         """
         Initializes an Agent instance, setting up its name, logger, data attributes, and agent-specific configurations.
         It attempts to load the agent's configuration data and storage settings.

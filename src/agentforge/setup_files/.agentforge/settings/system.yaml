@@ -1,26 +1,36 @@
-DBFreshStart: false
-DebugMode: false
-DebuggingText: 'Text designed to simulate an LLM response for debugging purposes without
-  having to invoke the model.'
-Embedding: all-distilroberta-v1
+# Persona Settings
+PersonasEnabled: true
+Persona: default
+
+# Storage Settings
+StorageEnabled: true
+SaveMemory: true  # Saving Memory won't work if Storage is disabled
 ISOTimeStampMemory: true
+UnixTimeStampMemory: true
+PersistDirectory: ./DB/ChromaDB  # Relative path for persistent storage
+DBFreshStart: false # Will wipe storage everytime the system is initialized
+Embedding: all-distilroberta-v1
+
+# Debug Settings
+DebugMode: false
+SaveMemoryWhileDebugging: false
+DebuggingText: Text designed to simulate an LLM response for debugging purposes without
+  having to invoke the model.
+
+# Misc. Settings
+OnTheFly: true
+
+# Logging Settings
 Logging:
   Enabled: true
-  Files:
+  Folder: ./Logs
+  Files: # Log levels: critical, error, warning, info, debug.
     AgentForge: error
     ModelIO: error
     Actions: error
     Results: error
     DiscordClient: error
-    null: warning
-  Folder: ./Logs
-OnTheFly: true
+
+# The system will have Read/Write access to the paths below.
 Paths:
   Files: ./Files
-PersistDirectory: ./DB/ChromaDB
-Persona: default
-PersonasEnabled: true
-SaveMemory: true
-SaveMemoryWhileDebugging: false
-StorageEnabled: true
-UnixTimeStampMemory: true

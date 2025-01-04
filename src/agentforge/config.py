@@ -6,6 +6,7 @@ import re
 import pathlib
 import sys
 from typing import Dict, Any, Optional
+from ruamel.yaml import YAML
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
     """
@@ -122,26 +123,37 @@ class Config:
 
     def save(self):
         """
-        Saves changes to the configuration back to the system.yaml file.
+        Saves changes to the configuration back to the system.yaml file,
+        preserving structure, formatting, and comments.
         """
         with Config._lock:
             system_yaml_path = self.config_path / 'settings' / 'system.yaml'
 
-            # Load the existing system.yaml data
-            existing_data = load_yaml_file(str(system_yaml_path))
+            _yaml = YAML()
+            _yaml.preserve_quotes = True  # Preserves quotes around strings if they exist
 
-            if 'settings' in self.data and 'system' in self.data['settings']:
-                # Update existing data with the current settings
-                existing_data.update(self.data['settings']['system'])
+            try:
+                # Load the existing system.yaml with formatting preserved
+                with open(system_yaml_path, 'r') as yaml_file:
+                    existing_data = _yaml.load(yaml_file)
 
-                # Write back to system.yaml
-                try:
+                if 'settings' in self.data and 'system' in self.data['settings']:
+                    # Update the existing data with the new settings
+                    for key, value in self.data['settings']['system'].items():
+                        if isinstance(value, dict) and key in existing_data:
+                            # Merge dictionaries for nested structures
+                            existing_data[key].update(value)
+                        else:
+                            # Replace or add the top-level key
+                            existing_data[key] = value
+
+                    # Save the updated configuration back to the file
                     with open(system_yaml_path, 'w') as yaml_file:
-                        yaml.dump(existing_data, yaml_file, default_flow_style=False)
-                except Exception as e:
-                    print(f"Error saving configuration to {system_yaml_path}: {e}")
-                return
-            print("No system settings to save.")
+                        _yaml.dump(existing_data, yaml_file)
+                else:
+                    print("No system settings to save.")
+            except Exception as e:
+                print(f"Error saving configuration to {system_yaml_path}: {e}")
 
     # ---------------------------------
     # Agent and Flow Configuration
