@@ -46,6 +46,7 @@ setup(
         "semantic-text-splitter",
         "google-generativeai",
         "PyYAML",
+        "ruamel.yaml",
         "requests",
         "ruamel.yaml",
         "xmltodict",
