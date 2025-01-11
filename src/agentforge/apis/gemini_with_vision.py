@@ -8,33 +8,27 @@ import numpy as np
 from PIL import Image
 from typing import Union, List, Any
 from io import BytesIO
+from .base_api import BaseModel
 
 # Get API key from Env
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 genai.configure(api_key=GOOGLE_API_KEY)
 
 
-class Gemini_With_Vision:
+class Gemini_With_Vision(BaseModel):
     """
     A class for interacting with Google's Generative AI models to generate text based on provided prompts and images.
     
-    Extends the base Gemini functionality to handle both text and vision inputs, including error handling 
-    for rate limits and retries for failed requests.
-
-    Attributes:
-        num_retries (int): The number of times to retry generating text upon encountering errors.
+    Extends the BaseModel functionality to handle both text and vision inputs.
     """
-    num_retries = 4
 
-    def __init__(self, model):
-        """
-        Initializes the Gemini_With_Vision class with the vision-capable model.
+    def __init__(self, model_name, **kwargs):
+        super().__init__(model_name, **kwargs)
+        self._model = genai.GenerativeModel(model_name)
 
-        Parameters:
-            model (str): The identifier of the Google Generative AI model to use. Defaults to gemini-pro-vision.
-        """
-        self._model = genai.GenerativeModel(model)
-        self.logger = None
+    @staticmethod
+    def _prepare_prompt(model_prompt):
+        return '\n\n'.join([model_prompt.get('System', ''), model_prompt.get('User', '')])
 
     def _process_image_input(self, image_input: Union[str, bytes, Image.Image, np.ndarray]) -> Any:
         """
@@ -119,30 +113,7 @@ class Gemini_With_Vision:
             self.logger.log(error_msg, 'error')
             raise
 
-    def generate_response(self, model_prompt, image_parts=None, **params):
-        """
-        Generates text based on the provided prompts, images, and additional parameters for the model.
-
-        Parameters:
-            model_prompt (dict[str]): A dictionary containing the model prompts for generating a completion.
-            image_parts (Union[List[Union[str, bytes, Image.Image, np.ndarray]], 
-                             Union[str, bytes, Image.Image, np.ndarray]]): 
-                Single image or list of images in various formats:
-                - File paths
-                - Base64 encoded strings
-                - Bytes objects
-                - PIL Image objects
-                - NumPy arrays
-            **params: Arbitrary keyword arguments providing additional options to the model.
-
-        Returns:
-            str or None: The generated text from the model or None if the operation fails after retry attempts.
-        """
-        self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
-        self.logger.log_prompt(model_prompt)
-
-        prompt = '\n\n'.join([model_prompt.get('System', ''), model_prompt.get('User', '')])
-        
+    def _do_api_call(self, prompt, image_parts=None, **filtered_params):
         # Combine text prompt with images if provided
         content = [prompt]
         
@@ -163,43 +134,30 @@ class Gemini_With_Vision:
             
             content.extend(processed_images)
 
-        # Will retry to get response if a rate limit or bad gateway error is received
-        reply = None
-        for attempt in range(self.num_retries):
-            backoff = 8 ** (attempt + 2)
-            try:
-                response = self._model.generate_content(
-                    content,
-                    safety_settings={
-                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                    },
-                    generation_config=genai.types.GenerationConfig(
-                        max_output_tokens=params.get("max_new_tokens", 2048),
-                        temperature=params.get("temperature", 0.7),
-                        top_p=params.get("top_p", 1),
-                        top_k=params.get("top_k", 1),
-                        candidate_count=max(params.get("candidate_count", 1), 1)
-                    )
-                )
+        response = self._model.generate_content(
+            content,
+            safety_settings={
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            },
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=filtered_params.get("max_new_tokens", 2048),
+                temperature=filtered_params.get("temperature", 0.7),
+                top_p=filtered_params.get("top_p", 1),
+                top_k=filtered_params.get("top_k", 1),
+                candidate_count=max(filtered_params.get("candidate_count", 1), 1)
+            )
+        )
+        return response
 
-                reply = response.text
-                self.logger.log_response(reply)
-                print(response)
+    def _process_response(self, raw_response):
+        return raw_response.text
 
-                break
-
-            except Exception as e:
-                self.logger.log(f"\n\nError: Retrying in {backoff} seconds...\nError Code: {e}", 'warning')
-                time.sleep(backoff)
-
-        # reply will be none if we have failed above
-        if reply is None:
-            self.logger.log("\n\nError: Failed to get Gemini Response", 'critical')
-
-        return reply
+    def generate_response(self, model_prompt, image_parts=None, **params):
+        """Wrapper method to maintain backward compatibility"""
+        return self.generate(model_prompt, image_parts=image_parts, **params)
 
 
 if __name__ == "__main__":

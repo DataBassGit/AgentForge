@@ -6,7 +6,7 @@ import asyncio
 import threading
 from agentforge.utils.logger import Logger
 from agentforge.tools.semantic_chunk import semantic_chunk
-from agentforge.utils.discordrefactor.discord_utils import DiscordUtils
+from agentforge.utils.discord.discord_utils import DiscordUtils
 
 
 
@@ -69,7 +69,8 @@ class DiscordClient:
                 "author": message.author.display_name,
                 "author_id": message.author,
                 "timestamp": message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                "mentions": message.mentions
+                "mentions": message.mentions,
+                "attachments": message.attachments
             }
 
             # Add thread information to message_data if the message is in a thread
