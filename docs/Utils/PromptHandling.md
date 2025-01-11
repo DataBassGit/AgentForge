@@ -48,7 +48,7 @@ class PromptHandling:
 **Example Usage**:
 
 ```python
-from agentforge.utils.PromptProcessor import PromptProcessor
+from agentforge.utils.prompt_processor import PromptProcessor
 
 prompt_handler = PromptProcessor()
 template = "Hello, {user_name}! Today is {day_of_week}."

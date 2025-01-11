@@ -1,4 +1,4 @@
-from agentforge.utils.Logger import Logger
+from agentforge.utils.logger import Logger
 from typing import Any, Dict
 from ..utils.ChromaUtils import ChromaUtils
 

@@ -1,9 +1,9 @@
 from agentforge.agents.LearnKGAgent import LearnKGAgent
-from agentforge.tools.GetText import GetText
-from agentforge.tools.IntelligentChunk import intelligent_chunk
+from agentforge.tools.get_text import GetText
+from agentforge.tools.intelligent_chunk import intelligent_chunk
 from agentforge.modules.InjectKG import Consume
-from agentforge.utils.Logger import Logger
-from agentforge.tools.CleanString import Strip
+from agentforge.utils.logger import Logger
+from agentforge.tools.clean_string import Strip
 from ..utils.ChromaUtils import ChromaUtils
 import os
 

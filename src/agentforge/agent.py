@@ -1,8 +1,7 @@
 from .config import Config
-# from agentforge.llm import LLM
-from agentforge.llm.base_api import BaseModel
-from agentforge.utils.Logger import Logger
-from agentforge.utils.PromptProcessor import PromptProcessor
+from agentforge.apis.base_api import BaseModel
+from agentforge.utils.logger import Logger
+from agentforge.utils.prompt_processor import PromptProcessor
 from typing import Any, Dict, Optional
 
 
@@ -118,9 +117,9 @@ class Agent:
                     self.template_data[key.lower()] = self.persona[key]
 
     def load_model(self):
-        self.model = self.agent_data.get('llm')
+        self.model = self.agent_data.get('model')
         if not self.model:
-            error_msg = f"LLM not specified for agent '{self.agent_name}'."
+            error_msg = f"Model not specified for agent '{self.agent_name}'."
             self.logger.error(error_msg)
             raise ValueError(error_msg)
 

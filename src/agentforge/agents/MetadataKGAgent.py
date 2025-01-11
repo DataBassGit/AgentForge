@@ -1,5 +1,5 @@
 from agentforge.agent import Agent
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 
 class MetadataKGAgent(Agent):

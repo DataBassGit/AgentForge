@@ -31,7 +31,7 @@ The logging system consists of two main classes:
 To use the `Logger`, you typically create an instance of it in your module or component:
 
 ```python
-from agentforge.utils.Logger import Logger
+from agentforge.utils.logger import Logger
 
 # Initialize the logger with the name of your module or component
 logger = Logger(name='MyModule')

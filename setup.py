@@ -75,7 +75,7 @@ setup(
     ],
     python_requires=">=3.9",
     package_data={
-        'agentforge.utils.guiutils': ['DiscordClient.py'],
+        'agentforge.utils.guiutils': ['discord_client.py'],
         '': ['*.yaml'],  # Include your file types as needed
     },
 

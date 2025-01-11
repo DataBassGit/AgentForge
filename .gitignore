@@ -36,21 +36,21 @@ Examples/Chatbot/DB/
 /SalienceBot/Files/
 /SalienceBot/Workspace/
 /Examples/KG/DB/
-/Sandbox/DB/
+/sandbox/DB/
 
 
-Sandbox/Logs/
+sandbox/Logs/
 
-
-
-docs/.obsidian/
 
 
 docs/.obsidian/
 
-Sandbox/Logs/
 
-Sandbox/modules/Logs/
+docs/.obsidian/
+
+sandbox/Logs/
+
+sandbox/modules/Logs/
 
 src/agentforge/setup_files/settings/models.yaml
 /.obsidian/

@@ -65,7 +65,7 @@ You can import and utilize these utilities directly in your code as needed. Belo
 ### Example: Using `ParsingUtils`
 
 ```python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 # Initialize the ParsingUtils class
 parsing_utils = ParsingProcessor()

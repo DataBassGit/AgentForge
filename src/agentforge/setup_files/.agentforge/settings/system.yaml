@@ -23,7 +23,7 @@ OnTheFly: true
 # Logging Settings
 Logging:
   Enabled: true
-  Folder: ./Logs
+  Folder: ./logs
   Files: # Log levels: critical, error, warning, info, debug.
     AgentForge: error
     ModelIO: error
@@ -33,4 +33,4 @@ Logging:
 
 # The system will have Read/Write access to the paths below.
 Paths:
-  Files: ./Files
+  Files: ./files

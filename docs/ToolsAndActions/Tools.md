@@ -66,7 +66,7 @@ To execute a **tool**, use the `dynamic_tool` method in the `ToolUtils` class. T
 To execute a **tool**, use the necessary information from the **tool**'s **YAML** file. Below is an example of how to use the `dynamic_tool` method with details typically found in a **tool**'s **YAML** definition:
 
 ```yaml
-# GoogleSearch.yaml
+# google_search.yaml
 Name: Google Search
 Args: 
   - query (str)
@@ -78,16 +78,16 @@ Script: .agentforge.tools.GoogleSearch
 Based on the **YAML** file, we construct a `payload` in Python and call the `dynamic_tool` method:
 
 ```python
-from agentforge.utils.ToolUtils import ToolUtils
+from agentforge.utils.tool_utils import ToolUtils
 
 tool_utils = ToolUtils()
-# The 'payload' dictionary is constructed based on the specifications from the 'GoogleSearch.yaml' file
+# The 'payload' dictionary is constructed based on the specifications from the 'google_search.yaml' file
 payload = {
-  "command": "google_search", # Corresponds to the 'Command' in the YAML
-  "args": {
-    "query": "OpenAI",       # Corresponds to the 'Args' in the YAML
-    "number_result": 5       # Corresponds to the 'Args' in the YAML
-  }
+    "command": "google_search",  # Corresponds to the 'Command' in the YAML
+    "args": {
+        "query": "OpenAI",  # Corresponds to the 'Args' in the YAML
+        "number_result": 5  # Corresponds to the 'Args' in the YAML
+    }
 }
 
 # 'tool_module' is the path to the script specified under 'Script' in the YAML file

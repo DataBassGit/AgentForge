@@ -1,5 +1,5 @@
 from agentforge.config import Config
-from agentforge.utils.Logger import Logger
+from agentforge.utils.logger import Logger
 import importlib
 
 

@@ -37,7 +37,7 @@ The `ParsingUtils` class offers the following key functionalities:
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 parsing_utils = ParsingProcessor()
 
@@ -84,7 +84,7 @@ def hello_world():
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 parsing_utils = ParsingProcessor()
 
@@ -130,7 +130,7 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 parsing_utils = ParsingProcessor()
 
@@ -175,7 +175,7 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 parsing_utils = ParsingProcessor()
 
@@ -228,7 +228,7 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 parsing_utils = ParsingProcessor()
 
@@ -282,7 +282,7 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 parsing_utils = ParsingProcessor()
 
@@ -335,7 +335,7 @@ print(parsed_data)
 **Example Usage**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 parsing_utils = ParsingProcessor()
 
@@ -386,7 +386,7 @@ Agents may return responses that include structured data in various formats (YAM
 **Example**:
 
 ~~~python
-from agentforge.utils.ParsingProcessor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 response = '''
 Thank you for your input. Here are the details:

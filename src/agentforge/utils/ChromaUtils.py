@@ -1,16 +1,13 @@
 import os
 import uuid
-# from pathlib import Path
 from datetime import datetime
 from typing import Optional, Union
-
-# from scipy.spatial import distance
 
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
-from agentforge.utils.Logger import Logger
+from agentforge.utils.logger import Logger
 from ..config import Config
 
 logger = Logger(name="Chroma Utils")

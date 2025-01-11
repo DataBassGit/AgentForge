@@ -30,6 +30,7 @@ def load_yaml_file(file_path: str) -> Dict[str, Any]:
         return {}
 
 class Config:
+    _debug = False
     _instance = None
     _lock = threading.Lock()  # Class-level lock for thread safety
     pattern = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
@@ -68,14 +69,13 @@ class Config:
             # Load the configuration data
             self.load_all_configurations()
 
-    @staticmethod
-    def find_project_root(root_path: Optional[str] = None) -> pathlib.Path:
+    def find_project_root(self, root_path: Optional[str] = None) -> pathlib.Path:
         # If a root path was provided, use it to checking that .agentforge exists
         if root_path:
             custom_root = pathlib.Path(root_path).resolve()
             agentforge_dir = custom_root / ".agentforge"
             if agentforge_dir.is_dir():
-                print(f"\n\nUsing custom project root: {custom_root}")
+                if self._debug: print(f"\n\nUsing custom project root: {custom_root}")
                 return custom_root
             # Early return or raise an error if .agentforge isn’t found in the custom path
             raise FileNotFoundError(f"No .agentforge found in custom root path: {custom_root}")
@@ -83,13 +83,13 @@ class Config:
         # Otherwise, fall back to the original search logic
         script_dir = pathlib.Path(sys.argv[0]).resolve().parent
         current_dir = script_dir
-        print(f"\n\nCurrent working directory: {os.getcwd()}")
+        if self._debug: print(f"\n\nCurrent working directory: {os.getcwd()}")
 
         while current_dir != current_dir.parent:
             potential_dir = current_dir / ".agentforge"
-            print(f"Checking {potential_dir}")
+            if self._debug: print(f"Checking {potential_dir}")
             if potential_dir.is_dir():
-                print(f"Found .agentforge directory at: {current_dir}\n")
+                if self._debug: print(f"Found .agentforge directory at: {current_dir}\n")
                 return current_dir
             current_dir = current_dir.parent
 
@@ -168,7 +168,7 @@ class Config:
         agent = self.find_config('prompts', agent_name)
 
         api_name, class_name, model_name, final_params = self.resolve_model_overrides(agent)
-        llm = self.get_model(api_name, class_name, model_name)
+        model = self.get_model(api_name, class_name, model_name)
 
         persona_data = self.load_persona(agent)
         prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
@@ -180,7 +180,7 @@ class Config:
         return {
             'name': agent_name,
             'settings': settings,
-            'llm': llm,
+            'model': model,
             'params': final_params,
             'persona': persona_data,
             'prompts': prompts,
@@ -319,8 +319,8 @@ class Config:
          - The Python class name is exactly the same as the key used under that API (e.g. openai_api -> "O1Series", "GPT", etc.).
          - The model’s identifier is a valid identifier.
         """
-        # Actually import:  from .llm import <python_module_name>
-        module = importlib.import_module(f".llm.{api_name}", package=__package__)
+        # Actually import:  from .apis import <python_module_name>
+        module = importlib.import_module(f".apis.{api_name}", package=__package__)
         model_class = getattr(module, class_name)
 
         # Instantiate the model with the identifier
