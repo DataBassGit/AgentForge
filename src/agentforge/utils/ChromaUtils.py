@@ -151,10 +151,10 @@ class ChromaUtils:
                 self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(
                     model_name="all-MiniLM-L12-v2")
         except KeyError as e:
-            logger.log(f"Missing environment variable or setting: {e}", 'error')
+            logger.log(f"[init_embeddings] Missing environment variable or setting: {e}", 'error')
             raise
         except Exception as e:
-            logger.log(f"Error initializing embeddings: {e}", 'error')
+            logger.log(f"[init_embeddings] Error initializing embeddings: {e}", 'error')
             raise
 
     def init_storage(self):
@@ -175,7 +175,7 @@ class ChromaUtils:
             if self.config.data['settings']['system'].get('DBFreshStart'):
                 self.reset_memory()
         except Exception as e:
-            logger.log(f"Error initializing storage: {e}", 'error')
+            logger.log(f"[init_storage] Error initializing storage: {e}", 'error')
             raise
 
     def chromadb_settings(self):
@@ -262,7 +262,7 @@ class ChromaUtils:
 
             return result
         except Exception as e:
-            logger.log(f"Error peeking collection: {e}", 'error')
+            logger.log(f"[peek] Error peeking collection: {e}", 'error')
             return None
 
     def load_collection(self, collection_name: str, include: dict = None, where: dict = None, where_doc: dict = None):
@@ -376,7 +376,7 @@ class ChromaUtils:
                 num_results = min(num_results, max_result_count)
 
             if num_results <= 0:
-                logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
+                logger.log(f"[query_memory] No Results Found in '{collection_name}' collection!", 'warning')
                 return {}
 
             # Defaulting 'include' if None
@@ -408,7 +408,7 @@ class ChromaUtils:
             return result
 
         except Exception as e:
-            logger.log(f"Error querying memory: {e}", 'error')
+            logger.log(f"[query_memory] Error querying memory: {e}", 'error')
             return None
 
     def reset_memory(self):
@@ -462,14 +462,14 @@ class ChromaUtils:
                 if filtered_data['documents']:
                     return filtered_data
                 else:
-                    logger.log('Search by Threshold: No documents found that meet the threshold.', 'info')
+                    logger.log('[search_storage_by_threshold] No documents found that meet the threshold.', 'info')
             else:
                 logger.log('Search by Threshold: No documents found.', 'info')
 
             return {}
 
         except Exception as e:
-            logger.log(f"Error searching storage by threshold: {e}", 'error')
+            logger.log(f"[search_storage_by_threshold] Error searching storage by threshold: {e}", 'error')
             return {'failed': f"Error searching storage by threshold: {e}"}
 
     def return_embedding(self, text_to_embed: str):
@@ -522,7 +522,7 @@ class ChromaUtils:
 
             # Check if all metadata values are numeric (int or float)
             if not all(isinstance(value, (int, float)) for value in metadata_values):
-                logger.log(f"Error: The metadata tag '{metadata_tag}' contains non-numeric values.", 'error')
+                logger.log(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' contains non-numeric values.", 'error')
                 return None
 
             if metadata_values:
@@ -532,7 +532,7 @@ class ChromaUtils:
                     try:
                         target_index = metadata_values.index(max(metadata_values))
                     except:
-                        logger.log(f"Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.", 'error')
+                        logger.log(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.", 'error')
                         target_index = 0
             else:
                 target_index = 0
@@ -549,7 +549,7 @@ class ChromaUtils:
                 }
 
                 logger.log(
-                    f"Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
+                    f"[search_metadata_min_max] Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
                     'debug'
                 )
                 return max_metadata
@@ -557,7 +557,7 @@ class ChromaUtils:
                 return None
 
         except (KeyError, ValueError, IndexError) as e:
-            logger.log(f"Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')
+            logger.log(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')
             return None
 
     def delete_memory(self, collection_name, doc_id):
@@ -587,7 +587,7 @@ class ChromaUtils:
 
             # Check if documents is empty
             if not query_results['documents']:
-                logger.log("No documents found in query_results. Skipping reranking.", 'warning')
+                logger.log("[rerank_results] No documents found in query_results. Skipping reranking.", 'warning')
                 return query_results
 
             # Save the query results to a temporary collection
@@ -616,10 +616,10 @@ class ChromaUtils:
 
             return reranked_results
         except KeyError as e:
-            logger.log(f"KeyError occurred while reranking results: {e}", 'error')
+            logger.log(f"[rerank_results] KeyError occurred while reranking results: {e}", 'error')
             return None
         except Exception as e:
-            logger.log(f"Unexpected error occurred while reranking results: {e}", 'error')
+            logger.log(f"[rerank_results] Unexpected error occurred while reranking results: {e}", 'error')
             return None
 
     @staticmethod
