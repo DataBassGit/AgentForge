@@ -152,7 +152,8 @@ class DiscordUtils:
                     self.logger.error(f"[DiscordUtils.create_thread] Message with ID {message_id} not found in channel {channel_id}")
                     return None
 
-                if message.thread:
+                # Safely check if thread exists using hasattr
+                if hasattr(message, 'thread') and message.thread:
                     self.logger.info(f"[DiscordUtils.create_thread] Thread already exists for message {message_id}")
                     return message.thread.id
 
