@@ -30,9 +30,10 @@ class TestChromaStorage(unittest.TestCase):
         """
         Make sure we reset and disconnect after each test, so no data carries over.
         """
-        # We assume the class implements reset_storage and disconnect
-        self.storage.reset_storage()
-        self.storage.disconnect()
+        # Clear ONLY IF the chroma client exists otherwise no need to do anything
+        if self.storage.client:
+            self.storage.reset_storage()
+            self.storage.disconnect()
 
     def test_connect_disconnect(self):
         """
