@@ -28,6 +28,8 @@ class TestConfigIntegration(unittest.TestCase):
         real_agentforge = root_dir.parent / "src" / "agentforge" / "setup_files" / ".agentforge"
         shutil.copytree(real_agentforge, self.temp_root_path / ".agentforge")
 
+        Config(root_path=str(self.temp_root_path))
+
     def tearDown(self):
         # Clean up after each test
         self.temp_dir.cleanup()

@@ -1,0 +1,21 @@
+# Default Storage Settings for all agents unless overridden
+Selected Storage: chromadb
+Selected Embedding: DistilRoberta
+Storage Enabled: true
+Save Memory: true  # Saving Memory won't work if Storage is disabled
+ISO Time Stamp Memory: true
+Unix Time Stamp Memory: true
+Persist Directory: ./DB/  # Relative path for persistent storage
+DB Fresh Start: false # Will wipe storage everytime the system is initialized
+
+
+# Library of Storage and Configuration Defaults Override
+Storage Library:
+  chromadb: # name of the respective storage script
+    persona: default
+    config: # List of storage configurations
+      Persist Directory: ./DB/ChromaDB  # Relative path for persistent storage
+
+# Embedding Library (Not much to see here)
+Embedding Library:
+  DistilRoberta: all-distilroberta-v1

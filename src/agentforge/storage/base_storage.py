@@ -1,15 +1,30 @@
-# base_db.py
+# base_storage.py
+from agentforge.config import Config
 
-class BaseDB:
+class BaseStorage:
     """
     A base class defining the interface that all database adapters should implement.
     Subclasses should override these methods with DB-specific logic.
     """
 
     def __init__(self, *args, **kwargs):
-        # BaseDB might store some default config or do logging setup here if needed.
-        # For now, we just leave it empty.
-        pass
+        # This might hold a reference to your central config object,
+        # or you can instantiate your config here if needed.
+        self.storage_path: str = ''
+        self.storage_embedding: str =''
+
+        self.config = Config()
+        self._load_storage_path_and_embedding()
+
+    def _load_storage_path_and_embedding(self):
+        """
+        Loads (and returns) the relevant storage settings from the config.
+        Subclasses can call this to figure out any paths or embedding preferences.
+        """
+        # This is the universal source of truth for settings.
+        storage_settings = self.config.data['settings'].get('storage', {})
+        self.storage_path = storage_settings.get('Persist Directory', None)
+        self.storage_embedding = self.config.data.get('Selected Embedding', None)
 
     def connect(self):
         """
@@ -72,3 +87,11 @@ class BaseDB:
         Return the number of documents or rows in the given collection.
         """
         raise NotImplementedError("Subclass must implement 'count'")
+
+    def reset_storage(self):
+        """
+        Clear or reset all data in the storage.
+        Subclasses must override this if they support data resets.
+        """
+        raise NotImplementedError("Subclass must implement 'reset_storage'")
+

@@ -121,5 +121,5 @@ Model Library:
         top_p: 0.1
 
 # Embedding Library (Not much to see here)
-EmbeddingLibrary:
+Embedding Library:
   library: sentence_transformers

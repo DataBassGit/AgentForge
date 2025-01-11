@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
-from agentforge import __version__
 
+__version__ = "0.5.0"
 LICENSE = "GNU General Public License v3 or later (GPLv3+)"
 
 

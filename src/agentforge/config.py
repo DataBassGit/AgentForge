@@ -69,6 +69,14 @@ class Config:
             # Load the configuration data
             self.load_all_configurations()
 
+    @classmethod
+    def reset(cls, root_path=None):
+        """
+        Completely resets the Config singleton, allowing for re-initialization.
+        """
+        cls._instance = None
+        return cls(root_path=root_path)
+
     def find_project_root(self, root_path: Optional[str] = None) -> pathlib.Path:
         # If a root path was provided, use it to checking that .agentforge exists
         if root_path:
@@ -457,3 +465,5 @@ class Config:
             raise FileNotFoundError(f"Selected Persona '{persona_file}' not found. Please make sure the corresponding persona file is in the personas folder")
 
         return self.data['personas'][persona_file]
+
+

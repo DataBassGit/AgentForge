@@ -1,6 +1,6 @@
 import argparse
 import sys
-from agentforge import __version__
+from setup import __version__
 
 def main():
     """
