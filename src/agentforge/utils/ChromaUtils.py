@@ -349,7 +349,7 @@ class ChromaUtils:
             save_to_collection(self.collection, data, ids, metadata)
 
         except Exception as e:
-            raise ValueError(f"Error saving results. Error: {e}\n\nData:\n{data}")
+            raise ValueError(f"[Chroma Utils] [save_memory] Error saving results. Error: {e}\n\nData:\n{data}")
 
     def query_memory(self, collection_name: str, query: Optional[Union[str, list]] = None,
                      filter_condition: Optional[dict] = None, include: Optional[list] = None,

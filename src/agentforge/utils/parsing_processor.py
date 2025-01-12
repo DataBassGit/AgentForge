@@ -38,7 +38,8 @@ class ParsingProcessor:
             if match:
                 language = match.group(1).strip() or None
                 content = match.group(2).strip()
-                return content, language
+                # return content, language
+                return language, content
 
             # If no code block is found, return the input text and None as the language
             return None, text.strip()
@@ -66,7 +67,7 @@ class ParsingProcessor:
             Optional[Dict[str, Any]]: The parsed content as a dictionary, or None if parsing fails.
         """
         try:
-            cleaned_string, language = self.extract_code_block(content_string)
+            language, cleaned_string = self.extract_code_block(content_string)
             if language and language.lower() != expected_language.lower():
                 self.logger.log(f"Expected {expected_language.upper()} code block, but found '{language}'", 'warning')
 

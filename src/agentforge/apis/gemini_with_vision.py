@@ -87,7 +87,7 @@ class Gemini_With_Vision(BaseModel):
 
     @staticmethod
     def _prepare_prompt(model_prompt):
-        return '\n\n'.join([model_prompt.get('System', ''), model_prompt.get('User', '')])
+        return '\n\n'.join([model_prompt.get('system', ''), model_prompt.get('user', '')])
 
     def _process_image_input(self, image_input: Union[str, bytes, Image.Image, np.ndarray]) -> Any:
         """
