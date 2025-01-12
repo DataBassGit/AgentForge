@@ -34,6 +34,7 @@ class Agent:
         self.prompt: Optional[Dict[str]] = None
         self.result: Optional[str] = None
         self.output: Optional[str] = None
+        self.images: Optional[list[str]] = []
 
         # Load and validate agent data during initialization
         self.initialize_agent_config()
@@ -239,6 +240,7 @@ class Agent:
 
         params: Dict[str, Any] = self.agent_data.get("params", {})
         params['agent_name'] = self.agent_name
+        params['images'] = self.images
         self.result = self.model.generate(self.prompt, **params).strip()
 
     # ---------------------------------
