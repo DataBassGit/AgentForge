@@ -19,7 +19,7 @@ class Gemini(BaseModel):
 
     @staticmethod
     def _prepare_prompt(model_prompt):
-        return '\n\n'.join([model_prompt.get('System'), model_prompt.get('User')])
+        return '\n\n'.join([model_prompt.get('system'), model_prompt.get('user')])
 
     def _do_api_call(self, prompt, **filtered_params):
         model = genai.GenerativeModel(self.model_name)

@@ -17,8 +17,8 @@ class Claude(BaseModel):
     @staticmethod
     def _prepare_prompt(model_prompt):
         return {
-            'messages': [{'role': 'user', 'content': model_prompt.get('User')}],
-            'system': model_prompt.get('System')
+            'messages': [{'role': 'user', 'content': model_prompt.get('user')}],
+            'system': model_prompt.get('system')
         }
 
     def _do_api_call(self, prompt, **filtered_params):

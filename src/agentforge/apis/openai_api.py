@@ -27,6 +27,6 @@ class O1Series(GPT):
 
     def _prepare_prompt(self, model_prompt):
         # Format user messages in the appropriate style
-        content = f"{model_prompt.get('System', '')}\n\n{model_prompt.get('User', '')}"
+        content = f"{model_prompt.get('system', '')}\n\n{model_prompt.get('user', '')}"
         return [{"role": "user", "content": content}]
 

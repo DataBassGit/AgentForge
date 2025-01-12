@@ -13,8 +13,8 @@ class Ollama(BaseModel):
         headers = {'Content-Type': 'application/json'}
         data = {
             "model": self.model_name,
-            "system": prompt.get('System'),
-            "prompt": prompt.get('User'),
+            "system": prompt.get('system'),
+            "prompt": prompt.get('user'),
             **filtered_params
         }
 
