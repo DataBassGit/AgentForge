@@ -162,7 +162,7 @@ class ChromaStorage(BaseStorage):
 
     def delete(self, collection_name, query):
         """
-        Similar approach: find the records, then remove them by ID.
+        Find the records, then remove them by ID.
         """
         self._is_client_connected()
         collection = self.client.get_or_create_collection(name=collection_name)
@@ -181,9 +181,7 @@ class ChromaStorage(BaseStorage):
 
     def reset_storage(self):
         """
-        If we’re ephemeral, we can just reset everything.
-        If we’re persistent, you might need to do something else
-        (like re-initialize the PersistentClient with an empty dir).
+        Resets the selected client storage
         """
         self._is_client_connected()
         self.client.reset()

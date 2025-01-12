@@ -20,7 +20,7 @@ class BaseStorage:
         self.storage_embedding: str =''
 
         self.config = Config()
-        self.logger = Logger("Chroma Utils", 'storage')
+        self.logger = Logger("base_storage", 'storage')
 
         self._load_storage_path_and_embedding()
 

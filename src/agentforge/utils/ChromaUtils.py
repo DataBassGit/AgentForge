@@ -58,6 +58,20 @@ def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[d
     return ids, metadata
 
 
+def apply_iso_timestamps(metadata: list[dict], config):
+    do_time_stamp = config['settings']['storage']['options'].get('iso_timestamp', False)
+    if do_time_stamp:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        for m in metadata:
+            m['iso_timestamp'] = timestamp
+
+def apply_unix_timestamps(metadata: list[dict], config):
+    do_time_stamp = config['settings']['storage']['options'].get('unix_timestamp', False)
+    if do_time_stamp:
+        timestamp = datetime.now().timestamp()
+        for m in metadata:
+            m['unix_timestamp'] = timestamp
+
 def apply_timestamps(metadata: list[dict], config):
     """
     Applies timestamps to the metadata if required by the configuration.
@@ -66,18 +80,8 @@ def apply_timestamps(metadata: list[dict], config):
         metadata (list[dict]): The metadata for the documents.
         config (dict): The configuration dictionary.
     """
-    do_time_stamp = config['settings']['storage']['options'].get('iso_timestamp', False)
-    if do_time_stamp:
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        for m in metadata:
-            m['isotimestamp'] = timestamp
-
-    do_time_stamp = config['settings']['system']['options'].get('unix_timestamp', False)
-    if do_time_stamp:
-        timestamp = datetime.now().timestamp()
-        for m in metadata:
-            m['unixtimestamp'] = timestamp
-
+    apply_iso_timestamps(metadata, config)
+    apply_unix_timestamps(metadata, config)
 
 def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
     """
