@@ -240,7 +240,8 @@ class Agent:
 
         params: Dict[str, Any] = self.agent_data.get("params", {})
         params['agent_name'] = self.agent_name
-        params['images'] = self.images
+        if self.images and len(self.images) > 0:
+            params['images'] = self.images
         self.result = self.model.generate(self.prompt, **params).strip()
 
     # ---------------------------------
