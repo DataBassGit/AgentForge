@@ -25,8 +25,7 @@ setup(
         ]
     },
     install_requires=[
-        # "chromadb==0.5.3",
-        "chromadb==0.6.1",
+        "chromadb==0.6.2",
         "numpy<2.0.0; python_version<'3.12'",
         "numpy>=2.0.0; python_version>='3.12'",
         "sentence-transformers",

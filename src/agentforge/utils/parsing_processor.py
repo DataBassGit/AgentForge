@@ -38,7 +38,7 @@ class ParsingProcessor:
             if match:
                 language = match.group(1).strip() or None
                 content = match.group(2).strip()
-                return language, content
+                return content, language
 
             # If no code block is found, return the input text and None as the language
             return None, text.strip()
