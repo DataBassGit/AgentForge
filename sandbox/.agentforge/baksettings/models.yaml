@@ -1,43 +1,45 @@
-# Default model settings for all agents unless overridden
-default_model:
-  api: gemini_api
-  model: gemini_flash
-# Uncomment to use alternative default models
-#  api: lm_studio_api
-#  model: LMStudio
-#  api: openai_api
-#  model: omni_model
-#  model: o1_preview
+# Default model for all agents unless overridden
+Selected Model:
+  API: gemini_api
+  Model: gemini_flash
+#  API: lm_studio_api
+#  Model: LMStudio
+#  API: openai_api
+#  Model: omni_model
+#  Model: o1_preview
 
-# Library of models and parameter defaults
-model_library:
-  openai_api:  # API script name
-    O1Series:  # Class name for the API (Case Sensitive)
-      models:  # List of model configurations
-        o1:
-          identifier: o1
-          params: {}  # No overrides for this model
+# Library of Models and Parameter Defaults Override
+Model Library:
+  openai_api: # name of the respective api script
+    O1Series: # Name of the Class for the api
+      models: # List of model configurations
+        o1:   # Model name for selection referencing
+          identifier: o1 # model identifier expected by the API
+          params: # model parameter overrides
         o1_preview:
           identifier: o1-preview
         o1_mini:
           identifier: o1-mini
 
-      params: {}  # Default parameters for the model class
+      params: # Default model parameters for a model class may nor exist or be left empty without issues
 
     GPT:
       models:
         omni_model:
           identifier: gpt-4o
-          params:
-            max_new_tokens: 15000  # Example of overriding parameters
+          params: # Example of overriding default model parameters for a singular model configuration
+            max_new_tokens: 15000
+
         smart_model:
           identifier: gpt-4
+
         smart_fast_model:
           identifier: gpt-4-turbo
+
         fast_model:
           identifier: gpt-3.5-turbo
 
-      params:  # Default parameters for GPT models
+      params: # Example of model parameters for GPT class
         max_tokens: 10000
         n: 1
         presence_penalty: 0
@@ -51,10 +53,10 @@ model_library:
         claude3:
           identifier: claude-3-opus-20240229
 
-      params:  # Default parameters for Claude models
-        max_tokens: 10000
-        temperature: 0.8
-        top_p: 0.1
+    params:
+      max_tokens: 10000
+      temperature: 0.8
+      top_p: 0.1
 
   gemini_api:
     Gemini:
@@ -64,7 +66,7 @@ model_library:
         gemini_flash:
           identifier: gemini-1.5-flash
 
-      params:  # Default parameters for Gemini models
+      params:
         candidate_count: 1
         max_output_tokens: 10000
         temperature: 0.8
@@ -74,10 +76,10 @@ model_library:
   lm_studio_api:
     LMStudio:
       models:
-        llama3_8b:
+        Llama3_8B:
           identifier: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
 
-      params:  # Default parameters for LMStudio models
+      params:
         host_url: http://localhost:1234/v1/chat/completions
         max_tokens: 10000
         stream: false
@@ -86,10 +88,10 @@ model_library:
   ollama_api:
     Ollama:
       models:
-        llama3.1_70b:
+        Llama3.1_70b:
           identifier: llama3.1:70b
 
-      params:  # Default parameters for Ollama models
+      params:
         host_url: http://localhost:11434/api/generate
         max_tokens: 10000
         stream: false
@@ -111,13 +113,13 @@ model_library:
         llama31:
           identifier: llama-3.1-70b-versatile
 
-      params:  # Default parameters for GroqAPI models
+      params:
         max_tokens: 10000
         seed: -1
         stop: null
         temperature: 0.8
         top_p: 0.1
 
-# Embedding library
-embedding_library:
+# Embedding Library (Not much to see here)
+EmbeddingLibrary:
   library: sentence_transformers

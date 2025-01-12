@@ -60,8 +60,8 @@ class BaseModel:
     def _prepare_prompt(model_prompt):
         # Format system/user messages in the appropriate style
         return [
-            {"role": "system", "content": model_prompt.get('System')},
-            {"role": "user", "content": model_prompt.get('User')}
+            {"role": "system", "content": model_prompt.get('system')},
+            {"role": "user", "content": model_prompt.get('user')}
         ]
 
     def _call_api(self, model_prompt, **params):
