@@ -10,7 +10,7 @@ from chromadb.utils import embedding_functions
 from agentforge.utils.logger import Logger
 from ..config import Config
 
-logger = Logger(name="Chroma Utils")
+logger = Logger(name="Chroma Utils", default_logger='chroma_utils')
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
@@ -66,13 +66,13 @@ def apply_timestamps(metadata: list[dict], config):
         metadata (list[dict]): The metadata for the documents.
         config (dict): The configuration dictionary.
     """
-    do_time_stamp = config['settings']['system'].get('ISOTimeStampMemory')
+    do_time_stamp = config['settings']['storage']['options'].get('iso_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for m in metadata:
             m['isotimestamp'] = timestamp
 
-    do_time_stamp = config['settings']['system'].get('UnixTimeStampMemory')
+    do_time_stamp = config['settings']['system']['options'].get('unix_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().timestamp()
         for m in metadata:
@@ -111,6 +111,52 @@ class ChromaUtils:
     db_path = None
     db_embed = None
     embedding = None
+
+    # ---------------------------------
+    # Completed
+    # ---------------------------------
+
+    def init_storage(self):
+        """
+        Initializes the storage client, either as a persistent client with a specified database path or as an
+        ephemeral client based on the configuration.
+
+        Raises:
+            Exception: For any errors that occur during the initialization of storage.
+        """
+        try:
+            if self.client is None:
+                if self.db_path:
+                    self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
+                else:
+                    self.client = chromadb.EphemeralClient()
+
+            if self.config.data['settings']['system']['storage'].get('fresh_start'):
+                self.reset_memory()
+        except Exception as e:
+            logger.log(f"[init_storage] Error initializing storage: {e}", 'error')
+            raise
+
+    def select_collection(self, collection_name: str):
+        """
+        Selects (or creates if not existent) a collection within the storage by name.
+
+        Parameters:
+            collection_name (str): The name of the collection to select or create.
+
+        Raises:
+            ValueError: If there's an error in getting or creating the collection.
+        """
+        try:
+            self.collection = self.client.get_or_create_collection(name=collection_name,
+                                                                   embedding_function=self.embedding,
+                                                                   metadata={"hnsw:space": "cosine"})
+        except Exception as e:
+            raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
+
+    # ---------------------------------
+    # Pending
+    # ---------------------------------
 
     def __init__(self, persona_name="default"):
         """
@@ -154,26 +200,7 @@ class ChromaUtils:
             logger.log(f"[init_embeddings] Error initializing embeddings: {e}", 'error')
             raise
 
-    def init_storage(self):
-        """
-        Initializes the storage client, either as a persistent client with a specified database path or as an
-        ephemeral client based on the configuration.
 
-        Raises:
-            Exception: For any errors that occur during the initialization of storage.
-        """
-        try:
-            if self.client is None:
-                if self.db_path:
-                    self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
-                else:
-                    self.client = chromadb.EphemeralClient()
-
-            if self.config.data['settings']['system'].get('DBFreshStart'):
-                self.reset_memory()
-        except Exception as e:
-            logger.log(f"[init_storage] Error initializing storage: {e}", 'error')
-            raise
 
     def chromadb_settings(self):
         """
@@ -183,11 +210,11 @@ class ChromaUtils:
             tuple: A tuple containing the database path and embedding settings.
         """
         # Retrieve the ChromaDB settings
-        sys_settings = self.config.data['settings']['system']
+        storage_settings = self.config.data['settings']['storage']
 
         # Get the database path and embedding settings
-        db_path_setting = sys_settings.get('PersistDirectory', None)
-        db_embed = sys_settings.get('Embedding', None)
+        db_path_setting = storage_settings['options'].get('persist_directory', None)
+        db_embed = storage_settings['embedding'].get('selected', None)
 
         # Construct the absolute path of the database using the project root
         if db_path_setting:
@@ -198,22 +225,7 @@ class ChromaUtils:
 
         return db_path, db_embed
 
-    def select_collection(self, collection_name: str):
-        """
-        Selects (or creates if not existent) a collection within the storage by name.
 
-        Parameters:
-            collection_name (str): The name of the collection to select or create.
-
-        Raises:
-            ValueError: If there's an error in getting or creating the collection.
-        """
-        try:
-            self.collection = self.client.get_or_create_collection(name=collection_name,
-                                                                   embedding_function=self.embedding,
-                                                                   metadata={"hnsw:space": "cosine"})
-        except Exception as e:
-            raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
     def delete_collection(self, collection_name: str):
         """
@@ -259,7 +271,7 @@ class ChromaUtils:
 
             return result
         except Exception as e:
-            logger.log(f"[peek] Error peeking collection: {e}", 'error')
+            logger.log(f"Error peeking collection: {e}", 'error')
             return None
 
     def load_collection(self, collection_name: str, include: dict = None, where: dict = None, where_doc: dict = None):
@@ -318,8 +330,8 @@ class ChromaUtils:
             during the save operation.
         """
 
-        if self.config.data['settings']['system']['SaveMemory'] is False:
-            print("\nMemory Saving is Disabled. To Enable Memory Saving, set the 'SaveMemory' flag to 'true' in the "
+        if self.config.data['settings']['storage']['options']['save_memory'] is False:
+            print("\nMemory Saving is Disabled. To Enable Memory Saving, set the 'save_memory' flag to 'true' in the "
                   "system.yaml file.\n")
             return
 
@@ -373,7 +385,7 @@ class ChromaUtils:
                 num_results = min(num_results, max_result_count)
 
             if num_results <= 0:
-                logger.log(f"[query_memory] No Results Found in '{collection_name}' collection!", 'warning')
+                logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
                 return {}
 
             # Defaulting 'include' if None
@@ -407,6 +419,8 @@ class ChromaUtils:
         except Exception as e:
             logger.log(f"[query_memory] Error querying memory: {e}", 'error')
             return None
+
+    # Done
 
     def reset_memory(self):
         """

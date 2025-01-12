@@ -107,7 +107,7 @@ class Agent:
         """
         Loads and validates the persona data for the agent if available. Will not load persona data if personas is disabled in system settings.
         """
-        personas_enabled = self.agent_data['settings']['system'].get('PersonasEnabled', False)
+        personas_enabled = self.agent_data['settings']['system']['persona'].get('enabled', False)
         if personas_enabled:
             self.persona = self.agent_data.get('persona', {})
             self.validate_persona_data()
@@ -128,14 +128,15 @@ class Agent:
         """
         Initializes the storage for the agent, if storage is enabled.
         """
-        storage_enabled = self.agent_data['settings']['system'].get('StorageEnabled', False)
+        storage_enabled = self.agent_data['settings']['storage']['options'].get('enabled', False)
         if not storage_enabled:
             self.agent_data['storage'] = None
             return
 
-        from .utils.ChromaUtils import ChromaUtils
-        persona_name = self.persona.get('Name', 'DefaultPersona') if self.persona else 'DefaultPersona'
-        self.agent_data['storage'] = ChromaUtils(persona_name)
+        # Needs rework
+        # from .utils.ChromaUtils import ChromaUtils
+        # persona_name = self.persona.get('Name', 'DefaultPersona') if self.persona else 'DefaultPersona'
+        # self.agent_data['storage'] = ChromaUtils(persona_name)
 
     # ---------------------------------
     # Validation
@@ -184,7 +185,7 @@ class Agent:
         Parameters:
             **kwargs (Any): Keyword arguments for additional data loading.
         """
-        if self.agent_data['settings']['system'].get('OnTheFly', True):
+        if self.agent_data['settings']['system']['misc'].get('on_the_fly', False):
             self.initialize_agent_config()
 
         self.load_from_storage()
@@ -234,8 +235,8 @@ class Agent:
         """
         Executes the language model generation with the generated prompt(s) and any specified parameters.
         """
-        if self.agent_data['settings']['system'].get('DebugMode', False):
-            self.result = self.agent_data['debugging_text']
+        if self.agent_data['settings']['system']['debug'].get('mode', False):
+            self.result = self.agent_data['simulated_response']
             return
 
         params: Dict[str, Any] = self.agent_data.get("params", {})

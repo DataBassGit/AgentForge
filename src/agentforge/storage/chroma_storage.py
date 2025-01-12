@@ -4,18 +4,46 @@ import chromadb
 from chromadb.config import Settings
 from agentforge.storage.base_storage import BaseStorage
 
-
 class ChromaStorage(BaseStorage):
+
+    # ---------------------------------
+    # Initialization
+    # ---------------------------------
+
     def __init__(self):
         super().__init__()
         self.client = None
 
-    def connect(self):
-        if not self.storage_path:  # Ephemeral Storage
+    # ---------------------------------
+    # Internal Methods
+    # ---------------------------------
+
+    def _is_client_connected(self):
+        if not self.client:
+            raise ValueError("No Chroma client. Did you call connect() first?")
+
+    def _init_storage(self):
+        # Ephemeral Storage
+        if not self.storage_path:
             self.client = chromadb.EphemeralClient()
             return
 
+        # Persistent Storage
         self.client = chromadb.PersistentClient(path=str(self.storage_path), settings=Settings(allow_reset=True))
+
+
+    def _is_storage_fresh_start(self):
+        # Wipe storage on start if set to Fresh Start
+        if self.config.data['settings']['storage']['options'].get('fresh_start'):
+            self.reset_storage()
+
+    # ---------------------------------
+    # Implementation
+    # ---------------------------------
+
+    def connect(self):
+        self._init_storage()
+        self._is_storage_fresh_start()
 
     def disconnect(self):
         # Chroma doesn’t necessarily require a formal disconnection,
@@ -23,22 +51,38 @@ class ChromaStorage(BaseStorage):
         self.client = None
 
     def create_collection(self, collection_name):
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
-        self.client.get_or_create_collection(name=collection_name)
+        self._is_client_connected()
+        self.client.create_collection(name=collection_name,
+                                      embedding_function=self.storage_embedding,
+                                      metadata={"hnsw:space": "cosine"})
 
     def delete_collection(self, collection_name):
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
+        self._is_client_connected()
         self.client.delete_collection(name=collection_name)
+
+    def set_current_collection(self, collection_name):
+        """
+        Select or focus on a particular 'collection' or table within the DB.
+        Returns an object or handle representing that collection, or modifies state.
+        """
+        self._is_client_connected()
+        self.current_collection = self.client.get_collection(collection_name, embedding_function=self.storage_embedding)
+
+    def set_or_create_current_collection(self, collection_name):
+        """
+        Select a collection (or table) within the database. Will create the collection if it does not exist.
+        """
+        self._is_client_connected()
+        self.current_collection = self.client.get_or_create_collection(name=collection_name,
+                                                                       embedding_function=self.storage_embedding,
+                                                                       metadata={"hnsw:space": "cosine"})
 
     def insert(self, collection_name, data):
         """
         data is expected to be a list of dicts. Each dict might contain an 'id' field, plus anything else.
         We'll parse them to fit Chroma's expected arguments.
         """
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
+        self._is_client_connected()
         collection = self.client.get_or_create_collection(name=collection_name)
 
         # We need at least 'ids' to pass to upsert, and optionally 'documents' or 'metadatas'.
@@ -69,8 +113,7 @@ class ChromaStorage(BaseStorage):
         we treat that as a 'where' filter in Chroma. Or you might do more advanced logic.
         We’ll return a list of dicts that represent each record.
         """
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
+        self._is_client_connected()
         collection = self.client.get_or_create_collection(name=collection_name)
 
         # For simplicity, assume we only handle one key in the query.
@@ -89,8 +132,7 @@ class ChromaStorage(BaseStorage):
         We can handle updates in Chroma by retrieving the items via query,
         then upserting them again with the new data.
         """
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
+        self._is_client_connected()
         collection = self.client.get_or_create_collection(name=collection_name)
 
         existing_records = self.query(collection_name, query)
@@ -122,8 +164,7 @@ class ChromaStorage(BaseStorage):
         """
         Similar approach: find the records, then remove them by ID.
         """
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
+        self._is_client_connected()
         collection = self.client.get_or_create_collection(name=collection_name)
 
         records_to_delete = self.query(collection_name, query)
@@ -134,9 +175,8 @@ class ChromaStorage(BaseStorage):
         collection.delete(ids=ids_to_delete)
 
     def count(self, collection_name):
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
-        collection = self.client.get_or_create_collection(name=collection_name)
+        self._is_client_connected()
+        collection = self.client.get_collection(name=collection_name)
         return collection.count()
 
     def reset_storage(self):
@@ -145,6 +185,5 @@ class ChromaStorage(BaseStorage):
         If we’re persistent, you might need to do something else
         (like re-initialize the PersistentClient with an empty dir).
         """
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
+        self._is_client_connected()
         self.client.reset()

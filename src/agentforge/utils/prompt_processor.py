@@ -33,16 +33,16 @@ class PromptProcessor:
                         or if the sub-prompts are not dictionaries.
         """
         # Check if 'System' and 'User' are the only keys present
-        if set(prompts.keys()) != {'System', 'User'}:
+        if set(prompts.keys()) != {'system', 'user'}:
             error_message = (
-                "Error: Prompts should contain only 'System' and 'User' keys. "
+                "Error: Prompts should contain only 'system' and 'user' keys. "
                 "Please check the prompt YAML file format."
             )
             self.logger.log(error_message, 'error')
             raise ValueError(error_message)
 
         # Allow 'System' and 'User' prompts to be either dicts or strings
-        for prompt_type in ['System', 'User']:
+        for prompt_type in ['system', 'user']:
             prompt_value = prompts.get(prompt_type, {})
             if not isinstance(prompt_value, (dict, str)):
                 error_message = (
@@ -149,7 +149,7 @@ class PromptProcessor:
         """
         try:
             rendered_prompts = {}
-            for prompt_type in ['System', 'User']:
+            for prompt_type in ['system', 'user']:
                 rendered_sections = []
                 prompt_content = prompts.get(prompt_type, {})
                 if isinstance(prompt_content, str):

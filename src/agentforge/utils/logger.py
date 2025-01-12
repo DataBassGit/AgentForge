@@ -195,7 +195,7 @@ class Logger:
     _lock = threading.Lock()  # Class-level lock for thread safety
     VALID_LOGGER_NAME_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
-    def __new__(cls, name: str, default_logger: str = 'AgentForge'):
+    def __new__(cls, name: str, default_logger: str = 'agentforge'):
         """
         Create a new instance of Logger if one doesn't exist, or return the existing instance.
 
@@ -210,7 +210,7 @@ class Logger:
                 instance._initialized = False
         return cls._instances[name]
 
-    def __init__(self, name: str, default_logger: str = 'AgentForge') -> None:
+    def __init__(self, name: str, default_logger: str = 'agentforge') -> None:
         """
         Initializes the Logger class with names for different types of logs.
         Initialization will only happen once.
@@ -238,7 +238,7 @@ class Logger:
         self._initialized = True
 
     def load_logging_config(self):
-        self.logging_config = self.config.data['settings']['system']['Logging']['Files']
+        self.logging_config = self.config.data['settings']['system']['logging']['files']
 
     def update_logger_config(self, logger_file: str):
         """
@@ -284,7 +284,6 @@ class Logger:
         if logger_file is None:
             logger_file = self.default_logger
 
-
         if logger_file not in self.loggers:
             self.update_logger_config(logger_file)
             self.create_logger(logger_file)
@@ -323,14 +322,14 @@ class Logger:
         Parameters:
             model_prompt (dict): A dictionary containing the model prompts.
         """
-        system_prompt = model_prompt.get('System', '')
-        user_prompt = model_prompt.get('User', '')
+        system_prompt = model_prompt.get('system', '')
+        user_prompt = model_prompt.get('user', '')
         msg = (
             f'******\nSystem Prompt\n******\n{system_prompt}\n'
             f'******\nUser Prompt\n******\n{user_prompt}\n'
             f'******'
         )
-        self.debug(msg, logger_file='ModelIO')
+        self.debug(msg, logger_file='model_io')
 
     def log_response(self, response: str) -> None:
         """
@@ -340,7 +339,7 @@ class Logger:
             response (str): The model response to log.
         """
         msg = f'******\nModel Response\n******\n{response}\n******'
-        self.debug(msg, logger_file='ModelIO')
+        self.debug(msg, logger_file='model_io')
 
     def parsing_error(self, model_response: str, error: Exception) -> None:
         """
@@ -355,16 +354,3 @@ class Logger:
             f"Model Response:\n******\n{model_response}\n******\n\nError: {error}"
         )
         self.error(msg)
-
-    def log_info(self, msg: str) -> None:
-        """
-        Logs and displays an informational message.
-
-        Parameters:
-            msg (str): The message to log and display.
-        """
-        try:
-            encoded_msg = encode_msg(msg)
-            self.info(f'\n{encoded_msg}', logger_file='Results')
-        except Exception as e:
-            self.error(f"Error logging message: {e}")

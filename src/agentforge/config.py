@@ -173,17 +173,18 @@ class Config:
         Loads configuration data for a specified agent, applying any overrides in the agent’s config.
         Returns a dict containing everything needed to run that agent.
         """
+
         agent = self.find_config('prompts', agent_name)
 
         api_name, class_name, model_name, final_params = self.resolve_model_overrides(agent)
         model = self.get_model(api_name, class_name, model_name)
 
         persona_data = self.load_persona(agent)
-        prompts = self.fix_prompt_placeholders(agent.get('Prompts', {}))
+        prompts = self.fix_prompt_placeholders(agent.get('prompts', {}))
         settings = self.data.get('settings', {})
 
-        default_debug_text = settings['system'].get('DebuggingText', 'Default Debugging Text')
-        debugging_text = agent.get('DebuggingText', default_debug_text).strip()
+        default_debug_text = settings['system']['debug'].get('simulated_response', 'Simulated Text Goes Here!!!')
+        simulated_response = agent.get('simulated_response', default_debug_text).strip()
 
         return {
             'name': agent_name,
@@ -192,29 +193,29 @@ class Config:
             'params': final_params,
             'persona': persona_data,
             'prompts': prompts,
-            'debugging_text': debugging_text,
+            'simulated_response': simulated_response,
         }
 
-    def load_flow_data(self, flow_name: str) -> Dict[str, Any]:
-        """
-        Loads configuration data for a specified flow.
-
-        Parameters:
-            flow_name (str): The name of the flow to load.
-
-        Returns:
-            dict: The configuration data for the flow.
-
-        Raises:
-            FileNotFoundError: If the flow configuration is not found.
-        """
-        self.reload()
-
-        flow = self.find_config('flows', flow_name)
-        if not flow:
-            raise FileNotFoundError(f"Flow '{flow_name}' not found in configuration.")
-
-        return flow
+    # def load_flow_data(self, flow_name: str) -> Dict[str, Any]:
+    #     """
+    #     Loads configuration data for a specified flow.
+    #
+    #     Parameters:
+    #         flow_name (str): The name of the flow to load.
+    #
+    #     Returns:
+    #         dict: The configuration data for the flow.
+    #
+    #     Raises:
+    #         FileNotFoundError: If the flow configuration is not found.
+    #     """
+    #     self.reload()
+    #
+    #     flow = self.find_config('flows', flow_name)
+    #     if not flow:
+    #         raise FileNotFoundError(f"Flow '{flow_name}' not found in configuration.")
+    #
+    #     return flow
 
     # ------------------------------------------------------------------------
     # Model Overrides
@@ -241,14 +242,14 @@ class Config:
         overrides, returning (api_name, model_name, agent_params_override).
         Raises a ValueError if no valid API/Model can be determined.
         """
-        selected_model = self.data['settings']['models'].get('Selected Model', {})
-        default_api = selected_model.get('API')
-        default_model = selected_model.get('Model')
+        selected_model = self.data['settings']['models'].get('default_model', {})
+        default_api = selected_model.get('api')
+        default_model = selected_model.get('model')
 
-        model_overrides = agent.get('ModelOverrides', {})
-        api_name = model_overrides.get('API', default_api)
-        model_name = model_overrides.get('Model', default_model)
-        agent_params_override = model_overrides.get('Params', {})
+        model_overrides = agent.get('model_overrides', {})
+        api_name = model_overrides.get('api', default_api)
+        model_name = model_overrides.get('model', default_model)
+        agent_params_override = model_overrides.get('params', {})
 
         if not api_name or not model_name:
             raise ValueError("No valid API/Model found in either Selected Model defaults or agent overrides.")
@@ -261,7 +262,7 @@ class Config:
         Returns the relevant subsection of the Model Library for the requested API.
         Raises a ValueError if the API is not in the Model Library.
         """
-        model_library = self.data['settings']['models'].get('Model Library', {})
+        model_library = self.data['settings']['models'].get('model_library', {})
         if api_name not in model_library:
             raise ValueError(f"API '{api_name}' does not exist in the Model Library.")
         return model_library[api_name]
@@ -421,9 +422,9 @@ class Config:
 
     def reload(self):
         """
-        Reloads configurations for an agent.
+        Reloads configurations if on-the-fly reloading is enabled.
         """
-        if self.data['settings']['system'].get('OnTheFly', False):
+        if self.data['settings']['system']['misc'].get('on_the_fly', False):
             self.load_all_configurations()
 
     def find_file_in_directory(self, directory: str, filename: str):
@@ -443,12 +444,12 @@ class Config:
             return file_path
         return None
 
-    def load_persona(self, agent: dict) -> Optional[Dict[str, Any]]:
+    def load_persona(self, agent_config: dict) -> Optional[Dict[str, Any]]:
         """
         Loads the persona for the agent, if personas are enabled.
 
         Parameters:
-            agent (dict): The agent's configuration data.
+            agent_config (dict): The agent's configuration data.
 
         Returns:
             dict: The loaded persona data.
@@ -457,12 +458,15 @@ class Config:
             FileNotFoundError: If the persona file is not found.
         """
         settings = self.data['settings']
-        if not settings['system'].get('PersonasEnabled', False):
+        if not settings['system']['persona'].get('enabled', False):
             return None
 
-        persona_file = agent.get('Persona') or settings['system'].get('Persona', 'default')
+        persona_file = agent_config.get('persona') or settings['system']['persona'].get('name', 'default')
         if persona_file not in self.data.get('personas', {}):
-            raise FileNotFoundError(f"Selected Persona '{persona_file}' not found. Please make sure the corresponding persona file is in the personas folder")
+            raise FileNotFoundError(
+                f"Selected Persona '{persona_file}' not found. "
+                "Please make sure the corresponding persona file is in the personas folder"
+            )
 
         return self.data['personas'][persona_file]
 

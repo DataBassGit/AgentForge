@@ -1,5 +1,6 @@
 # base_storage.py
 from agentforge.config import Config
+from agentforge.utils.logger import Logger
 
 class BaseStorage:
     """
@@ -7,14 +8,25 @@ class BaseStorage:
     Subclasses should override these methods with DB-specific logic.
     """
 
+    # ---------------------------------
+    # Initialization
+    # ---------------------------------
+
     def __init__(self, *args, **kwargs):
         # This might hold a reference to your central config object,
         # or you can instantiate your config here if needed.
+        self.current_collection = None
         self.storage_path: str = ''
         self.storage_embedding: str =''
 
         self.config = Config()
+        self.logger = Logger("Chroma Utils", 'storage')
+
         self._load_storage_path_and_embedding()
+
+    # ---------------------------------
+    # Internal Methods
+    # ---------------------------------
 
     def _load_storage_path_and_embedding(self):
         """
@@ -23,8 +35,12 @@ class BaseStorage:
         """
         # This is the universal source of truth for settings.
         storage_settings = self.config.data['settings'].get('storage', {})
-        self.storage_path = storage_settings.get('Persist Directory', None)
-        self.storage_embedding = self.config.data.get('Selected Embedding', None)
+        self.storage_path = storage_settings['options'].get('persist_directory', None)
+        self.storage_embedding = storage_settings['embedding'].get('selected', None)
+
+    # ---------------------------------
+    # Implementation
+    # ---------------------------------
 
     def connect(self):
         """
@@ -57,6 +73,12 @@ class BaseStorage:
         Delete a collection (or table) from the database.
         """
         raise NotImplementedError("Subclass must implement 'delete_collection'")
+
+    def set_current_collection(self, collection_name):
+        """
+        Set the current collection (or table).
+        """
+        raise NotImplementedError("Subclass must implement 'set_current_collection'")
 
     def insert(self, collection_name, data):
         """
