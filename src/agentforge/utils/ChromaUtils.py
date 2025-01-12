@@ -131,7 +131,7 @@ class ChromaUtils:
                 else:
                     self.client = chromadb.EphemeralClient()
 
-            if self.config.data['settings']['system']['storage'].get('fresh_start'):
+            if self.config.data['settings']['storage'].get('fresh_start'):
                 self.reset_memory()
         except Exception as e:
             logger.log(f"[init_storage] Error initializing storage: {e}", 'error')

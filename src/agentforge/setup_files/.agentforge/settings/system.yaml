@@ -12,6 +12,7 @@ debug:
 # Logging settings
 logging:
   enabled: true
+  console_level: warning
   folder: ./logs
   files:  # Log levels: critical, error, warning, info, debug
     agentforge: error
