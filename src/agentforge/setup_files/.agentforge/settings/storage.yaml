@@ -4,7 +4,7 @@ selected_storage:
   configuration: chroma_cosine
 
 embedding:
-  selected: distilroberta
+  selected: distil_roberta
 
 options:
   enabled: true
@@ -21,19 +21,21 @@ library:
 
       chroma_cosine:
         metadata:
-          hnsw_space: cosine
+          hnsw:space: cosine
 
       chroma_ip:
         metadata:
-          hnsw_space: ip
+          hnsw:space: ip
         overrides:
           persist_directory: ./db/ChromaDB/ip
 
     # Default settings for the storage implementation
     defaults:
       persist_directory: ./db/ChromaDB
-      selected_embedding: distilroberta
+      selected_embedding: distil_roberta
 
 # Embedding library (mapping of embeddings to their identifiers)
 embedding_library:
-  distilroberta: all-distilroberta-v1
+  distil_roberta: all-distilroberta-v1
+  all_mini: all-MiniLM-L6-v2
+

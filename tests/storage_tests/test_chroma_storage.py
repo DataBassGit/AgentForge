@@ -8,32 +8,32 @@ from unittest.mock import patch
 from agentforge.config import Config
 from agentforge.storage.chroma_storage import ChromaStorage
 
+import unittest
+from agentforge.storage.base_storage import BaseStorage
+from tests.base_test_case import BaseTestCase
 
-class TestChromaStorage(unittest.TestCase):
+class TestBaseStorage(BaseTestCase):
+
+    # ---------------------------------
+    # Prep.
+    # ---------------------------------
+
     def setUp(self):
-        # Create a temporary directory to copy the real .agentforge folder into
-        self.temp_dir = tempfile.TemporaryDirectory()
-        self.temp_root_path = Path(self.temp_dir.name)
-
-        # Copy the existing .agentforge from setup_files into the temp dir
-        root_dir = Path(__file__).resolve().parent.parent  # __file__ is the path to the current file
-        real_agentforge = root_dir.parent / "src" / "agentforge" / "setup_files" / ".agentforge"
-        shutil.copytree(real_agentforge, self.temp_root_path / ".agentforge")
-
-        # Reset the Config singleton with the desired root path
-        Config.reset(root_path=str(self.temp_root_path))
-
-        # Now BaseStorage will use the re-initialized Config instance
+        super().setUp()
         self.storage = ChromaStorage()
 
     def tearDown(self):
-        """
-        Make sure we reset and disconnect after each test, so no data carries over.
-        """
+        super().setUp()
         # Clear ONLY IF the chroma client exists otherwise no need to do anything
         if self.storage.client:
             self.storage.reset_storage()
             self.storage.disconnect()
+
+        self.storage = None
+
+    # ---------------------------------
+    # Tests
+    # ---------------------------------
 
     def test_connect_disconnect(self):
         """
@@ -56,6 +56,10 @@ class TestChromaStorage(unittest.TestCase):
         # Potentially check that the collection actually exists by some method
         self.storage.delete_collection("test_collection")
         # Check that it actually got removed or handle exceptions as needed.
+
+    # ---------------------------------
+    # PENDING - THESE HAVE NOT BEEN TESTED
+    # ---------------------------------
 
     def test_insert_and_query(self):
         """

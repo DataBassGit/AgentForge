@@ -95,7 +95,7 @@ class TestConfigDefaults(BaseTestCase):
     def test_default_embedding_settings(self):
         # Embedding settings
         embedding_data = self.storage_data.get('embedding', {})
-        self.assertEqual(embedding_data.get('selected'), 'distilroberta')
+        self.assertEqual(embedding_data.get('selected'), 'distil_roberta')
 
     def test_default_option_settings(self):
         # Options
@@ -111,7 +111,7 @@ class TestConfigDefaults(BaseTestCase):
         # Library defaults
         library_data = self.storage_data.get('library', {}).get('chromadb', {}).get('defaults', {})
         self.assertEqual(library_data.get('persist_directory'), './db/ChromaDB')
-        self.assertEqual(library_data.get('selected_embedding'), 'distilroberta')
+        self.assertEqual(library_data.get('selected_embedding'), 'distil_roberta')
 
 if __name__ == '__main__':
     unittest.main()

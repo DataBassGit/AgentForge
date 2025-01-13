@@ -65,12 +65,14 @@ def apply_iso_timestamps(metadata: list[dict], config):
         for m in metadata:
             m['iso_timestamp'] = timestamp
 
+
 def apply_unix_timestamps(metadata: list[dict], config):
     do_time_stamp = config['settings']['storage']['options'].get('unix_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().timestamp()
         for m in metadata:
             m['unix_timestamp'] = timestamp
+
 
 def apply_timestamps(metadata: list[dict], config):
     """

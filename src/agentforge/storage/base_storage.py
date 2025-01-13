@@ -8,35 +8,92 @@ class BaseStorage:
     Subclasses should override these methods with DB-specific logic.
     """
 
-    # ---------------------------------
+    # ---------------------------------------------
     # Initialization
-    # ---------------------------------
+    # ---------------------------------------------
 
     def __init__(self, *args, **kwargs):
         # This might hold a reference to your central config object,
         # or you can instantiate your config here if needed.
         self.current_collection = None
-        self.storage_path: str = ''
-        self.storage_embedding: str =''
 
         self.config = Config()
         self.logger = Logger("base_storage", 'storage')
 
-        self._load_storage_path_and_embedding()
+        self._init_storage_configs()
 
-    # ---------------------------------
-    # Internal Methods
-    # ---------------------------------
+    def _init_storage_configs(self):
+        self._process_storage_config()
+        self._validate_configuration()
+        self._load_configuration()
 
-    def _load_storage_path_and_embedding(self):
-        """
-        Loads (and returns) the relevant storage settings from the config.
-        Subclasses can call this to figure out any paths or embedding preferences.
-        """
-        # This is the universal source of truth for settings.
-        storage_settings = self.config.data['settings'].get('storage', {})
-        self.storage_path = storage_settings['options'].get('persist_directory', None)
-        self.storage_embedding = storage_settings['embedding'].get('selected', None)
+    # ----------------------------------------------
+    # Internal Methods - Process Configuration
+    # ----------------------------------------------
+
+    def _process_storage_config(self):
+        self._get_storage_config()
+        self._get_selected_storage()
+        self._get_selected_embedding()
+
+    def _get_storage_config(self):
+        self.storage_settings = self.config.data['settings']['storage']
+        self.storage_options = self.storage_settings['options']
+        self.storage_library = self.storage_settings['library']
+        self.storage_embedding_library = self.storage_settings['embedding_library']
+
+    def _get_selected_storage(self):
+        self.selected_configuration = self.storage_settings['selected_storage'].get('configuration', None)
+        self.selected_implementation = self.storage_settings['selected_storage'].get('implementation', None)
+
+    def _get_selected_embedding(self):
+        self.selected_embedding = self.storage_settings['embedding'].get('selected', None)
+
+    # ----------------------------------------------
+    # Internal Methods - Config Validation
+    # ----------------------------------------------
+
+    def _validate_configuration(self):
+        self._is_valid_selected_implementation()
+        self._is_valid_selected_configuration()
+        self._is_valid_selected_embedding()
+
+    def _is_valid_selected_implementation(self):
+        if self.selected_implementation not in self.storage_library:
+            raise NotImplementedError(f"The selected storage implementation '{self.selected_implementation}' does "
+                                      f"not exist in the storage library!")
+
+    def _is_valid_selected_configuration(self):
+        if self.selected_configuration not in self.storage_library[self.selected_implementation]['configurations']:
+            raise NotImplementedError(f"The selected storage configuration '{self.selected_configuration}' does not "
+                                      f"exist not exist in the library configuration '{self.selected_configuration}'!")
+
+    def _is_valid_selected_embedding(self):
+        if self.selected_embedding not in self.storage_embedding_library:
+            raise NotImplementedError(f"The selected storage embedding '{self.selected_embedding}' does "
+                                      f"not exist in the embedding library'!")
+
+    # ----------------------------------------------
+    # Internal Methods - Load Selected Configuration
+    # ----------------------------------------------
+
+    def _load_configuration(self):
+        self._load_storage_implementation()
+        self._load_storage_configuration()
+        self._load_storage_embedding()
+        self._load_storage_path()
+
+    def _load_storage_implementation(self):
+        self.storage_implementation = self.storage_library.get(self.selected_implementation)
+
+    def _load_storage_configuration(self):
+        self.storage_configuration = self.storage_implementation['configurations'].get(self.selected_configuration)
+
+    def _load_storage_embedding(self):
+        self.storage_embedding = self.storage_embedding_library.get(self.selected_embedding)
+
+    def _load_storage_path(self):
+        self.storage_path = self.storage_options.get('persist_directory')
 
     # ---------------------------------
     # Implementation

@@ -1,6 +1,6 @@
 # test_config_persona.py
 import unittest
-from tests.base_test_case import BaseTestCase  # or whichever base you want
+from tests.base_test_case import BaseTestCase
 
 class TestLoadPersona(BaseTestCase):
 

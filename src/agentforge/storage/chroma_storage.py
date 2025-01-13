@@ -1,7 +1,9 @@
 # src/agentforge/storage/chroma_storage.py
 
+import os
 import chromadb
 from chromadb.config import Settings
+from chromadb.utils import embedding_functions
 from agentforge.storage.base_storage import BaseStorage
 
 class ChromaStorage(BaseStorage):
@@ -13,14 +15,7 @@ class ChromaStorage(BaseStorage):
     def __init__(self):
         super().__init__()
         self.client = None
-
-    # ---------------------------------
-    # Internal Methods
-    # ---------------------------------
-
-    def _is_client_connected(self):
-        if not self.client:
-            raise ValueError("No Chroma client. Did you call connect() first?")
+        self.embedding_function = None
 
     def _init_storage(self):
         # Ephemeral Storage
@@ -31,12 +26,37 @@ class ChromaStorage(BaseStorage):
         # Persistent Storage
         self.client = chromadb.PersistentClient(path=str(self.storage_path), settings=Settings(allow_reset=True))
 
+    def _init_embeddings(self):
+        # Initialize embedding based on the specified backend in the configuration
+        if self.storage_embedding == 'openai_ada2':
+            openai_api_key = os.getenv('OPENAI_API_KEY')
+            self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
+                model_name="text-embedding-ada-002",
+                api_key=openai_api_key
+            )
+            return
+
+        self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+            model_name=self.storage_embedding
+        )
+    # ---------------------------------
+    # Internal Methods
+    # ---------------------------------
+
+    def _is_client_connected(self):
+        if not self.client:
+            raise ValueError("No Chroma client. Did you call connect() first?")
 
     def _is_storage_fresh_start(self):
         # Wipe storage on start if set to Fresh Start
-        if self.config.data['settings']['storage']['options'].get('fresh_start'):
+        if self.config.data['settings']['storage']['options'].get('fresh_start', False):
             self.reset_storage()
 
+    def _get_collection_params(self):
+        return {
+            'embedding_function': self.embedding_function,
+            'metadata': self.storage_configuration['metadata'],
+        }
     # ---------------------------------
     # Implementation
     # ---------------------------------
@@ -46,15 +66,13 @@ class ChromaStorage(BaseStorage):
         self._is_storage_fresh_start()
 
     def disconnect(self):
-        # Chroma doesn’t necessarily require a formal disconnection,
-        # but let’s just set self.client to None.
+        # Chroma doesn’t necessarily require a formal disconnection, but let’s just set self.client to None.
         self.client = None
 
     def create_collection(self, collection_name):
         self._is_client_connected()
-        self.client.create_collection(name=collection_name,
-                                      embedding_function=self.storage_embedding,
-                                      metadata={"hnsw:space": "cosine"})
+        params = self._get_collection_params()
+        self.client.create_collection(collection_name, **params)
 
     def delete_collection(self, collection_name):
         self._is_client_connected()
@@ -66,16 +84,27 @@ class ChromaStorage(BaseStorage):
         Returns an object or handle representing that collection, or modifies state.
         """
         self._is_client_connected()
-        self.current_collection = self.client.get_collection(collection_name, embedding_function=self.storage_embedding)
+        params = self._get_collection_params()
+        self.current_collection = self.client.get_collection(collection_name, **params)
 
     def set_or_create_current_collection(self, collection_name):
         """
         Select a collection (or table) within the database. Will create the collection if it does not exist.
         """
         self._is_client_connected()
-        self.current_collection = self.client.get_or_create_collection(name=collection_name,
-                                                                       embedding_function=self.storage_embedding,
-                                                                       metadata={"hnsw:space": "cosine"})
+        params = self._get_collection_params()
+        self.current_collection = self.client.get_or_create_collection(collection_name, **params)
+
+    def reset_storage(self):
+        """
+        Resets the selected client storage
+        """
+        self._is_client_connected()
+        self.client.reset()
+
+    # ---------------------------------
+    # PENDING - THERE ARE PLACEHOLDER CONCEPTS FROM GPT
+    # ---------------------------------
 
     def insert(self, collection_name, data):
         """
@@ -176,12 +205,8 @@ class ChromaStorage(BaseStorage):
 
     def count(self, collection_name):
         self._is_client_connected()
-        collection = self.client.get_collection(name=collection_name)
+        params = self._get_collection_params()
+        collection = self.client.get_collection(name=collection_name, embedding_function=params['embedding_function'] )
         return collection.count()
 
-    def reset_storage(self):
-        """
-        Resets the selected client storage
-        """
-        self._is_client_connected()
-        self.client.reset()
+

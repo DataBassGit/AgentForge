@@ -42,6 +42,7 @@ class BaseTestCaseNoAgentForgeFolder(unittest.TestCase):
 
 
 class BaseTestCaseEmptyAgentForgeFolder(BaseTestCaseNoAgentForgeFolder):
+
     # ---------------------------------
     # Prep.
     # ---------------------------------
@@ -89,5 +90,7 @@ class BaseTestCase(BaseTestCaseNoAgentForgeFolder):
         # Reset the Config singleton with the desired temp root path
         self.config = Config.reset(root_path=str(self.temp_root_path))
 
+if __name__ == '__main__':
+    unittest.main()
 
 
