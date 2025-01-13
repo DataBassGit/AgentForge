@@ -31,4 +31,5 @@ Example: |-
       print(f"Description: {result['description']}")
       print('---')
 
-Script: .agentforge.tools.BraveSearch
+Script: .agentforge.tools.brave_search
+Class: BraveSearch

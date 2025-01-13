@@ -29,4 +29,4 @@ Example: |-
   # Split text with custom chunk lengths
   chunks = semantic_chunk(text, min_length=100, max_length=1000)
   print(f"Number of chunks with custom sizes: {len(chunks)}")
-Script: agentforge.tools.SemanticChunk
+Script: .agentforge.tools.semantic_chunk.SemanticChunk

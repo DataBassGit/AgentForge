@@ -1,5 +1,5 @@
-Prompts:
-  System:
+prompts:
+  system:
     Task: |-
       You are a tool priming agent tasked with preparing a tool for an objective:
 
@@ -11,7 +11,7 @@ Prompts:
       To achieve this objective, the following action has been selected:
       {action}
 
-  User:
+  user:
     Tool: |+
       Your task is to prime the '{tool_name}' tool in the context of the selected action. Instructions explaining how to use the tool are as follows:
       {tool_info}

@@ -1,12 +1,12 @@
-Prompts:
-  System:
+prompts:
+  system:
     Task: Your task is to decide whether the following objective requires the use of an action.
 
     Objective: |+
       Objective:
       {objective}
 
-  User:
+  user:
     Actions: |+
       Consider the following actions available, including the option to choose "Nothing" if no action is required:
       {action_list}

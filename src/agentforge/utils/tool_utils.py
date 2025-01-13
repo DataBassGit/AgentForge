@@ -50,10 +50,10 @@ class ToolUtils:
             dict: The result of executing the command within the tool, or an error dictionary if an error occurs.
         """
         tool_module = tool.get('Script')
-        tool_class = tool_module.split('.')[-1]
+        tool_class = tool.get('Class')
         command = tool.get('Command')
         args = payload['args']
-        self.logger.log_info(f"\nRunning {tool_class} ...")
+        self.logger.info(f"\nRunning {tool_class} ...")
 
         try:
             result = self._execute_tool(tool_module, tool_class, command, args)
@@ -79,7 +79,12 @@ class ToolUtils:
             command_func = self.BUILTIN_FUNCTIONS[tool_module]  # type: ignore
             result = command_func(**args)
         else:
-            tool = importlib.import_module(tool_module)
+            if tool_module.startswith('.agentforge'):
+                # Remove '.agentforge' from the beginning of the path
+                relative_path = tool_module.replace('.agentforge', '', 1)
+                tool = importlib.import_module(relative_path, package='agentforge')
+            else:
+                tool = importlib.import_module(tool_module)
             if hasattr(tool, tool_class):
                 tool_instance = getattr(tool, tool_class)()
                 command_func = getattr(tool_instance, command)

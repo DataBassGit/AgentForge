@@ -37,7 +37,7 @@ def get_plain_text(url):
         url (str): The URL of the webpage to scrape.
 
     Returns:
-        str: A message indicating that the webpage was saved to memory.
+        str: Plain text retrieved from the URL.
 
     Raises:
         ValueError: If the URL is not a string or is empty.
@@ -57,10 +57,10 @@ def get_plain_text(url):
 
         # Extract the plain text from the HTML content
         plain_text = soup.get_text()
-        chunk_text = intelligent_chunk(plain_text, chunk_size=1)
-        chunk_save(chunk_text, url)
+        # chunk_text = intelligent_chunk(plain_text, chunk_size=1)
+        # chunk_save(chunk_text, url)
 
-        return f"Webpage saved to memory!\nURL: {url}"
+        return plain_text
 
     except requests.RequestException as e:
         raise Exception(f"Error fetching the webpage: {str(e)}")

@@ -1,5 +1,5 @@
-Prompts:
-  System:
+prompts:
+  system:
     Description: |-
       Your task is to create an action YAML file that will help achieve the following objective using the tools available in your environment. Ensure that each step is clear and logically follows from the previous step to achieve the objective effectively.
 
@@ -7,7 +7,7 @@ Prompts:
       Objective:
       {objective}
 
-  User:
+  user:
     Context: |+
       Use the following context to enhance your understanding of the objective. This context provides necessary background and details to inform the creation of the action YAML file:
       {context}
