@@ -1,15 +1,8 @@
 # test_chroma_storage.py
 
-import unittest
-import tempfile
-import shutil
-from pathlib import Path
-from unittest.mock import patch
-from agentforge.config import Config
 from agentforge.storage.chroma_storage import ChromaStorage
 
 import unittest
-from agentforge.storage.base_storage import BaseStorage
 from tests.base_test_case import BaseTestCase
 
 class TestBaseStorage(BaseTestCase):
@@ -23,7 +16,7 @@ class TestBaseStorage(BaseTestCase):
         self.storage = ChromaStorage()
 
     def tearDown(self):
-        super().setUp()
+        super().tearDown()
         # Clear ONLY IF the chroma client exists otherwise no need to do anything
         if self.storage.client:
             self.storage.reset_storage()
@@ -57,28 +50,22 @@ class TestBaseStorage(BaseTestCase):
         self.storage.delete_collection("test_collection")
         # Check that it actually got removed or handle exceptions as needed.
 
-    # ---------------------------------
-    # PENDING - THESE HAVE NOT BEEN TESTED
-    # ---------------------------------
-
     def test_insert_and_query(self):
         """
         Test that we can insert documents into a collection and retrieve them with a query.
         """
         self.storage.connect()
+
         self.storage.create_collection("test_collection")
 
         # Insert one or more documents
-        data_to_insert = [
-            {"id": "1", "content": "Hello"},
-            {"id": "2", "content": "World"},
-        ]
-        self.storage.insert("test_collection", data_to_insert)
+        data_to_insert = ["Hello"]
+        self.storage.insert("test_collection", ids=["1"], data=data_to_insert)
 
         # Query them back
-        results = self.storage.query("test_collection", query={"id": "2"})
-        self.assertTrue(len(results) == 1)
-        self.assertEqual(results[0].get("content"), "World")
+        results = self.storage.query(collection_name="test_collection", ids=["1"])
+        self.assertTrue(len(results['documents']) == 1)
+        self.assertEqual(results['documents'][0], "Hello")
 
     def test_update_and_query(self):
         """
@@ -87,11 +74,13 @@ class TestBaseStorage(BaseTestCase):
         self.storage.connect()
         self.storage.create_collection("test_collection")
 
-        self.storage.insert("test_collection", [{"id": "1", "content": "Foo"}])
-        self.storage.update("test_collection", query={"id": "1"}, new_data={"content": "Bar"})
+        # Insert documents
+        self.storage.insert("test_collection", ids=["1"], data=['Foo'])
+        self.storage.update("test_collection", ids=["1"], new_data=['Bar'])
 
-        results = self.storage.query("test_collection", query={"id": "1"})
-        self.assertEqual(results[0].get("content"), "Bar")
+        results = self.storage.query(collection_name="test_collection", ids=["1"])
+        self.assertTrue(len(results['documents']) == 1)
+        self.assertEqual(results['documents'][0], "Bar")
 
     def test_delete_and_count(self):
         """
@@ -100,8 +89,9 @@ class TestBaseStorage(BaseTestCase):
         self.storage.connect()
         self.storage.create_collection("test_collection")
 
-        self.storage.insert("test_collection", [{"id": "1"}, {"id": "2"}, {"id": "3"}])
-        self.storage.delete("test_collection", {"id": "2"})
+        # Insert documents
+        self.storage.insert("test_collection", ids=["1", "2", "3"], data=['Foo', 'Bar', 'Bacon'])
+        self.storage.delete("test_collection", ids=["2"])
 
         # count should be 2
         count_after_delete = self.storage.count("test_collection")
@@ -113,21 +103,16 @@ class TestBaseStorage(BaseTestCase):
         """
         self.storage.connect()
         self.storage.create_collection("test_collection")
-        self.storage.insert("test_collection", [{"id": "1"}, {"id": "2"}])
+        self.storage.insert("test_collection", ids=["1", "2"], data=['Foo', 'Bar'])
 
         count_before_reset = self.storage.count("test_collection")
         self.assertEqual(count_before_reset, 2)
 
         self.storage.reset_storage()
 
-        # Optionally, if reset_storage deletes the entire DB,
-        # then test_collection might not exist, or it’s empty if it’s re-created automatically.
-        # We'll assume the simplest case: everything is gone.
+        # reset_storage deletes the entire DB, so test_collection will not exist
+        # We'll test the simplest case: everything is gone.
         self.assertRaises(Exception, self.storage.count, "test_collection")
-
-        # or if you prefer "reset" to simply empty out the data rather than drop everything:
-        # count_after_reset = self.storage.count("test_collection")
-        # self.assertEqual(count_after_reset, 0)
 
 
 if __name__ == "__main__":

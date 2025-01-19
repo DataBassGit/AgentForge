@@ -15,8 +15,6 @@ class BaseStorage:
     def __init__(self, *args, **kwargs):
         # This might hold a reference to your central config object,
         # or you can instantiate your config here if needed.
-        self.current_collection = None
-
         self.config = Config()
         self.logger = Logger("base_storage", 'storage')
 
@@ -119,6 +117,14 @@ class BaseStorage:
         """
         raise NotImplementedError("Subclass must implement 'select_collection'")
 
+    def select_or_create_collection(self, collection_name):
+        """
+        Select or focus on a particular 'collection' or table within the DB.
+        Automatically create the given collection or table if it does not already exist.
+        Returns an object or handle representing that collection, or modifies state.
+        """
+        raise NotImplementedError("Subclass must implement 'select_or_create_collection'")
+
     def create_collection(self, collection_name):
         """
         Create a new collection (or table) within the database.
@@ -130,12 +136,6 @@ class BaseStorage:
         Delete a collection (or table) from the database.
         """
         raise NotImplementedError("Subclass must implement 'delete_collection'")
-
-    def set_current_collection(self, collection_name):
-        """
-        Set the current collection (or table).
-        """
-        raise NotImplementedError("Subclass must implement 'set_current_collection'")
 
     def insert(self, collection_name, data):
         """

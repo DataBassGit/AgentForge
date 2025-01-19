@@ -160,19 +160,28 @@ class ChromaUtils:
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
-    # ---------------------------------
-    # Pending
-    # ---------------------------------
+    def chromadb_settings(self):
+        """
+        Retrieves the ChromaDB settings from the configuration.
 
-    def __init__(self, persona_name="default"):
+        Returns:
+            tuple: A tuple containing the database path and embedding settings.
         """
-        Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
-        upon creation.
-        """
-        self.persona_name = persona_name
-        self.config = Config()
-        self.init_embeddings()
-        self.init_storage()
+        # Retrieve the ChromaDB settings
+        storage_settings = self.config.data['settings']['storage']
+
+        # Get the database path and embedding settings
+        db_path_setting = storage_settings['options'].get('persist_directory', None)
+        db_embed = storage_settings['embedding'].get('selected', None)
+
+        # Construct the absolute path of the database using the project root
+        if db_path_setting:
+            db_path = str(self.config.project_root / db_path_setting / self.persona_name)
+
+        else:
+            db_path = None
+
+        return db_path, db_embed
 
     def init_embeddings(self):
         """
@@ -206,32 +215,19 @@ class ChromaUtils:
             logger.log(f"[init_embeddings] Error initializing embeddings: {e}", 'error')
             raise
 
+    # ---------------------------------
+    # Pending
+    # ---------------------------------
 
-
-    def chromadb_settings(self):
+    def __init__(self, persona_name="default"):
         """
-        Retrieves the ChromaDB settings from the configuration.
-
-        Returns:
-            tuple: A tuple containing the database path and embedding settings.
+        Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
+        upon creation.
         """
-        # Retrieve the ChromaDB settings
-        storage_settings = self.config.data['settings']['storage']
-
-        # Get the database path and embedding settings
-        db_path_setting = storage_settings['options'].get('persist_directory', None)
-        db_embed = storage_settings['embedding'].get('selected', None)
-
-        # Construct the absolute path of the database using the project root
-        if db_path_setting:
-            db_path = str(self.config.project_root / db_path_setting / self.persona_name)
-
-        else:
-            db_path = None
-
-        return db_path, db_embed
-
-
+        self.persona_name = persona_name
+        self.config = Config()
+        self.init_embeddings()
+        self.init_storage()
 
     def delete_collection(self, collection_name: str):
         """
