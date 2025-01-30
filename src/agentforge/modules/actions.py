@@ -318,7 +318,7 @@ class Actions:
                 if isinstance(payload, Dict) and 'error' in payload:
                     return payload  # Stop execution and return the error message
 
-                tool_context = payload.get('next_tool_context')
+                tool_context = payload['thoughts'].get('next_tool_context')
                 results = self.tool_utils.dynamic_tool(tool, payload)
 
                 # Check if an error occurred

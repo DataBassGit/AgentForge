@@ -14,3 +14,4 @@ Example: >-
 Instruction: >-
   The 'read_directory' method requires either a single directory path (string) or a list of directory paths (list of strings). An optional max_depth parameter can be provided to limit the depth of the directory structure displayed. The method returns a string representing the directory structure. It handles directory creation if the path does not exist and checks if directories are empty. The method includes error handling for permissions and file not found errors.
 Script: .agentforge.tools.directory
+Class: Directory

@@ -11,3 +11,4 @@ Example: response = write_file(folder, file, text, mode='a')
 Instruction: >-
   The 'write_file' method requires a folder, file name, and the text you want to write as inputs. An optional mode parameter can be provided to decide whether to append ('a') or overwrite ('w') the file. By default, the function appends to the file.
 Script: .agentforge.tools.write_file
+Class: WriteFile
