@@ -227,6 +227,8 @@ class Agent:
         self.prompt = self.prompt_processor.render_prompts(self.prompt_template, self.template_data)
         self.prompt_processor.validate_rendered_prompts(self.prompt) # {'System': '...', 'User': '...'}
 
+    # def process_images(self):
+
     # ---------------------------------
     # LLM Execution
     # ---------------------------------

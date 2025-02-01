@@ -2,10 +2,9 @@ import requests
 import re
 
 from bs4 import BeautifulSoup
-from ..tools.intelligent_chunk import intelligent_chunk
-from ..utils.ChromaUtils import ChromaUtils
+from agentforge.storage.chroma_storage import ChromaStorage
 
-storage_instance = ChromaUtils()  # Create an instance of ChromaUtils
+storage_instance = ChromaStorage()  # Create an instance of ChromaUtils
 
 
 def remove_extra_newlines(chunk):

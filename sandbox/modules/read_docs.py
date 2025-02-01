@@ -1,11 +1,11 @@
 from agentforge.tools.semantic_chunk import semantic_chunk
 from agentforge.tools.get_text import GetText
-from agentforge.utils.ChromaUtils import ChromaUtils
+from agentforge.storage.chroma_storage import ChromaStorage
 import os
 
 gettext_instance = GetText()
 folder = '../docs'
-storage = ChromaUtils('dignity')
+storage = ChromaStorage('dignity')
 
 
 def list_files(directory):

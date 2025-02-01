@@ -2,7 +2,7 @@ import traceback
 from typing import List, Dict, Optional, Union
 from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
-from agentforge.utils.ChromaUtils import ChromaUtils
+from agentforge.storage.chroma_storage import ChromaStorage
 from agentforge.utils.parsing_processor import ParsingProcessor
 from ..config import Config
 from ..utils.tool_utils import ToolUtils
@@ -43,7 +43,7 @@ class Actions:
         # Initialize the logger, storage, and functions
         self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
-        self.storage = ChromaUtils()
+        self.storage = ChromaStorage()
         self.tool_utils = ToolUtils()
         self.parsing_utils = ParsingProcessor()
 

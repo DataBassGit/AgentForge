@@ -5,7 +5,7 @@ from agentforge.storage.chroma_storage import ChromaStorage
 import unittest
 from tests.base_test_case import BaseTestCase
 
-class TestBaseStorage(BaseTestCase):
+class TestChromaStorage(BaseTestCase):
 
     # ---------------------------------
     # Prep.

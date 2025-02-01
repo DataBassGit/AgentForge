@@ -1,8 +1,8 @@
 from agentforge.agent import Agent
-from agentforge.utils.ChromaUtils import ChromaUtils
+from agentforge.storage.chroma_storage import ChromaStorage
 
 docs_agent = Agent(agent_name="DocsAgent")
-kb = ChromaUtils()
+kb = ChromaStorage()
 
 while True:
     user_input = input("Welcome to the chat with docs!\nQuestion: ")

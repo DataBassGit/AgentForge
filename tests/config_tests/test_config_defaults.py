@@ -14,7 +14,7 @@ class TestConfigDefaults(BaseTestCase):
         self.storage_data = self.config.data['settings']['storage']
 
     def tearDown(self):
-        super().setUp()
+        super().tearDown()
         self.system_data = None
 
     # ---------------------------------
@@ -86,17 +86,6 @@ class TestConfigDefaults(BaseTestCase):
     # Test Storage Defaults.
     # ---------------------------------
 
-    def test_default_storage_settings(self):
-        # Selected storage
-        selected_storage = self.storage_data.get('selected_storage', {})
-        self.assertEqual(selected_storage.get('implementation'), 'chromadb')
-        self.assertEqual(selected_storage.get('configuration'), 'chroma_cosine')
-
-    def test_default_embedding_settings(self):
-        # Embedding settings
-        embedding_data = self.storage_data.get('embedding', {})
-        self.assertEqual(embedding_data.get('selected'), 'distil_roberta')
-
     def test_default_option_settings(self):
         # Options
         options_data = self.storage_data.get('options', {})
@@ -104,14 +93,19 @@ class TestConfigDefaults(BaseTestCase):
         self.assertTrue(options_data.get('save_memory', False))
         self.assertTrue(options_data.get('iso_timestamp', False))
         self.assertTrue(options_data.get('unix_timestamp', False))
-        self.assertEqual(options_data.get('persist_directory'), './db/')
+        self.assertEqual(options_data.get('persist_directory'), './db/ChromaDB')
         self.assertFalse(options_data.get('fresh_start', True))
 
-    def test_default_storage_library_settings(self):
+    def test_default_embedding_settings(self):
+        # Embedding settings
+        embedding_data = self.storage_data.get('embedding', {})
+        self.assertEqual(embedding_data.get('selected'), 'distil_roberta')
+
+    def test_default_embedding_library_settings(self):
         # Library defaults
-        library_data = self.storage_data.get('library', {}).get('chromadb', {}).get('defaults', {})
-        self.assertEqual(library_data.get('persist_directory'), './db/ChromaDB')
-        self.assertEqual(library_data.get('selected_embedding'), 'distil_roberta')
+        library_data = self.storage_data.get('embedding_library', {})
+        self.assertEqual(library_data.get('distil_roberta'), 'all-distilroberta-v1')
+        self.assertEqual(library_data.get('all_mini'), 'all-MiniLM-L6-v2')
 
 if __name__ == '__main__':
     unittest.main()

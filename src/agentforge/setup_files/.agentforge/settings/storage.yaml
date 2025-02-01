@@ -1,38 +1,15 @@
 # Default storage settings for all agents unless overridden
-selected_storage:
-  implementation: chromadb
-  configuration: chroma_cosine
-
-embedding:
-  selected: distil_roberta
-
 options:
   enabled: true
   save_memory: true          # Note: Saving memory won't work if storage is disabled
   iso_timestamp: true        # Use ISO format for timestamps
   unix_timestamp: true       # Use Unix format for timestamps
-  persist_directory: ./db/   # Relative path for persistent storage
+  persist_directory: ./db/ChromaDB   # Relative path for persistent storage
   fresh_start: false         # Wipes storage on system initialization if true
 
-library:
-  chromadb:  # Storage implementation
-    configurations:
-      chroma_default: {}     # No specific settings for this configuration
-
-      chroma_cosine:
-        metadata:
-          hnsw:space: cosine
-
-      chroma_ip:
-        metadata:
-          hnsw:space: ip
-        overrides:
-          persist_directory: ./db/ChromaDB/ip
-
-    # Default settings for the storage implementation
-    defaults:
-      persist_directory: ./db/ChromaDB
-      selected_embedding: distil_roberta
+# Selected Embedding
+embedding:
+  selected: distil_roberta
 
 # Embedding library (mapping of embeddings to their identifiers)
 embedding_library:

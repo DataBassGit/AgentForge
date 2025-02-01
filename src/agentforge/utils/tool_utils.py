@@ -5,7 +5,7 @@ from typing import List, Optional, Union
 from agentforge.utils.logger import Logger
 from typing import Any, Dict
 
-from agentforge.utils.ChromaUtils import ChromaUtils
+from agentforge.storage.chroma_storage import ChromaStorage
 
 
 class ToolUtils:
@@ -31,7 +31,7 @@ class ToolUtils:
         Initializes the ToolUtils class with a Logger instance.
         """
         self.logger = Logger(name=self.__class__.__name__)
-        self.storage = ChromaUtils('default')
+        self.storage = ChromaStorage('default')
 
     # --------------------------------------------------------------------------------------------------------
     # ----------------------------------------- Dynamic Tool Methods -----------------------------------------
