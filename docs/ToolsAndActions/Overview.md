@@ -4,36 +4,48 @@
 
 **Tools** are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a **YAML** file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
 
+Any python script can be added as a tool by completing a simple yaml template and storing it in the .agentforge/tools directory in your project. This yaml file is loaded into the database at runtime, and thus new tools require the agent be restarted before they are loaded into the database. The intent is that the database can be queried for the most relevant tool for a specified task.
+
 **Detailed Guide**: For a comprehensive guide on Tools, including their configurations and capabilities, please see [Tools Detailed Guide](Tools.md).
 
-**Example Tool: Google Search**
+**Example Tool: Brave Search**
 ```yaml
-Name: Google Search
+Name: Brave Search
 Args:
   - query (str)
-  - number_result (int, optional)
-Command: google_search
+  - count (int, optional)
+Command: search
 Description: |-
-  The 'Google Search' tool performs a web search using the Google Custom Search API. It returns a specified number of search results, each containing a URL and a brief description.
+  The 'Brave Search' tool performs a web search using the Brave Search API. It retrieves search results based on the provided query. Each result includes the title, URL, description, and any extra snippets.
+
 Instruction: |-
-  To use the 'Google Search' tool, follow these steps:
-  1. Call the `google_search` function with the following arguments:
+  To use the 'Brave Search' tool, follow these steps:
+  1. Call the `search` method with the following arguments:
      - `query`: A string representing the search query.
-     - `number_result`: (Optional) An integer specifying the number of results to return. Defaults to 5.
-  2. The function returns a formatted string containing the search results.
-  3. Use the output as needed in your application.
+     - `count`: (Optional) An integer specifying the number of search results to retrieve. Defaults to 10 if not specified.
+  2. The method returns a dictionary containing search results in the keys:
+     - `'web_results'`: A list of web search results.
+     - `'video_results'`: A list of video search results (if any).
+  3. Each item in `'web_results'` includes:
+     - `title`: The title of the result.
+     - `url`: The URL of the result.
+     - `description`: A brief description of the result.
+     - `extra_snippets`: (Optional) Additional snippets of information.
+  4. Utilize the returned results as needed in your application.
+
 Example: |-
-  # Example usage of the Google Search tool:
-  from agentforge.tools.GoogleSearch import google_search
+  # Example usage of the Brave Search tool:
+  brave_search = BraveSearch()
+  results = brave_search.search(query='OpenAI GPT-4', count=5)
+  for result in results['web_results']:
+      print(f"Title: {result['title']}")
+      print(f"URL: {result['url']}")
+      print(f"Description: {result['description']}")
+      print('---')
 
-  # Search with default number of results
-  results = google_search("Python programming")
-  print(results)
+Script: .agentforge.tools.brave_search
+Class: BraveSearch
 
-  # Search with custom number of results
-  results = google_search("Machine learning", number_result=10)
-  print(results)
-Script: agentforge.tools.GoogleSearch
 
 ```
 

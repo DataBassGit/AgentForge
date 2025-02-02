@@ -17,39 +17,49 @@ Each **tool** is meticulously described in a **YAML** file, encompassing several
 - **Example**: A code snippet demonstrating the tool's usage.
 - **Instruction**: Detailed steps on how to utilize the tool.
 - **Script**: The path to the Python module where the tool's implementation resides.
+- **Class**: The relevant class that contains the "Command" from above. Omit if the function is not in a class.
 
 Here's a full example of a tool definition in YAML format:
 
 ```yaml
-Name: Google Search
+Name: Brave Search
 Args:
   - query (str)
-  - number_result (int, optional)
-Command: google_search
+  - count (int, optional)
+Command: search
 Description: |-
-  The 'Google Search' tool performs a web search using the Google Custom Search API. It returns a specified number of search results, each containing a URL and a brief description.
+  The 'Brave Search' tool performs a web search using the Brave Search API. It retrieves search results based on the provided query. Each result includes the title, URL, description, and any extra snippets.
+
 Instruction: |-
-  To use the 'Google Search' tool, follow these steps:
-  1. Call the `google_search` function with the following arguments:
+  To use the 'Brave Search' tool, follow these steps:
+  1. Call the `search` method with the following arguments:
      - `query`: A string representing the search query.
-     - `number_result`: (Optional) An integer specifying the number of results to return. Defaults to 5.
-  2. The function returns a formatted string containing the search results.
-  3. Use the output as needed in your application.
+     - `count`: (Optional) An integer specifying the number of search results to retrieve. Defaults to 10 if not specified.
+  2. The method returns a dictionary containing search results in the keys:
+     - `'web_results'`: A list of web search results.
+     - `'video_results'`: A list of video search results (if any).
+  3. Each item in `'web_results'` includes:
+     - `title`: The title of the result.
+     - `url`: The URL of the result.
+     - `description`: A brief description of the result.
+     - `extra_snippets`: (Optional) Additional snippets of information.
+  4. Utilize the returned results as needed in your application.
+
 Example: |-
-  # Example usage of the Google Search tool:
-  from agentforge.tools.GoogleSearch import google_search
+  # Example usage of the Brave Search tool:
+  brave_search = BraveSearch()
+  results = brave_search.search(query='OpenAI GPT-4', count=5)
+  for result in results['web_results']:
+      print(f"Title: {result['title']}")
+      print(f"URL: {result['url']}")
+      print(f"Description: {result['description']}")
+      print('---')
 
-  # Search with default number of results
-  results = google_search("Python programming")
-  print(results)
-
-  # Search with custom number of results
-  results = google_search("Machine learning", number_result=10)
-  print(results)
-Script: agentforge.tools.GoogleSearch
+Script: .agentforge.tools.brave_search
+Class: BraveSearch
 ```
 
-In addition to defining **tools**, our system comes with a set of default custom **tools**, which are python scripts located in the `agentforge/tools/` directory within the library package. These scripts can be used and referenced in the same way as the Google Search example provided.
+In addition to defining **tools**, our system comes with a set of built in **tools**, which are python scripts located in the `agentforge/tools/` directory within the library package. These scripts can be used and referenced in the same way as the Brave Search example provided.
 
 ## Executing Tools with Dynamic Tool Functionality
 
@@ -59,31 +69,39 @@ To execute a **tool**, use the `dynamic_tool` method in the `ToolUtils` class. T
 
 1. **Dynamic Module Import**: The tool's script module is dynamically imported using the `importlib` library.
 2. **Command Execution**: The specific command (function or method) mentioned in the tool's **YAML** definition is then executed with the provided arguments.
-3. **Result Handling**: The result of the command execution is handled appropriately, potentially being used in further processing or returned to the caller.
+3. **Result Handling**: The result of the command execution is returned as an object, potentially being used in further processing or returned to the caller.
 
 ### Example Tool Execution Code
 
 To execute a **tool**, use the necessary information from the **tool**'s **YAML** file. Below is an example of how to use the `dynamic_tool` method with details typically found in a **tool**'s **YAML** definition:
 
 ```yaml
-# google_search.yaml
-Name: Google Search
+# brave_search.yaml
+Name: Brave Search
 Args: 
   - query (str)
   - number_result (int, optional)
-Command: google_search
-Script: .agentforge.tools.GoogleSearch
+Script: .agentforge.tools.brave_search
+Class: BraveSearch
 ```
 
-Based on the **YAML** file, we construct a `payload` in Python and call the `dynamic_tool` method:
+Based on the **YAML** file, we can construct a `payload` in Python and call the `dynamic_tool` method. Here we are doing this manually as an exercise, but the payload can also be built from the yaml file directly:
 
 ```python
 from agentforge.utils.tool_utils import ToolUtils
 
 tool_utils = ToolUtils()
+
+# Create the tool dictionary with required keys
+tool = {
+    "Script": ".agentforge.tools.brave_search",  # Module path
+    "Class": "BraveSearch",  # The class name in the module
+    "Command": "search"  # The method to call
+}
+
 # The 'payload' dictionary is constructed based on the specifications from the 'google_search.yaml' file
 payload = {
-    "command": "google_search",  # Corresponds to the 'Command' in the YAML
+    "command": "search",  # Corresponds to the 'Command' in the YAML
     "args": {
         "query": "OpenAI",  # Corresponds to the 'Args' in the YAML
         "number_result": 5  # Corresponds to the 'Args' in the YAML
@@ -91,12 +109,12 @@ payload = {
 }
 
 # 'tool_module' is the path to the script specified under 'Script' in the YAML file
-result = tool_utils.dynamic_tool(".agentforge.tools.GoogleSearch", payload)
+result = tool_utils.dynamic_tool(tool, payload)
 
 # The result of the execution will be handled by the tool_utils object
 ```
 
->**Note on Tool Attributes**: Not all attributes defined in the tool's **YAML** file are used when executing the **tool** with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the **tool** for use. They inform the LLM about the **tool**'s purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the **tool**.
+>**Note on Tool Attributes**: Not all attributes defined in the tool's **YAML** file are used when executing the **tool** with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the **tool** for use. They inform the LLM about the **tool**'s purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the **tool**. The context becomes more relevant when we get into [Actions](Actions.md).
 
 ## Implementing Custom Tools
 
@@ -111,6 +129,7 @@ Args:
   - param2 (int)
 Command: my_custom_function
 Script: my_project.Custom_Tools.MyCustomToolScript
+Class: ClassName
 ```
 
 Ensure that the `Script` attribute correctly points to the custom tool's script location within your project.
