@@ -172,7 +172,7 @@ Initializes the **Actions** class, setting up logging, storage utilities, and lo
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 actions = Actions()
 ```
@@ -190,7 +190,7 @@ Initializes a specified collection in the vector database with preloaded data.
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 actions = Actions()
 actions.initialize_collection('Actions')
@@ -212,7 +212,7 @@ Automatically executes actions for the given objective and context.
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 objective = 'Stay up to date with current world events'
 
@@ -242,7 +242,7 @@ Loads actions based on the current objective and specified criteria.
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 objective = 'Stay up to date with current world events'
 
@@ -288,26 +288,26 @@ Selects an action for the given objective from the provided action list.
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 objective = 'Stay up to date with current world events'
 context = 'Focus on technology'
 
 action_list = {
-  "Web Search": {
-    "Description": "The 'Web Search' action combines a Google search, web scraping, and text chunking operations...",
-    "Example": "# Example usage of the Web Search action:\nquery = \"OpenAI GPT-4\"\n...",
-    "Instruction": "To perform the 'Web Search' action, follow these steps:\n1. Use the 'Google Search' tool...",
-    "Name": "Web Search",
-    "Tools": "Google Search, Web Scrape, Intelligent Chunk",
- },
-  "Write File": {
-    "Description": "The 'Write File' action combines directory examination and file writing operations...",
-    "Example": "# Example usage of the Write File action:\ndirectory_structure = read_directory('path/to/folder'...",
-    "Instruction": "To perform the 'Write File' action, follow these steps:\n1. Use the 'Read Directory' tool...",
-    "Name": "Write File",
-    "Tools": "Read Directory, File Writer",
-  },
+    "Web Search": {
+        "Description": "The 'Web Search' action combines a Google search, web scraping, and text chunking operations...",
+        "Example": "# Example usage of the Web Search action:\nquery = \"OpenAI GPT-4\"\n...",
+        "Instruction": "To perform the 'Web Search' action, follow these steps:\n1. Use the 'Google Search' tool...",
+        "Name": "Web Search",
+        "Tools": "Google Search, Web Scrape, Intelligent Chunk",
+    },
+    "Write File": {
+        "Description": "The 'Write File' action combines directory examination and file writing operations...",
+        "Example": "# Example usage of the Write File action:\ndirectory_structure = read_directory('path/to/folder'...",
+        "Instruction": "To perform the 'Write File' action, follow these steps:\n1. Use the 'Read Directory' tool...",
+        "Name": "Write File",
+        "Tools": "Read Directory, File Writer",
+    },
 }
 
 actions = Actions()
@@ -341,19 +341,19 @@ Crafts a new action for the given objective.
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 objective = 'Automate file backup'
 tool_list = {
-  "File Writer": {
-    "Args": "folder (str), file (str), text (str), mode (str='a')",
-    "Command": "write_file",
-    "Description": "The 'File Writer' tool writes the provided text to a specified file within ...",
-    "Example": "write_file(folder='/path/to/folder', file='example.txt', text='Hello, World!', mode='a') ...",
-    "Instruction": "To use the 'File Writer' tool, follow these steps:\n1. Call the `write_file` function ...",
-    "Name": "File Writer",
-  },
-  # ... more tools ...
+    "File Writer": {
+        "Args": "folder (str), file (str), text (str), mode (str='a')",
+        "Command": "write_file",
+        "Description": "The 'File Writer' tool writes the provided text to a specified file within ...",
+        "Example": "write_file(folder='/path/to/folder', file='example.txt', text='Hello, World!', mode='a') ...",
+        "Instruction": "To use the 'File Writer' tool, follow these steps:\n1. Call the `write_file` function ...",
+        "Name": "File Writer",
+    },
+    # ... more tools ...
 }
 
 actions = Actions()
@@ -392,7 +392,7 @@ Prepares the tool for execution by running the ToolPrimingAgent.
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 objective = 'Automate file backup'
 action = {
@@ -446,7 +446,7 @@ Runs the specified tools in sequence for the given objective and action by runni
 **Example:**
 
 ```python
-from agentforge.modules.Actions import Actions
+from agentforge.modules.actions import Actions
 
 objective = 'Automate file backup'
 action = {

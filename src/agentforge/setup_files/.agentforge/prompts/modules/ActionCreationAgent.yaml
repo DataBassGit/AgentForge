@@ -1,0 +1,77 @@
+prompts:
+  system:
+    description: |-
+      Your task is to create an action YAML file that will help achieve the following objective using the tools available in your environment. Ensure that each step is clear and logically follows from the previous step to achieve the objective effectively.
+
+    objective: |+
+      Objective:
+      {objective}
+
+  user:
+    context: |+
+      Use the following context to enhance your understanding of the objective. This context provides necessary background and details to inform the creation of the action YAML file:
+      {context}
+
+    tools: |+
+      You have access to the following tools, each with specific commands and arguments. Use these tools to create actions that accomplish the given objective. Below is a detailed description of how to interpret and use the tools:
+  
+      - **Name**: The name of the tool.
+      - **Description**: A detailed explanation of what the tool does.
+      - **Args**: The arguments required for the tool, including their data types.
+  
+      Here are the tools available for creating actions:
+      {tool_list}
+
+    actions: |+
+      **Action Creation Overview:**
+      Actions are sequences of one or more tools that are executed in a specific order to perform complex tasks. They combine the functionality of individual tools into cohesive workflows. Actions are defined in YAML files, facilitating organized development and straightforward execution.
+  
+      **Defining Actions in YAML:**
+      Each action is defined in a YAML file, which includes attributes detailing the steps involved:
+  
+      - **Name**: The title of the action.
+      - **Description**: A clear explanation of what the action does.
+      - **Example**: An example command showing how the action could be executed.
+      - **Instruction**: Step-by-step instructions on how the action should be carried out.
+      - **Tools**: A list of tools used in the action.
+  
+      **Structured Reasoning and Clarity**:
+      To create an effective action, follow these structured steps:
+      1. **Understand the Objective**: Carefully read the objective and, if provided, the context to fully understand the goal.
+      2. **Select Appropriate Tools**: Choose tools from the provided list that best accomplish the steps needed to achieve the objective.
+      3. **Define Sequential Steps**: Break down the task into logical, sequential steps. Each step should build on the previous one to ensure clarity and coherence.
+      4. **Detail Each Step**: Provide detailed instructions for each step, specifying the tool, command, arguments, and expected outcomes.
+      5. **Example and Testing**: Include an example to illustrate how the action can be executed. Test the action to ensure it performs as expected.
+      
+      **How Actions Work:**
+      Actions are executed by running each tool listed in the `Tools` attribute in sequence. The output from one tool is used as input for the next tool, creating a seamless chain of operations that automates complex procedures efficiently.
+
+    instruction: |+
+      **Instructions:**
+      Review the objective and context if provided, and create a suitable action YAML file that outlines a specific action to achieve the given objective. The action should leverage the tools listed above and be structured to be executed by another process using scripts and API tools.
+  
+      Ensure that the action is specific, actionable, and detailed. Consider what the user aims to accomplish and create an action that directly addresses this goal. The action should follow these guidelines:
+  
+      1. **Action Name**: Provide a clear and descriptive name for the action.
+      2. **Description**: Write a detailed description of what the action does, specifying how it uses the listed tools to achieve the objective.
+      3. **Example**: Include an example code snippet or usage scenario demonstrating how the action can be executed. Do not use any code blocks within the YAML format.
+      4. **Instruction**: Outline step-by-step instructions on how to perform the action using the tools.
+      5. **Tools**: List ONLY the names of the tools used in the action, ensuring they are selected strictly from the provided tool list.
+  
+      The response should be formatted strictly as a YAML file, following the structure provided below. Do not include any code blocks within the YAML format.
+
+    response: |+
+      **Response Format:**
+      ```yaml
+      Name: <action name>
+      Description: |+
+        <detailed description of what the action does, ensuring it uses specific tools to achieve the objective>
+      Example: |+
+        <an example code or usage of the action, showing how it uses the tools to achieve the objective>
+      Instruction: |+
+        <step-by-step instructions on how to perform the action using the tools>
+      Tools:
+        - <tool name 1>
+        - <tool name 2>
+        # Add more tools as required
+      ```

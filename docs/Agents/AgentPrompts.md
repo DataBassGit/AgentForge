@@ -30,7 +30,7 @@ Each agent requires a corresponding **YAML** prompt file located within the `.ag
 
 ### Naming Convention
 
-- **Consistency is Key**: The prompt template **YAML** file **must** have the same name as the agent's class name defined in your code.
+- **Match the `agent_name`**: The prompt template **YAML** file **must** have the same name as the agent's `agent_name`. The `agent_name` is determined by the `name` parameter provided during agent initialization or defaults to the agent's class name if no name is given.
 
   **Example**:
 
@@ -38,11 +38,16 @@ Each agent requires a corresponding **YAML** prompt file located within the `.ag
   # echo_agent.py
   from agentforge.agent import Agent
 
+  # Option 1: Using the default class name as agent_name
   class EchoAgent(Agent):
-      pass  # Agent name is 'EchoAgent'
+      pass  # agent_name defaults to 'EchoAgent' if no name is provided
+
+  # Option 2: Specifying a custom agent_name during initialization
+  agent = Agent(agent_name="CustomEchoAgent")
   ```
 
-  - The corresponding prompt file should be named `EchoAgent.yaml` and placed in the `.agentforge/prompts/` directory or any of its subdirectories.
+  - For `EchoAgent`, the corresponding prompt file should be named `EchoAgent.yaml`.
+  - For `agent = Agent(agent_name="CustomEchoAgent")`, the prompt file should be named `CustomEchoAgent.yaml`.
 
 ### Directory Structure
 
@@ -54,8 +59,9 @@ You can organize your agents and prompt files into subdirectories for better cat
 .agentforge/
 └── prompts/
     ├── EchoAgent.yaml
+    ├── CustomEchoAgent.yaml
     ├── topic_qanda/
-    │   ├── QuestionGeneratorAgent.yaml
+    │   ├── QuestionGenerator.yaml
     │   └── AnswerAgent.yaml
     └── other/
         └── HelperAgent.yaml
@@ -71,18 +77,17 @@ You can organize your agents and prompt files into subdirectories for better cat
 Prompt files define the dialogue structures that agents use when interacting with users and LLMs. They are composed of `System` and `User` prompts, each containing one or more **sub-prompts**.
 
 ### Basic Structure
+
 The `System` and `User` prompts can be defined in two ways:
 
 1. **As Strings**: Providing the entire prompt template directly as a string.
-2. **As a set of Sub-Prompts**: Organizing the prompt into sub-sections for modularity and conditional rendering.
-
-
+2. **As a Set of Sub-Prompts**: Organizing the prompt into sub-sections for modularity and conditional rendering.
 
 #### Option 1: Prompts as Strings
 
 In the simplest form, you can define the `System` and `User` prompts directly as strings without any sub-prompts.
 
-**Example Prompt File (`SimpleEchoAgent.yaml`):**
+**Example Prompt File (`SimpleEcho.yaml`):**
 
 ```yaml
 Prompts:
@@ -112,6 +117,7 @@ Prompts:
 ```
 
 ### Notes:
+
 - **Prompts**: The root key containing the `System` and `User` prompts.
 - **System Prompt**: Provides the AI assistant with system instructions.
 - **User Prompt**: Represents the user's input.
@@ -127,7 +133,7 @@ Prompts:
 - **System Prompt**: Contains sub-prompts that define the assistant's behavior, background, or instructions.
 - **User Prompt**: Contains sub-prompts representing user inputs or specific tasks.
 
-**Example Prompt File (`QuestionGeneratorAgent.yaml`)**:
+**Example Prompt File (`QuestionGenerator.yaml`):**
 
 ```yaml
 Prompts:
@@ -155,8 +161,8 @@ Prompts:
     - **User Prompt**: The concatenated and rendered `User` sub-prompts.
   - **API Handling**:
     - Depending on the LLM API you are using, the prompts may be sent differently:
-      - **Separate Prompts**: Some APIs (e.g., OpenAI, LMStudio) accept system and user prompts as separate inputs.
-      - **Single Prompt**: Other APIs (e.g., Google Gemini) require a single prompt that combines both the system and user messages.
+      - **Separate Prompts**: Some APIs (e.g., OpenAI) accept system and user prompts as separate inputs.
+      - **Single Prompt**: Other APIs require a single prompt that combines both the system and user messages.
   - **Creating Custom APIs**:
     - The agent provides both the system and user prompts separately in a dictionary variable.
     - It's up to your API implementation to handle these prompts appropriately, either by sending them as separate messages or concatenating them into a single prompt before sending to the LLM.
@@ -205,7 +211,7 @@ Prompts:
   System: You are a helpful assistant.
   User: |
     Please respond in the following format:
-  
+
     Thoughts: {your thoughts here}
     Response: {your response here}
 ```
@@ -249,7 +255,7 @@ Prompts:
   }
   ```
 
-- In this example `/{name/}` and `/{age/}` ensure that `{name}` and `{age}` inside the code snippet is **not** treated as a variable.
+- In this example, `/{name/}` and `/{age/}` ensure that `{name}` and `{age}` inside the code snippet are **not** treated as variables.
 
 ---
 
@@ -284,9 +290,10 @@ Prompts:
 **Usage**:
 
 ```python
-from botty_agent import BottyAgent
+from agentforge.agent import Agent
 
-agent = BottyAgent()
+# Instantiate the agent with a custom name matching the persona and prompt file
+agent = Agent(agent_name="BottyAgent")
 response = agent.run()
 print(response)
 ```
@@ -307,11 +314,24 @@ print(response)
   Hello! Please introduce yourself.
   ```
 
->Note: This will only work if personas is enabled and BottyAgent is set as the persona either in the system settings or set as an agent override in the corresponding yaml file.
-
 ---
 
 ## Important Considerations
+
+### Agent Name and Prompt Matching
+
+- **`agent_name` Determines Prompt File**: The agent will look for a prompt file matching its `agent_name`. This means that if you provide a custom name during initialization, you must have a corresponding prompt file with the same name.
+
+**Example**:
+
+```python
+from agentforge.agent import Agent
+
+# Agent will use 'CustomAgent.yaml' as the prompt file
+agent = Agent(agent_name="CustomAgent")
+```
+
+- Ensure that `CustomAgent.yaml` exists in the `.agentforge/prompts/` directory.
 
 ### Variable Precedence
 
@@ -336,6 +356,7 @@ If both the persona file and runtime arguments provide a value for `topic`, the 
 - **Be Mindful of Variable Scope**: Understand where variables come from and how they interact.
 - **Test Your Prompts**: Regularly test to ensure variables are correctly replaced and prompts render as expected.
 - **Keep Prompts Clear and Concise**: Write prompts that are easy to read and understand.
+- **Match Prompt Files with `agent_name`**: Ensure that the prompt file names match the `agent_name` of your agents.
 
 ---
 
@@ -363,9 +384,10 @@ Expertise: Quantum Physics
 **Usage**:
 
 ```python
-from knowledge_agent import KnowledgeAgent
+from agentforge.agent import Agent
 
-agent = KnowledgeAgent()
+# Instantiate the agent with the name matching the prompt and persona files
+agent = Agent(agent_name="KnowledgeAgent")
 response = agent.run(concept="Quantum Entanglement")
 print(response)
 ```
@@ -389,14 +411,14 @@ print(response)
 
 ## Conclusion
 
-By structuring your prompts using `System` and `User` sections with sub-prompts, you gain precise control over how your agents interact with users and LLMs. Leveraging dynamic variables and persona data allows for rich, context-aware conversations.
+By structuring your prompts using `System` and `User` sections with sub-prompts, you gain precise control over how your agents interact with users and LLMs. Leveraging dynamic variables, persona data, and custom `agent_name` allows for rich, context-aware conversations.
 
 ---
 
 ## Additional Resources
 
 - **Prompt Handling Deep Dive**: For a detailed exploration of how prompts are processed, check out the [Prompt Handling Documentation](../Utils/PromptHandling.md).
-- **Agents Documentation**: Learn more about creating and customizing agents in the [Agents Guide](Agents.md).
+- **Custom Agents Guide**: Learn more about creating and customizing agents, including using custom `agent_name`, in the [Custom Agents Guide](CustomAgents.md).
 - **Personas**: Understand how to define and use personas in the [Personas Guide](../Personas/Personas.md).
 
 ---

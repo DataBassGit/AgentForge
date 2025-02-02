@@ -31,7 +31,7 @@ The logging system consists of two main classes:
 To use the `Logger`, you typically create an instance of it in your module or component:
 
 ```python
-from agentforge.utils.Logger import Logger
+from agentforge.utils.logger import Logger
 
 # Initialize the logger with the name of your module or component
 logger = Logger(name='MyModule')
@@ -218,32 +218,34 @@ This method logs the message and prints it to the console in a highlighted forma
 ```python
 from agentforge.agent import Agent
 
+
 class MyCustomAgent(Agent):
-    def load_data(self, **kwargs):
-        super().load_data(**kwargs)
-        self.logger.log("Data loaded successfully.", level='info')
-    
-    def process_data(self):
-        try:
-            # Processing data
-            self.logger.log("Processing data...", level='debug')
-            # Simulate data processing
-            self.data['processed'] = self.data.get('raw_data', '').upper()
-        except Exception as e:
-            self.logger.log(f"An error occurred during data processing: {e}", level='error')
-    
-    def parse_result(self):
-        try:
-            # Parsing result
-            self.logger.log("Parsing result...", level='debug')
-            # Simulate result parsing
-            self.data['parsed_result'] = self.result.lower()
-        except Exception as e:
-            self.logger.parsing_error(self.result, e)
-    
-    def build_output(self):
-        self.output = f"Processed Output: {self.data.get('parsed_result', '')}"
-        self.logger.log_info("Output built successfully.")
+  def load_data(self, **kwargs):
+    super().load_data(**kwargs)
+    self.logger.log("Data loaded successfully.", level='info')
+
+  def process_data(self):
+    try:
+      # Processing data
+      self.logger.log("Processing data...", level='debug')
+      # Simulate data processing
+      self.template_data['processed'] = self.template_data.get('raw_data', '').upper()
+    except Exception as e:
+      self.logger.log(f"An error occurred during data processing: {e}", level='error')
+
+  def parse_result(self):
+    try:
+      # Parsing result
+      self.logger.log("Parsing result...", level='debug')
+      # Simulate result parsing
+      self.template_data['parsed_result'] = self.result.lower()
+    except Exception as e:
+      self.logger.parsing_error(self.result, e)
+
+  def build_output(self):
+    self.output = f"Processed Output: {self.template_data.get('parsed_result', '')}"
+    self.logger.log_info("Output built successfully.")
+
 
 # Instantiate and run the agent
 agent = MyCustomAgent()

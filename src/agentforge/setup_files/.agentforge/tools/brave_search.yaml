@@ -1,0 +1,35 @@
+Name: Brave Search
+Args:
+  - query (str)
+  - count (int, optional)
+Command: search
+Description: |-
+  The 'Brave Search' tool performs a web search using the Brave Search API. It retrieves search results based on the provided query. Each result includes the title, URL, description, and any extra snippets.
+
+Instruction: |-
+  To use the 'Brave Search' tool, follow these steps:
+  1. Call the `search` method with the following arguments:
+     - `query`: A string representing the search query.
+     - `count`: (Optional) An integer specifying the number of search results to retrieve. Defaults to 10 if not specified.
+  2. The method returns a dictionary containing search results in the keys:
+     - `'web_results'`: A list of web search results.
+     - `'video_results'`: A list of video search results (if any).
+  3. Each item in `'web_results'` includes:
+     - `title`: The title of the result.
+     - `url`: The URL of the result.
+     - `description`: A brief description of the result.
+     - `extra_snippets`: (Optional) Additional snippets of information.
+  4. Utilize the returned results as needed in your application.
+
+Example: |-
+  # Example usage of the Brave Search tool:
+  brave_search = BraveSearch()
+  results = brave_search.search(query='OpenAI GPT-4', count=5)
+  for result in results['web_results']:
+      print(f"Title: {result['title']}")
+      print(f"URL: {result['url']}")
+      print(f"Description: {result['description']}")
+      print('---')
+
+Script: .agentforge.tools.brave_search
+Class: BraveSearch

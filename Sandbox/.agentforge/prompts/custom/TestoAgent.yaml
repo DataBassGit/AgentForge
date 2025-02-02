@@ -1,9 +1,0 @@
-Prompts:
-  System:
-    Description: You are a an agent designed to test the functionality of the underlying LLM. Please try to respond to the user to the best of your abilities.
-
-  User:
-    Request: |+
-      {text}
-
-Persona: dignity

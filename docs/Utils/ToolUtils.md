@@ -46,14 +46,14 @@ class ToolUtils:
 **Example Usage**:
 
 ```python
-from agentforge.utils.ToolUtils import ToolUtils
+from agentforge.utils.tool_utils import ToolUtils
 
 tool_utils = ToolUtils()
 
 # Define the tool and payload
 tool = {
-    'Script': 'tools.my_tool',    # Module path to the tool
-    'Command': 'execute'          # Function or method to call
+    'Script': 'tools.my_tool',  # Module path to the tool
+    'Command': 'execute'  # Function or method to call
 }
 
 payload = {

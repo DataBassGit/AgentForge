@@ -1,49 +1,43 @@
+# Virtual environments
 /venv/
-Config/api_keys.ini
+
+# Configuration files
 .env
+Config/api_keys.ini
+
+# IDE settings
 .idea/
+
+# Compiled Python files
 __pycache__/
-Logs/log.txt
 *.pyc
-/hiAGI-Dev.log
 
-AgentForge.log
+# Logs
+Logs/
+*.log
+*Logs/
+*logs/
 
-src/agentforge.egg-info/
-src/agentforge/persona/chatbot.json
-src/agentforge/salience.py
+# Database directories
+*DB/
+*db/
 
+# Build and distribution files
 build/
 dist/
+src/agentforge.egg-info/
 
-Examples/API/Logs/
-Examples/CustomAgents/Logs/
-Examples/DB/
-SalienceBot/Logs/
-SalienceBot/db_path/
-/SalienceBot/DB/
-/SalienceBot/Tests/
-/Examples/KG/DB/
-
-/Examples/Dyn/DB/
-/Examples/Dyn/Logs/
-/Examples/Dyn/Tests/
-
-Examples/CustomAgents/DB/
-/SalienceBot/path/
-
-Examples/Chatbot/DB/
-/SalienceBot/Files/
-/SalienceBot/Workspace/
-/Examples/KG/DB/
-/Sandbox/DB/
-
-Sandbox/Logs/
-
-docs/.obsidian/
-
+# Documentation tools
 docs/.obsidian/
 
-Sandbox/Logs/
+# Examples and sandbox
+Examples/**/DB/
+Examples/**/Logs/
+Examples/**/Tests/
+sandbox/**/DB/
+sandbox/**/Logs/
+sandbox/**/Tests/
 
-Sandbox/modules/Logs/
+# Specific files
+AgentForge.log
+src/agentforge/persona/chatbot.json

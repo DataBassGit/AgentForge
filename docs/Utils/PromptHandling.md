@@ -48,9 +48,9 @@ class PromptHandling:
 **Example Usage**:
 
 ```python
-from agentforge.utils.PromptHandling import PromptHandling
+from agentforge.utils.prompt_processor import PromptProcessor
 
-prompt_handler = PromptHandling()
+prompt_handler = PromptProcessor()
 template = "Hello, {user_name}! Today is {day_of_week}."
 variables = prompt_handler.extract_prompt_variables(template)
 print(variables)  # Output: ['user_name', 'day_of_week']
@@ -105,7 +105,7 @@ else:
 template = "Hello, {user_name}! Today is {day_of_week}."
 data = {'user_name': 'Alice', 'day_of_week': 'Monday'}
 
-rendered_prompt = prompt_handler.render_prompt_template(template, data)
+rendered_prompt = prompt_handler.render_prompt(template, data)
 print(rendered_prompt)  # Output: "Hello, Alice! Today is Monday."
 ```
 
@@ -251,9 +251,10 @@ While you can use `PromptHandling` methods directly, the **Agent** base class in
 ```python
 from agentforge.agent import Agent
 
+
 class MyAgent(Agent):
     def load_additional_data(self):
-        self.data['user_name'] = 'Alice'
+        self.template_data['user_name'] = 'Alice'
 ```
 
 In this example, the agent will use `self.data['user_name']` when rendering prompts that contain `{user_name}`.
@@ -276,10 +277,12 @@ And an agent:
 ```python
 from agentforge.agent import Agent
 
+
 class GreetingAgent(Agent):
     def load_additional_data(self):
-        self.data['user_name'] = 'Alice'
-        self.data['platform_name'] = 'AgentForge'
+        self.template_data['user_name'] = 'Alice'
+        self.template_data['platform_name'] = 'AgentForge'
+
 
 # Running the agent
 agent = GreetingAgent()

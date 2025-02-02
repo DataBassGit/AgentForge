@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 
+__version__ = "0.5.0"
 LICENSE = "GNU General Public License v3 or later (GPLv3+)"
 
 
@@ -10,7 +11,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.4.0",
+    version="0.5.0",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
@@ -18,9 +19,15 @@ setup(
     include_package_data=True,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    entry_points={
+        "console_scripts": [
+            "agentforge=agentforge.cli:main"
+        ]
+    },
     install_requires=[
-        "chromadb==0.5.3",
-        # "numpy==1.26.4",
+        "chromadb==0.6.2",
+        "numpy<2.0.0; python_version<'3.12'",
+        "numpy>=2.0.0; python_version>='3.12'",
         "sentence-transformers",
         "wheel",
         "groq",
@@ -30,13 +37,18 @@ setup(
         "termcolor==2.4.0",
         "openai",
         "anthropic",
-        # "google-api-python-client",
+        "google-api-python-client",
         "beautifulsoup4",
         "browse",
         "scipy",
         "discord.py",
         "semantic-text-splitter",
         "google-generativeai",
+        "PyYAML",
+        "ruamel.yaml",
+        "requests",
+        "ruamel.yaml",
+        "xmltodict",
         "setuptools>=70.0.0 ",  # not directly required, pinned by Snyk to avoid a vulnerability
     ],
     extras_require={
@@ -57,20 +69,13 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
     python_requires=">=3.9",
     package_data={
-        'agentforge.utils.guiutils': ['DiscordClient.py'],
+        'agentforge.utils.guiutils': ['discord_client.py'],
         '': ['*.yaml'],  # Include your file types as needed
     },
-    # package_data={
-    #     ".agentforge.utils.setup_files": ["*", "**/*"],
-    #     ".agentforge.utils.guiutils": ["*", "**/*"],
-    # },
-    # entry_points={
-    #     'console_scripts': [
-    #         '.agentforge=.agentforge.utils.setup_files.agentforge_cli:main',
-    #     ],
-    # }
 
 )

@@ -41,12 +41,12 @@ def get_llm(self, api: str, model: str):
     """
     try:
         # Retrieve the model name, module, and class from the 'models.yaml' settings.
-        model_name = self.data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
-        module_name = self.data['settings']['models']['ModelLibrary'][api]['module']
-        class_name = self.data['settings']['models']['ModelLibrary'][api]['class']
+        model_name = self.template_data['settings']['models']['ModelLibrary'][api]['models'][model]['name']
+        module_name = self.template_data['settings']['models']['ModelLibrary'][api]['module']
+        class_name = self.template_data['settings']['models']['ModelLibrary'][api]['class']
 
         # Dynamically import the module corresponding to the LLM API.
-        module = importlib.import_module(f".llm.{module_name}", package=__package__)
+        module = importlib.import_module(f".apis.{module_name}", package=__package__)
 
         # Retrieve the class from the imported module that handles the LLM connection.
         model_class = getattr(module, class_name)
@@ -69,7 +69,7 @@ This approach empowers users to focus on crafting agents and defining their beha
 
 ### Directory Structure
 
-In the `llm` [Directory](../../src/agentforge/llm), you will find Python files such as `openai.py`, `anthropic.py`, and `oobabooga.py`. Each file is tailored to interact with its respective LLM API.
+In the `llm` [Directory](../../src/agentforge/apis), you will find Python files such as `openai.py`, `anthropic.py`, and `oobabooga.py`. Each file is tailored to interact with its respective LLM API.
 
 ### Key Functionality of API Files
 
@@ -86,7 +86,7 @@ class Agent:
         Executes the language model generation with the generated prompt(s) and any specified parameters.
         """
         try:
-            model: LLM = self.agent_data['llm']
+            model: LLM = self.agent_data['apis']
             params = self.agent_data.get("params", {})
             params['agent_name'] = self.agent_name
             self.result = model.generate_text(self.prompt, **params).strip()

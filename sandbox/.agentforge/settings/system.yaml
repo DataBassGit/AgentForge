@@ -1,0 +1,28 @@
+# Persona settings
+persona:
+  enabled: true
+  name: default
+
+# Debug settings
+debug:
+  mode: false
+  save_memory: false  # Save memory during debugging (overrides normal behavior)
+  simulated_response: "Text designed to simulate an LLM response for debugging purposes
+    without invoking the model."
+
+# Logging settings
+logging:
+  enabled: true
+  console_level: warning
+  folder: ./logs
+  files:  # Log levels: critical, error, warning, info, debug
+    agentforge: error
+    model_io: error
+    chroma_utils: warning
+    Actions: warning
+misc:
+  on_the_fly: true  # Enables real-time dynamic adjustments for prompts and agent setting overrides
+
+# System file paths (Read/Write access)
+paths:
+  files: ./files
