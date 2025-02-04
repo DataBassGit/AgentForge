@@ -26,7 +26,7 @@ Prompt templates lie at the core of the **AgentForge** framework, defining how a
 When you create an agent in **AgentForge**, you can either:
 
 1. Instantiate `Agent` directly by providing a YAML filename (like `Agent("EchoAgent")`) that corresponds to a prompt file, **or**  
-2. Subclass `Agent` with the YAML filename as the class name (like `Class EchoAgent(Agent): ...`)
+2. Subclass `Agent` with the YAML filename as the class name (like `EchoAgent()`)
 
 Either way, you need a YAML file in `.agentforge/prompts/` that lays out how your agent interacts with users and LLMs.
 
