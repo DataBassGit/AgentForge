@@ -7,3 +7,4 @@ Example: scrapped = get_plain_text(url)
 Instruction: >-
   The 'get_plain_text' method of the 'Web Scrape' tool takes a URL as an input, which represents the webpage to scrape. It returns the textual content of that webpage as a string. You can send only one URL, so if you receive more than one, choose the most likely URL to contain the results you expect.
 Script: .agentforge.tools.web_scrape
+Class: WebScrape
