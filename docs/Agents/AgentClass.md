@@ -350,7 +350,7 @@ class SentimentAgent(Agent):
         self.output = f"Sentiment Analysis Result: {self.result}"
 ```
 
-### Step 2: Create the Prompt Template (`sentimentagent.yaml`)
+### Step 2: Create the Prompt Template (`SentimentAgent.yaml`)
 
 Place this in `.agentforge/prompts/`:
 
@@ -399,7 +399,8 @@ print(response)
 
 - **Start Simple**: Begin by instantiating `Agent` with a YAML file to confirm basic functionality.  
 - **Override as Needed**: Only override methods that are relevant to your custom logic.  
-- **Use Descriptive Names**: Name your agent classes and YAML files clearly (e.g., `SentimentAgent` ↔ `sentimentagent.yaml`).  
+- **Use Descriptive Names**: Name your agent classes and YAML files clearly (e.g., `SentimentAgent` ↔ `sentiment_agent.yaml`). 
+- **Case-Sensitive**: The YAML file name is case-sensitive. If you call `Agent("SentimentAgent")` or `SentimentAgent()`, the framework will look for `SentimentAgent.yaml` and not `sentimentagent.yaml`.
 - **Debug Mode**: Leverage `debug.mode` and `simulated_response` to rapidly test your agent’s workflow without incurring API calls.  
 - **Storage**: If you need to store or retrieve data persistently, implement custom logic in `load_from_storage` and `save_to_storage`.
 

@@ -33,9 +33,9 @@ Either way, you need a YAML file in `.agentforge/prompts/` that lays out how you
 ### Naming Convention
 
 - **Match the `agent_name`**  
-  The file’s name (e.g., `EchoAgent.yaml`) must match the agent’s `agent_name`. If you call `Agent("EchoAgent")`, the framework will look for `EchoAgent.yaml` in `.agentforge/prompts/` and any of its subfolder.  
+  The file’s name (e.g., `EchoAgent.yaml`) must match the agent’s `agent_name`. If you call `Agent("EchoAgent")` or `EchoAgent()`, the framework will look for `EchoAgent.yaml` in `.agentforge/prompts/` and any of its subfolder.  
 - **Case Sensitivity**  
-  The YAML file name is case-sensitive, and so are the keys in the file (`prompts`, `system`, `user` should be lowercase).
+  The YAML file name is case-sensitive, and so are the keys in the file (`prompts`, `system`, `user` should be lowercase). If you call `Agent("EchoAgent")` or `EchoAgent()`, the framework will look specifically for `EchoAgent.yaml` and not `echoagent.yaml`.
 
 ### Directory Structure
 
