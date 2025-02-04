@@ -1,10 +1,6 @@
-# Agent Prompts Guide
+# Agent Prompts
 
----
-
-## Introduction
-
-Prompt templates are at the heart of the **AgentForge** framework. They define how agents interact with users and Large Language Models (LLMs). Written in **YAML** format, prompt templates allow you to craft dynamic, context-aware conversations and behaviors for your agents.
+Prompt templates lie at the core of the **AgentForge** framework, defining how agents interact with users and Large Language Models (LLMs). Written in **YAML**, these files give you fine-grained control over conversations and agent behaviors. Each agent you create—whether by instantiating it with a YAML filename or by subclassing—relies on these prompt files for instructions.
 
 ---
 
@@ -14,420 +10,338 @@ Prompt templates are at the heart of the **AgentForge** framework. They define h
 2. [Understanding Prompt Files](#understanding-prompt-files)
 3. [Crafting Prompts with System and User Sections](#crafting-prompts-with-system-and-user-sections)
 4. [Dynamic Variables in Prompts](#dynamic-variables-in-prompts)
-5. [Handling Special Cases and Code Snippets](#handling-special-cases-and-code-snippets)
-6. [Combining Persona Data](#combining-persona-data)
-7. [Important Considerations](#important-considerations)
-8. [Best Practices for Prompt Design](#best-practices-for-prompt-design)
-9. [Example: Bringing It All Together](#example-bringing-it-all-together)
-10. [Conclusion](#conclusion)
-11. [Additional Resources](#additional-resources)
+5. [Dynamic Prompt Rendering](#dynamic-prompt-rendering-missing-variables)
+6. [Handling Special Cases and Code Snippets](#handling-special-cases-and-code-snippets)
+7. [Combining Persona Data](#combining-persona-data)
+8. [Important Considerations](#important-considerations)
+9. [Best Practices for Prompt Design](#best-practices-for-prompt-design)
+10. [Example: Bringing It All Together](#example-bringing-it-all-together)
+11. [Conclusion](#conclusion)
+12. [Additional Resources](#additional-resources)
 
 ---
 
 ## Organizing Agent Prompt Files
 
-Each agent requires a corresponding **YAML** prompt file located within the `.agentforge/prompts/` directory of your project. This file contains the prompt templates that guide the agent's interactions.
+When you create an agent in **AgentForge**, you can either:
+
+1. Instantiate `Agent` directly by providing a YAML filename (like `Agent("EchoAgent")`) that corresponds to a prompt file, **or**  
+2. Subclass `Agent` with the YAML filename as the class name (like `Class EchoAgent(Agent): ...`)
+
+Either way, you need a YAML file in `.agentforge/prompts/` that lays out how your agent interacts with users and LLMs.
 
 ### Naming Convention
 
-- **Match the `agent_name`**: The prompt template **YAML** file **must** have the same name as the agent's `agent_name`. The `agent_name` is determined by the `name` parameter provided during agent initialization or defaults to the agent's class name if no name is given.
-
-  **Example**:
-
-  ```python
-  # echo_agent.py
-  from agentforge.agent import Agent
-
-  # Option 1: Using the default class name as agent_name
-  class EchoAgent(Agent):
-      pass  # agent_name defaults to 'EchoAgent' if no name is provided
-
-  # Option 2: Specifying a custom agent_name during initialization
-  agent = Agent(agent_name="CustomEchoAgent")
-  ```
-
-  - For `EchoAgent`, the corresponding prompt file should be named `EchoAgent.yaml`.
-  - For `agent = Agent(agent_name="CustomEchoAgent")`, the prompt file should be named `CustomEchoAgent.yaml`.
+- **Match the `agent_name`**  
+  The file’s name (e.g., `EchoAgent.yaml`) must match the agent’s `agent_name`. If you call `Agent("EchoAgent")`, the framework will look for `EchoAgent.yaml` in `.agentforge/prompts/` and any of its subfolder.  
+- **Case Sensitivity**  
+  The YAML file name is case-sensitive, and so are the keys in the file (`prompts`, `system`, `user` should be lowercase).
 
 ### Directory Structure
 
-You can organize your agents and prompt files into subdirectories for better categorization, especially when dealing with multiple agents.
-
-**Example Structure**:
+You can nest your agent YAML files inside subfolders within `.agentforge/prompts/`. The system will search all subdirectories to find them.
 
 ```
 .agentforge/
 └── prompts/
     ├── EchoAgent.yaml
-    ├── CustomEchoAgent.yaml
-    ├── topic_qanda/
-    │   ├── QuestionGenerator.yaml
-    │   └── AnswerAgent.yaml
-    └── other/
-        └── HelperAgent.yaml
+    ├── advanced_echo/
+    │   └── echo_bot.yaml
+    └── knowledge/
+        └── knowledge_agent.yaml
 ```
-
-- The system automatically searches all subdirectories within `.agentforge/prompts/` to find agent prompt template files.
-- **Tip**: Organize agents by functionality or project modules for easier management.
-
+- **Note**: Prompt template YAML files can be named however you like, though we recommend keeping them lowercase for consistency *(Unlike this example which was done for demonstration purposes)*.
 ---
 
 ## Understanding Prompt Files
 
-Prompt files define the dialogue structures that agents use when interacting with users and LLMs. They are composed of `System` and `User` prompts, each containing one or more **sub-prompts**.
+Prompt files define the text (including placeholders) for **system** and **user** messages. These instructions guide how the agent (and the LLM it’s connected to) processes the user’s input.
 
-### Basic Structure
+### Top-Level Key: `prompts`
 
-The `System` and `User` prompts can be defined in two ways:
+Each YAML file begins with a top-level key `prompts`, which contains two main sections:
 
-1. **As Strings**: Providing the entire prompt template directly as a string.
-2. **As a Set of Sub-Prompts**: Organizing the prompt into sub-sections for modularity and conditional rendering.
+1. **`system`**: Establishes context, background, or instructions for the LLM’s role.  
+2. **`user`**: Represents user inputs, tasks, or questions.
 
-#### Option 1: Prompts as Strings
-
-In the simplest form, you can define the `System` and `User` prompts directly as strings without any sub-prompts.
-
-**Example Prompt File (`SimpleEcho.yaml`):**
+An example in minimal form:
 
 ```yaml
-Prompts:
-  System: You are an assistant that echoes the user's input.
-  User: {user_input}
+prompts:
+  system: You are an assistant that echoes the user's input.
+  user: {user_input}
 ```
 
-- **System Prompt**: A single string providing context or instructions to the assistant.
-- **User Prompt**: A single string that may include variables to be replaced at runtime.
-
-#### Option 2: Prompts with Sub-Prompts
-
-Alternatively, you can structure your prompts using sub-prompts for better organization and flexibility.
-
-**Example Prompt File (`EchoAgent.yaml`):**
-
-```yaml
-Prompts:
-  System:
-    Name: You are {name}.
-    Description: You are an assistant that echoes the user's input.
-  User:
-    Instructions: Echo what the user says.
-    Echo: |
-      user input:
-      {user_input}
-```
-
-### Notes:
-
-- **Prompts**: The root key containing the `System` and `User` prompts.
-- **System Prompt**: Provides the AI assistant with system instructions.
-- **User Prompt**: Represents the user's input.
-- **Sub-Prompts**: Named sections under `System` and `User` that can contain static text or dynamic variables.
-- **Variables**: Placeholders within `{}` that will be dynamically replaced at runtime.
+- **Lowercase Requirement**: The keys `prompts`, `system`, and `user` must be lowercase. Nested keys can be named however you like, though we recommend keeping them lowercase for consistency.
 
 ---
 
 ## Crafting Prompts with System and User Sections
 
-### Prompt Structure
+Most LLM APIs expect a “system” message (for overall context) and a “user” message (for the user’s actual input). In **AgentForge**, those two concepts map directly to `system` and `user` in your `prompts` file.
 
-- **System Prompt**: Contains sub-prompts that define the assistant's behavior, background, or instructions.
-- **User Prompt**: Contains sub-prompts representing user inputs or specific tasks.
+### Example: Subdividing Sections
 
-**Example Prompt File (`QuestionGenerator.yaml`):**
+You can subdivide your `system` or `user` sections into smaller parts for clarity. Each subsection is concatenated during prompt rendering.
 
 ```yaml
-Prompts:
-  System:
-    Role: You are an assistant that generates questions based on a topic.
-    Guidelines: Please ensure the questions are open-ended and thought-provoking.
-  User:
-    Topic: |
-      The topic is: {topic}.
-    Instruction: Please generate an insightful question about the topic.
+prompts:
+  system:
+    identity: "You are EchoBot, a friendly echoing assistant."
+    instructions: "Always reply by echoing back the user’s text."
+  user:
+    greeting: "User says: {user_input}"
 ```
 
-### How It Works
-
-- **Sub-Prompts Rendering**:
-  - Each sub-prompt under `System` and `User` is processed individually.
-  - If all variables within a sub-prompt are provided, it is rendered.
-  - Sub-prompts are concatenated to form the final `System` and `User` prompts sent to the LLM.
-
-### Final Prompt Structure
-
-- **Flexibility with LLM APIs**:
-  - The agent generates two separate prompts:
-    - **System Prompt**: The concatenated and rendered `System` sub-prompts.
-    - **User Prompt**: The concatenated and rendered `User` sub-prompts.
-  - **API Handling**:
-    - Depending on the LLM API you are using, the prompts may be sent differently:
-      - **Separate Prompts**: Some APIs (e.g., OpenAI) accept system and user prompts as separate inputs.
-      - **Single Prompt**: Other APIs require a single prompt that combines both the system and user messages.
-  - **Creating Custom APIs**:
-    - The agent provides both the system and user prompts separately in a dictionary variable.
-    - It's up to your API implementation to handle these prompts appropriately, either by sending them as separate messages or concatenating them into a single prompt before sending to the LLM.
+At runtime, **AgentForge** combines `identity` and `instructions` into the final system prompt, and similarly combines everything under `user`.
 
 ---
 
 ## Dynamic Variables in Prompts
 
-Dynamic variables allow prompts to be flexible and context-aware. Any text enclosed in `{}` that matches a valid Python variable name is considered a variable.
+Placeholders enclosed in braces, like `{user_input}`, become variables that you can pass at runtime to the agent’s `run()` method. **AgentForge** automatically substitutes these variables when rendering the final prompt.
 
-### How Variables Work
-
-- **Detection**: Variables are identified by the `PromptHandling` class using a regular expression that matches valid Python identifiers.
-- **Replacement**: At runtime, these variables are replaced with the corresponding values provided to the agent.
-- **Conditional Rendering**: Sub-prompts containing variables are only rendered if all required variables are provided.
-
-**Example**:
+### Example Variables
 
 ```yaml
-Prompts:
-  System: You are a helpful assistant.
-  User: {greeting}
+prompts:
+  system: "You are a knowledge agent that specializes in {expertise}."
+  user: "Please explain the basics of {subject}."
 ```
 
-- If you run the agent with `agent.run(greeting="Hello, AgentForge!")`, the `{greeting}` variable will be replaced accordingly.
+When you call:
 
-### Important Notes
+```python
+agent.run(expertise="quantum computing", subject="quantum entanglement")
+```
 
-- **Valid Variable Names**: Use variable names that are valid Python identifiers (letters, numbers, underscores, not starting with a number).
-- **Missing Variables**: If a required variable is missing, the entire sub-prompt is skipped.
-- **Plain Text**: If no placeholders are present in a sub-prompt, it will be rendered as plain text.
-- **Invalid Variable Placeholders**: Placeholders that are not valid variable names are left unchanged and will be considered as normal text.
+Those placeholders get filled:
+
+- **system** → `"You are a knowledge agent that specializes in quantum computing."`
+- **user** → `"Please explain the basics of quantum entanglement."`
+
+### Invalid Variables
+
+Any placeholder that doesn’t match a valid Python-style identifier remains unchanged. For example, `{123abc}` or `{user input}` will not resolve as a variable and will stay exactly as written.
+
+---
+
+## Dynamic Prompt Rendering (Missing Variables)
+
+In **AgentForge**, if a sub-prompt within either `system` or `user` contains variables that are not provided at runtime, that entire sub-prompt is skipped. This feature allows you to create **optional** sections in your prompt without needing multiple YAML files for slightly different scenarios.
+
+### Why It Matters
+
+Sometimes you want an agent to include extra context or feedback only if that information is available. If a particular variable (e.g., `{feedback}`) is missing, **AgentForge** simply omits the relevant sub-prompt, keeping the rest of the prompt intact.
+
+### Example: Optional Feedback Sub-Prompt
+
+Consider a scenario where an agent receives an initial question, generates a response, and then optionally includes feedback for a subsequent iteration. You can define a single YAML prompt with an extra sub-prompt that’s rendered only when the `feedback` variable is present.
+
+```yaml
+prompts:
+  system:
+    instructions: |
+      You are a problem-solving assistant.
+      Always provide a concise solution.
+
+    feedback_section: |
+      Additional Feedback from the Reviewer:
+      {feedback}
+
+  user: |
+    Please solve the following problem:
+    "{problem}"
+```
+
+1. **No Feedback Scenario**  
+   If you run:
+
+   ```python
+   agent.run(problem="What is 2 + 2?")
+   ```
+
+   Only `instructions` and `user` render because `feedback` isn’t provided. The `feedback_section` sub-prompt, which depends on `{feedback}`, is skipped.
+
+   **Rendered System Prompt**:
+   ```
+   You are a problem-solving assistant.
+   Always provide a concise solution.
+   ```
+   **Rendered User Prompt**:
+   ```
+   Please solve the following problem:
+   "What is 2 + 2?"
+   ```
+
+2. **With Feedback**  
+   If you run:
+
+   ```python
+   agent.run(
+       problem="What is 2 + 2?",
+       feedback="The previous solution was incorrect. Please try again."
+   )
+   ```
+
+   The `feedback_section` sub-prompt **is** rendered because `feedback` is available.
+
+   **Rendered System Prompt**:
+   ```
+   You are a problem-solving assistant.
+   Always provide a concise solution.
+
+   Additional Feedback from the Reviewer:
+   The previous solution was incorrect. Please try again.
+   ```
+   **Rendered User Prompt**:
+   ```
+   Please solve the following problem:
+   "What is 2 + 2?"
+   ```
+
+This approach lets you handle optional context or instructions within a single prompt file. By selectively including sub-prompts when the required variables are present, you maintain a clean setup and avoid duplicating YAML files for slightly different use cases.
 
 ---
 
 ## Handling Special Cases and Code Snippets
 
-### Invalid Variable Placeholders
+### Escape Curly Braces
 
-Placeholders within `{}` that are not valid variable names remain unchanged. This is useful for including templates or placeholders in your prompts.
-
-**Example**:
+If you need literal curly braces in your text—e.g., for JSON templates—**AgentForge** treats them as variable placeholders. To avoid that, you can escape them by wrapping with `/{ ... /}`:
 
 ```yaml
-Prompts:
-  System: You are a helpful assistant.
-  User: |
-    Please respond in the following format:
-
-    Thoughts: {your thoughts here}
-    Response: {your response here}
-```
-
-- `{your thoughts here}` and `{your response here}` are not valid variable names and will remain in the prompt.
-
----
-
-### Including Code Snippets
-
-When including code, **JSON**, etc., in your prompts, you might have curly braces `{}` that are part of the code and not intended for variable replacement. To prevent these from being interpreted as variables, you can escape them using `/{` and `/}`.
-
-#### How to Escape Curly Braces
-
-- **Syntax**: Wrap the curly braces you want to escape with `/{` and `/}`.
-  - `/{.../}` will be converted to `{...}` after rendering.
-- **Purpose**: This ensures that any content within the escaped braces is **not** treated as a variable and remains unchanged during variable substitution.
-
-**Example**:
-
-```yaml
-Prompts:
-  System: |
-    Here is a JSON template:
-
+prompts:
+  system: |
+    Example JSON template:
     {
-      "name": "/{name/}",
-      "age": "/{age/}"
+      "message": "/{message/}",
+      "time": "/{time/}"
     }
-  User: Please fill in the template with the appropriate values.
+  user: "Fill in the template above."
 ```
 
-- **Rendered System Prompt**:
+The text inside `/{ ... /}` remains literal braces in the rendered prompt.
 
-  ```
-  Here is a JSON template:
-
-  {
-    "name": "{name}",
-    "age": "{age}"
-  }
-  ```
-
-- In this example, `/{name/}` and `/{age/}` ensure that `{name}` and `{age}` inside the code snippet are **not** treated as variables.
+**Rendered System Prompt**:
+```
+Example JSON template:
+{
+  "message": "{message}",
+  "time": "{time}"
+}
+```
 
 ---
 
 ## Combining Persona Data
 
-Agents can utilize data from persona files stored in `.agentforge/personas/`. This allows you to define agent-specific information separately from your code and reuse personas across different agents.
-
-**Note**: Prompts **must** include both `System` and `User` sections for the agent to function properly.
-
-**Example Persona File (`Botty.yaml`)**:
+If personas are enabled in your configuration, any data in `.agentforge/personas/<persona_name>.yaml` can be merged into your prompt. Typically, **AgentForge** will place persona fields into the runtime data so they can be used just like any other variable.
 
 ```yaml
-Name: Botty McBotFace
-Description: a generic bot
-Location: Dinner Table
-Purpose: Pass the butter
+# .agentforge/prompts/botty_agent.yaml
+prompts:
+  system: |
+    You are {name}, {description}.
+  user: "Hello! Introduce yourself."
 ```
-
-**Example Prompt File (`BottyAgent.yaml`)**:
-
 ```yaml
-Prompts:
-  System:
-    Introduction: |
-      You are {Name}, {Description}.
-    Details: |
-      Your location: {Location}.
-      Your purpose: {Purpose}.
-  User: Hello! Please introduce yourself.
+# .agentforge/personas/botty.yaml
+name: Botty McBotFace
+description: "a friendly bot who loves to chat"
 ```
 
-**Usage**:
-
-```python
-from agentforge.agent import Agent
-
-# Instantiate the agent with a custom name matching the persona and prompt file
-agent = Agent(agent_name="BottyAgent")
-response = agent.run()
-print(response)
-```
-
-**Rendered Prompts**:
-
-- **System Prompt**:
-
-  ```
-  You are Botty McBotFace, a generic bot.
-  Your location: Dinner Table.
-  Your purpose: Pass the butter.
-  ```
-
-- **User Prompt**:
-
-  ```
-  Hello! Please introduce yourself.
-  ```
+When you call `Agent("botty_agent").run()`, the framework sees the matching persona file `botty.yaml` (in the personas folder) and merges those fields into the prompt.
 
 ---
 
 ## Important Considerations
 
-### Agent Name and Prompt Matching
-
-- **`agent_name` Determines Prompt File**: The agent will look for a prompt file matching its `agent_name`. This means that if you provide a custom name during initialization, you must have a corresponding prompt file with the same name.
-
-**Example**:
-
-```python
-from agentforge.agent import Agent
-
-# Agent will use 'CustomAgent.yaml' as the prompt file
-agent = Agent(agent_name="CustomAgent")
-```
-
-- Ensure that `CustomAgent.yaml` exists in the `.agentforge/prompts/` directory.
-
-### Variable Precedence
-
-- **Persona vs. Runtime Variables**: Variables provided at runtime override those found in the persona file.
-- **Avoid Conflicts**: To prevent unintended overrides, ensure that variable names in persona files do not conflict with those passed at runtime unless desired.
-
-**Example**:
-
-If both the persona file and runtime arguments provide a value for `topic`, the runtime `topic` value will be used.
-
-### Required Prompts
-
-- **Both `System` and `User` Prompts are Required**: For the agent to function correctly, your prompt file must contain both `System` and `User` sections. Even if one section is minimal, it needs to be present to meet the framework's requirements.
+1. **Agent Name ↔ YAML Filename**  
+   The filename in `.agentforge/prompts/` or its nested subfolders must match the agent’s name exactly (including case).  
+2. **Lowercase Keys**  
+   Use `prompts`, `system`, and `user` in all-lowercase. Nested keys can be freely named, though lowercase is recommended.  
+3. **Persona vs. Runtime**  
+   If both a persona and a runtime argument define the same variable, the runtime argument takes precedence.
 
 ---
 
 ## Best Practices for Prompt Design
 
-- **Include Both `System` and `User` Prompts**: Always ensure your prompt files contain both the `System` and `User` sections.
-- **Use Valid Variable Names**: Ensure variables are valid Python identifiers.
-- **Unique Variable Names**: Avoid naming conflicts between persona data and runtime arguments.
-- **Be Mindful of Variable Scope**: Understand where variables come from and how they interact.
-- **Test Your Prompts**: Regularly test to ensure variables are correctly replaced and prompts render as expected.
-- **Keep Prompts Clear and Concise**: Write prompts that are easy to read and understand.
-- **Match Prompt Files with `agent_name`**: Ensure that the prompt file names match the `agent_name` of your agents.
+- **Keep Prompts Clear**  
+  Make your `system` instructions concise but explicit.  
+- **Use Consistent Formatting**  
+  Stick to lowercasing your main keys and keep your sub-prompt keys easy to read.  
+- **Be Mindful of Variable Names**  
+  Only placeholders matching valid Python identifiers will be replaced.  
+- **Test Iteratively**  
+  Try your agent with sample inputs to ensure the final rendered prompts look correct.  
+- **Leverage Subsections**  
+  Subdivide your system and user prompts into logical subsections if it helps your logic (e.g., `identity`, `instructions`, `context`).
 
 ---
 
 ## Example: Bringing It All Together
 
-**Prompt File (`KnowledgeAgent.yaml`)**:
+Let’s say you have a “knowledge” agent that explains science topics.
+
+### Prompt File: `.agentforge/prompts/knowledge_agent.yaml`
 
 ```yaml
-Prompts:
-  System:
-    Role: |
-      You are {Name}, an expert in {Expertise}.
-    Goal: Your goal is to assist users by providing detailed explanations.
-  User:
-    Question: Please explain the concept of {concept}.
+prompts:
+  system:
+    identity: "You are {name}, an expert in {expertise}."
+    style: "Use plain language explanations."
+  user: |
+    The topic is: {topic}
+    Please give a concise overview.
 ```
 
-**Persona File (`KnowledgeAgent.yaml`)**:
+### Persona File: `.agentforge/personas/knowledge_agent.yaml` (Optional)
 
 ```yaml
-Name: Dr. Know
-Expertise: Quantum Physics
+name: Dr. Know
+expertise: Astrophysics
 ```
 
-**Usage**:
+### Usage in Code
 
 ```python
 from agentforge.agent import Agent
 
-# Instantiate the agent with the name matching the prompt and persona files
-agent = Agent(agent_name="KnowledgeAgent")
-response = agent.run(concept="Quantum Entanglement")
+knowledge_agent = Agent("knowledge_agent")
+response = knowledge_agent.run(topic="Black Holes")
 print(response)
 ```
 
-**Rendered Prompts**:
+**Rendered Prompt**:
 
-- **System Prompt**:
-
+- **system**:  
   ```
-  You are Dr. Know, an expert in Quantum Physics.
-  Your goal is to assist users by providing detailed explanations.
+  You are Dr. Know, an expert in Astrophysics.
+  Use plain language explanations.
   ```
-
-- **User Prompt**:
-
+- **user**:  
   ```
-  Please explain the concept of Quantum Entanglement.
+  The topic is: Black Holes
+  Please give a concise overview.
   ```
 
 ---
 
 ## Conclusion
 
-By structuring your prompts using `System` and `User` sections with sub-prompts, you gain precise control over how your agents interact with users and LLMs. Leveraging dynamic variables, persona data, and custom `agent_name` allows for rich, context-aware conversations.
+**AgentForge** uses YAML-based prompts to define agent behavior. By splitting the prompt into `system` and `user` sections, employing dynamic variables, and optionally combining persona data, you can craft flexible and contextually aware dialogues. Just remember to keep keys lowercase at the top level, match your YAML file name to your `agent_name`, and test thoroughly.
 
 ---
 
 ## Additional Resources
 
-- **Prompt Handling Deep Dive**: For a detailed exploration of how prompts are processed, check out the [Prompt Handling Documentation](../Utils/PromptHandling.md).
-- **Custom Agents Guide**: Learn more about creating and customizing agents, including using custom `agent_name`, in the [Custom Agents Guide](CustomAgents.md).
-- **Personas**: Understand how to define and use personas in the [Personas Guide](../Personas/Personas.md).
-
----
+- **Prompt Handling Deep Dive**: [Prompt Handling Documentation](../Utils/PromptHandling.md)  
+- **Custom Agents**: [Custom Agents Guide](CustomAgents.md)  
+- **Personas**: [Personas Guide](../Personas/Personas.md)  
 
 **Need Help?**
 
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
 - **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
-
----

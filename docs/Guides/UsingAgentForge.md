@@ -1,212 +1,168 @@
 # Using AgentForge
 
-This guide will help you get started with running agents and multi-agent scripts using **AgentForge**.
+This guide covers the basics of running single and multi-agent scripts in **AgentForge**, focusing first on defining agents via prompt files, then introducing the option to create custom classes if you need more specialized behavior.
 
 ---
 
 ## Running an Agent
 
-### 1. Define an Agent Class
+### 1. Create the Prompt Template
 
-Create a Python file named `echo_agent.py` in your project root:
+Inside your project's `.agentforge/prompts/` directory, place a YAML file named `EchoAgent.yaml`:
+
+```yaml
+prompts:
+  system: You are an assistant that echoes the user's input.
+  user: {user_input}
+```
+
+Here, `{user_input}` is a placeholder that will be filled at runtime. For more details on how placeholders and agent prompts work, see the [Agent Prompts](../Agents/AgentPrompts.md) guide.
+
+### 2. Write a Script to Run the Agent Interactively
+
+In your project root, create a Python script (e.g., `run_agent.py`):
 
 ```python
 from agentforge.agent import Agent
 
-class EchoAgent(Agent):
-    pass  # The agent name is automatically set to 'EchoAgent'
-```
-
-### 2. Create the Prompt Template (`EchoAgent.yaml`)
-
-Inside the `.agentforge/prompts/` directory, create a **YAML** file named `EchoAgent.yaml`:
-
-```yaml
-Prompts:
-  System: You are an assistant that echoes the user's input.
-  User: {user_input}
-```
-
-> **Note**: This prompt template uses a variable placeholder `{user_input}`. This variable will be replaced with actual data at runtime. To understand how agent prompts are rendered within **AgentForge**, see the [Agent Prompts](../Agents/AgentPrompts.md) guide.
-
-### 3. Write a Script to Run the Agent Interactively
-
-Create a separate Python script (e.g., `run_agent.py`) in your project root to import and run your custom agent:
-
-```python
-from echo_agent import EchoAgent
-
 def main():
-    # Initialize the EchoAgent
-    agent = EchoAgent()
+    # Instantiate the EchoAgent using its YAML prompt file
+    echo_agent = Agent('EchoAgent')
 
     print("Welcome to the EchoAgent! Type 'quit' to exit.")
     while True:
-        # Prompt the user for input
         user_input = input("You: ")
-
-        # Exit the loop if the user types 'quit'
         if user_input.lower() == 'quit':
             print("Goodbye!")
             break
 
-        # Run the agent with the user's input and print the response
-        response = agent.run(user_input=user_input)
+        response = echo_agent.run(user_input=user_input)
         print("EchoAgent:", response)
 
 if __name__ == "__main__":
     main()
 ```
 
-### 4. Execute the Script
+### 3. Run Your Script
 
-Ensure your virtual environment is activated and run the script:
+Activate your virtual environment if you have one, then run:
 
 ```bash
 python run_agent.py
 ```
 
-### 5. **Example Interaction**
-
-Assuming the agent is connected to an LLM, the interaction might look like:
+An example interaction might look like this:
 
 ```
 Welcome to the EchoAgent! Type 'quit' to exit.
-You: Hello, EchoAgent!
-EchoAgent: Hello, EchoAgent!
-You: How are you today?
-EchoAgent: How are you today?
+You: Hello there!
+EchoAgent: Hello there!
 You: This is a test.
 EchoAgent: This is a test.
 You: quit
 Goodbye!
 ```
 
-### 6. Deactivate the Virtual Environment (Optional)
-
-When you're done working, deactivate the virtual environment:
-
-```shell
-deactivate
-```
-
-Remember to activate the virtual environment (`source venv/bin/activate` or `venv\Scripts\activate`) whenever you return to work on your project.
-
 ---
 
-## Running a Multi Agent Script
+## Running a Multi-Agent Script
 
-To create a script that uses multiple agents working together, we'll create two agents: `QuestionGeneratorAgent` and `AnswerAgent`.
+When you want multiple agents collaborating in a single script, each agent can be defined by its own YAML file and then instantiated the same way.
 
-### 1. Define the Agent Classes
+### 1. Create Prompt Files
 
-#### `question_generator_agent.py`
-
-Create a Python file named `question_generator_agent.py` in your project root:
-
-```python
-from agentforge.agent import Agent
-
-class QuestionGeneratorAgent(Agent):
-    pass  # The agent name is automatically set to 'QuestionGeneratorAgent'
-```
-
-#### `answer_agent.py`
-
-Create another Python file named `answer_agent.py` in your project root:
-
-```python
-from agentforge.agent import Agent
-
-class AnswerAgent(Agent):
-    pass  # The agent name is automatically set to 'AnswerAgent'
-```
-
-### 2. Create the Prompt Templates
+Place these files in `.agentforge/prompts/`:
 
 #### `QuestionGeneratorAgent.yaml`
-
-Inside the `.agentforge/prompts/` directory, create a **YAML** file named `QuestionGeneratorAgent.yaml`:
-
 ```yaml
-Prompts:
-  System: You are a helpful assistant that generates insightful questions based on the user's topic.
-  User: |
+prompts:
+  system: You are a helpful assistant that generates insightful questions based on a given topic.
+  user: |
     Topic: {topic}
 ```
 
 #### `AnswerAgent.yaml`
-
-Also in the `.agentforge/prompts/` directory, create a **YAML** file named `AnswerAgent.yaml`:
-
 ```yaml
-Prompts:
-  System: You are a knowledgeable assistant that provides detailed answers to questions.
-  User: |
+prompts:
+  system: You are a knowledgeable assistant that provides detailed answers to questions.
+  user: |
     Question: {question}
 ```
 
-### 3. Write a Script to Manage Agent Interactions
+### 2. Write the Multi-Agent Script
 
-Create a Python script (e.g., `run_topic_qanda.py`) in your project root:
+In the root of your project, create `run_topic_qanda.py`:
 
 ```python
-from question_generator_agent import QuestionGeneratorAgent
-from answer_agent import AnswerAgent
+from agentforge.agent import Agent
 
-# Initialize agents
-question_agent = QuestionGeneratorAgent()
-answer_agent = AnswerAgent()
+def main():
+    # Instantiate agents using their YAML prompt files
+    question_agent = Agent('QuestionGeneratorAgent')
+    answer_agent = Agent('AnswerAgent')
 
-# Agent 1 generates a question based on a topic
-topic = "artificial intelligence"
-question = question_agent.run(topic=topic)
-print(f"Generated Question: {question}")
+    topic = "artificial intelligence"
+    question = question_agent.run(topic=topic)
+    print(f"Generated Question: {question}")
 
-# Agent 2 answers the question
-answer = answer_agent.run(question=question)
-print(f"Answer: {answer}")
+    answer = answer_agent.run(question=question)
+    print(f"Answer: {answer}")
+
+if __name__ == "__main__":
+    main()
 ```
 
-### 4. Execute the Script
-
-Ensure your virtual environment is activated and run the script:
+### 3. Execute the Script
 
 ```bash
 python run_topic_qanda.py
 ```
 
-### 5. **Example Output**
-
-Assuming the agents are connected to an LLM, the output might be:
+The output will vary based on your chosen LLM and configuration. For example, you might see:
 
 ```
 Generated Question: What are the ethical implications of artificial intelligence in modern society?
-Answer: The ethical implications of artificial intelligence (AI) in modern society include concerns about privacy, job displacement due to automation, decision-making transparency, bias in AI algorithms, and the potential for AI to be used in harmful ways such as surveillance or autonomous weapons. Addressing these issues requires careful regulation, ethical guidelines, and ongoing public dialogue to ensure that AI technologies benefit society as a whole.
+Answer: The ethical implications of artificial intelligence (AI) in modern society include concerns about privacy...
 ```
 
->*Note: The actual output will depend on the LLM used and its configuration.*
+---
+
+## Creating Custom Agent Classes (Advanced)
+
+In many cases, simply referencing a YAML file is sufficient for defining agent behavior. However, if you need extra control—such as adding custom methods or overriding certain behaviors—you can create a custom agent class. Below is a quick look at how you might do it:
+
+```python
+from agentforge.agent import Agent
+
+class CustomAgent(Agent):
+    def process_data(self):
+        # Perform any custom pre-processing before sending data to the LLM
+        pass
+
+    def build_output(self):
+        # Adjust or filter the LLM’s response
+        return super().build_output()
+
+# Instantiate and use it just like any other agent
+my_custom_agent = CustomAgent('EchoAgent')
+reply = my_custom_agent.run(user_input="Hello!")
+print(reply)
+```
+
+This approach gives you a straightforward way to inject logic before or after the primary LLM call, making it easy to tailor your agents for specialized tasks.
 
 ---
 
 ## Additional Resources
 
-- **Custom Agents Guide**:
-  - Learn how to create and customize agents in detail. [Custom Agents Guide](../Agents/CustomAgents.md)
+You can explore more complex agent features, define defaults in `.agentforge/settings/` for your model settings, or integrate with different LLM APIs by checking out the [Settings](../Settings/Settings.md) and [LLMs](../LLMs/LLMs.md) guides. To learn more about advanced customization or how to manage large-scale agent projects, visit the [Agents Documentation](../Agents/Agents.md).
 
-- **Settings**:
-  - Customize model settings in `.agentforge/settings/`.
-  - Specify default LLMs, temperature, max tokens, and more.
-  - Learn more in the [Settings Guide](../Settings/Settings.md).
+If you run into any issues, refer to the [Troubleshooting Guide](../Guides/TroubleshootingGuide.md) for common fixes and workarounds.
 
-- **Personas**:
-  - Use personas to encapsulate information accessible to agents.
-  - Store personas in `.agentforge/personas/`.
-  - Learn more in the [Personas Guide](../Personas/Personas.md).
-  
 ---
 
 **Next Steps**:
 
-- Explore the [Agents Documentation](../Agents/Agents.md) for more advanced agent configurations.
-- Learn about integrating different LLM APIs in the [LLM API Integration Guide](../LLMs/LLMs.md).
+- Continue exploring the [Agents Documentation](../Agents/Agents.md) for deeper insights.
+- Fine-tune your configuration using the [Settings Guide](../Settings/Settings.md).
+- Leverage personas through the [Personas Guide](../Personas/Personas.md) to store and reuse critical information.
