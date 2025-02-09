@@ -10,7 +10,7 @@ class BaseModel:
     """
 
     # Defaults you might share across all models
-    default_retries = 3
+    default_retries = 8
     default_backoff = 2
 
     def __init__(self, model_name, **kwargs):

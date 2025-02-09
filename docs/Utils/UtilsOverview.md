@@ -2,122 +2,81 @@
 
 ## Introduction
 
-The **AgentForge** framework provides a suite of utility classes that facilitate various operations within agents and the system as a whole. These utilities are designed to be imported and used as needed, offering flexibility and modularity in your projects.
+In **AgentForge**, various utility classes make building and extending agents easier. Each utility focuses on a specific aspect of agent functionality—handling everything from logging, prompt rendering, and parsing structured data, to dynamic tool execution, and Discord integration.
 
 ---
 
 ## Available Utilities
 
-The utilities are located in the `.agentforge/utils/` directory and include the following:
+The core utility modules (found under `agentforge/utils/`) are summarized below. For more details on each, see the linked individual guides.
 
-### [1. Chroma Utils](ChromaUtils.md)
+### **1. Discord Client**
 
-- **Description**: A class for interacting with the vector database **ChromaDB**. It provides methods for managing and using storage, enabling agents to store and retrieve data efficiently.
+- **Guide**: [Discord Guide](DiscordClient.md)
+- **Description**: A class for connecting agents to Discord. It can create Discord bots, allowing agents to receive and send messages in channels, post embeds, manage threads, and more.
 - **Use Cases**:
-  - Data persistence and retrieval.
-  - Implementing agent memory functionalities.
-
-### [2. Discord Client](DiscordClient.md)
-
-- **Description**: A class for connecting agents to Discord. It can be used to create Discord bots, allowing agents to interact with users through Discord channels.
-- **Use Cases**:
-  - Real-time communication with users. (Real-time is subjective as it depends on your unique implementation and LLM)
-  - Building chatbots for Discord servers.
-  - Integrating agents into Discord communities.
-
-### [3. Logger](Logger.md)
-
-- **Description**: Contains functions for logging to both files and the console, allowing for enhanced debugging and monitoring.
-- **Use Cases**:
-  - Debugging agent behaviors.
-  - Tracking system activities.
-  - Recording errors and important events.
-
-### [4. Parsing Utils](ParsingUtils.md)
-
-- **Description**: Provides methods for parsing formatted text into Python dictionaries.
-- **Use Cases**:
-  - Parsing agent responses formatted in **YAML**. (More Parsing Formats Coming Soon...ish)
-  - Converting structured text data into usable Python objects.
-
-### [5. Prompt Handling](PromptHandling.md)
-
-- **Description**: Manages the rendering and handling of prompts that guide agent actions and responses.
-- **Use Cases**:
-  - Dynamically generating prompts with variable substitution.
-  - Managing prompt templates.
-  - Ensuring prompts are correctly formatted for the LLM.
-
-### [6. Tool Utils](ToolUtils.md)
-
-- **Description**: Facilitates the dynamic execution of tools, integral to performing actions within the system.
-- **Use Cases**:
-  - Managing and executing agent tools.
-  - Integrating external functionalities.
-  - Extending agent capabilities with custom actions.
+  - Building real-time chat interfaces for your agents on Discord servers.
+  - Enabling interactive command-based bots or multi-agent discussions in a community.
 
 ---
 
-## Using Utilities
+### **2. Logger**
 
-You can import and utilize these utilities directly in your code as needed. Below is an example of how to use one of the utilities.
+- **Guide**: [Logger Guide](Logger.md)
+- **Description**: A robust logging system to track agent actions, debug processes, and store audit trails. Logs can be split across multiple files with configurable levels, and dynamic creation of new log files.
+- **Use Cases**:
+  - Debugging behaviors in custom agents.
+  - Monitoring system health, errors, and warnings.
+  - Maintaining detailed logs for compliance or review.
 
-### Example: Using `ParsingUtils`
+---
 
-```python
-from agentforge.utils.parsing_processor import ParsingProcessor
+### **3. Parsing**
 
-# Initialize the ParsingUtils class
-parsing_utils = ParsingProcessor()
+- **Guide**: [ParsingUtils Guide](ParsingUtils.md)
+- **Description**: Provides methods for extracting code blocks and parsing common data formats, including YAML, JSON, XML, INI, CSV, and Markdown. Useful when agents embed structured information in their outputs or require configuration data from text.
+- **Use Cases**:
+  - Parsing agent responses that include code-fenced JSON or YAML.
+  - Converting user-supplied text into Python data structures for further processing.
 
-# Example YAML string
-yaml_string = '''
-name: AgentForge
-description: An advanced agent framework.
-'''
+---
 
-# Parse the YAML content
-parsed_yaml = parsing_utils.parse_yaml_content(yaml_string)
+### **4. Prompt Handling**
 
-# Output the parsed YAML
-print(parsed_yaml)
-```
+- **Guide**: [PromptHandling Guide](PromptHandling.md)
+- **Description**: Manages the rendering and validation of prompt templates that guide agent behaviors. Substitutes placeholders (`{var_name}`) with actual data, checks formatting, and ensures non-empty results.
+- **Use Cases**:
+  - Dynamically generating prompts based on user input or agent context.
+  - Maintaining multi-section prompts (like system vs. user) without manual string concatenation.
+  - Overriding default prompt rendering logic for advanced customization.
 
-**Output:**
+---
 
-```
-{'name': 'AgentForge', 'description': 'An advanced agent framework.'}
-```
+### **5. Tool Utils**
 
-In this example, we parse a **YAML**-formatted string into a Python dictionary using the `ParsingUtils` utility. This is particularly useful when processing agent responses or configuration data formatted in YAML.
+- **Guide**: [ToolUtils Guide](ToolUtils.md)
+- **Description**: Facilitates on-the-fly importing and execution of tool modules or built-in functions, plus formatting those tools for display. Enables flexible, pluggable functionality so agents can call new or external code.
+- **Use Cases**:
+  - Letting agents choose from multiple “actions” at runtime, referencing user-defined modules.
+  - Dynamically expanding an agent’s capabilities without redeploying the entire application.
 
 ---
 
 ## Notes
 
-- **Modularity**: Each utility is designed to be independent and can be imported as needed without unnecessary overhead.
-- **Flexibility**: Utilities can be combined to enhance agent functionalities and streamline development.
-- **Documentation**: For detailed information on each utility, refer to their respective guides:
-  - [Chroma Utils Guide](ChromaUtils.md)
-  - [Discord Client Guide](DiscordClient.md)
-  - [Logger Guide](Logger.md)
-  - [ParsingUtils Guide](ParsingUtils.md)
-  - [PromptHandling Guide](PromptHandling.md)
-  - [ToolUtils Guide](ToolUtils.md)
+1. **Modularity**  
+   Each utility is standalone—import only what you need, where you need it.  
+2. **Extendibility**  
+   If you have specialized requirements (e.g., advanced prompt placeholders), you can override or subclass these utilities.  
+3. **Documentation**  
+   Each utility has its own dedicated guide detailing methods, usage examples, and common pitfalls.
 
 ---
 
 ## Conclusion
 
-The utilities provided by **AgentForge** enhance the capabilities of your agents and simplify the development process. By leveraging these tools, you can build robust and feature-rich agents tailored to your specific needs.
-
----
+These **AgentForge** utilities provide foundational functionality to handle everything from logs and prompts to Discord interactions and tool execution. By combining them, you can create more intelligent, modular, and maintainable agents that adapt to various scenarios.
 
 **Need Help?**
-
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
-
----
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
+- **Discord**: [Join our Discord Server](https://discord.gg/ttpXHUtCW6)

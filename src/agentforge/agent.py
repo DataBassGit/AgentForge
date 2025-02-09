@@ -59,7 +59,7 @@ class Agent:
             self.load_data(**kwargs)
             self.process_data()
             self.render_prompt()
-            self.run_llm()
+            self.run_model()
             self.parse_result()
             self.save_to_storage()
             self.build_output()
@@ -132,11 +132,6 @@ class Agent:
         if not storage_enabled:
             self.agent_data['storage'] = None
             return
-
-        # Needs rework
-        # from .utils.ChromaUtils import ChromaUtils
-        # persona_name = self.persona.get('Name', 'DefaultPersona') if self.persona else 'DefaultPersona'
-        # self.agent_data['storage'] = ChromaUtils(persona_name)
 
     # ---------------------------------
     # Validation
@@ -227,15 +222,13 @@ class Agent:
         self.prompt = self.prompt_processor.render_prompts(self.prompt_template, self.template_data)
         self.prompt_processor.validate_rendered_prompts(self.prompt) # {'System': '...', 'User': '...'}
 
-    # def process_images(self):
-
     # ---------------------------------
-    # LLM Execution
+    # Model Execution
     # ---------------------------------
 
-    def run_llm(self) -> None:
+    def run_model(self) -> None:
         """
-        Executes the language model generation with the generated prompt(s) and any specified parameters.
+        Executes the model generation with the generated prompt(s) and any specified parameters.
         """
         if self.agent_data['settings']['system']['debug'].get('mode', False):
             self.result = self.agent_data['simulated_response']

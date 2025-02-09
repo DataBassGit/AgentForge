@@ -1,17 +1,27 @@
 # ToolUtils Utility Guide
 
-## Introduction
-
-The `ToolUtils` class in **AgentForge** is a utility for dynamically managing and executing tools within the system. It allows agents to load and run tools at runtime, facilitating flexibility and extensibility in performing various tasks.
+In **AgentForge**, the `ToolUtils` class provides a mechanism for dynamically loading and executing tool modules, along with formatting these tools for logging or user display. This allows agents to expand or modify their capabilities at runtime by referencing tools in external or user-defined modules.
 
 ---
 
 ## Overview
 
-`ToolUtils` provides methods to:
+**Key Responsibilities**:
 
-- **Dynamically Execute Tools**: Load and execute functions or methods from specified modules dynamically.
-- **Format Items**: Convert tools or actions into human-readable strings for display or logging.
+1. **Dynamic Tool Execution**  
+   - Load a Python module based on a string path (e.g., `"tools.my_tool"`).  
+   - Optionally instantiate a class or directly call a function within that module.  
+   - Pass arguments at runtime.
+
+2. **Error Handling**  
+   - Catches and logs exceptions with helpful messages.  
+   - Returns structured responses, including success/failure and optional traceback.
+
+3. **Formatting**  
+   - Convert tool/action definitions into human-readable text.  
+   - Format a dictionary of items (e.g., multiple tools) for easy display.
+
+Most developers won’t need to modify `ToolUtils` directly if they’re just defining new tools; references to the utility typically occur inside advanced agent code that decides which tool to execute on the fly.
 
 ---
 
@@ -19,225 +29,189 @@ The `ToolUtils` class in **AgentForge** is a utility for dynamically managing an
 
 ```python
 class ToolUtils:
+    """
+    A utility class for dynamically interacting with tools. It supports importing tool modules,
+    executing specified commands within those modules, and formatting tool data for display.
+    """
+
     def __init__(self):
         self.logger = Logger(name=self.__class__.__name__)
-        self.storage = ChromaUtils('default')
+        self.storage = ChromaStorage('default')
     
-    # Method definitions...
+    # See below for method descriptions...
 ```
+
+**Attributes**:
+
+- **`logger`**: A **AgentForge** `Logger` instance for capturing logs about tool usage or errors.  
+- **`storage`**: A `ChromaStorage` object for advanced memory usage, if needed (e.g., storing tool results).
 
 ---
 
 ## Key Methods
 
-### 1. `dynamic_tool(self, tool: Dict[str, str], payload: Dict[str, Any]) -> Dict[str, Any]`
+### 1. `dynamic_tool(tool: Dict[str, str], payload: Dict[str, Any]) -> Dict[str, Any]`
 
-**Purpose**: Dynamically loads a tool module and executes a specified command within it, using arguments provided in the payload.
+**Purpose**  
+Dynamically loads a specified tool and executes a command within it, passing arguments from `payload`.
 
-**Parameters**:
+**Parameters**  
+- **`tool`** (`dict`): Typically includes keys like `Script` (a module path) and `Command` (the function or method to call), plus an optional `Class`.  
+- **`payload`** (`dict`): Contains `'args'` to be passed to the tool’s command.
 
-- `tool` (dict): A dictionary containing information about the tool to be executed, typically with keys like `'Script'` and `'Command'`.
-- `payload` (dict): Contains the `'args'` for the command execution.
+**Returns**  
+- A dictionary with either `{'status': 'success', 'data': <result>}` or `{'status': 'failure', 'message': <error>, 'traceback': <trace>}`.
 
-**Returns**:
-
-- `dict`: A dictionary with the execution result or an error message.
-
-**Example Usage**:
-
+**Usage Example**:
 ```python
-from agentforge.utils.tool_utils import ToolUtils
+from agentforge.utils.functions.tool_utils import ToolUtils
 
 tool_utils = ToolUtils()
 
-# Define the tool and payload
 tool = {
-    'Script': 'tools.my_tool',  # Module path to the tool
-    'Command': 'execute'  # Function or method to call
+    'Script': 'tools.my_tool',
+    'Command': 'execute'
 }
-
 payload = {
     'args': {
         'param1': 'value1',
         'param2': 'value2'
     }
 }
-
-# Execute the tool
 result = tool_utils.dynamic_tool(tool, payload)
 
 if result['status'] == 'success':
-    print("Tool executed successfully:", result['data'])
+    print("Execution success:", result['data'])
 else:
-    print("Tool execution failed:", result['message'])
+    print("Execution failed:", result['message'])
 ```
 
 ---
 
-### 2. `_execute_tool(self, tool_module: str, tool_class: str, command: str, args: Dict[str, Any]) -> Any`
+### 2. `_execute_tool(tool_module: str, tool_class: str, command: str, args: Dict[str, Any]) -> Any`
 
-**Purpose**: Executes the specified command within the tool module.
+**Purpose**  
+Internally called by `dynamic_tool` to handle the actual import and call. It:
 
-**Parameters**:
+1. Checks if `tool_module` is a built-in function (if it matches `BUILTIN_FUNCTIONS` keys).  
+2. Otherwise imports the module, optionally instantiates a class, and calls the specified `command`.
 
-- `tool_module` (str): The module path to the tool (e.g., `'tools.my_tool'`).
-- `tool_class` (str): The class name within the module (if applicable).
-- `command` (str): The command (function or method) to execute.
-- `args` (dict): Arguments to pass to the command.
-
-**Note**: This is an internal method used by `dynamic_tool`. Typically, you won't call this method directly.
+**Note**  
+This method is not typically invoked directly. If you need to modify the import or instantiation logic, you’d override or alter this method.
 
 ---
 
-### 3. `_handle_error(self, e: Exception, tool_module: str, tool_class: str, command: str) -> Dict[str, Any]`
+### 3. `_handle_error(e: Exception, tool_module: str, tool_class: str, command: str) -> Dict[str, Any]`
 
-**Purpose**: Handles errors that occur during tool execution, logging them and preparing an error response.
+**Purpose**  
+Catches exceptions from `_execute_tool` or `dynamic_tool`, logs them, and returns a structured error response.
 
-**Parameters**:
-
-- `e` (Exception): The exception that was raised.
-- `tool_module` (str): The module path to the tool.
-- `tool_class` (str): The class name within the module.
-- `command` (str): The command that was attempted.
-
-**Note**: This is an internal method used by `dynamic_tool` to handle exceptions.
+**Response Structure**  
+- **`status`**: `"failure"`  
+- **`message`**: A string describing the error or missing command/class.  
+- **`traceback`**: The formatted Python traceback.
 
 ---
 
-### 4. `format_item(self, item: Dict[str, Union[str, List[str]]], order: Optional[List[str]] = None) -> str`
+### 4. `format_item(item: Dict[str, Union[str, List[str]]], order: Optional[List[str]] = None) -> str`
 
-**Purpose**: Formats an item (such as a tool or action) into a human-readable string.
+**Purpose**  
+Creates a user-friendly string representation of a single tool or action dictionary. If the dictionary has lists, they’re converted to bullet points. If it has multi-line strings, they’re displayed with extra spacing.
 
-**Parameters**:
-
-- `item` (dict): The item to format.
-- `order` (list, optional): The order in which to display the item's keys.
-
-**Returns**:
-
-- `str`: The formatted string.
-
-**Example Usage**:
-
+**Example**:
 ```python
-item = {
-    'Name': 'SampleTool',
-    'Description': 'A tool for demonstration purposes.',
-    'Parameters': ['param1', 'param2']
+tool_info = {
+  'Name': 'SampleTool',
+  'Description': 'Demonstrates usage',
+  'Parameters': ['param1', 'param2']
+}
+formatted = tool_utils.format_item(tool_info)
+print(formatted)
+# Output:
+# Name: SampleTool
+# Description: Demonstrates usage
+# Parameters:
+# - param1
+# - param2
+```
+
+---
+
+### 5. `format_item_list(items: Dict, order: Optional[List[str]] = None) -> Optional[str]`
+
+**Purpose**  
+Formats multiple items (for instance, multiple tool definitions) by calling `format_item` on each and joining them with `---` as a separator.
+
+**Example**:
+```python
+tools = {
+  'ToolA': {'Name': 'ToolA', 'Description': 'The first tool'},
+  'ToolB': {'Name': 'ToolB', 'Description': 'The second tool'}
 }
 
-formatted_item = tool_utils.format_item(item)
-print(formatted_item)
-```
-
-**Output**:
-
-```
-Name: SampleTool
-Description: A tool for demonstration purposes.
-Parameters:
-- param1
-- param2
+formatted_tools = tool_utils.format_item_list(tools)
+print(formatted_tools)
+# ---
+# Name: ToolA
+# Description: The first tool.
+# ---
+# Name: ToolB
+# Description: The second tool.
+# ---
 ```
 
 ---
 
-### 5. `format_item_list(self, items: Dict, order: Optional[List[str]] = None) -> Optional[str]`
+## Practical Usage: Dynamic Execution in an Agent
 
-**Purpose**: Formats a list of items into a human-readable string, useful for displaying multiple tools or actions.
-
-**Parameters**:
-
-- `items` (dict): A dictionary of items to format.
-- `order` (list, optional): The order in which to display the keys of each item.
-
-**Returns**:
-
-- `str` or `None`: The formatted string of items, or `None` if an error occurs.
-
-**Example Usage**:
-
-```python
-items = {
-    'Tool1': {
-        'Name': 'SampleTool1',
-        'Description': 'First sample tool.'
-    },
-    'Tool2': {
-        'Name': 'SampleTool2',
-        'Description': 'Second sample tool.'
-    }
-}
-
-formatted_items = tool_utils.format_item_list(items)
-print(formatted_items)
-```
-
-**Output**:
-
-```
----
-Name: SampleTool1
-Description: First sample tool.
----
-Name: SampleTool2
-Description: Second sample tool.
----
-```
-
----
-
-## Practical Application
-
-### Dynamically Executing Tools
-
-The `dynamic_tool` method allows agents to execute tools whose modules and commands are specified at runtime. This is particularly useful when agents need to perform actions that are determined dynamically based on user input or other factors.
-
-**Example in Agent Context**:
+Here’s a more complete example of how an agent might dynamically call a tool:
 
 ```python
 from agentforge.agent import Agent
 
-class MyAgent(Agent):
-    def perform_action(self):
-        tool = {
-            'Script': 'tools.my_tool',
-            'Command': 'execute'
+class DynamicToolAgent(Agent):
+    def execute_dynamic_action(self):
+        tool_info = {
+            'Script': 'tools.my_custom_tool',
+            'Class': 'MyCustomTool',   # optional
+            'Command': 'run_action'
         }
-        payload = {
-            'args': {
-                'param1': 'value1',
-                'param2': 'value2'
-            }
-        }
-        result = self.tool_utils.dynamic_tool(tool, payload)
+        payload = {'args': {'key1': 'value1'}}
+        result = self.tool_utils.dynamic_tool(tool_info, payload)
+
         if result['status'] == 'success':
-            self.logger.log("Tool executed successfully.", level='info')
+            self.logger.info(f"Tool ran with data: {result['data']}")
         else:
-            self.logger.log(f"Tool execution failed: {result['message']}", level='error')
+            self.logger.error(f"Tool failed: {result['message']}")
 ```
+
+**Flow**  
+1. `execute_dynamic_action` defines the tool’s `Script` (a module path) and the `Command`.  
+2. `dynamic_tool` imports and executes the tool function/class with `args = {'key1': 'value1'}`.  
+3. Logs results or errors accordingly.
 
 ---
 
 ## Best Practices
 
-- **Ensure Correct Module Paths**: When specifying the `Script` in the tool dictionary, make sure the module path is correct and accessible.
-- **Handle Errors Gracefully**: Always check the `status` of the result returned by `dynamic_tool` and handle failures appropriately.
-- **Secure Tool Execution**: Be cautious when executing tools dynamically to avoid running untrusted code. Validate inputs and control accessible modules.
+1. **Valid Module Paths**  
+   Ensure the `'Script'` path (like `'tools.my_custom_tool'`) is a valid, importable module.  
+2. **Security**  
+   Be mindful of letting user input define module paths or commands. Only allow references to safe or sandboxed code.  
+3. **Error Checking**  
+   Always check the returned `status`. If it’s `"failure"`, investigate `message` and `traceback`.  
+4. **Use Logging**  
+   `tool_utils.logger` helps trace usage and debug issues.  
+5. **Formatting**  
+   If you want to list out many tools or actions, use `format_item_list` to produce neat text output.
 
 ---
 
 ## Conclusion
 
-The `ToolUtils` utility in **AgentForge** empowers developers to extend agent capabilities dynamically. By leveraging its methods, you can create agents that adapt to various tasks and integrate new functionalities seamlessly.
-
----
+**AgentForge**’s `ToolUtils` streamlines the process of dynamically importing modules, running their commands, and formatting tool definitions for display or logging. For agent developers seeking to create flexible, pluggable functionalities—such as custom domain tools or user-defined scripts—this utility is essential.
 
 **Need Help?**
 
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
-
----
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
+- **Discord**: [Join our Discord Server](https://discord.gg/ttpXHUtCW6)

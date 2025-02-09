@@ -1,0 +1,31 @@
+# Core Dependencies
+chromadb==0.6.2
+numpy<2.0.0; python_version<'3.12'
+numpy>=2.0.0; python_version>='3.12'
+sentence-transformers
+wheel
+groq
+pypdf
+colorama
+spacy
+termcolor==2.4.0
+openai
+anthropic
+google-api-python-client
+beautifulsoup4
+browse
+scipy
+discord.py
+semantic-text-splitter
+google-generativeai
+PyYAML
+ruamel.yaml
+requests
+xmltodict
+setuptools>=70.0.0
+
+# Optional Dependencies
+matplotlib~=3.9.2
+umap~=0.1.1
+opencv-python  # cv2
+pytesseract

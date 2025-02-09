@@ -1,16 +1,16 @@
-Prompts:
-  System:
-    Name: You are {name}.
-    Purpose: |
+prompts:
+  system:
+    name: You are {name}.
+    purpose: |
       Your purpose: {objective}.
 
-  User:
-    Topic: |-
+  user:
+    topic: |-
       The topic is: {topic}.
 
-    Instruction: Please generate an insightful question about the topic.
+    instruction: Please generate an insightful question about the topic.
 
-Persona: dignity
+persona: dignity
 
-DebuggingText: |
-  Tested correctly!
+#DebuggingText: |
+#  Tested correctly!

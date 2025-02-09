@@ -2,276 +2,222 @@
 
 ## Introduction
 
-The `Logger` utility in **AgentForge** provides a flexible and comprehensive logging system for developers. It allows you to capture and manage log messages across different components and modules, facilitating easier debugging, monitoring, and maintenance of your applications.
+The **Logger** utility in **AgentForge** provides a flexible and comprehensive system for capturing log messages across different modules. It allows you to:
+
+1. Organize logs by categories or files (e.g., "agentforge", "model_io", "actions", etc.).  
+2. Dynamically create new log files on-the-fly if they aren’t defined in the system configuration.  
+3. Control verbosity with various log levels (debug, info, warning, error, critical).  
+4. Output logs to both console (with color-coded levels) and file (for auditing or later review).
 
 ---
 
-## Overview
+## How It Works
 
-The logging system consists of two main classes:
+### 1. `Logger` (High-Level Interface)
 
-- **`BaseLogger`**: Sets up the foundational logging to files and the console with support for different log levels.
-- **`Logger`**: Acts as a wrapper that manages multiple `BaseLogger` instances, allowing for modular and organized logging across various parts of your application.
+When you instantiate `Logger(name='Something')`, it reads from your system’s logging settings and sets up a dictionary of underlying `BaseLogger` objects—one for each configured log file. If you attempt to log to a file that doesn’t exist in your configuration, it automatically creates an entry in `system.yaml`, sets that file’s level to `warning` by default, and saves the updated config.
 
----
-
-## Key Features
-
-- **Modular Logging**: Create separate log files for different aspects of your application (e.g., agent activities, model interactions).
-- **Flexible Log Levels**: Control the verbosity of logs by setting different log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL).
-- **Console and File Logging**: Output logs to the console for immediate feedback and to files for persistent records.
-- **Dynamic Configuration**: Loggers are configured based on the settings specified in the `system.yaml` file.
-
----
-
-## Using the Logger
-
-### Initialization
-
-To use the `Logger`, you typically create an instance of it in your module or component:
+**Example**:
 
 ```python
 from agentforge.utils.logger import Logger
 
-# Initialize the logger with the name of your module or component
-logger = Logger(name='MyModule')
+my_logger = Logger(name='MyModule', default_logger='mymodule') 
+my_logger.log("Hello, world!", level='info')
 ```
 
-**Note:** If you are working within a custom agent and overriding methods, you do **not** need to initialize the logger, as the `Agent` base class already provides a logger instance accessible via `self.logger`.
+### 2. `BaseLogger` (Behind the Scenes)
+
+`BaseLogger` handles the actual creation of file and console handlers:
+
+- **Console Handler**: Uses a `ColoredFormatter` to color-code log messages based on level.  
+- **File Handler**: Writes logs to `<log_folder>/<log_file>.log` using the configured level and format.
+
+**You typically don’t create `BaseLogger` objects directly**. Instead, the `Logger` class handles it for you when you call `Logger(...).log(...)`.
 
 ---
 
-### Basic Logging
+## Setup and Configuration
 
-You can log messages at various levels using the `log` method:
+### 1. `system.yaml` Example
+
+Below is a snippet showing how logging might appear in your `system.yaml` under `settings.system.logging`. If a requested log file isn’t listed, **AgentForge** dynamically adds it at level `warning`.
+
+```yaml
+logging:
+  enabled: true
+  console_level: warning
+  folder: ./logs
+  files:
+    agentforge: error
+    model_io: debug
+```
+
+- **`enabled`**: Set to `false` to disable logging globally.  
+- **`console_level`**: Minimum severity level to show in console logs (one of `debug`, `info`, `warning`, `error`, `critical`).  
+- **`folder`**: The directory where log files will be created.  
+- **`files`**: A dictionary of log file “names” → default levels. For example, `agentforge: error` means that anything logged to the “agentforge” file will be written at `error` or above, unless updated at runtime.
+
+### 2. Dynamic Creation of Log Files
+
+If your code references a log file that doesn’t exist in `files`, the system updates `system.yaml` and sets it to `warning` by default. This means you can do:
 
 ```python
-# Log an informational message
-logger.log("This is an informational message.", level='info')
-
-# Log a debug message
-logger.log("Debugging details here.", level='debug')
-
-# Log a warning
-logger.log("This is a warning message.", level='warning')
-
-# Log an error
-logger.log("An error occurred.", level='error')
-
-# Log a critical error
-logger.log("Critical failure!", level='critical')
+logger.log("Hello from a brand-new log file!", logger_file='my_new_log', level='info')
 ```
 
-**Note:** The `level` parameter can be one of `'debug'`, `'info'`, `'warning'`, `'error'`, or `'critical'`.
+…and the framework will:
+
+1. Add `my_new_log` to `system.yaml` under `logging.files`.  
+2. Set its level to `warning`.  
+3. Save the updated config.  
 
 ---
 
-### Logging within Custom Agents
+## Basic Usage
 
-When developing custom agents by subclassing the `Agent` class, you have access to the logger via `self.logger`. There's no need to initialize a new `Logger` instance.
+1. **Instantiating a Logger**
 
-**Example:**
+```python
+from agentforge.utils.logger import Logger
+
+my_logger = Logger(name='DataProcessor', default_logger='dataprocess')
+```
+
+- **`name`**: A string typically matching your module or class. Shows up in log messages as `[DataProcessor] My message`.  
+- **`default_logger`**: The default file you’ll log to if you don’t specify one. If it doesn’t exist in `system.yaml`, it’s created at `warning` level.
+
+2. **Logging Messages**
+
+```python
+my_logger.log("An informational message", level='info')
+my_logger.log("Something suspicious", level='warning')
+my_logger.log("Detailed debugging info", level='debug', logger_file='model_io')
+```
+
+- **`level`** can be `debug`, `info`, `warning`, `error`, or `critical`.  
+- **`logger_file`** (optional) overrides the default file for this message.
+
+---
+
+## Advanced Methods
+
+### 1. Level-Specific Helpers
+
+For convenience, `Logger` provides shortcuts:
+
+```python
+my_logger.debug("Debug details")
+my_logger.info("General information")
+my_logger.warning("Potential problem")
+my_logger.error("An error occurred")
+my_logger.critical("Critical failure!")
+```
+
+### 2. Logging Prompts and Responses
+
+Specifically designed for model interactions, these two methods log content at `debug` level in the `model_io` file:
+
+- **`log_prompt(model_prompt: dict)`**  
+  Expects a dictionary with `system` and `user` keys.  
+  ```python
+  my_logger.log_prompt({'system': "System text", 'user': "User text"})
+  ```
+
+- **`log_response(response: str)`**  
+  Logs the raw response from the model.  
+  ```python
+  my_logger.log_response("Model replied with some content")
+  ```
+
+### 3. Handling Parsing Errors
+
+When you parse a model response but encounter an exception, call:
+
+```python
+my_logger.parsing_error(model_response, error)
+```
+
+It logs both the response content and the exception at `error` level.
+
+---
+
+## Usage Within Agents
+
+If you’re building a **custom agent** (subclassing `Agent`), you already have a logger via `self.logger`. For instance:
 
 ```python
 from agentforge.agent import Agent
 
-class MyCustomAgent(Agent):
+class MyAgent(Agent):
     def process_data(self):
-        # Log an informational message
-        self.logger.log("Processing data...", level='info')
-
-    def parse_result(self):
-        # Log a debug message
-        self.logger.log("Parsing result...", level='debug')
+        self.logger.debug("Processing data in MyAgent")
+        # ...
 ```
 
-By using `self.logger`, your logs will be properly managed according to the system configurations and integrated seamlessly with the rest of the logging system.
-
----
-
-## Configuration in `system.yaml`
-
-The `Logger` utility relies on the `system.yaml` configuration file to determine logging behavior.
-
-**Example Logging Configuration:**
-
-```yaml
-Logging:
-  Enabled: true
-  Folder: ./Logs
-  Files:
-    AgentForge: info
-    ModelIO: debug
-    Actions: warning
-    Results: info
-    DiscordClient: error
-```
-
-- **`Enabled`**: Set to `true` to enable logging.
-- **`Folder`**: Specifies where log files are stored.
-- **`Files`**: Defines log files and their corresponding log levels.
-### Logging to Specific Log Files
-
-The `Logger` can direct logs to different log files based on the `logger_file` parameter, which corresponds to the log files specified in your `system.yaml` configuration.
-
-**Example of logging to a specific file:**
-
-```python
-# Log a message to the 'ModelIO' log file
-logger.log("Model input/output details.", level='info', logger_file='ModelIO')
-
-# In a custom agent, using self.logger
-self.logger.log("Agent performed an action.", level='debug', logger_file='Actions')
-```
-
----
-
-### Logging Prompts and Responses
-
-The `Logger` provides convenience methods for logging prompts and responses, particularly useful when working with language models.
-
-**Logging a Prompt:**
-
-```python
-model_prompt = {
-    'System': "You are an assistant.",
-    'User': "What is the weather today?"
-}
-
-# If using logger instance
-logger.log_prompt(model_prompt)
-
-# In a custom agent
-self.logger.log_prompt(model_prompt)
-```
-
-This logs the system and user prompts to the `ModelIO` log file.
-
-**Logging a Model Response:**
-
-```python
-response = "The weather today is sunny with a high of 75 degrees."
-
-# If using logger instance
-logger.log_response(response)
-
-# In a custom agent
-self.logger.log_response(response)
-```
-
-This logs the model's response to the `ModelIO` log file.
-
----
-
-### Logging Parsing Errors
-
-When parsing responses from models, you might encounter errors. The `Logger` provides a method to log these parsing errors along with the problematic response.
-
-```python
-try:
-    # Code that might raise a parsing error
-    parsed_response = parse_model_response(response)
-except Exception as e:
-    # If using logger instance
-    logger.parsing_error(response, e)
-    
-    # In a custom agent
-    self.logger.parsing_error(response, e)
-```
-
-This logs detailed information about the parsing error to help you debug the issue.
-
----
-
-### Logging Informational Messages
-
-For important messages that you want to log and display prominently, you can use the `log_info` method:
-
-```python
-# If using logger instance
-logger.log_info("Operation completed successfully.")
-
-# In a custom agent
-self.logger.log_info("Operation completed successfully.")
-```
-
-This method logs the message and prints it to the console in a highlighted format.
-
----
-
-## Best Practices
-
-- **Use `self.logger` in Custom Agents**: When working within agents, use `self.logger` to log messages. There's no need to initialize a new logger.
-- **Consistent Naming**: Use meaningful names when initializing the `Logger` to identify the source of log messages easily.
-- **Appropriate Log Levels**: Choose the correct log level to avoid cluttering logs with unnecessary information.
-  - Use `debug` for detailed diagnostic information.
-  - Use `info` for general operational messages.
-  - Use `warning` for recoverable issues.
-  - Use `error` for serious problems that need attention.
-  - Use `critical` for severe errors that may cause the application to terminate.
-- **Sensitive Information**: Avoid logging sensitive data such as API keys, passwords, or personal user information.
+No need to instantiate a new `Logger`. This ensures logs are routed correctly and adopt the same config.
 
 ---
 
 ## Example: Putting It All Together
 
 ```python
-from agentforge.agent import Agent
+from agentforge.utils.logger import Logger
 
+def main():
+    # 1. Instantiate a Logger for our module
+    data_logger = Logger(name='DataModule', default_logger='data_module')
 
-class MyCustomAgent(Agent):
-  def load_data(self, **kwargs):
-    super().load_data(**kwargs)
-    self.logger.log("Data loaded successfully.", level='info')
+    # 2. Log at different levels
+    data_logger.info("Data processing started")
+    data_logger.debug("Loaded 100 records from the database")
+    data_logger.warning("Inconsistent formatting in record #57")
 
-  def process_data(self):
-    try:
-      # Processing data
-      self.logger.log("Processing data...", level='debug')
-      # Simulate data processing
-      self.template_data['processed'] = self.template_data.get('raw_data', '').upper()
-    except Exception as e:
-      self.logger.log(f"An error occurred during data processing: {e}", level='error')
+    # 3. Dynamically log to a new file
+    data_logger.log("Something specialized", level='info', logger_file='special_data')
 
-  def parse_result(self):
-    try:
-      # Parsing result
-      self.logger.log("Parsing result...", level='debug')
-      # Simulate result parsing
-      self.template_data['parsed_result'] = self.result.lower()
-    except Exception as e:
-      self.logger.parsing_error(self.result, e)
+    # 4. Log a prompt/response scenario
+    prompt = {"system": "You are an assistant.", "user": "Hello, assistant!"}
+    data_logger.log_prompt(prompt)
+    data_logger.log_response("Greetings, user!")
 
-  def build_output(self):
-    self.output = f"Processed Output: {self.template_data.get('parsed_result', '')}"
-    self.logger.log_info("Output built successfully.")
-
-
-# Instantiate and run the agent
-agent = MyCustomAgent()
-agent.run(raw_data="Sample Input Data")
-print(agent.output)
+if __name__ == "__main__":
+    main()
 ```
 
-**Expected Logging Behavior:**
+What happens behind the scenes:
 
-- Logs informational messages about data loading and output building.
-- Logs debug messages for data processing and result parsing.
-- Uses `self.logger` throughout, leveraging the built-in logger from the `Agent` base class.
+- If `data_module` or `special_data` aren’t in `system.yaml`, the logger updates `system.yaml` to include them (under `logging.files`) at `warning` level.  
+- The relevant log messages go to `./logs/data_module.log` or `./logs/special_data.log` in addition to any console output if the level meets or exceeds the console threshold.
+
+---
+
+## Best Practices
+
+1. **Meaningful Logger Names**  
+   Use the module or class name for clarity. For additional categories, pass `logger_file` as needed.  
+2. **Choose Appropriate Levels**  
+   - `debug`: Fine-grained informational events for diagnosing problems.  
+   - `info`: General operational messages.  
+   - `warning`: Indications of potential issues.  
+   - `error`: Serious issues that need attention.  
+   - `critical`: Severe errors that might force the application to stop.  
+3. **Use `self.logger` in Agents**  
+   Rely on the pre-initialized logger from the base `Agent` class rather than creating a new one.  
+4. **Mind Sensitive Data**  
+   Avoid logging API keys, personally identifiable info, or other sensitive content.  
+5. **Console vs. File**  
+   By default, console logs follow `console_level` from `system.yaml`. If you see too many messages in your console, raise that level to `info` or `warning`.
 
 ---
 
 ## Conclusion
 
-The `Logger` utility in **AgentForge** empowers developers with a robust and flexible logging system. By integrating it into your applications and utilizing `self.logger` within custom agents, you can enhance debugging, monitor application behavior, and maintain comprehensive records of your system's operations.
+The updated Logger system in **AgentForge** lets you track and audit your agents’ behavior with minimal setup. Developers can effortlessly create new log files at runtime, maintain separate logs for different components, and control verbosity on a per-file basis. This flexibility ensures you can keep your logs clean, relevant, and fully aligned with your application’s needs.
 
 ---
 
 **Need Help?**
 
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
-
----
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
+- **Discord**: [Join our Discord Server](https://discord.gg/ttpXHUtCW6)

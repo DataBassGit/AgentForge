@@ -30,7 +30,7 @@ class DiscordUtils:
                 if not channel:
                     self.logger.error(f"[DiscordUtils.send_message] Channel {channel_id} not found")
                     return
-                    
+
                 for msg in messages:
                     if len(msg.content) > 2000:
                         # Re-chunk the over-sized message
@@ -39,14 +39,14 @@ class DiscordUtils:
                             await channel.send(sub_msg.content)
                     else:
                         await channel.send(msg.content)
-                        
+
             except discord.errors.Forbidden:
                 self.logger.error(f"[DiscordUtils.send_message] Bot doesn't have permission to send messages in channel {channel_id}")
             except Exception as e:
                 self.logger.error(f"[DiscordUtils.send_message] Error sending message to channel {channel_id}: {str(e)}")
 
         try:
-            asyncio.run_coroutine_threadsafe(send(), self.client.loop)
+            return asyncio.run_coroutine_threadsafe(send(), self.client.loop)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.send_message] Failed to schedule message sending: {str(e)}")
 

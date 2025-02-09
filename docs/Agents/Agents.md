@@ -4,19 +4,16 @@ Welcome to the heart of the **AgentForge** framework—the **Agents**. These ent
 
 ---
 
-### **[Agent Base Class](AgentClass.md)**
-- Dive into the foundational class from which all agents derive. You'll find a detailed breakdown of the `Agent` class, its attributes, initialization process, and the essential logic that underpins every agent in the framework.
-
-### **[Agent Methods](AgentMethods.md)**
-- A guide to the critical methods within the `Agent` base class. This is your go-to reference for understanding the functionalities that are indispensable for creating custom agents.
+### **[Agent Class](AgentClass.md)**
+- Dive into the foundational class from which all agents derive. You'll find a detailed breakdown of the `Agent` class, its attributes, initialization process, methods, and the essential logic that underpins every agent in the framework. This is your go-to reference for understanding the functionalities that are indispensable for creating custom agents.
 
 ### **[Agent Prompts](AgentPrompts.md)**
 - Explore the realm of prompts that dictate an agent's behavior and interactions. Grasp how these guiding instructions ensure agents understand their objectives and relay information effectively.
 
-### **[Custom Agents](CustomAgents.md)**
-- Want to build your own agent? Here, you'll learn how to craft custom agents tailored to fit your specific needs. Discover how to derive from the base `Agent` class, override methods, and create corresponding prompt files.
+### **[Advance Custom Agents Examples](CustomAgents.md)**
+- Comfortable with the default agent class? Here, you'll find some examples of custom agents in more complex or specialized use cases.
 
-### **[Overriding LLM Settings](../Settings/Models.md)**
+### **[Overriding LLM Settings](../Settings/Models.md/#specifying-model-overrides-in-agents)**
 - Each agent holds the power to tailor the Large Language Model (LLM) settings it employs. This section delves into how agents can utilize default LLMs or opt for specific models fine-tuned for unique tasks, offering flexibility and precision.
 
 ---

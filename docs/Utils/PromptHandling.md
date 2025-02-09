@@ -1,332 +1,270 @@
-# PromptHandling Utility Guide
+# Prompt Handling Utility Guide
 
-## Introduction
-
-The `PromptHandling` class in **AgentForge** is a utility for managing dynamic prompt templates. It allows you to create flexible and responsive prompts by handling variable substitution within templates. This utility is essential for generating prompts that adapt to different contexts, user inputs, or data states.
-
->**Note:** The `PromptHandling` utility is primarily used internally by the **AgentForge** framework for rendering prompts. Most developers won't need to interact with it directly, as the **Agent** base class automatically handles prompt rendering. This guide is intended for advanced users who wish to implement custom prompt handling and rendering logic beyond the default framework capabilities.
+In **AgentForge**, the `PromptProcessor` class coordinates how prompt templates are read, validated, and dynamically populated with data. While most users won’t need to alter these methods directly, understanding them can be helpful if you want to override or deeply customize prompt logic in your own classes.
 
 ---
 
 ## Overview
 
-The `PromptHandling` class provides methods to:
+**Key Responsibilities**:
 
-- **Extract Variables**: Identify variables within prompt templates.
-- **Validate Prompts**: Ensure that all required variables are present in the data.
-- **Render Prompts**: Substitute variables with actual values to generate final prompts.
-- **Validate Rendered Prompts**: Ensure that the rendered prompts are not empty.
+1. **Format Validation**: Ensures that any loaded prompt dictionary has proper keys (`system`, `user`) and that each prompt section is a string or dictionary of sub-sections.  
+2. **Variable Extraction**: Identifies placeholders like `{variable_name}` in prompt templates.  
+3. **Data Checking**: Validates that required placeholders actually exist and have non-empty values in your agent’s data.  
+4. **Rendering**: Substitutes placeholders with actual values and optionally unescapes braces (`/{.../}` → `{...}`).
+
+**Typical Flow**  
+When you run an agent, **AgentForge**:
+
+1. Loads the prompt YAML into a dictionary.  
+2. Passes it to `PromptProcessor` for structure checks.  
+3. Renders each section (`system` and `user`) by substituting placeholders with your agent’s `data`.  
+4. Validates the final result so it isn’t empty.
 
 ---
 
 ## Class Definition
 
 ```python
-class PromptHandling:
+class PromptProcessor:
+    """
+    A utility class for handling dynamic prompt templates. It supports extracting variables from templates,
+    checking for required variables, and rendering templates with provided data.
+    """
+
+    pattern = r\"\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}\"
+
     def __init__(self):
         self.logger = Logger(name=self.__class__.__name__)
-    
-    # Method definitions...
 ```
+
+- **`pattern`**: A regex (`{variable_name}`) for detecting placeholders in your prompt strings.  
+- **`logger`**: An instance of **AgentForge**’s logger, used for warnings, errors, and debug messages.
 
 ---
 
-## Methods
+## Main Methods
 
-### 1. `extract_prompt_variables(template: str) -> list`
+### 1. `check_prompt_format(prompts: dict)`
 
-**Purpose**: Extracts variable names from a prompt template.
-
-**Parameters**:
-
-- `template` (str): The prompt template containing variables enclosed in curly braces `{}`.
-
-**Returns**:
-
-- `list`: A list of variable names found in the template.
-
-**Example Usage**:
+**Purpose**: Confirms that `prompts` is a dictionary with exactly two keys: `system` and `user`. Also checks if those entries are either strings or dictionaries (sub-sections).
 
 ```python
-from agentforge.utils.prompt_processor import PromptProcessor
-
-prompt_handler = PromptProcessor()
-template = "Hello, {user_name}! Today is {day_of_week}."
-variables = prompt_handler.extract_prompt_variables(template)
-print(variables)  # Output: ['user_name', 'day_of_week']
+def check_prompt_format(self, prompts):
+    # Raises ValueError if format is incorrect
 ```
+
+**Usage**  
+Called internally by **AgentForge** to ensure your prompt YAML is valid. If you define multi-section prompts, they must be nested under `system` or `user`.
 
 ---
 
-### 2. `handle_prompt_template(prompt_template: str, data: dict) -> Optional[str]`
+### 2. `extract_prompt_variables(template: str) -> list`
 
-**Purpose**: Checks if all required variables in a prompt template are present and non-empty in the provided data. Returns the template if conditions are met, or `None` otherwise.
-
-**Parameters**:
-
-- `prompt_template` (str): The prompt template to check.
-- `data` (dict): A dictionary containing data values for variables.
-
-**Returns**:
-
-- `str` or `None`: The original prompt template if all variables are present and non-empty; `None` otherwise.
-
-**Example Usage**:
+**Purpose**: Returns a list of placeholder variable names from a single string template.
 
 ```python
-data = {'user_name': 'Alice', 'day_of_week': 'Monday'}
-template = "Hello, {user_name}! Today is {day_of_week}."
+def extract_prompt_variables(self, template: str) -> list:
+    ...
+```
 
-valid_template = prompt_handler.handle_prompt_template(template, data)
-if valid_template:
-    print("Template is valid.")
-else:
-    print("Template is missing required variables.")
+**Example**:
+```python
+variables = processor.extract_prompt_variables("Hello, {user_name}. Today is {day_of_week}.")
+# variables = ["user_name", "day_of_week"]
 ```
 
 ---
 
-### 3. `render_prompt_template(template: str, data: dict) -> str`
+### 3. `handle_prompt_template(prompt_template: str, data: dict) -> str | None`
 
-**Purpose**: Renders a prompt template by replacing variables with their corresponding values from the provided data.
-
-**Parameters**:
-
-- `template` (str): The prompt template containing variables.
-- `data` (dict): A dictionary containing data values for variables.
-
-**Returns**:
-
-- `str`: The rendered prompt with variables substituted.
-
-**Example Usage**:
+**Purpose**: Checks if all required placeholders in `prompt_template` are present and not empty in `data`. Returns `prompt_template` if valid, `None` otherwise.
 
 ```python
-template = "Hello, {user_name}! Today is {day_of_week}."
-data = {'user_name': 'Alice', 'day_of_week': 'Monday'}
-
-rendered_prompt = prompt_handler.render_prompt(template, data)
-print(rendered_prompt)  # Output: "Hello, Alice! Today is Monday."
+def handle_prompt_template(self, prompt_template: str, data: dict) -> str | None:
+    ...
 ```
+
+**Behavior**  
+1. Grabs placeholders with `extract_prompt_variables`.  
+2. If each placeholder in `data` is non-empty, returns `prompt_template`.  
+3. Otherwise returns `None`, indicating a missing or empty variable.
 
 ---
 
-### 4. `render_prompts(prompts: dict, data: dict) -> dict`
+### 4. `render_prompt_template(template: str, data: dict) -> str`
 
-**Purpose**: Renders the `System` and `User` prompts by processing all sections and substituting variables.
+**Purpose**: Performs the actual substitution of placeholders with data, then unescapes braces.
 
-**Parameters**:
+```python
+def render_prompt_template(self, template: str, data: dict) -> str:
+    ...
+```
 
-- `prompts` (dict): A dictionary containing `System` and `User` prompts, which can be strings or dictionaries of sub-prompts.
-- `data` (dict): A dictionary containing data values for variables.
+**Process**  
+1. **Regex Substitution**: For each `{variable}`, replace with `data[variable]` if it exists, or leave the placeholder if it doesn’t.  
+2. **Unescape Braces**: Replaces `/{.../}` patterns with `{...}`, letting you embed literal braces in your prompt.
 
-**Returns**:
+**Example**:
+```python
+template = "Hello, {user_name}. Your ID is /{id/}."
+data = {"user_name": "Alice", "id": 1234}
+rendered = processor.render_prompt_template(template, data)
+# "Hello, Alice. Your ID is {id}."
+```
+*(Here, the user intentionally kept `{id}` unrendered by escaping braces.)*
 
-- `dict`: A dictionary containing the rendered `System` and `User` prompts.
+---
 
-**Example Usage**:
+### 5. `render_prompts(prompts: dict, data: dict) -> dict`
 
+**Purpose**: Renders both `system` and `user` sections of a prompt dictionary, supporting multi-section sub-prompts.
+
+```python
+def render_prompts(self, prompts, data):
+    ...
+```
+
+**Behavior**  
+- If `system` or `user` is a string, treat it as one “Main” sub-prompt.  
+- If it’s a dictionary, each key is a named sub-section.  
+- For each sub-section, first calls `handle_prompt_template`; if valid, calls `render_prompt_template`. Otherwise logs a message indicating a missing variable.  
+- Joins sub-sections with newlines.
+
+**Example**:
 ```python
 prompts = {
-    'System': {
-        'Introduction': "You are a helpful assistant.",
-        'Instructions': "Assist the user with any questions."
-    },
-    'User': {
-        'Greeting': "Hello, {user_name}!",
-        'Question': "How can I assist you today?"
-    }
+  "system": {
+    "Intro": "You are an assistant.",
+    "Rules": "Please be concise."
+  },
+  "user": "Hello, {user_name}!"
 }
 
-data = {'user_name': 'Alice'}
-
-rendered_prompts = prompt_handler.render_prompts(prompts, data)
-print(rendered_prompts['User'])
-```
-
-**Output**:
-
-```
-Hello, Alice!
-How can I assist you today?
+data = {"user_name": "Alice"}
+rendered = processor.render_prompts(prompts, data)
+print(rendered["system"])
+# "You are an assistant.\nPlease be concise."
+print(rendered["user"])
+# "Hello, Alice!"
 ```
 
 ---
 
-### 5. `check_prompt_format(prompts: dict) -> None`
+### 6. `validate_rendered_prompts(rendered_prompts: dict)`
 
-**Purpose**: Validates the format of the prompts dictionary to ensure it contains **ONLY** `System` and `User` keys and that their values are either strings or dictionaries.
-
-**Parameters**:
-
-- `prompts` (dict): The dictionary containing the prompts.
-
-**Raises**:
-
-- `ValueError`: If the prompts dictionary is incorrectly formatted.
-
-**Example Usage**:
+**Purpose**: Ensures the final `system` and `user` strings aren’t empty after rendering.
 
 ```python
-prompts = {
-    'System': "You are an assistant.",
-    'User': "Hello, {user_name}!"
-}
-
-prompt_handler.check_prompt_format(prompts)
+def validate_rendered_prompts(self, rendered_prompts):
+    ...
 ```
 
->**Note**: If the check fails it will trigger an error asking the user to check their prompt templates or the data being passed to the agent.
-
----
-
-### 6. `validate_rendered_prompts(rendered_prompts: dict) -> None`
-
-**Purpose**: Validates that the rendered prompts are not empty after variable substitution.
-
-**Parameters**:
-
-- `rendered_prompts` (dict): A dictionary containing the rendered prompts.
-
-**Raises**:
-
-- `ValueError`: If any of the rendered prompts are empty.
-
-**Example Usage**:
-
-```python
-rendered_prompts = {
-    'System': "You are an assistant.",
-    'User': ""
-}
-
-prompt_handler.validate_rendered_prompts(rendered_prompts)
-# Raises ValueError because 'User' prompt is empty
-```
+- Raises a `ValueError` if either is blank (`""` or whitespace).
 
 ---
 
 ### 7. `unescape_braces(template: str) -> str`
 
-**Purpose**: Replaces escaped braces `/{ ... /}` with actual braces `{ ... }` in the template.
-
-**Parameters**:
-
-- `template` (str): The prompt template containing escaped braces.
-
-**Returns**:
-
-- `str`: The template with escaped braces unescaped.
-
-**Example Usage**:
+**Purpose**: Converts `/{.../}` → `{...}` so you can deliberately keep braces in your final text without them being interpreted as placeholders.
 
 ```python
-template = "Display the set: /{1, 2, 3/}"
-unescaped_template = prompt_handler.unescape_braces(template)
-print(unescaped_template)  # Output: "Display the set: {1, 2, 3}"
+def unescape_braces(template: str) -> str:
+    ...
 ```
 
 ---
 
-## Practical Application
+## Usage Within Agents
 
-The `PromptHandling` utility is particularly useful when:
+While you can call these methods directly if you’re building something unusual, **AgentForge** typically calls them automatically when an agent runs. Under the hood:
 
-- **Creating Dynamic Prompts**: Generate prompts that adapt based on user input or other dynamic data.
-- **Managing Complex Prompts**: Handle prompts with multiple sections and variables.
-- **Ensuring Prompt Integrity**: Validate that all necessary data is present before rendering prompts.
+1. **Check Prompt Format** (from loaded YAML).  
+2. **Render** each prompt section.  
+3. **Validate** that the final prompt is not empty.
 
----
-
-## Integration with Agents
-
-While you can use `PromptHandling` methods directly, the **Agent** base class in **AgentForge** already integrates these functionalities. When you run an agent, it automatically:
-
-1. Loads the prompt templates.
-2. Uses `PromptHandling` to render prompts with the data in `self.data`.
-3. Validates the rendered prompts.
-
-**Example in Agent Context**:
+**Example**:
 
 ```python
 from agentforge.agent import Agent
-
-
-class MyAgent(Agent):
-    def load_additional_data(self):
-        self.template_data['user_name'] = 'Alice'
-```
-
-In this example, the agent will use `self.data['user_name']` when rendering prompts that contain `{user_name}`.
-
----
-
-## Example: Using PromptHandling in an Agent
-
-Suppose you have a prompt template:
-
-```yaml
-# .agentforge/prompts/GreetingAgent.yaml
-Prompts:
-  System: You are a helpful assistant.
-  User: {user_name} has arrived at {platform_name}. Please welcome them.
-```
-
-And an agent:
-
-```python
-from agentforge.agent import Agent
-
 
 class GreetingAgent(Agent):
     def load_additional_data(self):
-        self.template_data['user_name'] = 'Alice'
-        self.template_data['platform_name'] = 'AgentForge'
+        self.template_data["user_name"] = "Alice"
 
-
-# Running the agent
-agent = GreetingAgent()
-output = agent.run()
-print(output)
+# Prompt file might say:
+#   system: "You are a greeting agent."
+#   user: "Hello, {user_name}!"
 ```
 
-**Rendered System Prompt**:
-```text
-You are a helpful assistant.
+When `agent.run()` is called, **AgentForge** uses `PromptProcessor` to fill in `{user_name}` automatically.
+
+---
+
+## When to Override
+
+1. **Custom Placeholders**: If you want a different placeholder style (e.g., `<<var>>`), you might subclass and change `pattern`.  
+2. **Conditional Rendering**: If you need advanced logic for “sub-prompts,” e.g., only show certain text if `data["is_vip"]` is true.  
+3. **Multi-Language**: If you prefer different code fences or advanced ways of escaping braces.
+
+> **IMPORTANT NOTE**: Overriding prompt logic can break backward compatibility with existing YAML files. Tread carefully!!!
+
+---
+
+## Example Walkthrough
+
+Suppose you have a prompt dictionary:
+
+```python
+prompts = {
+  "system": "You are a helpful assistant.",
+  "user": {
+    "Greet": "Hello, {user_name}.",
+    "Ask": "How are you doing today, {user_name}?"
+  }
+}
 ```
 
-**Rendered User Prompt**:
-```text
-Alice has arrived at AgentForge. Please welcome them.
+And data:
+
+```python
+data = { "user_name": "Alice" }
 ```
 
-**Expected Output**:
+1. `check_prompt_format(prompts)`: Confirms keys = `system`, `user`.  
+2. `render_prompts(prompts, data)`:  
+   - For `system`: It's a string → "Main" sub-prompt = `"You are a helpful assistant."`.  
+     - `handle_prompt_template("You are a helpful assistant.", data)` → returns same string since no placeholders.  
+     - `render_prompt_template(...)` → `"You are a helpful assistant."`.  
+   - For `user`: It's a dict with sub-sections `Greet`, `Ask`.  
+     - `handle_prompt_template("Hello, {user_name}.", data)` → placeholders = `[user_name]`, found in data, so returns the template.  
+     - `render_prompt_template("Hello, {user_name}.", data)` → `"Hello, Alice."`  
+     - Same for `Ask` → `"How are you doing today, Alice?"`  
+   - Joins sub-sections with newlines: `User` prompt = `"Hello, Alice.\nHow are you doing today, Alice?"`  
+3. `validate_rendered_prompts(...)`: Both `system` and `user` are non-empty.  
+4. Final results are:
 
 ```
-Hello, Alice! Welcome to AgentForge.
+{
+  "system": "You are a helpful assistant.",
+  "user": "Hello, Alice.\nHow are you doing today, Alice?"
+}
 ```
 
 ---
 
 ## Best Practices
 
-- **Provide All Required Data**: Ensure that all variables used in your prompt templates are present in `data` before rendering.
-- **Validate Prompts**: Use `validate_rendered_prompts` to catch any empty prompts early.
-- **Handle Missing Data**: Implement logic to handle cases where data might be missing to prevent runtime errors.
+1. **Use Consistent Variable Names**: Stick to `[a-zA-Z_][a-zA-Z0-9_]*` to avoid unexpected parse failures.  
+2. **Be Mindful of Escaped Braces**: `/{something/}` will not be replaced with data. If you see these patterns, they’ll remain as literal braces in the final output.  
+3. **Keep Sub-Prompts Manageable**: Large YAML with too many sub-sections can become confusing. Possibly break them into smaller agent files or keep them well-documented.
 
 ---
 
 ## Conclusion
 
-The `PromptHandling` utility is a powerful tool for managing dynamic prompts in **AgentForge**. By understanding and utilizing its methods, you can create agents that interact more effectively and responsively with users or other systems.
+The `PromptProcessor` in **AgentForge** underpins how prompts are rendered and validated. Most developers will benefit from letting the framework handle prompt substitution. However, if you need deeper customization—like unique placeholder styles or conditional logic—understanding this utility is key. Proceed carefully, as changing the prompt flow can break existing templates.
 
----
-
-**Need Help?**
-
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
-
----
+**Need Help?**  
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
+- **Discord**: [Join our Discord Server](https://discord.gg/ttpXHUtCW6)

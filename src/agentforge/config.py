@@ -1,12 +1,16 @@
 import importlib
+import importlib.util
 import threading
 import os
 import yaml
 import re
 import pathlib
+from pathlib import Path
 import sys
 from typing import Dict, Any, Optional, Tuple
 from ruamel.yaml import YAML
+from types import ModuleType
+
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
     """
@@ -28,6 +32,7 @@ def load_yaml_file(file_path: str) -> Dict[str, Any]:
     except yaml.YAMLError:
         print(f"Error decoding YAML from {file_path}")
         return {}
+
 
 class Config:
     _debug = False
@@ -196,29 +201,8 @@ class Config:
             'simulated_response': simulated_response,
         }
 
-    # def load_flow_data(self, flow_name: str) -> Dict[str, Any]:
-    #     """
-    #     Loads configuration data for a specified flow.
-    #
-    #     Parameters:
-    #         flow_name (str): The name of the flow to load.
-    #
-    #     Returns:
-    #         dict: The configuration data for the flow.
-    #
-    #     Raises:
-    #         FileNotFoundError: If the flow configuration is not found.
-    #     """
-    #     self.reload()
-    #
-    #     flow = self.find_config('flows', flow_name)
-    #     if not flow:
-    #         raise FileNotFoundError(f"Flow '{flow_name}' not found in configuration.")
-    #
-    #     return flow
-
     # ------------------------------------------------------------------------
-    # Model Overrides
+    # Model API and Overrides
     # ------------------------------------------------------------------------
 
     def resolve_model_overrides(self, agent: dict) -> Tuple[str, str, str, Dict[str, Any]]:
@@ -254,7 +238,6 @@ class Config:
         if not api_name or not model_name:
             raise ValueError("No valid API/Model found in either Selected Model defaults or agent overrides.")
         return api_name, model_name, agent_params_override
-
 
     # Step 2: Retrieve the correct API section from the Model Library
     def _get_api_section(self, api_name: str) -> Dict[str, Any]:
@@ -323,17 +306,58 @@ class Config:
     def get_model(api_name: str, class_name: str, model_identifier: str) -> Any:
         """
         Dynamically imports and instantiates the Python class for the requested API/class/identifier.
-        We assume:
-         - The Python module name is derived from the API’s name (e.g. openai_api).
-         - The Python class name is exactly the same as the key used under that API (e.g. openai_api -> "O1Series", "GPT", etc.).
-         - The model’s identifier is a valid identifier.
         """
-        # Actually import:  from .apis import <python_module_name>
-        module = importlib.import_module(f".apis.{api_name}", package=__package__)
+        module = Config._get_module(api_name)
         model_class = getattr(module, class_name)
-
-        # Instantiate the model with the identifier
         return model_class(model_identifier)
+
+    @staticmethod
+    def _get_module(api_name: str) -> ModuleType:
+        """
+        Retrieves the module for the given API. Tries the built-in apis folder first;
+        if not found, loads from the custom_apis folder.
+        """
+        module = Config._try_load_built_in_api(api_name)
+        if module is not None:
+            return module
+        return Config._load_custom_api(api_name)
+
+    @staticmethod
+    def _try_load_built_in_api(api_name: str) -> Optional[ModuleType]:
+        """
+        Attempts to load a built-in API module from the package's apis folder.
+        Returns the module if found; otherwise returns None.
+        """
+        built_in_api_path = Path(__file__).parent / "apis" / f"{api_name}.py"
+        if built_in_api_path.exists():
+            return importlib.import_module(f".apis.{api_name}", package=__package__)
+        return None
+
+    @staticmethod
+    def _load_custom_api(api_name: str) -> ModuleType:
+        """
+        Loads a custom API module from the project's custom_apis folder.
+        Sets up a dummy package environment so that relative imports work correctly.
+        """
+        # Use the project root determined by find_project_root()
+        project_root = Config().project_root
+        custom_api_dir = project_root / ".agentforge" / "custom_apis"
+        custom_api_path = custom_api_dir / f"{api_name}.py"
+        if not custom_api_path.exists():
+            raise ImportError(
+                f"Cannot find API module '{api_name}' in the built-in folder or at {custom_api_path}."
+            )
+
+        spec = importlib.util.spec_from_file_location(f"custom_apis.{api_name}", custom_api_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Could not load spec for custom API module '{api_name}'.")
+
+        module = importlib.util.module_from_spec(spec)
+        # Set __package__ so that any relative imports in the custom module behave as expected.
+        module.__package__ = "custom_apis"
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module
 
     # ------------------------------------------------------------------------
     # Utility Methods
@@ -366,23 +390,22 @@ class Config:
 
         return config
 
-    @staticmethod
-    def get_nested_dict(data: dict, path_parts: tuple):
+    def find_file_in_directory(self, directory: str, filename: str):
         """
-        Gets or creates a nested dictionary given the parts of a relative path.
+        Recursively searches for a file within a directory and its subdirectories.
 
-        Args:
-            data (dict): The top-level dictionary to start from.
-            path_parts (tuple): A tuple of path components leading to the desired nested dictionary.
+        Parameters:
+            directory (str): The directory to search in.
+            filename (str): The name of the file to find.
 
         Returns:
-            A reference to the nested dictionary at the end of the path.
+            pathlib.Path or None: The full path to the file if found, None otherwise.
         """
-        for part in path_parts:
-            if part not in data:
-                data[part] = {}
-            data = data[part]
-        return data
+        directory = pathlib.Path(pathlib.Path(self.config_path) / directory)
+
+        for file_path in directory.rglob(filename):
+            return file_path
+        return None
 
     def fix_prompt_placeholders(self, prompts):
         """
@@ -420,29 +443,23 @@ class Config:
 
         return prompts
 
-    def reload(self):
+    @staticmethod
+    def get_nested_dict(data: dict, path_parts: tuple):
         """
-        Reloads configurations if on-the-fly reloading is enabled.
-        """
-        if self.data['settings']['system']['misc'].get('on_the_fly', False):
-            self.load_all_configurations()
+        Gets or creates a nested dictionary given the parts of a relative path.
 
-    def find_file_in_directory(self, directory: str, filename: str):
-        """
-        Recursively searches for a file within a directory and its subdirectories.
-
-        Parameters:
-            directory (str): The directory to search in.
-            filename (str): The name of the file to find.
+        Args:
+            data (dict): The top-level dictionary to start from.
+            path_parts (tuple): A tuple of path components leading to the desired nested dictionary.
 
         Returns:
-            pathlib.Path or None: The full path to the file if found, None otherwise.
+            A reference to the nested dictionary at the end of the path.
         """
-        directory = pathlib.Path(pathlib.Path(self.config_path) / directory)
-
-        for file_path in directory.rglob(filename):
-            return file_path
-        return None
+        for part in path_parts:
+            if part not in data:
+                data[part] = {}
+            data = data[part]
+        return data
 
     def load_persona(self, agent_config: dict) -> Optional[Dict[str, Any]]:
         """
@@ -469,5 +486,12 @@ class Config:
             )
 
         return self.data['personas'][persona_file]
+
+    def reload(self):
+        """
+        Reloads configurations if on-the-fly reloading is enabled.
+        """
+        if self.data['settings']['system']['misc'].get('on_the_fly', False):
+            self.load_all_configurations()
 
 

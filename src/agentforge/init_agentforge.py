@@ -134,8 +134,10 @@ def setup_agentforge() -> None:
         agentforge_path = spec.submodule_search_locations[0]
         print(f"Found {package_name} at {agentforge_path}")
         installer_path = os.path.join(agentforge_path, 'setup_files')
-        project_root = Path.cwd()
-
+        project_root = Path.cwd() / ".agentforge"
+        if not project_root.exists():
+            project_root.mkdir()
+            print(f"Created project template directory: {project_root}")
         copy_directory(project_root, Path(installer_path))
         print("AgentForge setup is complete.")
     except Exception as e:

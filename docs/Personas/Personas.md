@@ -1,151 +1,157 @@
 # Persona Guide
 
+Personas in **AgentForge** are files that bundle various attributes—ranging from domain knowledge to personality traits—into a single resource that agents can draw upon. Rather than just a “character profile,” a persona is effectively extra data your agent can leverage to enrich its responses or maintain context.
+
+---
+
 ## Overview
 
-**Personas** in our system serve as an abstraction of the knowledge that an agent has access to, rather than merely defining the agent’s character or personality traits. They encapsulate vast and varied information – from specific subject matters to general world facts, and yes personality traits – they constitute the database of knowledge that the agents can use during their operation.
+1. **Where They Live**: Personas reside in `.agentforge/personas/`. Each persona is a separate YAML file (e.g., `botty.yaml`, `expert.yaml`).  
+2. **How They’re Loaded**: **AgentForge** checks if personas are enabled via `system.yaml` under the `persona` section. It then merges the specified persona’s attributes into an agent’s data at runtime.  
+3. **How Agents Use Them**: Any attribute you define in a persona can appear in your prompt YAML file as a placeholder (like `{name}` or `{description}`). If that placeholder is present, **AgentForge** automatically substitutes the persona’s data.
 
-### Location of Persona Files
+---
 
-Each persona is uniquely defined in a YAML file within the `personas` directory.
-You can find this directory at `your_project_root/.agentforge/personas`
-
-### Flexible Structure of Persona Files
-
-The persona files are templates with a flexible structure:
-
-- **Optional Attributes**: Every attribute in a persona file is optional. Include only the information pertinent to the persona you're creating.
-- **Custom Attributes**: Add any attributes that represent the knowledge or information the agent should have access to.
-- **Blank Template**: Each file starts as a blank slate, allowing for complete customization and adaptability to the agent’s knowledge needs.
-
-#### Persona File Template (`default.yaml`):
+## Enabling Personas in `system.yaml`
 
 ```yaml
-# Persona Configuration File
-# Use this file as a template to define the persona of your agent(s).
-# Each attribute in this file will be automatically loaded as part of the agent data for prompt rendering.
-# However, it's important to note that merely defining attributes here does not guarantee their use by the agent.
-# Attributes must also be referenced in the corresponding agent's prompt template YAML file to be utilized in interactions.
-# To ensure compatibility, attribute names should follow the Python convention for variables (e.g., lowercase with underscores) to avoid issues.
-# Note: Attribute key names are case-insensitive; the system will automatically convert them to lowercase when adding them to the agent data.
-# Therefore, ensure that attributes in the prompt templates are also defined in lowercase and that they adhere to the python variable naming convention..
-
-# Feel free to add, modify, or remove attributes according to your needs.
-
-# Name: The name of your agent or persona.
-# This should be unique and descriptive, giving a clear indication of your agent identity or purpose.
-Name: Persona Name
-
-# Description: A detailed description of your agent.
-# This should include any background information, capabilities, and the general tone or personality your agent embodies.
-# Use the '|+' syntax for multi-line strings to ensure proper formatting.
-Description: |
-    Describe your agent here...
-
-# Location: The primary operating environment or context of your agent.
-# This can be virtual, physical, or conceptual, depending on your agent's design.
-Location: Virtual Environment/Physical Location
-
-# Setting: The detailed setting in which your agent operates.
-# This can help in providing contextual background for your agent's interactions and responses.
-Setting: |
-    Provide a detailed description of the setting or context in which your agent operates. This could be a 
-    virtual space, like a digital assistant in a smart home, or a fictional world for game-based NPCs. 
-    The setting can influence how the agent interacts and responds to queries.
-
-# Username: A default or suggested username for interactions.
-# This can be useful for personalizing responses or for systems that require user identification.
-Username: DefaultUser
-
-# Objective: The primary goal or function of your agent.
-# This can be as broad as providing assistance and answering questions, or as specific as performing tasks in a particular domain.
-Objective: Define the primary goal of your agent here.
-
-# Additional Attributes: You can add any number of additional attributes to further define your agent.
-# Examples might include 'Skills', 'KnowledgeAreas', 'PreferredPronouns', etc.
-# Use the same format as above to add new sections.
-
-# Example of an additional attribute:
-# Skills:
-#   - "Skill 1: Description"
-#   - "Skill 2: Description"
-#   - "Add as many skills as relevant for your agent."
-
-# Remember to save your changes to this file before using it with your system.
-# This will ensure your agent persona is accurately represented and can perform as intended.
-
+persona:
+  enabled: true
+  name: default
 ```
 
-### Usage of Personas in Agents
+- **`enabled`**: Toggles whether the framework attempts to load persona data at all.  
+- **`name`**: Specifies a default persona file (minus the `.yaml` extension). By default, this is `"default"`, meaning it will look for `.agentforge/personas/default.yaml`.
 
-- **Default Persona**: The `system.yaml` file under the `.agentforge/settings` folder specifies the system's default persona.
+If `enabled` is set to `false`, no persona data is loaded, and any references to persona variables in your prompts won’t be populated.
 
-```yaml system.yaml
-# system.yaml
-Persona: default # <--- Name of the Persona YAML File in the .agentforge/personas folder
-# ... other settings ...
-```
+---
 
-- **Overriding Personas**: Agents can specify a different `Persona` attribute in their YAML configuration to override the default persona set by the system configuration file.
+## Persona File Structure
+
+A persona file is typically very flexible. Here’s an example:
 
 ```yaml
-# agent.yaml
-Prompts: 
-  System:
-    # System template or sub-prompts
-  User:
-    # User template or sub-prompts
+# .agentforge/personas/botty.yaml
 
-Persona: persona_name # Optional: Override persona set by system
+name: Botty McBotFace
+description: |
+  A cheerful assistant who likes to crack jokes and provide friendly advice.
+
+domain_knowledge: |
+  - Familiar with basic math, cooking tips, and cat facts.
+  - Loves discussing the weather.
+
+favorite_color: green
+location: Virtual Town
 ```
 
-### Agents using Persona Information
+1. **You can define any keys you want**—`name`, `description`, `domain_knowledge`, etc.  
+2. **Values can be strings, lists, or nested objects**—whatever your agent needs.  
+3. **Keys become lowercase** internally. Make sure you reference them in prompts using lowercase placeholders (e.g., `{domain_knowledge}`). 
+4. **Persona vs. Runtime**—If both a persona and a runtime argument define the same variable, the runtime argument takes precedence.
 
-The information defined in the persona is automatically injected into the agent data, like any other variable passed to the agent via code. However, the attribute name of the defined knowledge variable **MUST** be referenced in the prompt file in order for it to be used. This allows the system to inject and render that information onto the prompt that is passed to the Large Language Model (LLM).
+---
 
+## Using Personas in Agent Prompts
 
-
-To illustrate this, consider a persona file where the `Name` attribute is set to 'Botty Mc.BotFace':
-
+Agents automatically load the default persona declared in `system.yaml`. But you can override which persona file to use by specifying a `persona` key in the agent’s prompt YAML:
 
 ```yaml
-# botty.yaml
-Name: Botty Mc.BotFace
-# ... more attributes ...
+# .agentforge/prompts/friendlyagent.yaml
+
+prompts:
+  system:
+    identity: "You are {name}, {description}"
+    knowledge: "{domain_knowledge}"
+  user: "Hello, who are you?"
+
+persona: botty
 ```
 
-This `Name` information can be used by an agent when running inference. By default, the system will use the **persona** selected in the [system configuration](../../src/agentforge/setup_files/settings/system.yaml) file. This can be overridden be referencing a different **persona** file in the agent's corresponding prompt YAML file, as shown:
+When this agent runs:
+
+- **If** `persona.enabled: true` in `system.yaml`, it checks for a file named `botty.yaml` in `.agentforge/personas/`.  
+- **Merges** the persona’s attributes (e.g., `name`, `description`, `domain_knowledge`) into `agent_data`.  
+- **Prompt placeholders** like `{name}` or `{domain_knowledge}` get replaced with the persona’s data.
+
+---
+
+## Overriding the Default Persona
+
+If you don’t specify `persona: botty` (or some other name) in your prompt file, **AgentForge** uses the default persona (`name: default`) from `system.yaml`. That means it looks for `.agentforge/personas/default.yaml`.
+
+To override at the agent level:
 
 ```yaml
-# example_agent.yaml
-Prompts:
-  System:
-    Name: Your name is {name}.
-    # ... other system sub prompts ...
-  
-  User: 
-    Introduction: Please introduce yourself.
-    # ... other user sub prompts ...
- 
-
-Persona: botty # Optional | We tell the agent to use this persona - Use the persona YAML file name without the extension.
+persona: some_other_persona
 ```
 
-The text `{name}` in the system prompt file will be replaced with the `Name` value from the **persona** file when it's rendered. So a possible rendered prompt when sent to the LLM would look like this:
+And ensure `.agentforge/personas/some_other_persona.yaml` exists.
 
-**System Prompt:**
-```text
-Your name is Botty Mc.BotFace.
+---
+
+## Case-Insensitive Keys
+
+When persona data is loaded, all keys are converted to lowercase. So if your YAML file says:
+
+```yaml
+Name: MyPersona
+Location: Virtual
 ```
 
-**User Prompt:**
-```text
-Please introduce yourself.
+Then in your agent’s prompt, you’d reference them as `{name}` or `{location}`, both in lowercase.
+
+---
+
+## Example Usage in Code
+
+```python
+from agentforge.agent import Agent
+
+class FriendlyAgent(Agent):
+    def process_data(self):
+        # The loaded persona data is available at self.agent_data['persona']
+        persona_info = self.agent_data['persona']
+        if persona_info:
+            # e.g. persona_info['name'] -> 'Botty McBotFace'
+            pass
+
+        # You can also see merged placeholders at self.template_data if needed
+        pass
 ```
 
-Each attribute defined in the persona file can be used in a similar way, allowing for highly adaptable and context-aware agent interactions.
+---
 
->**Important Note**: Attribute key names in the persona file are **case-insensitive**; the system will automatically convert them to lowercase when adding them to the agent data. Therefore, when referencing these attributes in the prompt templates, ensure you use them in lowercase and that they adhere to the python variable naming convention. 
+## Best Practices
+
+1. **Keep Persona Minimal**  
+   Store only the data you truly need. The more data you load, the more cluttered your agent’s context can become.  
+2. **Use Consistent Naming**  
+   If your persona file is `expert.yaml`, reference it as `persona: expert` (all lowercase) in your agent prompt.  
+3. **Document Persona Keys**  
+   Clearly note which attributes exist (`name`, `description`, etc.) so you remember to use them in your prompt placeholders.  
+4. **Fallback**  
+   If you don’t override the default persona, your agents will always use `.agentforge/personas/default.yaml`. Keep that file up to date for broad use cases.
+5. **Persona vs. Runtime**  
+   If both a persona and a runtime argument define the same variable, the runtime argument takes precedence.
+
+---
 
 ## Conclusion
 
-With **Personas**, we aim to provide a flexible, efficient, and effective way of encapsulating the knowledge that an agent can use. They are not just about creating a psychological profile for an agent but about equipping an agent with the necessary knowledge to perform its tasks optimally.
+Personas in **AgentForge** provide a flexible way to inject contextual or knowledge-based data into your agents’ prompts. Whether you want a friendly “Botty” persona with a playful personality or an “Expert” persona brimming with domain knowledge, simply define the relevant attributes in a YAML file, reference them in your agent’s prompt, and let AgentForge handle the rest.
+
+**For More Info**:
+
+- [System Settings Guide](../Settings/System.md) – Controls the default persona name and whether personas are enabled.  
+- [Prompt Handling](../Agents/AgentPrompts.md) – Explains how placeholders like `{name}` are merged into final prompts.
+
+---
+
+**Need Help?**
+
+If you have questions or need assistance, feel free to reach out:
+
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
+- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)

@@ -8,317 +8,415 @@ Welcome to the documentation of the `Agent` class. This foundational class is ce
 
 The `Agent` class is designed to:
 
-- Serve as the base class for all agents within the **AgentForge** framework.
-- Provide essential attributes and methods for agent operation.
-- Facilitate seamless integration with various workflows and data structures.
-- Simplify the creation of custom agents through method overriding.
+- Serve as the base class for all agents within the **AgentForge** framework.  
+- Provide essential attributes and methods for agent operation.  
+- Dynamically load and manage agent configurations, prompt templates, personas, and storage.  
+- Simplify the creation of custom agents through method overriding.  
 - Allow flexible naming of agents by accepting an optional `agent_name` parameter.
 
-By subclassing the `Agent` class, developers can create custom agents that inherit default behaviors and override methods to implement specific functionalities.
+By subclassing the `Agent` class (or simply instantiating it with a YAML prompt file), developers can create agents that inherit default behaviors and override methods to implement custom logic.
 
 ---
 
 ## Class Definition
 
-### Class Attributes
-
-The `Agent` class utilizes several key attributes:
-
-- **`agent_name`**: The name of the agent, set to the provided `agent_name` parameter or defaults to the class name if `agent_name` is not provided.
-- **`logger`**: A logger instance initialized with the agent’s name for logging messages.
-- **`config`**: An instance of the `Config` class that handles configuration loading.
-- **`prompt_handling`**: An instance of the `PromptHandling` class for managing prompt templates.
-- **`data`**: A dictionary to store data relevant for prompt rendering and inference.
-- **`prompt`**: A list of prompts generated for use with the LLM.
-- **`result`**: Stores the raw result returned by the LLM.
-- **`output`**: Holds the final output after processing the LLM's response.
-- **`agent_data`**: Configuration data specific to the agent, including settings and operational parameters.
-
-### Initialization
-
 ```python
+from .config import Config
+from agentforge.apis.base_api import BaseModel
+from agentforge.utils.logger import Logger
+from agentforge.utils.prompt_processor import PromptProcessor
+from typing import Any, Dict, Optional
+
 class Agent:
-    def __init__(self, agent_name: Optional[str] = None):
+    def __init__(self, agent_name: Optional[str] = None, log_file: Optional[str] = 'agentforge'):
         """
         Initializes an Agent instance, setting up its name, logger, data attributes, and agent-specific configurations.
         It attempts to load the agent's configuration data and storage settings.
 
         Args:
-            name (Optional[str]): The name of the agent. If not provided, the class name is used.
+            agent_name (Optional[str]): The name of the agent. If not provided, the class name is used.
+            log_file (Optional[str]): The name of the log file. Defaults to 'agentforge'.
         """
-        # Set agent_name to the provided name or default to the class name
-        self.agent_name: str = agent_name if agent_name is not None else self.__class__.__name__
-
-        # Initialize logger with the agent's name
-        self.logger: Logger = Logger(name=self.agent_name)
-
-        # Initialize other configurations and handlers
+        self.agent_name = agent_name if agent_name else self.__class__.__name__
+        self.logger = Logger(self.agent_name, log_file)
         self.config = Config()
-        self.prompt_handling = PromptHandling()
+        self.prompt_processor = PromptProcessor()
 
-        # Initialize data attributes
-        self.data: Dict[str, Any] = {}
-        self.prompt: Optional[List[str]] = None
+        self.agent_data: Optional[Dict[str, Any]] = None
+        self.persona: Optional[Dict[str, Any]] = None
+        self.model: Optional[BaseModel] = None
+        self.prompt_template: Optional[Dict[str, Any]] = None
+        self.template_data: Dict[str, Any] = {}
+        self.prompt: Optional[Dict[str, str]] = None
         self.result: Optional[str] = None
         self.output: Optional[str] = None
+        self.images: Optional[list[str]] = []
 
-        # Initialize agent_data if it hasn't been set already
-        if not hasattr(self, 'agent_data'):  # Prevent re-initialization
-            self.agent_data: Optional[Dict[str, Any]] = None
+        # Load and validate agent data during initialization
+        self.initialize_agent_config()
 ```
 
-**Explanation**:
+### Class Attributes
 
-- **`self.agent_name`**: Set to the provided `agent_name` parameter if given; otherwise, defaults to the class name. This allows for flexible naming of agents without needing to create separate subclasses.
-- **`self.logger`**: Initialized with the agent's name for consistent logging.
-- **`self.config`**: Loads the configuration settings for the agent and the system.
-- **`self.prompt_handling`**: Manages the rendering and validation of prompt templates.
-- **Data Attributes**:
-  - **`self.data`**: A dictionary to store all data relevant to the agent's operation.
-  - **`self.prompt`**: Will hold the rendered prompts ready for the LLM.
-  - **`self.result`**: The raw output from the LLM before any parsing.
-  - **`self.output`**: The final processed output from the agent.
-- **`self.agent_data`**: Will hold agent-specific configuration data once loaded.
+- **`agent_name`**  
+  The agent’s name, set by the `agent_name` parameter or defaulting to the class name.
+
+- **`logger`**  
+  A `Logger` instance for writing logs to both the console and file.
+
+- **`config`**  
+  An instance of `Config` to load the agent’s configuration data (prompts, parameters, personas, etc.).
+
+- **`prompt_processor`**  
+  An instance of `PromptProcessor` responsible for rendering and validating the final prompts.
+
+- **`agent_data`**  
+  A dictionary holding the agent’s configuration data (loaded from YAML or other sources).
+
+- **`persona`**  
+  A dictionary containing persona-related information (if personas are enabled).
+
+- **`model`**  
+  A reference to the LLM instance, which must implement the `BaseModel` interface.
+
+- **`prompt_template`**  
+  A dictionary with the agent’s prompt structure (usually containing `system` and `user`).
+
+- **`template_data`**  
+  A general-purpose dictionary for any runtime data to be substituted into the final prompt.
+
+- **`prompt`**  
+  The rendered prompt after merging `prompt_template` with `template_data`.
+
+- **`result`**  
+  The raw output from the LLM or a simulated string in debug mode.
+
+- **`output`**  
+  The final processed string after any optional post-processing.
+
+- **`images`**  
+  An optional list of image references to pass along to the LLM (or to include in the final output).
 
 ---
 
 ## Agent Workflow
 
-The `Agent` class defines a standard workflow executed by the `run` method. This workflow consists of several steps that process data, interact with the LLM, and produce the final output.
+### `run(self, **kwargs) -> Optional[str]`
 
-### `run` Method
+The `run` method orchestrates the following sequence to produce the final output:
 
 ```python
 def run(self, **kwargs: Any) -> Optional[str]:
-    """
-    Orchestrates the execution of the agent's workflow: loading data, processing data, generating prompts,
-    running language models, parsing results, saving results, and building the output.
-
-    Parameters:
-        **kwargs (Any): Keyword arguments that will form part of the agent's data.
-
-    Returns:
-        Optional[str]: The output generated by the agent or None if an error occurred during execution.
-    """
     try:
-        self.logger.log(f"\n{self.agent_name} - Running...", 'info')
+        self.logger.info(f"{self.agent_name} - Running...")
         self.load_data(**kwargs)
         self.process_data()
         self.render_prompt()
-        self.run_llm()
+        self.run_model()
         self.parse_result()
         self.save_to_storage()
         self.build_output()
-        self.template_data = {}
-        self.logger.log(f"\n{self.agent_name} - Done!", 'info')
+        self.logger.info(f"{self.agent_name} - Done!")
     except Exception as e:
-        self.logger.log(f"Agent execution failed: {e}", 'error')
+        self.logger.error(f"Agent execution failed: {e}")
         return None
-
     return self.output
 ```
 
-**Workflow Steps**:
-
-1. **Logging Start**: Logs the beginning of the agent's execution.
-2. **Data Loading**: Calls `self.load_data(**kwargs)` to load all necessary data into `self.data`.
-3. **Data Processing**: Processes the loaded data with `self.process_data()`. This can be customized in subclasses.
-4. **Prompt Generation**: Generates prompts for the LLM using `self.generate_prompt()`.
-5. **LLM Interaction**: Runs the LLM with `self.run_llm()` and stores the result in `self.result`.
-6. **Result Parsing**: Parses the LLM's output with `self.parse_result()`. This can be customized in subclasses.
-7. **Saving to Storage**: Saves any necessary data to storage with `self.save_to_storage()`.
-8. **Building Output**: Constructs the final output with `self.build_output()`, storing it in `self.output`.
-9. **Cleanup**: Clears `self.data` to free up memory.
-10. **Logging Completion**: Logs the completion of the agent's execution.
-11. **Return Output**: Returns the final output.
-
----
-
-## Key Concepts
-
-Understanding the following key concepts is essential for effectively utilizing the `Agent` class.
-
-### The `self.data` Variable
-
-#### Overview
-
-- **Purpose**: `self.data` serves as the central repository for all data relevant to the agent's operation.
-- **Usage**: It is used throughout the agent's workflow, particularly for rendering prompts and passing parameters to the LLM.
-
-#### Data Aggregation Process
-
-1. **Agent Configuration Data**:
-   - Loaded via `self.load_agent_data()`.
-   - Includes parameters (`params`) and prompt templates (`prompts`).
-   - Example:
-     ```python
-     self.prompt_data.update({
-         'params': self.agent_data.get('params').copy(),
-         'prompts': self.agent_data['prompts'].copy()
-     })
-     ```
-
-2. **Persona Data**:
-   - Loaded via `self.load_persona_data()`.
-   - If personas are enabled (`PersonasEnabled` in system settings), persona attributes are added to `self.data`.
-   - Example:
-     ```python
-     if self.agent_data['settings']['system'].get('PersonasEnabled'):
-         persona = self.agent_data.get('persona', {})
-         for key in persona:
-             self.prompt_data[key.lower()] = persona[key]
-     ```
-
-3. **Storage Data**:
-   - Placeholder method `self.load_from_storage()` for loading data from storage systems.
-   - Can be overridden in custom agents to implement specific storage loading logic.
-
-4. **Additional Data**:
-   - Loaded via `self.load_additional_data()`.
-   - Intended to be overridden in custom agents for loading any extra data needed.
-
-5. **Keyword Arguments (`**kwargs`)**:
-   - Passed to `self.run(**kwargs)` and integrated into `self.data` via `self.load_kwargs(**kwargs)`.
-   - Allows for dynamic data input at runtime.
-
-### Role in Prompt Rendering
-
-- **Dynamic Prompt Rendering**: `self.data` provides the values for placeholders in prompt templates.
-- **Example**:
-  - If a prompt template contains `{user_input}`, and `self.data['user_input'] = "Hello, AgentForge!"`, the rendered prompt will replace `{user_input}` with "Hello, AgentForge!".
-
-### Importance
-
-- **Flexibility**: By aggregating data from various sources, `self.data` enables agents to operate dynamically and contextually.
-- **Customization**: Developers can manipulate `self.data` within overridden methods to alter agent behavior.
+1. **Logging Start**  
+   Logs that the agent is beginning its workflow.  
+2. **`load_data(**kwargs)`**  
+   Gathers all necessary data (configuration, persona data, storage references, etc.) and merges in keyword arguments.  
+3. **`process_data()`**  
+   A hook to transform or validate data before prompt rendering.  
+4. **`render_prompt()`**  
+   Uses `prompt_processor` to substitute placeholders in the YAML-defined prompt (`system` and `user`).  
+5. **`run_model()`**  
+   Passes the compiled prompts and any additional parameters to the model, saving its output in `self.result`.  
+6. **`parse_result()`**  
+   An optional method for post-processing the LLM’s raw text.  
+7. **`save_to_storage()`**  
+   If storage is enabled, saves relevant data.  
+8. **`build_output()`**  
+   Sets `self.output` as the final user-facing result.  
+9. **Completion**  
+   Logs a message indicating the run is complete and returns `self.output`.
 
 ---
 
-## Agent Configuration Data (`self.agent_data`)
+## Configuration Loading
 
-- **Purpose**: Stores agent-specific configurations, including settings, parameters, prompt templates, persona data, and LLM instances.
-- **Loaded Via**: `self.load_agent_data()`.
-- **Contents**:
-  - **`settings`**: System and model settings.
-  - **`params`**: Parameters for the LLM.
-  - **`prompts`**: Prompt templates for the agent.
-  - **`persona`**: Persona data if available.
-  - **`llm`**: The LLM instance assigned to the agent.
-  - **`storage`**: Storage instance if storage is enabled.
+### `initialize_agent_config()`
 
-**Accessing Configuration Data**:
-
-- Within the agent, you can access configuration settings using `self.agent_data`.
-- Example:
-  ```python
-  storage_enabled = self.agent_data['settings']['system'].get('StorageEnabled')
-  ```
-
----
-
-## Workflow Methods Overview
-
-While the `Agent` class provides default implementations, several methods are intended to be overridden to customize agent behavior.
-
-### Methods Intended for Overriding
-
-- **`load_from_storage(self)`**: For loading data from storage systems.
-- **`load_additional_data(self)`**: For loading any additional data required by the agent.
-- **`process_data(self)`**: For processing `self.data` before prompt generation.
-- **`parse_result(self)`**: For parsing the LLM's output in `self.result`.
-- **`save_to_storage(self)`**: For saving data to storage systems.
-- **`build_output(self)`**: For constructing the final output from processed data.
-
-**Example of Overriding**:
+This method is called at initialization (and optionally re-called if “on_the_fly” updates are enabled).
 
 ```python
-class CustomAgent(Agent):
-    def process_data(self):
-        # Custom data processing
-        self.data['processed_input'] = self.data['user_input'].upper()
+def initialize_agent_config(self) -> None:
+    self.load_agent_data()
+    self.load_prompt_template()
+    self.load_persona_data()
+    self.load_model()
+    self.resolve_storage()
+```
 
-    def build_output(self):
-        # Custom output construction
-        self.output = f"Processed Result: {self.result}"
+1. **`load_agent_data()`**  
+   Loads configuration details like `params`, `prompts`, `settings`.  
+2. **`load_prompt_template()`**  
+   Ensures valid prompt structures (commonly `system` and `user` keys in lowercase).  
+3. **`load_persona_data()`**  
+   If personas are enabled, loads persona info and merges it into `template_data`.  
+4. **`load_model()`**  
+   References the LLM assigned to this agent.  
+5. **`resolve_storage()`**  
+   Sets up the storage instance if `storage.enabled` is `True`.
+
+---
+
+## Data Methods
+
+### `load_data(**kwargs)`
+
+```python
+def load_data(self, **kwargs: Any) -> None:
+    if self.agent_data['settings']['system']['misc'].get('on_the_fly', False):
+        self.initialize_agent_config()
+
+    self.load_from_storage()
+    self.load_additional_data()
+    self.template_data.update(kwargs)
+```
+
+- **On-the-Fly Reloading**  
+  Re-invokes `initialize_agent_config()` if `on_the_fly` is enabled.  
+- **`load_from_storage()`**  
+  Placeholder method for reading from a DB or other storage systems.  
+- **`load_additional_data()`**  
+  Placeholder for agent-specific data fetch logic.  
+- **Merging Keyword Arguments**  
+  Any `**kwargs` passed into `run()` are appended to `template_data`.
+
+### `load_from_storage()`
+
+A placeholder for reading from persistent storage. Override if you need custom queries:
+
+```python
+def load_from_storage(self) -> None:
+    pass
+```
+
+### `load_additional_data()`
+
+A placeholder for loading extra data your agent may need:
+
+```python
+def load_additional_data(self) -> None:
+    pass
 ```
 
 ---
 
-## Interaction with the LLM
+## Processing & Prompt Rendering
 
-### Prompt Generation
+### `process_data()`
 
-- **Method**: `self.generate_prompt()`
-- **Process**:
-  - Retrieves prompt templates from `self.data['prompts']`.
-  - Renders the templates using `self.prompt_handling`, replacing placeholders with values from `self.data`.
-  - Stores the rendered prompts in `self.prompt`.
+```python
+def process_data(self) -> None:
+    pass
+```
 
-### Running the LLM
+Override to transform or validate `template_data` before prompt rendering. For example, cleaning user input or adding timestamps.
 
-- **Method**: `self.run_llm()`
-- **Process**:
-  - Retrieves the LLM instance from `self.agent_data['llm']`.
-  - Uses parameters from `self.agent_data.get('params', {})`.
-  - Calls `model.generate_text(self.prompt, **params)`.
-  - Stores the result in `self.result`.
+### `render_prompt()`
+
+```python
+def render_prompt(self) -> None:
+    self.prompt = self.prompt_processor.render_prompts(self.prompt_template, self.template_data)
+    self.prompt_processor.validate_rendered_prompts(self.prompt)
+```
+
+- **Rendering**: Substitutes placeholders in the `system` and `user` YAML blocks with values from `template_data`.  
+- **Validation**: Ensures the final prompt is well-structured (commonly `{ "system": "...", "user": "..." }`).
+
+---
+
+## Model Interaction
+
+### `run_model()`
+
+```python
+def run_model(self) -> None:
+    if self.agent_data['settings']['system']['debug'].get('mode', False):
+        self.result = self.agent_data['simulated_response']
+        return
+
+    params: Dict[str, Any] = self.agent_data.get("params", {})
+    params['agent_name'] = self.agent_name
+    if self.images:
+        params['images'] = self.images
+
+    self.result = self.model.generate(self.prompt, **params).strip()
+```
+
+1. **Debug Mode**  
+   Uses a simulated response if `debug.mode` is `True`.  
+2. **Params**  
+   Loads generation parameters (e.g., `temperature`, `max_tokens`) from the agent config.  
+3. **Image Support**  
+   Optionally appends image references to the model call if your agent works with images.  
+4. **Generation**  
+   Invokes `self.model.generate(...)` and stores the result in `self.result`.
+
+---
+
+## Result Handling
+
+### `parse_result()`
+
+```python
+def parse_result(self) -> None:
+    pass
+```
+
+Override to apply additional logic—e.g., parsing JSON, extracting structured data, or filtering out unwanted text.
+
+### `build_output()`
+
+```python
+def build_output(self) -> None:
+    self.output = self.result
+```
+
+Sets the final user-facing string. By default, it’s simply the raw LLM output. Override to add formatting, user-friendly messages, or combined data.
 
 ---
 
 ## Storage Handling
 
-### Resolving Storage
+### `resolve_storage()`
 
-- **Method**: `self.resolve_storage()`
-- **Process**:
-  - Checks if storage is enabled in system settings.
-  - Initializes the storage instance and stores it in `self.agent_data['storage']`, ensuring that `self.agent_data['storage']` exists even if storage is disabled.
-  - Example:
-    ```python
-    def resolve_storage(self):
-        if not self.agent_data['settings']['system'].get('StorageEnabled'):
-            self.agent_data['storage'] = None
-            return
-        from .utils.ChromaUtils import ChromaUtils
-        self.agent_data['storage'] = ChromaUtils(self.agent_data['persona']['Name'])
-    ```
+```python
+def resolve_storage(self) -> None:
+    storage_enabled = self.agent_data['settings']['storage']['options'].get('enabled', False)
+    if not storage_enabled:
+        self.agent_data['storage'] = None
+        return
 
-### Saving to Storage
+    # Future logic for storage adapters
+```
 
-- **Method**: `self.save_to_storage()`
-- **Usage**:
-  - Intended to be overridden to implement specific logic for saving data.
-  - Access the storage instance via `self.agent_data['storage']`.
-  - Even if storage is disabled, `self.agent_data['storage']` will be `None`, allowing for consistent handling in custom implementations.
+### `save_to_storage()`
+
+```python
+def save_to_storage(self) -> None:
+    pass
+```
+
+A placeholder for storing data (such as conversation history or final results). Override to interact with a DB or vector store when `storage_enabled` is `True`.
 
 ---
 
-## Conclusion
+## Putting It All Together: A Custom Agent Example
 
-By understanding the `Agent` class and its core components, you can harness the full potential of the **AgentForge** framework to build powerful, customized agents tailored to your specific needs.
+The following example shows how to override select methods for specialized behavior—here, simple sentiment analysis.
 
-- **Key Takeaways**:
-  - **Class Attributes**: Familiarize yourself with the attributes used throughout the agent's lifecycle.
-  - **Workflow**: Understand the sequence of methods executed in `run` and how they interact.
-  - **Data Handling**: Utilize `self.data` effectively to manage and manipulate data within your agent.
-  - **Customization**: Override methods as needed to implement custom behaviors.
-  - **Agent Naming**: Use the `name` parameter to assign custom names to agents without the need for subclassing.
+### Step 1: Define the Custom Agent
+
+```python
+# sentiment_agent.py
+from agentforge.agent import Agent
+import json
+
+class SentimentAgent(Agent):
+    def process_data(self):
+        # Strip leading/trailing whitespace from user input
+        if 'user_input' in self.template_data:
+            self.template_data['cleaned_input'] = self.template_data['user_input'].strip()
+
+    def parse_result(self):
+        # Interpret the LLM's response to classify sentiment
+        lower_resp = self.result.lower()
+        if 'positive' in lower_resp:
+            sentiment = 'Positive'
+        elif 'negative' in lower_resp:
+            sentiment = 'Negative'
+        elif 'neutral' in lower_resp:
+            sentiment = 'Neutral'
+        else:
+            sentiment = 'Undetermined'
+        self.result = sentiment
+
+    def build_output(self):
+        # Construct a final human-readable message
+        self.output = f"Sentiment Analysis Result: {self.result}"
+```
+
+### Step 2: Create the Prompt Template (`SentimentAgent.yaml`)
+
+Place this in `.agentforge/prompts/`:
+
+```yaml
+prompts:
+  system: | 
+    You are a sentiment analysis assistant.
+  user: | 
+    Determine if the sentiment of the following text is Positive, Negative, or Neutral.
+    Text: "{cleaned_input}"
+```
+
+> **Note**: Keys are lowercase (`prompts`, `system`, `user`) for consistency.
+
+### Step 3: Run the Agent
+
+```python
+# run_sentiment_agent.py
+from sentiment_agent import SentimentAgent
+
+agent = SentimentAgent()
+
+user_input = "  I absolutely love using AgentForge!  "
+response = agent.run(user_input=user_input)
+
+print(response)
+# Expected: "Sentiment Analysis Result: Positive"
+```
+
+**Why It Works**:
+
+1. **`process_data`**  
+   Trims whitespace from `user_input` and stores the result in `cleaned_input`.  
+2. **Prompt Rendering**  
+   `{cleaned_input}` is substituted into the `user` section of the prompt.  
+3. **LLM Call**  
+   The LLM receives a question about sentiment analysis on the provided text.  
+4. **`parse_result`**  
+   Simplifies the LLM’s response to a single word: `Positive`, `Negative`, `Neutral`, or `Undetermined`.  
+5. **`build_output`**  
+   Wraps that sentiment in a user-friendly message.
 
 ---
 
-## Next Steps
+## Tips and Best Practices
 
-- **Agent Methods Guide**: For a detailed walkthrough of the main methods you can override, see the [Agent Methods](AgentMethods.md) guide.
-- **Creating Custom Agents**: Learn how to create custom agents by subclassing the `Agent` class in the [Custom Agents](CustomAgents.md) documentation.
-- **Prompt Handling**: Dive deeper into how agent prompts are rendered within **AgentForge** by visiting the [Agent Prompts](AgentPrompts.md) guide.
+- **Start Simple**: Begin by instantiating `Agent` with a YAML file to confirm basic functionality.  
+- **Override as Needed**: Only override methods that are relevant to your custom logic.  
+- **Use Descriptive Names**: Name your agent classes and YAML files clearly (e.g., `SentimentAgent` ↔ `sentiment_agent.yaml`). 
+- **Case-Sensitive**: The YAML file name is case-sensitive. If you call `Agent("SentimentAgent")` or `SentimentAgent()`, the framework will look for `SentimentAgent.yaml` and not `sentimentagent.yaml`.
+- **Debug Mode**: Leverage `debug.mode` and `simulated_response` to rapidly test your agent’s workflow without incurring API calls.  
+- **Storage**: If you need to store or retrieve data persistently, implement custom logic in `load_from_storage` and `save_to_storage`.
 
 ---
+
+## Conclusion and Next Steps
+
+By understanding and utilizing these methods and attributes, you can create powerful agents tailored to your specific needs. The `Agent` class is at the core of **AgentForge**, offering a coherent, extensible framework for loading configurations, rendering prompts, calling an LLM, handling results, and optionally using storage.
+
+- **Prompt Crafting**: Learn more about structuring `.agentforge/prompts/` files in [Agent Prompts](AgentPrompts.md).  
+- **Advanced Customization**: If you need deeper control—like advanced persona logic or specialized result parsing—consider building a custom agent as shown above. You can find additional guidance in [Custom Agents](CustomAgents.md).  
+- **Utilities**: Explore time-saving utilities and helper functions in [Utils Overview](../Utils/UtilsOverview.md).
 
 **Need Help?**
 
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
+- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)  
 
 ---
