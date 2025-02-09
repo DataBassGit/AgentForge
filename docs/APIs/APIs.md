@@ -1,6 +1,6 @@
 # API Integrations in AgentForge
 
-**AgentForge** is designed to work with a variety of Large Language Model (LLM) APIs out of the box. Thanks to a modular architecture built around the `BaseModel` class, integrating a new API is as simple as creating a new subclass and (optionally) adding an entry to your configuration files. Even better, if you want to use your own API interface that isn’t included with the package, **AgentForge** will automatically look for custom implementations in your project’s `.agentforge/custom_apis/` folder.
+**AgentForge** is designed to work with a variety of Large Language Model (LLM) APIs out of the box. Thanks to a modular architecture built around the `BaseModel` class, integrating a new API is as simple as creating a new subclass and (optionally) adding an entry to your configuration files. If you want to use your own API interface that isn’t included with the package, **AgentForge** will automatically look for custom implementations in your project’s `.agentforge/custom_apis/` folder.
 
 ---
 
@@ -83,88 +83,43 @@ Subclasses only need to implement `_do_api_call` (and optionally override `_proc
 
 ## Finding and Instantiating Models
 
-Once all configuration and override settings have been merged, **AgentForge** instantiates the model using the `get_model` method of the `Config` class which works as follows:
+Once all configuration and override settings have been merged, **AgentForge** instantiates the model using the `get_model` method in the `Config` class. The system will:
 
-1. **Attempt to Import from the Built-In APIs**:  
+1. **Attempt to Import from the Built-In APIs**  
    It first looks for the API module in the built-in `agentforge/apis/` folder.
 
-2. **Fallback to Custom APIs**:  
-   If the module isn’t found in the package, it will then try to locate a custom API module in your project’s  
-   `your_project_root/.agentforge/custom_apis/` folder.
+2. **Fallback to Custom APIs**  
+   If the module isn’t found in the package, it automatically tries to load a custom API module from  
+   `your_project_root/.agentforge/custom_apis/`.
 
-3. **Instantiate the Model**:  
-   Once the module is imported, the method retrieves the class by name and instantiates it with the model’s identifier.
-
-Here’s the updated method:
-
-```python
-import importlib
-import importlib.util
-from pathlib import Path
-
-class Config:
-    # ... other methods ...
-
-    @staticmethod
-    def get_model(api_name: str, class_name: str, model_identifier: str) -> Any:
-        """
-        Dynamically imports and instantiates the Python class for the requested API/class/identifier.
-        It first attempts to import from the built-in 'agentforge/apis/' folder. If not found,
-        it falls back to looking in the project's '.agentforge/custom_apis/' folder.
-        """
-        try:
-            module = importlib.import_module(f".apis.{api_name}", package=__package__)
-        except ImportError as e:
-            # Fallback: try loading from the custom_apis folder in the project root
-            project_root = Config().project_root  # Get the project root (a pathlib.Path)
-            custom_api_path = project_root / ".agentforge" / "custom_apis" / f"{api_name}.py"
-            if not custom_api_path.exists():
-                raise ImportError(
-                    f"Cannot find API module '{api_name}' in built-in folder or at {custom_api_path}."
-                ) from e
-            spec = importlib.util.spec_from_file_location(api_name, str(custom_api_path))
-            if spec is None or spec.loader is None:
-                raise ImportError(f"Could not load spec for custom API module '{api_name}' from {custom_api_path}.")
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
-        model_class = getattr(module, class_name)
-        return model_class(model_identifier)
-```
-
-**What This Means for You:**
-
-- **Built-In Integrations**: The default API implementations are hidden in the package and automatically available.
-- **Custom Integrations**: If you want to add or override an API, simply drop a Python file (named after your API, e.g., `myapi.py`) into  
-  `your_project_root/.agentforge/custom_apis/` and ensure it defines the appropriate class.
-- **Configuration**: In your `models.yaml`, you simply reference the API name as usual; **AgentForge** will handle the lookup automatically.
+3. **Instantiate the Model**  
+   After loading the module, it retrieves the class by name and instantiates it with the model’s identifier.
 
 ---
 
 ## Adding a New API
 
-To add your own API integration, follow these steps:
+To add a custom API, follow these steps:
 
-1. **Create a Python Module**:  
-   In your project root, create a file at  
-   `your_project_root/.agentforge/custom_apis/yourapi.py`.
+1. **Create a Python Module**  
+   Place a file named `yourapi.py` into the `.agentforge/custom_apis/` folder of your project:
+   ```
+   your_project_root/
+   └── .agentforge/
+       └── custom_apis/
+           └── yourapi.py
+   ```
 
-2. **Subclass `BaseModel`**:  
-   Implement a class (e.g., `YourAPI`) that inherits from `BaseModel` and provides the required methods.
+2. **Subclass `BaseModel`**  
+   Implement the methods required for your target API. For instance:
 
    ```python
-   # your_project_root/.agentforge/custom_apis/yourapi.py
-
+   # yourapi.py
    from agentforge.apis.base_api import BaseModel
 
    class YourAPI(BaseModel):
-       def _prepare_prompt(self, model_prompt):
-           # Optionally override prompt formatting
-           combined = f"{model_prompt.get('system', '')}\n\n{model_prompt.get('user', '')}"
-           return [{"role": "user", "content": combined}]
-
        def _do_api_call(self, prompt, **filtered_params):
-           # Implement the actual API call using your client library
+           # Use your custom API client here
            response = your_api_client.send_request(
                model=self.model_name,
                prompt=prompt,
@@ -173,12 +128,12 @@ To add your own API integration, follow these steps:
            return response
 
        def _process_response(self, raw_response):
-           # Process the response as needed
-           return raw_response.get('result', '')
+           # Transform raw_response into the final text
+           return raw_response.get('answer', '')
    ```
 
-3. **Update `models.yaml`**:  
-   Add an entry for your API in the `model_library` section:
+3. **Update `models.yaml`**  
+   In your configuration, reference the new API and model under `model_library`. For example:
 
    ```yaml
    model_library:
@@ -186,16 +141,16 @@ To add your own API integration, follow these steps:
        YourAPI:
          models:
            custom_model:
-             identifier: "yourapi-custom-model"
+             identifier: "your-custom-api-model-id"
              params:
                temperature: 0.6
          params:
-           # Default parameters for YourAPI
+           # Default params for this API
            temperature: 0.7
    ```
 
-4. **Reference in an Agent**:  
-   In your agent’s YAML prompt file, specify the overrides to use your API:
+4. **Use It in an Agent**  
+   In your agent’s YAML config file, specify overrides to select this API and model:
 
    ```yaml
    prompts:
@@ -209,29 +164,30 @@ To add your own API integration, follow these steps:
        temperature: 0.5
    ```
 
+With this in place, **AgentForge** will locate and instantiate your custom API class automatically.
+
 ---
 
 ## Customizing Prompt Handling and Parameters
 
-Sometimes your API might require a different prompt format. In that case, override `_prepare_prompt(...)` as shown in the example above.  
-Similarly, if your API accepts only a subset of parameters, define `self.allowed_params` or `self.excluded_params` in your subclass. The base class automatically filters parameters passed to `_do_api_call`.
+If your API requires a different prompt structure or specific parameters, you can override `_prepare_prompt` or `_process_response` in your subclass. Additionally, you can define `self.allowed_params` or `self.excluded_params` to ensure only the correct parameters are passed to your API client.
 
 ---
 
 ## Conclusion
 
-Integrating a new API in **AgentForge** is designed to be straightforward:
-- **Subclass `BaseModel`** to encapsulate the specifics of your API.
-- **Update your configuration (`models.yaml`)** so that **AgentForge** can locate and instantiate your new class.
-- **Use custom APIs** by placing them in the `.agentforge/custom_apis/` folder; if a built-in API isn’t found, AgentForge automatically looks there.
+**AgentForge**’s flexible design makes integrating new APIs straightforward:
+- **Subclass `BaseModel`** to capture the specifics of your service.
+- **Place your module** under `.agentforge/custom_apis/` if it isn’t built-in.
+- **Configure your new API** in YAML so that AgentForge can discover and instantiate it.
+- **Use agent-level overrides** to fine-tune parameters or swap between multiple APIs with minimal effort.
 
-By following these guidelines, you can quickly expand **AgentForge**’s capabilities to include any LLM API, keeping your integration modular and maintainable.
+By following these steps, you’ll keep your custom integrations clean, modular, and easy to maintain.
 
 ---
 
-**Need Help?**
-
-If you have questions or need assistance, feel free to reach out:
+**Need Help?**  
+If you have any questions or run into issues, feel free to reach out:
 
 - **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
 - **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)

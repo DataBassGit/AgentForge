@@ -131,8 +131,8 @@ def run(self, **kwargs: Any) -> Optional[str]:
    A hook to transform or validate data before prompt rendering.  
 4. **`render_prompt()`**  
    Uses `prompt_processor` to substitute placeholders in the YAML-defined prompt (`system` and `user`).  
-5. **`run_llm()`**  
-   Passes the compiled prompts and any additional parameters to the LLM, saving its output in `self.result`.  
+5. **`run_model()`**  
+   Passes the compiled prompts and any additional parameters to the model, saving its output in `self.result`.  
 6. **`parse_result()`**  
    An optional method for post-processing the LLM’s raw text.  
 7. **`save_to_storage()`**  
@@ -239,12 +239,12 @@ def render_prompt(self) -> None:
 
 ---
 
-## LLM Interaction
+## Model Interaction
 
-### `run_llm()`
+### `run_model()`
 
 ```python
-def run_llm(self) -> None:
+def run_model(self) -> None:
     if self.agent_data['settings']['system']['debug'].get('mode', False):
         self.result = self.agent_data['simulated_response']
         return

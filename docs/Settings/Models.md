@@ -161,22 +161,6 @@ This final merged set of parameters is then used to instantiate the underlying m
 
 ---
 
-## Adding New APIs or Models
-
-If you’d like to integrate a new API or define a custom LLM, follow these steps:
-
-1. **Create a Python module** in `your_project_root/.agentforge/custom_apis/<your_api_name>.py`.  
-2. **Define a class** that handles the logic for generating text. For instance, if your API is named `myapi_api`, you might define a class `MyAPIClass` that calls the remote LLM.  
-3. **Update `models.yaml`**  
-   - Under `model_library`, add a key matching your API’s name.  
-   - Under that key, add a key for the class name, then define your `models` dictionary.  
-4. **Use your new API**  
-   - In `default_model`, set `api` to `myapi_api`, and the model name to one of the keys you defined in that `models` dictionary. Or specify them in an agent’s `model_overrides` block.
-
-This modular approach allows you to expand or swap out LLMs with minimal changes to your agent code. See the [APIs Guide](../APIs/APIs.md) for more detailed information on how to create your own custom API interface.
-
----
-
 ## Example Usage in Code
 
 When your agent is instantiated, the system merges the chosen model’s config and creates a model object. For instance:
@@ -195,6 +179,12 @@ class SummarizeAgent(Agent):
 ```
 
 Here, `self.model` is the Python object created from your `model_library` definitions, and `self.agent_data['params']` is the fully merged parameter dictionary.
+
+---
+
+## Adding New APIs or Models
+
+See the [APIs Guide](../APIs/APIs.md/#adding-a-new-api) for more detailed information on how to create your own custom API interface.
 
 ---
 

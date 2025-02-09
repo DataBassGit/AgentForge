@@ -17,7 +17,7 @@ logging:
   folder: ./logs
   files:  # Log levels: critical, error, warning, info, debug
     agentforge: error
-    model_io: error
+    model_io: debug
     chroma_utils: warning
     Actions: warning
 misc:
