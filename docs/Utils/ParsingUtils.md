@@ -1,446 +1,281 @@
-# Parsing Utility Guide
+# Parsing Processor Guide
 
-## Introduction
-
-The `ParsingUtils` class in **AgentForge** provides a suite of utility methods for parsing various types of structured text content into Python data structures. This utility is essential for agents and applications that need to interpret or manipulate configuration data, agent responses, or any dynamic content expressed in formats such as **YAML**, **JSON**, **XML**, **INI**, **CSV**, or **Markdown**.
+In **AgentForge**, the `ParsingProcessor` class offers a robust suite of methods for extracting and parsing structured data from text. Whether you’re handling YAML, JSON, XML, INI, CSV, or Markdown content (including code fences), `ParsingProcessor` ensures consistent results and logs parsing errors gracefully.
 
 ---
 
 ## Overview
 
-The `ParsingUtils` class offers the following key functionalities:
+`ParsingProcessor` is designed to help agents and other system components interpret text that may contain structured data. It accomplishes this by:
 
-- **Extracting Code Blocks**: Identifies and extracts content from code blocks within larger text blocks, supporting multiple languages.
-- **Parsing YAML Content**: Parses YAML-formatted strings into Python dictionaries.
-- **Parsing JSON Content**: Parses JSON-formatted strings into Python dictionaries.
-- **Parsing XML Content**: Parses XML-formatted strings into Python dictionaries.
-- **Parsing INI Content**: Parses INI-formatted strings into Python dictionaries.
-- **Parsing CSV Content**: Parses CSV-formatted strings into lists of dictionaries.
-- **Parsing Markdown Content**: Parses Markdown-formatted strings, extracting headings and their associated content into a dictionary.
+1. **Extracting Code Blocks**: Locates code fences (with an optional language specifier) and returns their contents.  
+2. **Parsing Common Formats**: YAML, JSON, XML, INI, CSV, and Markdown can all be converted to Python data structures (e.g., dictionaries).  
+3. **Logging and Error Handling**: Uses a built-in logger to record successes, warnings (e.g., unexpected language labels), and parsing failures.
 
 ---
 
-## Methods
+## Key Methods
 
-### 1. `extract_code_block(text: str) -> Optional[Tuple[str, Optional[str]]]`
+### 1. `extract_code_block(text: str, code_fence: str = "```")`
 
-**Purpose**: Extracts the content of a code block from a given text and returns the language specifier if present. Supports code blocks with or without a language specifier. If multiple code blocks are present, returns the outermost one.
+**Purpose**  
+Extracts the first matching code block using the specified `code_fence` delimiter.  
+Returns a tuple `(language, content)` or `(None, entire_text_if_no_fence_found)`.
 
-**Parameters**:
+**Parameters**  
+- `text` (`str`): The input string containing potential code fences.  
+- `code_fence` (`str`, optional): The delimiter marking the start and end of the code block (default is triple backticks ```).  
 
-- `text` (str): The text containing the code block.
+**Behavior**  
+- If a code block is found, it returns `(language, content)`. `language` may be `None` if no specifier is present or the matched language is empty.  
+- If no code fence is found, returns `(None, text.strip())`.  
+- Not infallible if multiple or nested code blocks exist; it only returns the **first** match.
 
-**Returns**:
-
-- `Optional[Tuple[str, Optional[str]]]`: A tuple containing the extracted code block content and the language specifier (or `None` if not specified).
-
-**Example Usage**:
-
+**Example**:
 ~~~python
+from agentforge.utils.logger import Logger
 from agentforge.utils.parsing_processor import ParsingProcessor
 
-parsing_utils = ParsingProcessor()
-
-text_with_code_block = '''
-Here is some text.
+processor = ParsingProcessor()
+text_with_code = """
+Here is some content.
 
 ```python
-def hello_world():
-    print("Hello, World!")
+print("Hello, world!")
 ```
+"""
 
-End of message.
-'''
-
-code_content, language = parsing_utils.extract_code_block(text_with_code_block)
-print(f"Language: {language}")
-print("Content:")
-print(code_content)
+lang, code = processor.extract_code_block(text_with_code)
+print(lang)  # "python"
+print(code)  # 'print("Hello, world!")'
 ~~~
-
-**Output**:
-
-```
-Language: python
-Content:
-def hello_world():
-    print("Hello, World!")
-```
 
 ---
 
-### 2. `parse_yaml_content(yaml_string: str) -> Optional[Dict[str, Any]]`
+### 2. `parse_content(...)`
 
-**Purpose**: Parses a YAML-formatted string into a Python dictionary.
+**Purpose**  
+A generic helper method that `ParsingProcessor` uses internally to:
 
-**Parameters**:
+1. Extract code fences from a string.  
+2. Compare the extracted language specifier (if any) to an expected format (like `json`, `yaml`, etc.).  
+3. Run a specific parsing function (e.g., `json.loads`).  
+4. Log any errors or warnings.
 
-- `yaml_string` (str): The YAML string to parse.
+You typically won’t call `parse_content` directly; instead, you’ll call format-specific methods like `parse_json_content`, `parse_yaml_content`, etc.
 
-**Returns**:
+---
 
-- `Optional[Dict[str, Any]]`: The parsed YAML content as a dictionary, or `None` if parsing fails.
+### 3. `parse_markdown_content(markdown_string, min_heading_level=2, max_heading_level=6)`
 
-**Example Usage**:
+**Purpose**  
+Parses **Markdown**-formatted text, extracting headings (of the specified levels) and mapping each heading to its associated content in a Python dictionary.
 
+**Behavior**  
+- Wraps `extract_code_block`; expects the code fence language to be `'markdown'` but continues even if they differ.  
+- Uses a helper (`parse_markdown_to_dict`) to parse headings from the extracted text.
+
+**Example**:
 ~~~python
-from agentforge.utils.parsing_processor import ParsingProcessor
+markdown_text = """
+```markdown
+## Heading One
+Some content under heading one.
 
-parsing_utils = ParsingProcessor()
+### Heading Two
+More details here.
+```
+"""
 
-yaml_text = '''
+processor = ParsingProcessor()
+parsed = processor.parse_markdown_content(markdown_text, min_heading_level=2, max_heading_level=3)
+print(parsed)
+# {
+#   'Heading One': 'Some content under heading one.',
+#   'Heading Two': 'More details here.'
+# }
+~~~
+
+---
+
+### 4. `parse_yaml_content(yaml_string)`
+
+**Purpose**  
+Parses a **YAML** string into a Python dictionary.
+
+**Behavior**  
+- Extracts a code block (default fence is triple backticks ```).  
+- Checks if the extracted language is `'yaml'`; logs a warning if not.  
+- Parses with `yaml.safe_load`.  
+- Returns a dictionary or `None` if parsing fails.
+
+**Example**:
+~~~python
+yaml_text = """
 ```yaml
 name: AgentForge
 version: 1.0
-features:
-  - Custom Agents
-  - Utilities
-  - LLM Integration
 ```
-'''
+"""
 
-parsed_data = parsing_utils.parse_yaml_content(yaml_text)
-print(parsed_data)
+processor = ParsingProcessor()
+parsed_yaml = processor.parse_yaml_content(yaml_text)
+print(parsed_yaml)  # {'name': 'AgentForge', 'version': 1.0}
 ~~~
-
-**Output**:
-
-```python
-{
-  'name': 'AgentForge',
-  'version': 1.0,
-  'features': ['Custom Agents', 'Utilities', 'LLM Integration']
-}
-```
 
 ---
 
-### 3. `parse_json_content(json_string: str) -> Optional[Dict[str, Any]]`
+### 5. `parse_json_content(json_string)`
 
-**Purpose**: Parses a JSON-formatted string into a Python dictionary.
+**Purpose**  
+Parses a **JSON** string into a Python dictionary.
 
-**Parameters**:
+**Behavior**  
+- Similar process: extracts code block, checks language specifier `'json'`, calls `json.loads`.  
+- Logs an error if parsing fails.
 
-- `json_string` (str): The JSON string to parse.
-
-**Returns**:
-
-- `Optional[Dict[str, Any]]`: The parsed JSON content as a dictionary, or `None` if parsing fails.
-
-**Example Usage**:
-
+**Example**:
 ~~~python
-from agentforge.utils.parsing_processor import ParsingProcessor
-
-parsing_utils = ParsingProcessor()
-
-json_text = '''
+json_text = """
 ```json
 {
   "name": "AgentForge",
-  "version": "1.0",
-  "features": ["Custom Agents", "Utilities", "LLM Integration"]
+  "features": ["Custom Agents", "Utilities"]
 }
 ```
-'''
+"""
 
-parsed_data = parsing_utils.parse_json_content(json_text)
-print(parsed_data)
+parsed_json = processor.parse_json_content(json_text)
+# {'name': 'AgentForge', 'features': ['Custom Agents', 'Utilities']}
 ~~~
-
-**Output**:
-
-```python
-{
-  'name': 'AgentForge',
-  'version': '1.0',
-  'features': ['Custom Agents', 'Utilities', 'LLM Integration']
-}
-```
 
 ---
 
-### 4. `parse_xml_content(xml_string: str) -> Optional[Dict[str, Any]]`
+### 6. `parse_xml_content(xml_string)`
 
-**Purpose**: Parses an XML-formatted string into a Python dictionary.
+**Purpose**  
+Parses an **XML** string into a Python dictionary (via `xmltodict`).
 
-**Parameters**:
+**Behavior**  
+- Expects `'xml'` in the code fence (but logs only a warning if missing or mismatched).  
+- Returns a nested dict representing the XML structure.
 
-- `xml_string` (str): The XML string to parse.
-
-**Returns**:
-
-- `Optional[Dict[str, Any]]`: The parsed XML content as a dictionary, or `None` if parsing fails.
-
-**Example Usage**:
-
+**Example**:
 ~~~python
-from agentforge.utils.parsing_processor import ParsingProcessor
-
-parsing_utils = ParsingProcessor()
-
-xml_text = '''
+xml_text = """
 ```xml
 <agent>
-    <name>AgentForge</name>
-    <version>1.0</version>
-    <features>
-        <feature>Custom Agents</feature>
-        <feature>Utilities</feature>
-        <feature>LLM Integration</feature>
-    </features>
+  <name>AgentForge</name>
 </agent>
 ```
-'''
+"""
 
-parsed_data = parsing_utils.parse_xml_content(xml_text)
-print(parsed_data)
+parsed_xml = processor.parse_xml_content(xml_text)
+# {'agent': {'name': 'AgentForge'}}
 ~~~
-
-**Output**:
-
-```python
-{
-  'agent': {
-    'name': 'AgentForge',
-    'version': '1.0',
-    'features': {
-      'feature': ['Custom Agents', 'Utilities', 'LLM Integration']
-    }
-  }
-}
-```
 
 ---
 
-### 5. `parse_ini_content(ini_string: str) -> Optional[Dict[str, Any]]`
+### 7. `parse_ini_content(ini_string)`
 
-**Purpose**: Parses an INI-formatted string into a Python dictionary.
+**Purpose**  
+Parses an **INI**-formatted string into a dictionary where each section is a key, mapping to a dictionary of key-value pairs.
 
-**Parameters**:
+**Behavior**  
+- If the code block language is `'ini'`, it’s recognized, but a mismatch logs a warning.  
+- Internally uses `configparser.ConfigParser`.
 
-- `ini_string` (str): The INI string to parse.
-
-**Returns**:
-
-- `Optional[Dict[str, Any]]`: The parsed INI content as a dictionary, or `None` if parsing fails.
-
-**Example Usage**:
-
+**Example**:
 ~~~python
-from agentforge.utils.parsing_processor import ParsingProcessor
-
-parsing_utils = ParsingProcessor()
-
-ini_text = '''
+ini_text = """
 ```ini
 [Agent]
-name = AgentForge
-version = 1.0
-
-[Features]
-feature1 = Custom Agents
-feature2 = Utilities
-feature3 = LLM Integration
+name=AgentForge
+version=1.0
 ```
-'''
+"""
 
-parsed_data = parsing_utils.parse_ini_content(ini_text)
-print(parsed_data)
+parsed_ini = processor.parse_ini_content(ini_text)
+# {'Agent': {'name': 'AgentForge', 'version': '1.0'}}
 ~~~
-
-**Output**:
-
-```python
-{
-  'Agent': {
-    'name': 'AgentForge',
-    'version': '1.0'
-  },
-  'Features': {
-    'feature1': 'Custom Agents',
-    'feature2': 'Utilities',
-    'feature3': 'LLM Integration'
-  }
-}
-```
-
 ---
 
-### 6. `parse_csv_content(csv_string: str) -> Optional[List[Dict[str, Any]]]`
+### 8. `parse_csv_content(csv_string)`
 
-**Purpose**: Parses a CSV-formatted string into a list of dictionaries.
+**Purpose**  
+Parses **CSV** into a list of dictionaries, using the first row as headers.
 
-**Parameters**:
+**Behavior**  
+- Extracts code fence, warns if `language` != `'csv'`.  
+- Uses `csv.DictReader` on the cleaned content.
 
-- `csv_string` (str): The CSV string to parse.
-
-**Returns**:
-
-- `Optional[List[Dict[str, Any]]]`: The parsed CSV content as a list of dictionaries, or `None` if parsing fails.
-
-**Example Usage**:
-
+**Example**:
 ~~~python
-from agentforge.utils.parsing_processor import ParsingProcessor
-
-parsing_utils = ParsingProcessor()
-
-csv_text = '''
+csv_text = """
 ```csv
-name,version,features
-AgentForge,1.0,"Custom Agents; Utilities; LLM Integration"
+name,version
+AgentForge,1.0
 ```
-'''
+"""
 
-parsed_data = parsing_utils.parse_csv_content(csv_text)
-print(parsed_data)
+parsed_csv = processor.parse_csv_content(csv_text)
+# [{'name': 'AgentForge', 'version': '1.0'}]
 ~~~
-
-**Output**:
-
-```python
-[
-  {
-    'name': 'AgentForge',
-    'version': '1.0',
-    'features': 'Custom Agents; Utilities; LLM Integration'
-  }
-]
-```
 
 ---
 
-### 7. `parse_markdown_content(markdown_string: str, min_heading_level=2, max_heading_level=6) -> Optional[Dict[str, Any]]`
+## Handling Parsing Failures
 
-**Purpose**: Parses a Markdown-formatted string, extracting headings and their associated content into a Python dictionary.
+All parsing methods return `None` if they fail to parse the content. Each method logs the error (or unexpected language specifier) via **AgentForge**’s logger, ensuring you have a record of what went wrong.
 
-**Parameters**:
-
-- `markdown_string` (str): The Markdown string to parse.
-- `min_heading_level` (int, optional): The minimum heading level to include (default is `2`).
-- `max_heading_level` (int, optional): The maximum heading level to include (default is `6`).
-
-**Returns**:
-
-- `Optional[Dict[str, Any]]`: A dictionary where each key is a heading and each value is the associated content, or `None` if parsing fails.
-
-**Behavior**:
-
-- Attempts to extract a code block from the provided text using `extract_code_block`.
-- Checks if the language specifier matches 'markdown'.
-  - If not, logs a warning but proceeds with parsing.
-- Uses `parse_markdown_to_dict` to parse the extracted content into a dictionary mapping headings to their content.
-
-**Example Usage**:
-
+**Example**:
 ~~~python
-from agentforge.utils.parsing_processor import ParsingProcessor
-
-parsing_utils = ParsingProcessor()
-
-markdown_text = '''
-Here is some introductory text.
-
-```markdown
-### Initial Understanding
-I understand that the conversation has transitioned from casual small talk to a deeper inquiry into my thoughts and feelings.
-
-### Step-by-Step Thought Process
-1. **Initial Intrigue**: I notice the unique approach.
-   - This prompts me to consider opening up about my thoughts and feelings.
-
-### Conclusions
-Based on my analysis, I conclude that the user's approach invites a deeper level of engagement.
-
-### Attempt
-Hey there! I appreciate your genuine interest in my thoughts and feelings.
-```
-
-End of message.
-'''
-
-parsed_data = parsing_utils.parse_markdown_content(markdown_text, min_heading_level=3, max_heading_level=3)
-print(parsed_data)
-~~~
-
-**Output**:
-
-```python
+invalid_json = """
+```json
 {
-  'Initial Understanding': 'I understand that the conversation has transitioned from casual small talk to a deeper inquiry into my thoughts and feelings.',
-  'Step-by-Step Thought Process': '1. **Initial Intrigue**: I notice the unique approach.\n   - This prompts me to consider opening up about my thoughts and feelings.',
-  'Conclusions': "Based on my analysis, I conclude that the user's approach invites a deeper level of engagement.",
-  'Attempt': 'Hey there! I appreciate your genuine interest in my thoughts and feelings.'
+  "name": "AgentForge"
+  "missingComma": true
 }
 ```
+"""
+
+result = processor.parse_json_content(invalid_json)
+if result is None:
+    print("Parsing failed. Check logs for details.")
+~~~
 
 ---
 
 ## Use Cases
 
-### Parsing Agent Responses
+1. **Agent Response Parsing**  
+   Agents might embed structured data within code blocks. `ParsingProcessor` extracts the relevant code fence and parses it into a Python structure.  
 
-Agents may return responses that include structured data in various formats (YAML, JSON, XML, etc.). You can use `ParsingUtils` to extract and parse this data for further processing.
+2. **Configuration Loading**  
+   If your system or flows rely on user-provided config in various formats (INI, JSON, etc.), you can seamlessly parse them from text.  
 
-**Example**:
-
-~~~python
-from agentforge.utils.parsing_processor import ParsingProcessor
-
-response = '''
-Thank you for your input. Here are the details:
-
-```json
-{
-  "status": "success",
-  "data": {
-    "user": "John Doe",
-    "action": "process"
-  }
-}
-```
-
-Let me know if you need anything else.
-'''
-
-parsing_utils = ParsingProcessor()
-parsed_response = parsing_utils.parse_json_content(response)
-print(parsed_response['data']['user'])  # Output: John Doe
-~~~
-
-### Processing Configuration Files
-
-If you have configuration data embedded within larger text files or strings, `ParsingUtils` can help extract and parse that data.
-
----
-
-## Error Handling
-
-- **Parsing Failures**: If parsing fails due to invalid syntax or unexpected content, the methods will log the error using the `Logger` utility and return `None`.
-- **Code Block Extraction**: If no code block is found, `extract_code_block` will return the entire text stripped of leading and trailing whitespace, and `None` as the language specifier.
-- **Type Checking**: Always check the return value for `None` before proceeding to use the parsed data.
+3. **Markdown Summaries**  
+   For summarizing or extracting headings and content from user-generated Markdown, `parse_markdown_content` is extremely handy.
 
 ---
 
 ## Best Practices
 
-- **Ensure Correct Formatting**: Make sure that the text you are parsing contains properly formatted content (e.g., valid JSON, YAML, etc.) enclosed within code blocks for reliable extraction.
-- **Handle Parsing Failures**: Implement checks for `None` return values to handle parsing failures gracefully.
+1. **Code Fence Convention**  
+   Agents often use triple backticks \`\`\` for code blocks. But if your data uses a different delimiter, pass it to `extract_code_block(..., code_fence="some_delimiter")`.  
+2. **Validate Returns**  
+   Always check if the result is `None` before proceeding.  
+3. **Avoid Nested Blocks**  
+   The parser currently only grabs the **first** matching block. Nesting or multiple blocks with the same fence can lead to partial or incorrect captures.  
+4. **Log and Debug**  
+   Review your logs to see warnings or errors. This can inform you when your agent or input is inconsistent with the expected format.
 
 ---
 
 ## Conclusion
 
-The `ParsingUtils` utility in **AgentForge** is a versatile tool for handling structured text data across multiple formats. By leveraging its methods, you can seamlessly extract and parse content from agent responses, configuration files, or any text containing embedded structured data.
+By leveraging the `ParsingProcessor` in **AgentForge**, you can reliably convert text-based structures into usable data. Whether your agents produce YAML or a user supplies CSV for configuration, the methods in this utility handle extraction, parsing, and error reporting in a unified, developer-friendly manner.
 
----
-
-**Need Help?**
-
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
-
----
+**Need Help?**  
+- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
+- **Discord**: [Join our Discord Server](https://discord.gg/ttpXHUtCW6)

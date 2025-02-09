@@ -1,7 +1,7 @@
 import re
 import json
 import yaml
-from typing import Optional, Dict, Any, Callable, Type, List
+from typing import Optional, Dict, Any, Callable, Type, List, Tuple
 from agentforge.utils.logger import Logger
 import xmltodict
 import configparser
@@ -17,31 +17,33 @@ class ParsingProcessor:
         # Assuming Logger is defined elsewhere or replace with appropriate logging
         self.logger = Logger(name=self.__class__.__name__)
 
-    def extract_code_block(self, text: str) -> Optional[tuple[Optional[str], str]]:
+    def extract_code_block(self, text: str, code_fence: str = "```") -> Optional[Tuple[Optional[str], str]]:
         """
-        Extracts the content of a code block from a string and returns the language specifier if present.
-        Supports code blocks with or without a language specifier.
-        If multiple code blocks are present, returns the first one.
-        If no code block is found, returns the input text and None.
+        Extracts a code block from a string using the specified code fence delimiter. The method returns the language specifier
+        (if present) along with the code block's content. It supports code blocks with or without a language specifier.
+        If multiple code blocks exist, it returns the first match. If no code block is found, the original text is returned
+        with a None language specifier.
 
         Parameters:
             text (str): The text containing the code block.
+            code_fence (str): The delimiter marking the boundaries of the code block. Defaults to triple backticks (```).
 
         Returns:
-            Optional[Tuple[Optional[str], str]]: A tuple containing the code block content and the language specifier (or None).
+            Optional[Tuple[Optional[str], str]]: A tuple containing the language specifier (or None) and the extracted code block content.
         """
         try:
-            # Updated regex pattern with a greedy match
-            code_block_pattern = r"```([a-zA-Z]*)\r?\n([\s\S]*?)```"
+            # Escape the code fence to ensure that any special regex characters are treated literally.
+            escaped_fence = re.escape(code_fence)
+            # Build a regex pattern that uses the provided code fence for both the opening and closing parts of the code block.
+            code_block_pattern = fr"{escaped_fence}([a-zA-Z]*)\r?\n([\s\S]*?){escaped_fence}"
             match = re.search(code_block_pattern, text, re.DOTALL)
 
             if match:
                 language = match.group(1).strip() or None
                 content = match.group(2).strip()
-                # return content, language
                 return language, content
 
-            # If no code block is found, return the input text and None as the language
+            # If no code block is found, return the original text and a None for the language.
             return None, text.strip()
         except Exception as e:
             self.logger.log(f"Regex Error Extracting Code Block: {e}", 'error')

@@ -13,7 +13,7 @@ Welcome to the heart of the **AgentForge** framework—the **Agents**. These ent
 ### **[Advance Custom Agents Examples](CustomAgents.md)**
 - Comfortable with the default agent class? Here, you'll find some examples of custom agents in more complex or specialized use cases.
 
-### **[Overriding LLM Settings](../Settings/Models.md)**
+### **[Overriding LLM Settings](../Settings/Models.md/#specifying-model-overrides-in-agents)**
 - Each agent holds the power to tailor the Large Language Model (LLM) settings it employs. This section delves into how agents can utilize default LLMs or opt for specific models fine-tuned for unique tasks, offering flexibility and precision.
 
 ---

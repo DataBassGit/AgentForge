@@ -323,17 +323,45 @@ class Config:
     def get_model(api_name: str, class_name: str, model_identifier: str) -> Any:
         """
         Dynamically imports and instantiates the Python class for the requested API/class/identifier.
-        We assume:
-         - The Python module name is derived from the API’s name (e.g. openai_api).
-         - The Python class name is exactly the same as the key used under that API (e.g. openai_api -> "O1Series", "GPT", etc.).
-         - The model’s identifier is a valid identifier.
+        First, it attempts to import from the built-in APIs (agentforge/apis/). If that fails,
+        it will try to load a custom API module from the project's .agentforge/custom_apis/ directory.
         """
-        # Actually import:  from .apis import <python_module_name>
-        module = importlib.import_module(f".apis.{api_name}", package=__package__)
-        model_class = getattr(module, class_name)
+        try:
+            # Attempt to import from the built-in package folder
+            module = importlib.import_module(f".apis.{api_name}", package=__package__)
+        except ImportError as e:
+            # If not found, attempt to load from custom APIs in the project root.
+            # Get the project root; assuming the Config singleton holds that information.
+            project_root = Config().project_root  # This should return a pathlib.Path
+            custom_api_path = project_root / ".agentforge" / "custom_apis" / f"{api_name}.py"
+            if not custom_api_path.exists():
+                raise ImportError(
+                    f"Cannot find API module '{api_name}' in built-in folder or at {custom_api_path}."
+                ) from e
+            spec = importlib.util.spec_from_file_location(api_name, str(custom_api_path))
+            if spec is None or spec.loader is None:
+                raise ImportError(f"Could not load spec for custom API module '{api_name}' from {custom_api_path}.")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
 
-        # Instantiate the model with the identifier
+        model_class = getattr(module, class_name)
         return model_class(model_identifier)
+
+    # @staticmethod
+    # def get_model(api_name: str, class_name: str, model_identifier: str) -> Any:
+    #     """
+    #     Dynamically imports and instantiates the Python class for the requested API/class/identifier.
+    #     We assume:
+    #      - The Python module name is derived from the API’s name (e.g. openai_api).
+    #      - The Python class name is exactly the same as the key used under that API (e.g. openai_api -> "O1Series", "GPT", etc.).
+    #      - The model’s identifier is a valid identifier.
+    #     """
+    #     # Actually import:  from .apis import <python_module_name>
+    #     module = importlib.import_module(f".apis.{api_name}", package=__package__)
+    #     model_class = getattr(module, class_name)
+    #
+    #     # Instantiate the model with the identifier
+    #     return model_class(model_identifier)
 
     # ------------------------------------------------------------------------
     # Utility Methods

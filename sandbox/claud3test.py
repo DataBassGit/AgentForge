@@ -3,7 +3,7 @@ from CustomAgents.TestAgent import TestAgent
 learn = TestAgent()
 
 text = """
-        Large language models (LLMs) have been increasingly used to interact with exter-
+        Large language models (APIs) have been increasingly used to interact with exter-
         nal environments (e.g., games, compilers, APIs) as goal-driven agents. However,
         it remains challenging for these language agents to quickly and efficiently learn
         from trial-and-error as traditional reinforcement learning methods require exten-
@@ -24,7 +24,7 @@ text = """
         1 Introduction
         Recent works such as ReAct [ 30], SayCan [ 1], Toolformer [ 22], HuggingGPT [ 23], generative
         agents [ 19], and WebGPT [ 17] have demonstrated the feasibility of autonomous decision-making
-        agents that are built on top of a large language model (LLM) core. These methods use LLMs to
+        agents that are built on top of a large language model (LLM) core. These methods use APIs to
         generate text and �actions� that can be used in API calls and executed in an environment. Since
         they rely on massive models with an enormous number of parameters, such approaches have been
         so far limited to using in-context examples as a way of teaching the agents, since more traditional
@@ -44,7 +44,7 @@ text = """
         the model made mistakes (i.e. the credit assignment problem [ 25]) as well as the ability to generate
         a summary containing actionable insights for improvement. We explore three ways for doing
         this � simple binary environment feedback, pre-defined heuristics for common failure cases, and
-        self-evaluation such as binary classification using LLMs (decision-making) or self-written unit
+        self-evaluation such as binary classification using APIs (decision-making) or self-written unit
         tests (programming). In all implementations, the evaluation signal is amplified to natural language
         experience summaries which can be stored in l
     """

@@ -22,12 +22,12 @@ Each action is defined in a **YAML** file, which includes attributes detailing t
 
 ```yaml
 Name: Write File
-Description: |-
+Description: |
   The 'Write File' action combines directory examination and file writing operations. 
   It first reads the structure of a specified directory using the 'Read Directory' tool. 
   Then, it utilizes the 'File Writer' tool to write or append text to a specified file within that directory. 
   This action ensures you can check the directory's contents before performing file operations.
-Example: |-
+Example: |
   # Example usage of the Write File action:
   directory_structure = read_directory('path/to/folder', max_depth=2)
   print(directory_structure)
@@ -35,7 +35,7 @@ Example: |-
   selected_file = 'path/to/folder/filename.txt'
   response = write_file(selected_file, 'This is the content', mode='a')
   print(response)
-Instruction: |-
+Instruction: |
   To perform the 'Write File' action, follow these steps:
   1. Use the 'Read Directory' tool to examine the directory structure:
      - Call the `read_directory` function with the directory path and an optional `max_depth` parameter.

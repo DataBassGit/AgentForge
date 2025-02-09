@@ -155,7 +155,7 @@ This approach gives you a straightforward way to inject logic before or after th
 
 ## Additional Resources
 
-You can explore more complex agent features, define defaults in `.agentforge/settings/` for your model settings, or integrate with different LLM APIs by checking out the [Settings](../Settings/Settings.md) and [LLMs](../LLMs/LLMs.md) guides. To learn more about advanced customization or how to manage large-scale agent projects, visit the [Agents Documentation](../Agents/Agents.md).
+You can explore more complex agent features, define defaults in `.agentforge/settings/` for your model settings, or integrate with different LLM APIs by checking out the [Settings](../Settings/Settings.md) and [LLMs](../APIs/APIs) guides. To learn more about advanced customization or how to manage large-scale agent projects, visit the [Agents Documentation](../Agents/Agents.md).
 
 If you run into any issues, refer to the [Troubleshooting Guide](../Guides/TroubleshootingGuide.md) for common fixes and workarounds.
 

@@ -27,10 +27,10 @@ Args:
   - query (str)
   - count (int, optional)
 Command: search
-Description: |-
+Description: |
   The 'Brave Search' tool performs a web search using the Brave Search API. It retrieves search results based on the provided query. Each result includes the title, URL, description, and any extra snippets.
 
-Instruction: |-
+Instruction: |
   To use the 'Brave Search' tool, follow these steps:
   1. Call the `search` method with the following arguments:
      - `query`: A string representing the search query.
@@ -45,7 +45,7 @@ Instruction: |-
      - `extra_snippets`: (Optional) Additional snippets of information.
   4. Utilize the returned results as needed in your application.
 
-Example: |-
+Example: |
   # Example usage of the Brave Search tool:
   brave_search = BraveSearch()
   results = brave_search.search(query='OpenAI GPT-4', count=5)

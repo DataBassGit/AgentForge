@@ -112,7 +112,7 @@ def run(self, **kwargs: Any) -> Optional[str]:
         self.load_data(**kwargs)
         self.process_data()
         self.render_prompt()
-        self.run_llm()
+        self.run_model()
         self.parse_result()
         self.save_to_storage()
         self.build_output()

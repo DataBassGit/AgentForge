@@ -15,10 +15,10 @@ Args:
   - query (str)
   - count (int, optional)
 Command: search
-Description: |-
+Description: |
   The 'Brave Search' tool performs a web search using the Brave Search API. It retrieves search results based on the provided query. Each result includes the title, URL, description, and any extra snippets.
 
-Instruction: |-
+Instruction: |
   To use the 'Brave Search' tool, follow these steps:
   1. Call the `search` method with the following arguments:
      - `query`: A string representing the search query.
@@ -33,7 +33,7 @@ Instruction: |-
      - `extra_snippets`: (Optional) Additional snippets of information.
   4. Utilize the returned results as needed in your application.
 
-Example: |-
+Example: |
   # Example usage of the Brave Search tool:
   brave_search = BraveSearch()
   results = brave_search.search(query='OpenAI GPT-4', count=5)
@@ -58,12 +58,12 @@ Class: BraveSearch
 **Example Action: Web Search**
 ```yaml
 Name: Web Search
-Description: >-
+Description: |
   The 'Web Search' action combines a Google search, web scraping, and text chunking operations. 
   It first performs a Google search for a specified query using the 'Google Search' tool. 
   Then, it scrapes the text from one of the returned URLs using the 'Web Scrape' tool. 
   Finally, it breaks the scraped text into manageable chunks using the 'Intelligent Chunk' tool.
-Example: |-
+Example: |
   # Example usage of the Web Search action:
   query = "OpenAI GPT-4"
   number_result = 5
@@ -84,7 +84,7 @@ Example: |-
   text_chunks = intelligent_chunk(scraped_text, chunk_size)
   for i, chunk in enumerate(text_chunks):
       print(f"Chunk {i+1}: {chunk}")
-Instruction: |-
+Instruction: |
   To perform the 'Web Search' action, follow these steps:
   1. Use the 'Google Search' tool to perform a Google search:
      - Call the `google_search` function with the query string and the number of results to retrieve.
