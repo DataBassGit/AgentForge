@@ -1,11 +1,12 @@
 # Default model settings for all agents unless overridden
 default_model:
-  api: gemini_api
-  model: gemini_flash
+#  api: gemini_api
+#  model: gemini_flash
 # Uncomment to use alternative default models
 #  api: lm_studio_api
 #  model: LMStudio
-#  api: openai_api
+  api: openai_api
+  model: fine_tune
 #  model: omni_model
 #  model: o1_preview
 
@@ -36,6 +37,8 @@ model_library:
           identifier: gpt-4-turbo
         fast_model:
           identifier: gpt-3.5-turbo
+        fine_tune:
+          identifier: ft:gpt-4o-mini-2024-07-18:personal::AypB9SeX
 
       params:  # Default parameters for GPT models
         max_tokens: 10000

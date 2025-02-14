@@ -41,3 +41,4 @@ sandbox/**/Tests/
 # Specific files
 AgentForge.log
 src/agentforge/persona/chatbot.json
+*.env

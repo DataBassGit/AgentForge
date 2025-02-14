@@ -83,7 +83,7 @@ class BaseTestCase(BaseTestCaseNoAgentForgeFolder):
         # Copy the existing .agentforge from setup_files into the temp dir
         # If some classes need an empty .agentforge, override or skip this
         root_dir = Path(__file__).resolve().parent
-        real_agentforge = root_dir.parent / "src" / "agentforge" / "setup_files" / ".agentforge"
+        real_agentforge = root_dir.parent / "src" / "agentforge" / "setup_files"
         shutil.copytree(real_agentforge, self.temp_root_path / ".agentforge")
 
     def _reset_config(self):

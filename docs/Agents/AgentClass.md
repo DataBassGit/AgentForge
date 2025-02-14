@@ -21,7 +21,7 @@ By subclassing the `Agent` class (or simply instantiating it with a YAML prompt 
 ## Class Definition
 
 ```python
-from .config import Config
+from agentforge.config import Config
 from agentforge.apis.base_api import BaseModel
 from agentforge.utils.logger import Logger
 from agentforge.utils.prompt_processor import PromptProcessor
@@ -54,6 +54,8 @@ class Agent:
 
         # Load and validate agent data during initialization
         self.initialize_agent_config()
+
+    # ... more methods ...
 ```
 
 ### Class Attributes

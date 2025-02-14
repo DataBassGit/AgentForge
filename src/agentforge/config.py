@@ -201,6 +201,9 @@ class Config:
             'simulated_response': simulated_response,
         }
 
+    def load_cog_data(self, cog_name):
+        cog = self.find_config('cogs', cog_name)
+        return cog
     # ------------------------------------------------------------------------
     # Model API and Overrides
     # ------------------------------------------------------------------------
