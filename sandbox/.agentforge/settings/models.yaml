@@ -1,12 +1,12 @@
 # Default model settings for all agents unless overridden
 default_model:
-#  api: gemini_api
-#  model: gemini_flash
+  api: gemini_api
+  model: gemini_flash
 # Uncomment to use alternative default models
 #  api: lm_studio_api
 #  model: LMStudio
-  api: openai_api
-  model: fine_tune
+#  api: openai_api
+#  model: fine_tune
 #  model: omni_model
 #  model: o1_preview
 

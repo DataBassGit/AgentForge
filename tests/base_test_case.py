@@ -1,5 +1,6 @@
 # base_test_case.py
 
+import logging
 import unittest
 import tempfile
 import shutil
@@ -7,9 +8,6 @@ from pathlib import Path
 from unittest.mock import patch
 from agentforge.config import Config
 
-# ---------------------------------
-# Prep.
-# ---------------------------------
 
 class BaseTestCaseNoAgentForgeFolder(unittest.TestCase):
 
@@ -19,6 +17,7 @@ class BaseTestCaseNoAgentForgeFolder(unittest.TestCase):
 
     def setUp(self):
         Config._instance = None
+        self._patch_logger()
         self._patch_print()
         self._create_temp_directory()
 
@@ -29,6 +28,11 @@ class BaseTestCaseNoAgentForgeFolder(unittest.TestCase):
     # ---------------------------------
     # Internal Methods
     # ---------------------------------
+
+    @staticmethod
+    def _patch_logger():
+        # Supress Logger Statements
+        logging.disable(logging.ERROR)
 
     def _patch_print(self):
         # Supress Print Statements
@@ -72,7 +76,7 @@ class BaseTestCase(BaseTestCaseNoAgentForgeFolder):
         self._reset_config()
 
     def tearDown(self):
-        super().setUp()
+        super().tearDown()
         self.config = None
 
     # ---------------------------------

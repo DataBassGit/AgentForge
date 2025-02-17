@@ -16,10 +16,3 @@ class DecisionAgent:
     def run(self, **context):
         # For testing, return the decision using a key "conclusion"
         return {"conclusion": self.decision_value}
-
-class FailingAgent:
-    def __init__(self):
-        self.template_data = {}
-
-    def run(self, **context):
-        raise Exception("Simulated failure")

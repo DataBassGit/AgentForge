@@ -1,25 +1,31 @@
 import re
 from agentforge.utils.logger import Logger
 
-
 class PromptProcessor:
     """
     A utility class for handling dynamic prompt templates. It supports extracting variables from templates,
-    checking for the presence of required variables in data, and rendering templates with values from provided data.
-
-    Attributes:
-        pattern (str): A regular expression pattern to find all occurrences of variables within curly braces
-        in templates.
+    checking for the presence of required variables in data, and rendering templates with values from provided data,
+    including nested placeholders such as {agent_id.nested_key.sub_key}.
     """
 
-    # Define a pattern to find all occurrences of {variable_name}
-    pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*)\}"
+    # Pattern to find all occurrences of {some_key} or {some_key.nested_key}
+    # Explanation:
+    #   - \{ and \} match literal curly braces
+    #   - ([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)
+    #       - [a-zA-Z_][a-zA-Z0-9_]* matches an initial variable name, e.g. "A1"
+    #       - (?:\.[a-zA-Z_][a-zA-Z0-9_]*)* optionally allows dot notation for nested keys, e.g. ".answer.more"
+    #
+    pattern = r"\{([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\}"
 
     def __init__(self):
         """
         Initializes the PromptHandling class with a Logger instance.
         """
         self.logger = Logger(name=self.__class__.__name__)
+
+    ##################################################
+    # Validation & Basic Checks
+    ##################################################
 
     def check_prompt_format(self, prompts):
         """
@@ -29,10 +35,10 @@ class PromptProcessor:
             prompts (dict): The dictionary containing the prompts.
 
         Raises:
-            ValueError: If the prompts do not contain only 'System' and 'User' keys,
+            ValueError: If the prompts do not contain only 'system' and 'user' keys,
                         or if the sub-prompts are not dictionaries.
         """
-        # Check if 'System' and 'User' are the only keys present
+        # Check if 'system' and 'user' are the only keys present
         if set(prompts.keys()) != {'system', 'user'}:
             error_message = (
                 "Error: Prompts should contain only 'system' and 'user' keys. "
@@ -41,7 +47,7 @@ class PromptProcessor:
             self.logger.log(error_message, 'error')
             raise ValueError(error_message)
 
-        # Allow 'System' and 'User' prompts to be either dicts or strings
+        # Allow 'system' and 'user' prompts to be either dicts or strings
         for prompt_type in ['system', 'user']:
             prompt_value = prompts.get(prompt_type, {})
             if not isinstance(prompt_value, (dict, str)):
@@ -50,6 +56,10 @@ class PromptProcessor:
                 )
                 self.logger.log(error_message, 'error')
                 raise ValueError(error_message)
+
+    ##################################################
+    # Variable Extraction & Nested Lookups
+    ##################################################
 
     def extract_prompt_variables(self, template: str) -> list:
         """
@@ -71,6 +81,29 @@ class PromptProcessor:
             self.logger.log(error_message, 'error')
             raise Exception(error_message)
 
+    @staticmethod
+    def _nested_lookup(data: dict, path: str):
+        """
+        Performs a nested lookup in 'data' by splitting 'path' on dots.
+        Returns None if any key isn't found along the way.
+
+        Example:
+            data = {"A2": {"answer": "42"}}, path = "A2.answer"
+            -> returns "42"
+        """
+        keys = path.split('.')
+        val = data
+        for key in keys:
+            if isinstance(val, dict) and key in val:
+                val = val[key]
+            else:
+                return None
+        return val
+
+    ##################################################
+    # Template Checking
+    ##################################################
+
     def handle_prompt_template(self, prompt_template: str, data: dict) -> str | None:
         """
         Checks if all required variables in a prompt template are present and not empty in the provided data.
@@ -88,21 +121,29 @@ class PromptProcessor:
         """
         try:
             required_vars = self.extract_prompt_variables(prompt_template)
-
             if not required_vars:
-                return prompt_template
+                return prompt_template  # no placeholders, so just return as is
 
-            if all(data.get(var) for var in required_vars):
-                return prompt_template
-            return None
+            # For each required variable, ensure there's a non-empty value in data
+            # if we do nested lookups, we check them individually
+            for var in required_vars:
+                val = self._nested_lookup(data, var)
+                if not val:
+                    return None
+            return prompt_template
         except Exception as e:
             error_message = f"Error handling prompt template: {e}"
             self.logger.log(error_message, 'error')
             raise Exception(error_message)
 
+    ##################################################
+    # Template Rendering
+    ##################################################
+
     def render_prompt_template(self, template: str, data: dict) -> str:
         """
         Renders a prompt template by replacing each variable with its corresponding value from provided data.
+        Supports nested placeholders like {A2.answer}.
 
         Parameters:
             template (str): The prompt template containing variables.
@@ -116,12 +157,13 @@ class PromptProcessor:
         """
         try:
             def replacement_function(match):
-                variable_name = match.group(1)
-                result = data.get(variable_name, match.group(0))
-                return str(result)
+                variable_name = match.group(1)  # e.g. "A2.answer"
+                val = self._nested_lookup(data, variable_name)
+                # If val is None, we preserve the original placeholder.
+                return str(val) if val is not None else match.group(0)
 
             variable_pattern = re.compile(self.pattern)
-            # First, perform variable substitution
+            # Perform variable substitution
             prompt = variable_pattern.sub(replacement_function, template)
 
             # Then, unescape any escaped braces
@@ -135,14 +177,14 @@ class PromptProcessor:
 
     def render_prompts(self, prompts, data):
         """
-        Renders the 'System' and 'User' prompts separately.
+        Renders the 'system' and 'user' prompts separately.
 
         Parameters:
-            prompts (dict): The dictionary containing 'System' and 'User' prompts.
+            prompts (dict): The dictionary containing 'system' and 'user' prompts.
             data (dict): The data dictionary containing values for the variables.
 
         Returns:
-            dict: A dictionary containing the rendered 'System' and 'User' prompts.
+            dict: A dictionary containing the rendered 'system' and 'user' prompts.
 
         Raises:
             Exception: Logs an error message and raises an exception if an error occurs during prompt rendering.
@@ -153,7 +195,7 @@ class PromptProcessor:
                 rendered_sections = []
                 prompt_content = prompts.get(prompt_type, {})
                 if isinstance(prompt_content, str):
-                    prompt_sections = {'Main': prompt_content}
+                    prompt_sections = {'main': prompt_content}
                 else:
                     prompt_sections = prompt_content
 
@@ -207,3 +249,4 @@ class PromptProcessor:
             str: The template with escaped braces unescaped.
         """
         return re.sub(r'/\{(.*?)/}', r'{\1}', template)
+

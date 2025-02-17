@@ -5,9 +5,6 @@ from tests.base_test_case import BaseTestCase
 from agentforge.agent import Agent
 from agentforge.config import Config
 
-import logging
-logging.disable(logging.ERROR)
-
 
 # A simple dummy model to satisfy load_model; it won’t be called in debug mode.
 class DummyModel:
