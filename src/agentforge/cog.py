@@ -151,56 +151,56 @@ class Cog:
             agent_prompt_file = agent_def.get("template_file", agent_class.__name__)
             self.agents[agent_id] = agent_class(agent_prompt_file)
 
-    def get_next_node(self, current_node_id: str) -> Optional[str]:
+    def get_next_agent(self, current_agent_id: str) -> Optional[str]:
         """
-        Determine the next node ID based on the current node's transition and global context.
+        Determine the next agent (node) ID based on the current node's transition and global context.
         """
         transitions = self.flow.get("transitions", {})
-        node_transition = transitions.get(current_node_id)
-        if node_transition is None:
+        agent_transition = transitions.get(current_agent_id)
+        if agent_transition is None:
             return None
 
-        if isinstance(node_transition, dict):
-            if node_transition.get("end", False):
+        if isinstance(agent_transition, dict):
+            if agent_transition.get("end", False):
                 return None
-            if "next" in node_transition:
-                return node_transition["next"]
+            if "next" in agent_transition:
+                return agent_transition["next"]
             # Assume that the first key not 'end' or 'next' is the decision variable name.
             decision_key = next(
-                (k for k in node_transition if k not in {"end", "next"}), None
+                (k for k in agent_transition if k not in {"end", "next"}), None
             )
             if decision_key:
-                decision_map = node_transition[decision_key]
-                decision_value = self.global_context[current_node_id].get(decision_key)
+                decision_map = agent_transition[decision_key]
+                decision_value = self.global_context[current_agent_id].get(decision_key)
                 return decision_map.get(decision_value, decision_map.get("default"))
             return None
-        return node_transition
+        return agent_transition
 
     ##########################################################
     # Section 5: Execution
     ##########################################################
 
+    def _execute_flow(self) -> None:
+        current_agent_id = self.flow.get("start")
+        while current_agent_id:
+            agent = self.agents.get(current_agent_id)
+            output = agent.run(**self.global_context)
+            if not output:
+                return None
+            self.global_context[current_agent_id] = output
+            current_agent_id = self.get_next_agent(current_agent_id)
+
     def _track_thought_flow(self):
         if self.thought_flow_trail is not None:
             self.thought_flow_trail.append(self.global_context.copy())
 
-    def execute(self) -> Optional[Dict[str, Any]]:
+    def run(self, **kwargs: Any) -> Optional[Dict[str, Any]]:
         """
         Execute the cog by iteratively running agents as defined in the flow.
         """
         self.global_context = {}
-        current_node_id = self.flow.get("start")
-
-        while current_node_id:
-            agent = self.agents.get(current_node_id)
-
-            output = agent.run(**self.global_context)
-            if not output:
-                return None
-
-            self.global_context[current_node_id] = output
-            current_node_id = self.get_next_node(current_node_id)
-
+        self.global_context.update(kwargs)
+        self._execute_flow()
         self._track_thought_flow()
         return self.global_context
 

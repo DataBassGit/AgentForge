@@ -66,7 +66,7 @@ class TestSimpleCogFlow(TestCogFlow):
         self.engine.agents["A3"] = dummy_agents.DummyAgent({"final": True})
 
     def test_decision_flow_execution(self):
-        context = self.engine.execute()
+        context = self.engine.run()
         self.assertTrue(context["A3"].get("final"))
 
         # Since we go through 3 agent, we expect 1 thought flow trail with 3 agents .
@@ -105,8 +105,8 @@ class TestCogAgentFailure(TestCogFlow):
         self.engine.agents["A3"] = dummy_agents.DummyAgent({"final": True})
 
     def test_agent_failure_on_flow(self):
-        context = self.engine.execute()
-        self.assertIsNone(context)
+        context = self.engine.run()
+        self.assertEqual(context, {'A1': 'A1 complete'})
 
 
 if __name__ == '__main__':

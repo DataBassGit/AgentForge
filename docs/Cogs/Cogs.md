@@ -92,7 +92,7 @@ You place your `.yaml` file in `project_root/.agentforge/cogarchs/`. Then you cr
 from agentforge.cogarch_engine import CogArchEngine
 
 engine = CogArchEngine("my_cogarch.yaml")
-result_context = engine.execute()
+result_context = engine.run()
 print("Final context:", result_context)
 ```
 

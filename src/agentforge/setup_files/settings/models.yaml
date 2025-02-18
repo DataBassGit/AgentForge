@@ -63,6 +63,8 @@ model_library:
           identifier: gemini-1.5-pro
         gemini_flash:
           identifier: gemini-1.5-flash
+        gemini_flash_2.0:
+          identifier: gemini-2.0-flash
 
       params:  # Default parameters for Gemini models
         candidate_count: 1
