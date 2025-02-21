@@ -1,156 +1,244 @@
-# Cognitive Architecture Guide
+# Cognitive Architectures Guide (Cogs)
 
-**AgentForge** introduces a **Cognitive Architecture** (CogArch) feature that allows you to define multi-agent workflows in a single YAML file. By using a declarative approach, you can orchestrate multiple agents (nodes) with transitions and decisions, forming dynamic, loopable, and potentially branching flows—without needing to hardcode these interactions in Python.
+**AgentForge** introduces a **Cognitive Architecture** feature—referred to as **Cog**—that lets you orchestrate multi-agent workflows using a single YAML file. By defining your entire multi-agent script declaratively, you can build complex, loopable, and branching flows without hardcoding the interactions in Python.
 
 ---
 
 ## Introduction
 
-The **CogArch** feature in **AgentForge**:
+The **Cog** feature in **AgentForge** offers you a powerful way to:
 
-1. **Centralizes Multi-Agent Logic**: Put your entire multi-agent script (with references to specific agent IDs, prompt files, or classes) in a single YAML file for maintainability and clarity.  
-2. **Enables Complex Decision-Making**: Agents can provide variables in their output (e.g., `"decision"`) that direct the next step in the workflow.  
-3. **Manages a Global Context**: Each agent’s output is merged into a shared context, ensuring later agents have the most up-to-date data.  
-4. **Supports Looping, Conditional Branching, and Termination**: The architecture can incorporate multiple paths, iteration, and explicit end conditions, all declared in YAML.
+- **Centralize Multi-Agent Logic**: Define your entire multi-agent workflow—including agent definitions and transitions—in one YAML file for improved clarity and maintainability.  
+- **Enable Complex Decision-Making**: Each agent’s output can include decision variables that dictate the next step, allowing for dynamic routing within your flow.
+- **Maintain a Global Context**: A shared dictionary accumulates the outputs from each agent, ensuring that every subsequent agent has access to the latest data.  
+- **Support Looping and Branching**: Design flows that loop, branch, or terminate based on conditions defined directly in your YAML.  
+- **Audit the Thought Flow**: Optionally, a thought flow trail logs the output of each agent as the workflow progresses, making debugging and analysis straightforward.
 
 ---
 
 ## Core Concepts
 
-1. **Nodes (Agents)**: Each node references an **Agent** definition. You specify an `id` (unique identifier), a `type` (the agent class to instantiate), and optionally a `template_file`.  
-2. **Flow**: A section describing how these agents connect. Nodes can simply move to the next node or make a “decision” that routes to different outcomes.  
-3. **Global Context**: A shared dictionary passed from one agent to the next, storing all partial results or variables.  
-4. **Thought Flow Trail**: An optional history of the context after each node’s execution, useful for debugging or auditing the multi-agent process.  
-5. **Decision Variable**: A variable in an agent’s output used to pick the next node. For example, an agent might output `"decision": "reject"`, sending the flow to a loop or different node.
+1. **Agents**:  
+   Each agent (or node) is defined in the YAML file with a unique `id`. An agent definition can specify:
+   - **`type`**: A fully qualified class path (e.g., `myapp.agents.MyAgent`) that will be instantiated. If omitted, the base `Agent` is used.
+   - **`template_file`**: The prompt template file used by the agent. If not provided, it defaults to the agent’s class name.
+
+2. **Flow**:  
+   The `flow` section defines how agents connect:
+   - **`start`**: The `id` of the first agent to run.
+   - **`transitions`**: A mapping of each agent to its subsequent agent(s). A transition can be a simple direct mapping or a decision-based block.
+
+3. **Global Context**:  
+   As the **Cog** executes, each agent’s output is merged into a shared `global_context` dictionary under its agent `id`. This allows later agents to access data produced earlier in the flow.
+
+4. **Thought Flow Trail**:  
+   If enabled, the engine records a snapshot of each agent’s output in a “thought flow trail.” This is useful for debugging and auditing the entire execution sequence.
+
+5. **Decision Variables & Max Visits**:  
+   Decision nodes use an output variable (for example, `choice`) to determine the next agent. Additionally, a decision node may define a `max_visits` limit to prevent infinite loops. Once the agent has been visited more than the allowed number, the default branch is automatically taken.
 
 ---
 
 ## YAML Specification
 
-A **CogArch** YAML file typically resides in `project_root/.agentforge/cogarchs`. For example:
+A typical Cog YAML file resides in your project’s configuration folder (for example, in `.agentforge/cogarchs/`). Below is a simplified example:
 
 ```yaml
-cogarch:
-  description: "A sample architecture orchestrating five agents in sequence with a reflection step."
+cog:
+  name: "SimpleFlow"
+  description: "Demonstration of a basic flow with decisions."
 
   agents:
-    - id: ThoughtAgent
-      type: ChatAgent
+    - id: thought
+      type: myapp.agents.MyAgent
       template_file: ThoughtAgent
-    - id: TheoryAgent
-      type: ChatAgent
-      template_file: TheoryAgent
-    - id: ThoughtProcessAgent
-      type: ChatAgent
-      template_file: ThoughtProcessAgent
-    - id: ReflectionAgent
-      type: ChatAgent
-      template_file: ReflectionAgent
-    - id: GenerateAgent
-      type: ChatAgent
-      template_file: GenerateAgent
+
+    - id: reflect
+      type: myapp.agents.ReflectAgent
+
+    - id: respond
+      type: myapp.agents.MyAgent
+      template_file: ResponseAgent
 
   flow:
-    start: ThoughtAgent
+    start: "thought"
     transitions:
-      ThoughtAgent: TheoryAgent
-      TheoryAgent: ThoughtProcessAgent
-      ThoughtProcessAgent: ReflectionAgent
-      ReflectionAgent:
-        decision:  # The agent outputs a variable named 'decision' in the context
-          approve: GenerateAgent
-          revise: ThoughtProcessAgent
-          reject: ThoughtProcessAgent
-          default: GenerateAgent
-      GenerateAgent:
+      thought: reflect
+      reflect:
+        choice:
+          approve: respond
+          revise: thought
+          default: respond
+      respond:
         end: true
 ```
 
 ### YAML Elements
 
-1. **`cogarch`**: The root key that encapsulates your entire architecture.  
-2. **`agents`**: A list of participating agents, each with:  
-   - **`id`**: Unique node identifier used by transitions.  
-   - **`type`**: The agent class to instantiate (e.g., `ChatAgent`); if missing, defaults to the base `Agent`.  
-   - **`template_file`**: The prompt file. If missing, it may default to the `type` or `id`.  
-3. **`flow`**:
-   - **`start`**: Which agent (`id`) to run first.  
-   - **`transitions`**: A dictionary describing how each node moves to the next.  
-     - A **simple transition** is `NodeA: NodeB`.  
-     - A **decision** block references an output variable (like `decision`) and maps each possible value to the next node. A `default` case is optional.  
-     - A node can be marked with `end: true` to terminate the flow.
+1. **`cog`**: The root key that encapsulates everything about your cognitive workflow.  
+2. **`name` and `description`**: Metadata fields for identifying your flow.  
+3. **`agents`**: A list of agent definitions:
+   - **`id`**: Unique identifier (e.g., `"reflect"`).  
+   - **`type`**: The fully qualified Python path to the class (e.g., `"myapp.agents.MyAgent"`). If omitted, defaults to the base `Agent`.  
+   - **`template_file`**: Which YAML prompt file to load for that agent. If omitted, defaults to the class name.  
+4. **`flow`**:
+   - **`start`**: Which agent `id` to run first.  
+   - **`transitions`**: Describes how each agent (identified by its `id`) moves to the next. Possible ways to define transitions:
+     - **Simple String**: `"agentA: agentB"` means once `agentA` finishes, move to `agentB`.  
+     - **Decision (dictionary)**: If `agentA` returns a key named `"choice"`, the flow checks if `"approve"`, `"revise"`, etc. is in the agent’s output, and transitions accordingly. You can define a `"default"` if no match is found.  
+     - **`end: true`**: Marks a terminal node that stops the flow.  
+     - **`max_visits`**: (Optional) If included in the node’s transition dictionary, it prevents looping indefinitely. Once an agent is visited more than `max_visits` times, the flow takes the `default` path.
 
 ---
 
-## Using the CogArch Feature
+## Using the Cog Feature
 
-### 1. Loading the CogArch YAML
+### 1. Creating a Cog Instance
 
-You place your `.yaml` file in `project_root/.agentforge/cogarchs/`. Then you create or use a **CogArchEngine** (or similarly named class) that reads and interprets the file. Example (pseudocode):
+Place your Cog YAML file (e.g., `simple_flow.yaml`) in your configuration folder. Then, create a Cog instance by providing the YAML file name:
 
 ```python
-from agentforge.cogarch_engine import CogArchEngine
+from agentforge.cog import Cog
 
-engine = CogArchEngine("my_cogarch.yaml")
-result_context = engine.run()
-print("Final context:", result_context)
+# Create a Cog instance with the simple_flow.yaml file, thought flow trail logging enabled by default
+cog = Cog("simple_flow.yaml")
 ```
 
-### 2. Execution Flow
+### 2. Running the Cog
 
-1. **Start Node**: The engine looks up the `start` agent and instantiates it.  
-2. **Running Agents**: Each agent’s `run()` method is called with the global context. The agent’s output merges back into the global context.  
-3. **Decision**: If the node’s transition is a dictionary referencing a decision variable, the engine checks that variable in the global context to pick a next node.  
-4. **Looping**: If the decision routes the flow back to an earlier agent, the engine repeats that cycle, continuing until a node’s transition has `end: true` or an error stops the flow.
+You can pass initial parameters (e.g., `user_input`) to the Cog’s `run` method. The engine will initialize the global context with these values, execute the flow, and return the final context.
 
-### 3. Global Context
+```python
+result_context = cog.run(user_input="Hello, world!")
+print("Final Global Context:", result_context)
+```
 
-All data that each agent outputs is merged into a single `global_context` dictionary. For instance, if `ThoughtAgent` returns `{'thought': 'We should ask for more info'}`, subsequent agents see `global_context['thought']` set to that value. This allows for flexible data sharing without tight coupling.
 
-### 4. Thought Flow Trail
-
-If you enable a “thought_flow_trail,” the engine stores snapshots of the `global_context` after every node’s execution. This helps you debug or analyze how the architecture evolved the data. If logging is turned on, you can optionally write this data to a log file.
-
----
-
-## Error Handling and Retries
-
-1. **Agent Failures**: If an agent’s `run()` method raises an exception, the engine can retry that node a configurable number of times before aborting.  
-2. **Unknown Decision Values**: If a node is decision-based but the returned value doesn’t match any outcome (and no `default` is defined), the engine should raise an error or halt the flow.  
-3. **Missing Agents or Start Node**: The engine will validate references in the YAML. If something is missing, it fails fast with a clear message.
+During execution:
+1. **Start Node**: The Cog looks for the `start` key in the YAML (`thought` in this example).  
+2. **Agent Execution**:  
+   - The agent’s `run()` method is called with the current global context.  
+   - The agent’s output is stored under `global_context[agent_id]`.  
+3. **Decision Handling**: If the current agent’s transition is a dictionary with a decision key (like `"choice"`), the Cog checks `global_context[agent_id]["choice"]` to decide the next node. If the agent’s choice is unrecognized, the `default` path is used (if defined).  
+4. **Max Visits (Optional)**: If the node’s transition includes `max_visits`, once that agent is visited more times than allowed, the flow automatically takes the `default` branch.  
+5. **Termination**: If a node is marked `end: true`, the flow stops. The final `global_context` (with all agents’ outputs) is returned by `cog.run()`.
 
 ---
 
-## Example Usage: Orchestrating a Reflection Loop
+## Execution Flow
 
-1. You define five agents in your YAML (like `ThoughtAgent`, `TheoryAgent`, `ThoughtProcessAgent`, `ReflectionAgent`, `GenerateAgent`), each with a `template_file`.  
-2. The flow transitions from `ThoughtAgent` → `TheoryAgent` → `ThoughtProcessAgent` → `ReflectionAgent`, then uses `decision` from ReflectionAgent to decide whether to go to `GenerateAgent` (approve) or loop back to `ThoughtProcessAgent` (reject/revise).  
-3. Once `GenerateAgent` is called, it has `end: true`, stopping the flow and returning the final context.
+1. **Initialization**: The Cog engine resets its global context and thought flow trail, then loads and validates the YAML configuration.
+2. **Agent Execution**: Starting from the agent specified in the `start` key, each agent is executed sequentially. Their outputs are merged into the global context.
+3. **Decision Handling**: For decision-based transitions, the engine uses the decision variable (e.g., `choice`) from the agent’s output to select the next agent. If a node’s `max_visits` limit is reached, the default branch is taken.
+4. **Termination**: The flow continues until a transition marked with `end: true` is reached, at which point the final global context is returned.
+
+---
+
+## Global Context & Thought Flow Trail
+
+- **Global Context**: The final global context is a dictionary where each key is an agent’s `id` and the corresponding value is that agent’s output. This context aggregates data across the entire workflow.
+- **Thought Flow Trail**: If enabled, the Cog engine logs the output of each agent as it is executed. This trail is useful for auditing or debugging the flow of information through your architecture.
+
+### Accessing the Thought Flow Trail
+
+When `enable_trail_logging=True`, each agent’s output is appended to an internal list. This can be used for debugging or analytics:
+
+```python
+print("Thought Flow Trail:", cog.thought_flow_trail)
+```
+
+`thought_flow_trail` is a list where each entry looks like `{"agent_id": {...agent output...}}`.
+
+---
+
+## Example: Orchestrating a Reflection Loop
+
+Consider a scenario where an agent (e.g., `reflect`) determines whether to continue refining a thought process or move on to produce a final response. The YAML might look like:
+
+```yaml
+cog:
+  name: "ReflectionFlow"
+  description: "A reflection loop that can revise or move on."
+
+  agents:
+    - id: reason
+      type: myapp.agents.MyAgent
+      template_file: ReasonAgent
+
+    - id: reflect
+      type: myapp.agents.ReflectAgent
+
+    - id: respond
+      template_file: GenerateAgent
+
+  flow:
+    start: "reason"
+    transitions:
+      reason: reflect
+      reflect:
+        choice:
+          approve: respond
+          revise: reason
+          default: respond
+        max_visits: 3
+      respond:
+        end: true
+```
+
+In this example:
+- The `reason` agent is defined being of type `MyAgent` and will use the defined `ReasonAgent` prompt template file.
+- The `reflect` agent is defined being of type `ReflectAgent` and has no `template_file` attribute defined, so it will default to using the `ReflectAgent` prompt template file based on the agent type class name.
+- The `reason` agent only defines a `template_file` attribute so it will use the `GenerateAgent` template prompt file and it will default to an agent of type `Agent` which is the base agent class implementation of the framework.
+
+The **Cognitive Flow** looks as follows:
+- The flow begins with the `reason` agent and once it return it's output the flow will pass onto the `reflect` agent.
+- The `reflect` agent outputs a decision (under the key `choice`), which determines whether to loop back to `reason` or proceed to `respond`.
+- The `max_visits` property on `reflect` ensures that if it is revisited more than 3 times, the default branch (`respond`) is taken, preventing an infinite loop.
+- Once `respond` is executed and marked with `end: true`, the flow terminates and the final global context is returned.
+
+## Example Output:
+```python
+from agentforge.cog import Cog
+
+cog = Cog("example_cog.yaml")
+result_context = cog.run(user_input="Hello, world!")
+```
+```python
+result_context = 
+{
+    'user_input': "Hello, world!",
+    'reason': <response given by the 'reason' agent>,
+    'reflect': {'choice': <choice made by the 'reflect' agent>}, # Assuimg the `ReflectAgent` returns a choice inside a Dict
+    'respond': <response given by the 'respond' agent>,
+}        
+```
+
+---
+
+## Error Handling
+
+- **Invalid YAML Config**: If the Cog file is missing essential keys (e.g., `start`, `agents`), a `ValueError` or `ImportError` is raised at initialization.  
+- **Agent Failures**: If an agent returns `None` or raises an exception internally, the `Cog.run()` currently stops execution and returns whatever context was accumulated (or `None` if no output).
+- **Unknown Decision Value**: If a decision output (e.g., `"choice": "foo"`) doesn’t match a branch and no `default` is provided, the flow can’t proceed. You can handle this gracefully in your implementation.
 
 ---
 
 ## Best Practices
 
-- **Keep Flows Simple**: While loops and branching are powerful, aim for clarity in your YAML.  
-- **Use Meaningful Decision Variables**: ReflectionAgent might return `decision: "approve"`, but you can name that variable anything. Ensure it’s consistent across the agent prompt logic and the CogArch transitions.  
-- **Manage Context**: Avoid polluting the global context with too many ephemeral keys. Keep it tidy so subsequent agents only see relevant data.  
-- **Debugging**: Turn on the thought flow trail and logging if you need to observe exactly how data evolves.
+- **Define Clear Agent IDs**: Use meaningful and unique identifiers for each agent to make the flow easy to understand.
+- **Use Descriptive Decision Variables**: Ensure that the decision variable (e.g., `choice`) used by decision nodes is consistently referenced in your agent outputs and YAML. **Note**: Decision variable keys can have any name.
+- **Limit Loops with max_visits**: Set appropriate `max_visits` values on decision nodes to prevent infinite loops while still allowing for necessary iteration.
+- **Define Default Paths in Decision Nodes**: Make sure that agents that make decisions based on a returned key have a default path they can follow in case the agent fails to respond with a valid decision.
+- **Leverage the Thought Flow Trail**: Thought trail logging is enabled by default to trace the evolution of the global context and debug complex flows.
 
 ---
 
 ## Conclusion
 
-By defining a YAML-based **Cognitive Architecture**, you can orchestrate multiple agents in **AgentForge** without hardcoding multi-step logic in Python. The **CogArch Engine**:
-
-1. Loads your architecture definition.  
-2. Instantiates nodes (agents) as specified.  
-3. Executes them in sequence or via decisions based on agent output.  
-4. Maintains a global context (and optional trail) for maximum transparency and debugging.
-
-This modular approach keeps your agent orchestration flexible, maintainable, and easy to evolve as your system grows in complexity.
+By using a YAML-based configuration, **AgentForge’s Cog Engine** lets you orchestrate complex, multi-agent workflows in a flexible and maintainable way. The engine loads your architecture, instantiates agents as defined, and executes them in sequence or based on decisions, all while maintaining a global context for data sharing and an optional trail for auditing. This modular approach keeps your multi-agent orchestration transparent and easy to evolve as your system grows.
 
 ---
 
 **Need Help?**  
 - **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+- **Discord**: [Join our Discord Server](https://discord.gg/ttpXHUtCW6)

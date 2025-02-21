@@ -1,9 +1,10 @@
 import sys
 import importlib
 import importlib.util
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from agentforge.config import Config
 from agentforge.agent import Agent
+from agentforge.utils.logger import Logger
 
 
 class Cog:
@@ -15,15 +16,16 @@ class Cog:
     # Section 1: Initialization & Configuration Loading
     ##########################################################
 
-    def __init__(self, cog_file: str, enable_trail_logging: bool = True):
-        # Set Config and Root Path
-        self.config = Config()
-        self._module_cache: Dict[str, Any] = {}  # cache for imported modules
-
+    def __init__(self, cog_file: str, enable_trail_logging: bool = True, log_file: Optional[str] = 'cog'):
         # Set instance variables
         self.cog_file = cog_file
-        self.global_context: Dict[str, Any] = {}
-        self.thought_flow_trail = [] if enable_trail_logging else None
+        self.enable_trail_logging = enable_trail_logging
+        self._module_cache: Dict[str, Any] = {}  # cache for imported modules
+        self._reset_context_and_thoughts()
+
+        # Set Config and Logggr
+        self.config = Config()
+        self.logger: Logger = Logger(self.cog_file, log_file)
 
         # Load and validate configuration
         self._load_cog_config()
@@ -35,8 +37,25 @@ class Cog:
     def _load_cog_config(self) -> None:
         self.cog_config = self.config.load_cog_data(self.cog_file).copy()
 
+    def _reset_context_and_thoughts(self):
+        self._reset_global_context()
+        self._reset_thought_flow_trail()
+
+    def _reset_global_context(self):
+        self.global_context: Dict[str, Any] = {}
+
+    def _reset_thought_flow_trail(self):
+        self.thought_flow_trail: List[Dict] = []
+
     ##########################################################
-    # Section 2: Validation Methods
+    # Section 2: Interface Methods
+    ##########################################################
+
+    def _get_track_flow_trail(self):
+        return self.thought_flow_trail
+
+    ##########################################################
+    # Section 3: Validation Methods
     ##########################################################
 
     def _validate_config(self) -> None:
@@ -111,7 +130,7 @@ class Cog:
             )
 
     ##########################################################
-    # Section 3: Module Resolution
+    # Section 4: Module Resolution
     ##########################################################
 
     def _get_module(self, module_path: str):
@@ -139,8 +158,18 @@ class Cog:
         return getattr(module, class_name)
 
     ##########################################################
-    # Section 4: Node Resolution
+    # Section 5: Node Resolution
     ##########################################################
+
+    @staticmethod
+    def _get_decision_key(transition: dict, reserved_keys: set) -> Optional[str]:
+        """Extracts the decision key from the transition, excluding reserved keys."""
+        return next((k for k in transition if k not in reserved_keys), None)
+
+    @staticmethod
+    def _is_end_transition(agent_transition: dict) -> bool:
+        """Return True if the agent transition is marked as an end."""
+        return agent_transition.get("end", False)
 
     def _build_agent_nodes(self) -> None:
         """Instantiate all agents defined in the cog configuration."""
@@ -151,7 +180,22 @@ class Cog:
             agent_prompt_file = agent_def.get("template_file", agent_class.__name__)
             self.agents[agent_id] = agent_class(agent_prompt_file)
 
-    def get_next_agent(self, current_agent_id: str) -> Optional[str]:
+    def _check_max_visits(self, current_agent_id: str, transition: dict) -> Optional[str]:
+        """
+        Check if the max_visits limit for the given agent is exceeded.
+        If it is exceeded, return the 'default' branch specified in the transition.
+        Otherwise, return None.
+        """
+        max_visits = transition.get("max_visits")
+        if max_visits is not None:
+            if not hasattr(self, "agent_visit_counts"):
+                self.agent_visit_counts = {}
+            self.agent_visit_counts[current_agent_id] = self.agent_visit_counts.get(current_agent_id, 0) + 1
+            if self.agent_visit_counts[current_agent_id] > max_visits:
+                return transition.get("default")
+        return None
+
+    def _get_next_agent(self, current_agent_id: str) -> Optional[str]:
         """
         Determine the next agent (node) ID based on the current node's transition and global context.
         """
@@ -160,24 +204,44 @@ class Cog:
         if agent_transition is None:
             return None
 
-        if isinstance(agent_transition, dict):
-            if agent_transition.get("end", False):
-                return None
-            if "next" in agent_transition:
-                return agent_transition["next"]
-            # Assume that the first key not 'end' or 'next' is the decision variable name.
-            decision_key = next(
-                (k for k in agent_transition if k not in {"end", "next"}), None
-            )
-            if decision_key:
-                decision_map = agent_transition[decision_key]
-                decision_value = self.global_context[current_agent_id].get(decision_key)
-                return decision_map.get(decision_value, decision_map.get("default"))
+        # If the transition is not a dictionary, it's a direct next agent.
+        if not isinstance(agent_transition, dict):
+            return agent_transition
+
+        # Check if this transition indicates termination.
+        if self._is_end_transition(agent_transition):
             return None
-        return agent_transition
+
+        # Otherwise, handle it as a decision-based transition.
+        return self._handle_decision_transition(current_agent_id, agent_transition)
+
+    def _handle_decision(self, current_agent_id: str, transition: dict) -> Optional[str]:
+        """
+        Handles decision-based transitions by determining the decision key
+        and selecting the appropriate branch based on the agent's output.
+        """
+        reserved_keys = {"end", "max_visits"}
+        decision_key = self._get_decision_key(transition, reserved_keys)
+        if decision_key:
+            decision_map = transition[decision_key]
+            decision_value = self.global_context[current_agent_id].get(decision_key)
+            return decision_map.get(decision_value, decision_map.get("default"))
+        return None
+
+    def _handle_decision_transition(self, current_agent_id: str, transition: dict) -> Optional[str]:
+        """
+        Handle decision-based transitions:
+          - Check if the max_visits limit for this agent is exceeded.
+          - Otherwise, use the decision variable to select the next agent.
+        """
+        default_branch = self._check_max_visits(current_agent_id, transition)
+        if default_branch is not None:
+            return default_branch
+
+        return self._handle_decision(current_agent_id, transition)
 
     ##########################################################
-    # Section 5: Execution
+    # Section 6: Execution
     ##########################################################
 
     def _execute_flow(self) -> None:
@@ -187,20 +251,21 @@ class Cog:
             output = agent.run(**self.global_context)
             if not output:
                 return None
+            self._track_agent_output(current_agent_id, output)
             self.global_context[current_agent_id] = output
-            current_agent_id = self.get_next_agent(current_agent_id)
+            current_agent_id = self._get_next_agent(current_agent_id)
 
-    def _track_thought_flow(self):
-        if self.thought_flow_trail is not None:
-            self.thought_flow_trail.append(self.global_context.copy())
+    def _track_agent_output(self, agent_id: str, output: Dict[str, Any]) -> None:
+        if self.enable_trail_logging:
+            self.thought_flow_trail.append({agent_id: output})
+            self.logger.log(f'******\n{agent_id}\n******\n{output}\n******', 'debug')
 
     def run(self, **kwargs: Any) -> Optional[Dict[str, Any]]:
         """
         Execute the cog by iteratively running agents as defined in the flow.
         """
-        self.global_context = {}
+
+        self._reset_context_and_thoughts()
         self.global_context.update(kwargs)
         self._execute_flow()
-        self._track_thought_flow()
         return self.global_context
-
