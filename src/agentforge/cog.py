@@ -64,7 +64,7 @@ class Cog:
         self._validate_cog_config()
         self._validate_agent_config()
         self._validate_flow_config()
-        self._validate_parser()
+        self._validate_response_format()
 
     def _validate_cog_config(self) -> None:
         cog = self.cog_config.get("cog")
@@ -107,16 +107,16 @@ class Cog:
         if not isinstance(self.flow["transitions"], dict):
             raise ValueError("Flow 'transitions' must be a dictionary.")
 
-    def _validate_parser(self) -> None:
-        self.parser_format = self.cog_config.get("cog").get("parser", None)
-        if not self.parser_format:
-            return
-
+    def _validate_response_format(self) -> None:
+        # Check for a cog-level response_format; if not defined, we simply use None.
         self._parser = ParsingProcessor()
-        supported_formats = self._parser.list_supported_formats()
-        if self.parser_format not in supported_formats:
-            raise ValueError(f"Parser format `{self.parser_format}` is not a supported format.\n"
-                             f"Instead use any of the following:\n{supported_formats}")
+        self.response_format = self.cog_config.get("cog", {}).get("response_format", None)
+        valid_options = set(self._parser.list_supported_formats() + ['auto', 'none'])
+        if self.response_format and self.response_format.lower() not in valid_options:
+            raise ValueError(
+                f"Response format '{self.response_format}' is not valid. "
+                f"Use one of: {', '.join(valid_options)}."
+            )
 
     def _validate_module_exists(self, full_class_path: str, agent_id: str) -> None:
         """
@@ -187,11 +187,19 @@ class Cog:
     def _build_agent_nodes(self) -> None:
         """Instantiate all agents defined in the cog configuration."""
         self.agents = {}
+        default_format = self.cog_config.get("cog", {}).get("response_format")
         for agent_def in self.agent_list:
             agent_id = agent_def.get("id")
             agent_class = self._resolve_agent_class(agent_def)
             agent_prompt_file = agent_def.get("template_file", agent_class.__name__)
-            self.agents[agent_id] = agent_class(agent_prompt_file)
+            agent_instance = agent_class(agent_prompt_file)
+
+            response_format = agent_def.get("response_format", default_format).lower()
+            if response_format == "none" or not response_format:
+                response_format = None
+
+            agent_instance.response_format = response_format
+            self.agents[agent_id] = agent_instance
 
     def _check_max_visits(self, current_agent_id: str, transition: dict) -> Optional[str]:
         """
@@ -257,23 +265,35 @@ class Cog:
     # Section 6: Execution
     ##########################################################
 
-    def _parse_cog_output(self, output):
-        if not self.parser_format:
-            return output
-
-        return self._parser.parse_by_format(output, self.parser_format)
-
     def _execute_flow(self) -> None:
         current_agent_id = self.flow.get("start")
         while current_agent_id:
             agent = self.agents.get(current_agent_id)
-            output = agent.run(**self.global_context)
-            if not output:
+            raw_output = agent.run(**self.global_context)
+            if not raw_output:
                 return None
-            parsed_output = self._parse_cog_output(output)
+            parsed_output = self._parse_agent_output(current_agent_id, raw_output)
             self._track_agent_output(current_agent_id, parsed_output)
             self.global_context[current_agent_id] = parsed_output
             current_agent_id = self._get_next_agent(current_agent_id)
+
+    def _parse_agent_output(self, agent_id: str, output: str) -> Any:
+        # Get the response format for the current agent
+        response_format = self.agents[agent_id].get("response_format", None)
+
+        if not response_format:
+            return output
+
+        if response_format == "auto":
+            return self._parser.auto_parse_content(output)
+
+        if response_format in self._parser.list_supported_formats():
+            return self._parser.parse_by_format(output, response_format)
+
+        # Should never get here because validation should catch it, but just in case:
+        self.logger.warning(f"Unrecognized response_format '{response_format}' for agent '{agent_id}'. "
+                            f"Returning raw output.")
+        return output
 
     def _track_agent_output(self, agent_id: str, output: Dict[str, Any]) -> None:
         if self.enable_trail_logging:

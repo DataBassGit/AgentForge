@@ -17,6 +17,13 @@ class ParsingProcessor:
         # Assuming Logger is defined elsewhere or replace with appropriate logging
         self.logger = Logger(name=self.__class__.__name__)
 
+    def auto_parse_content(self, text: str) -> Any:
+        language, content = self.extract_code_block(text)
+        if language and language.lower() in self.list_supported_formats():
+            return self.parse_by_format(content, language)
+
+        self.logger.log("No valid language detected for automatic parsing, returning raw text instead.", "warning")
+        return text
 
     def extract_code_block(self, text: str, code_fence: str = "```") -> Optional[Tuple[Optional[str], str]]:
         """
@@ -50,13 +57,8 @@ class ParsingProcessor:
             self.logger.log(f"Regex Error Extracting Code Block: {e}", 'error')
             return None
 
-    def parse_content(
-        self,
-        content_string: str,
-        parser_func: Callable[[str], Any],
-        expected_language: str,
-        exception_class: Type[Exception]
-    ) -> Optional[Dict[str, Any]]:
+    def parse_content(self, content_string: str, parser_func: Callable[[str], Any],
+        expected_language: str, exception_class: Type[Exception]) -> Optional[Dict[str, Any]]:
         """
         A generic method to parse content using a specified parser function.
 
@@ -84,10 +86,6 @@ class ParsingProcessor:
             self.logger.log(f"Unexpected error parsing {expected_language.upper()} content: {e}", 'error')
             return None
 
-    @staticmethod
-    def list_supported_formats():
-        return ['xml','json','yaml','ini','csv','markdown']
-
     def parse_by_format(self, content_string: str, parser_type: str) -> Any:
         parser_method_name = f"parse_{parser_type.lower()}_content"
         parser_method = getattr(self, parser_method_name, None)
@@ -96,45 +94,6 @@ class ParsingProcessor:
         else:
             self.logger.log(f"No parser method found for type '{parser_type}'", 'error')
             return None
-
-    @staticmethod
-    def parse_markdown_to_dict(markdown_text: str, min_heading_level=2, max_heading_level=6) -> Optional[Dict[str, Any]]:
-        """
-        Parses a markdown-formatted string into a dictionary, mapping each heading to its corresponding content.
-
-        Parameters:
-            markdown_text (str): The markdown-formatted text to parse.
-            min_heading_level (int, optional): The minimum heading level to include (default is 2).
-            max_heading_level (int, optional): The maximum heading level to include (default is 6).
-
-        Returns:
-            Optional[Dict[str, Any]]: A dictionary where each key is a heading and each value is the associated content.
-        """
-        parsed_dict = {}
-        current_heading = None
-        content_lines = []
-
-        # Compile regex pattern for headings based on specified heading levels
-        heading_pattern = re.compile(r'^(#{%d,%d})\s+(.*)' % (min_heading_level, max_heading_level))
-
-        lines = markdown_text.split('\n')
-        for line in lines:
-            match = heading_pattern.match(line)
-            if match:
-                # Save content under the previous heading
-                if current_heading is not None:
-                    parsed_dict[current_heading] = '\n'.join(content_lines).strip()
-                    content_lines = []
-                # Update current heading
-                current_heading = match.group(2).strip()
-            else:
-                if current_heading is not None:
-                    content_lines.append(line)
-        # Save content under the last heading
-        if current_heading is not None:
-            parsed_dict[current_heading] = '\n'.join(content_lines).strip()
-
-        return parsed_dict if parsed_dict else None
 
     def parse_markdown_content(self, markdown_string: str, min_heading_level=2, max_heading_level=6) -> Optional[Dict[str, Any]]:
         """
@@ -313,3 +272,46 @@ class ParsingProcessor:
         self.logger.log(f"Lower casing string:\n{input_str}", 'debug', 'Formatting')
 
         return input_str
+
+    @staticmethod
+    def list_supported_formats():
+        return ['xml','json','yaml','ini','csv','markdown']
+
+    @staticmethod
+    def parse_markdown_to_dict(markdown_text: str, min_heading_level=2, max_heading_level=6) -> Optional[Dict[str, Any]]:
+        """
+        Parses a markdown-formatted string into a dictionary, mapping each heading to its corresponding content.
+
+        Parameters:
+            markdown_text (str): The markdown-formatted text to parse.
+            min_heading_level (int, optional): The minimum heading level to include (default is 2).
+            max_heading_level (int, optional): The maximum heading level to include (default is 6).
+
+        Returns:
+            Optional[Dict[str, Any]]: A dictionary where each key is a heading and each value is the associated content.
+        """
+        parsed_dict = {}
+        current_heading = None
+        content_lines = []
+
+        # Compile regex pattern for headings based on specified heading levels
+        heading_pattern = re.compile(r'^(#{%d,%d})\s+(.*)' % (min_heading_level, max_heading_level))
+
+        lines = markdown_text.split('\n')
+        for line in lines:
+            match = heading_pattern.match(line)
+            if match:
+                # Save content under the previous heading
+                if current_heading is not None:
+                    parsed_dict[current_heading] = '\n'.join(content_lines).strip()
+                    content_lines = []
+                # Update current heading
+                current_heading = match.group(2).strip()
+            else:
+                if current_heading is not None:
+                    content_lines.append(line)
+        # Save content under the last heading
+        if current_heading is not None:
+            parsed_dict[current_heading] = '\n'.join(content_lines).strip()
+
+        return parsed_dict if parsed_dict else None
