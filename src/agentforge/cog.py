@@ -5,6 +5,7 @@ from typing import Dict, Any, Optional, List
 from agentforge.config import Config
 from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 
 class Cog:
@@ -63,6 +64,7 @@ class Cog:
         self._validate_cog_config()
         self._validate_agent_config()
         self._validate_flow_config()
+        self._validate_parser()
 
     def _validate_cog_config(self) -> None:
         cog = self.cog_config.get("cog")
@@ -104,6 +106,17 @@ class Cog:
             raise ValueError("Flow must have a 'transitions' dictionary defined.")
         if not isinstance(self.flow["transitions"], dict):
             raise ValueError("Flow 'transitions' must be a dictionary.")
+
+    def _validate_parser(self) -> None:
+        self.parser_format = self.cog_config.get("cog").get("parser", None)
+        if not self.parser_format:
+            return
+
+        self._parser = ParsingProcessor()
+        supported_formats = self._parser.list_supported_formats()
+        if self.parser_format not in supported_formats:
+            raise ValueError(f"Parser format `{self.parser_format}` is not a supported format.\n"
+                             f"Instead use any of the following:\n{supported_formats}")
 
     def _validate_module_exists(self, full_class_path: str, agent_id: str) -> None:
         """
@@ -244,6 +257,12 @@ class Cog:
     # Section 6: Execution
     ##########################################################
 
+    def _parse_cog_output(self, output):
+        if not self.parser_format:
+            return output
+
+        return self._parser.parse_by_format(output, self.parser_format)
+
     def _execute_flow(self) -> None:
         current_agent_id = self.flow.get("start")
         while current_agent_id:
@@ -251,8 +270,9 @@ class Cog:
             output = agent.run(**self.global_context)
             if not output:
                 return None
-            self._track_agent_output(current_agent_id, output)
-            self.global_context[current_agent_id] = output
+            parsed_output = self._parse_cog_output(output)
+            self._track_agent_output(current_agent_id, parsed_output)
+            self.global_context[current_agent_id] = parsed_output
             current_agent_id = self._get_next_agent(current_agent_id)
 
     def _track_agent_output(self, agent_id: str, output: Dict[str, Any]) -> None:

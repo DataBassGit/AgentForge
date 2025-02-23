@@ -17,6 +17,7 @@ class ParsingProcessor:
         # Assuming Logger is defined elsewhere or replace with appropriate logging
         self.logger = Logger(name=self.__class__.__name__)
 
+
     def extract_code_block(self, text: str, code_fence: str = "```") -> Optional[Tuple[Optional[str], str]]:
         """
         Extracts a code block from a string using the specified code fence delimiter. The method returns the language specifier
@@ -81,6 +82,19 @@ class ParsingProcessor:
             return None
         except Exception as e:
             self.logger.log(f"Unexpected error parsing {expected_language.upper()} content: {e}", 'error')
+            return None
+
+    @staticmethod
+    def list_supported_formats():
+        return ['xml','json','yaml','ini','csv','markdown']
+
+    def parse_by_format(self, content_string: str, parser_type: str) -> Any:
+        parser_method_name = f"parse_{parser_type.lower()}_content"
+        parser_method = getattr(self, parser_method_name, None)
+        if callable(parser_method):
+            return parser_method(content_string)
+        else:
+            self.logger.log(f"No parser method found for type '{parser_type}'", 'error')
             return None
 
     @staticmethod
