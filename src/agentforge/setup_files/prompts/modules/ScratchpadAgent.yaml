@@ -1,0 +1,32 @@
+prompts:
+  system:
+    Instruction: |+
+      ## Scratchpad Update Instructions
+      You are maintaining a scratchpad of important information. Your task is to update this scratchpad based on the latest interactions.
+  
+      <INSTRUCTIONS>
+      Please update the scratchpad with any new relevant information. Follow these guidelines:
+      1. Include preferences, personal details, or specific instructions not already listed.
+      2. Keep the information concise and well-organized.
+      3. Only add or modify information if it's significant and likely to be useful in the future.
+      4. Remove any information that will not be relevant in the future.
+      5. Keep the rest of the information intact.
+
+  user:
+    Context: |+
+      <CURRENT_SCRATCHPAD>
+      (This is the current content of the scratchpad. It contains relevant details about the user such as preferences, personal information, and specific instructions they've given.)
+      {scratchpad}
+      </CURRENT_SCRATCHPAD>
+  
+      <SCRATCHPAD_LOG>
+      (These are the latest entries from the scratchpad log. Use this information to update the scratchpad.)
+      {scratchpad_log}
+      </SCRATCHPAD_LOG>
+      
+      Respond with the updated scratchpad content in the following format:
+      </INSTRUCTIONS>
+  
+      <updated_scratchpad>
+      [Your updated scratchpad content here]
+      </updated_scratchpad>

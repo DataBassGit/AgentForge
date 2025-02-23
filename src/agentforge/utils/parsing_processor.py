@@ -237,3 +237,65 @@ class ParsingProcessor:
             expected_language='csv',
             exception_class=csv.Error
         )
+
+    def format_string(self, input_str):
+
+        """
+        Formats a string to meet requirements of chroma collection name. Performs the following steps in order:
+
+        Remove leading and trailing whitespace
+        Replace non-alphanumeric
+        Replace consecutive periods
+        Ensure not a valid IPv4
+        Ensure it starts with an alphanumeric character
+        Ensure it ends with an alphanumeric character
+        Ensure length is at least 3 characters
+        Ensure length is not more than 64 characters
+        Lower casing string
+
+        Parameters:
+        - input_str (str): The string to format.
+
+        Returns:
+        - str: The formatted string.
+        """
+
+        self.logger.log(f"Formatting string:\n{input_str}", 'debug', 'Formatting')
+        # Remove leading and trailing whitespace
+        input_str = input_str.strip()
+        self.logger.log(f"Remove leading and trailing whitespace:\n{input_str}", 'debug', 'Formatting')
+
+        # Replace non-alphanumeric, non-underscore, non-hyphen characters with underscores
+        input_str = re.sub("[^a-zA-Z0-9_-]", "_", input_str)
+        self.logger.log(f"Replacing non-alphanumeric:\n{input_str}", 'debug', 'Formatting')
+
+        # Replace consecutive periods with a single period
+        while ".." in input_str:
+            input_str = input_str.replace("..", ".")
+            self.logger.log(f"Replacing consecutive periods:\n{input_str}", 'debug', 'Formatting')
+
+        # Ensure it's not a valid IPv4 address
+        if re.match(r'^\d+\.\d+\.\d+\.\d+$', input_str):
+            input_str = "a" + input_str
+            self.logger.log(f"Ensuring not a valid IPv4:\n{input_str}", 'debug', 'Formatting')
+
+        # Ensure it starts and ends with an alphanumeric character
+        if not input_str[0].isalnum():
+            input_str = "a" + input_str[1:]
+            self.logger.log(f"Ensure it starts with an alphanumeric character:\n{input_str}", 'debug', 'Formatting')
+        if not input_str[-1].isalnum():
+            input_str = input_str[:-1] + "a"
+            self.logger.log(f"Ensure it ends with an alphanumeric character:\n{input_str}", 'debug', 'Formatting')
+
+        # Ensure length is between 3 and 64 characters
+        while len(input_str) < 3:
+            input_str += input_str
+            self.logger.log(f"Ensure length is at least 3 characters:\n{input_str}", 'debug', 'Formatting')
+        if len(input_str) > 63:
+            input_str = input_str[:63]
+            self.logger.log(f"Ensure length is not more than 64 characters:\n{input_str}", 'debug', 'Formatting')
+
+        input_str = input_str.lower()
+        self.logger.log(f"Lower casing string:\n{input_str}", 'debug', 'Formatting')
+
+        return input_str

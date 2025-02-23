@@ -23,7 +23,7 @@ class Cog:
         self._module_cache: Dict[str, Any] = {}  # cache for imported modules
         self._reset_context_and_thoughts()
 
-        # Set Config and Logggr
+        # Set Config and Logger
         self.config = Config()
         self.logger: Logger = Logger(self.cog_file, log_file)
 
