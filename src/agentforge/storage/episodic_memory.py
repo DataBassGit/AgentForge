@@ -1,9 +1,8 @@
-
-from Utilities.Parsers import MessageParser
 from agentforge.agent import Agent
 import os
 from datetime import datetime
 import agentforge.tools.semantic_chunk as chunker
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 
 class Journal:
@@ -17,9 +16,9 @@ class Journal:
         """
         print("Journal initializing")
         self.storage = chroma_instance
-        self.parser = MessageParser
-        self.journal = Agent(agent_name="JournalAgent")
-        self.journalthought = Agent(agent_name="JournalThoughtAgent")
+        self.parse = ParsingProcessor()
+        self.journal_agent = Agent(agent_name="JournalAgent")
+        self.journal_thought = Agent(agent_name="JournalThoughtAgent")
         self.results = ''
         self.filepath = ''
         self.thoughts = None
@@ -55,20 +54,21 @@ class Journal:
         print("Write Entry Collection")
         log = self.storage.load_collection(collection_name=collection)
         print("Write Entry Log")
-        messages = self.parser.format_journal_entries(log)
-        self.results = self.journal.run(chat_log=messages)
+        messages = self.format_journal_entries(log)
+        self.results = self.journal_agent.run(chat_log=messages)
         return self.results
 
     def journal_reflect(self):
         """
         Reflect on the generated journal entry using the JournalThoughtAgent.
+        The results are parsed and added to metadata.
 
         Returns:
             dict: Parsed thoughts about the journal entry.
         """
-        thoughts = self.journalthought.run(journal_entry=self.results)
-        parsed_thoughts = self.parser.parse_lines(thoughts)
-        self.thoughts = parsed_thoughts
+        thoughts = self.journal_thought.run(journal_entry=self.results)
+        language, content = self.parse.extract_code_block(thoughts)
+        self.thoughts = self.parse.parse_by_format(content, language)
         return self.thoughts
 
     def save_journal(self):
@@ -93,28 +93,26 @@ class Journal:
             unique_file_name = f"{file_name}_{count}"
 
         # Create the file path
-        self.file_path = os.path.join(folder_path, unique_file_name + ".md")
+        file_path = os.path.join(folder_path, unique_file_name + ".md")
 
         # Write the content to the file
-        with open(self.file_path, "w", encoding="utf-8") as file:
+        with open(file_path, "w", encoding="utf-8") as file:
             file.write(self.results)
 
-        return self.file_path
+        return file_path
 
     def journal_to_db(self):
         """
         Store the journal entry and its chunks in the database.
         """
         # whole entry
-        sourceid = self.storage.count_collection('whole_journal_entries')
-        source_id_string = [str(sourceid + 1)]
+        source_id = self.storage.count_collection('whole_journal_entries')
+        source_id_string = [str(source_id + 1)]
         metadata = {
-            "id": sourceid + 1,
+            "id": source_id + 1,
             "Source": self.filepath,
-            "Categories": self.thoughts['Categories'],
-            "Inner Thought": self.thoughts['Inner Thought'],
-            "Reason": self.thoughts['Reason']
         }
+        metadata.update(self.thoughts)
         self.storage.save_memory(collection_name='whole_journal_entries', data=self.results, ids=source_id_string, metadata=[metadata])
         print(f"Saved journal entry:\n\n{self.results}\nMetadata:\n{metadata}\n-----")
 
@@ -127,7 +125,7 @@ class Journal:
             metadata = {
                 "id": collection_size + 1,
                 "Source": self.filepath,
-                "Source_ID": sourceid + 1,
+                "Source_ID": source_id + 1,
             }
             print(f"Saved chunk:\n\n{chunk.content}\nMetadata:\n{metadata}\n=====")
 
@@ -158,6 +156,50 @@ class Journal:
                 self.journal_reflect()
                 self.journal_to_db()
 
+    @staticmethod
+    def format_journal_entries(history):
+        """
+        Formats chat logs for sending to the journal agent. The list is grouped by channel then ordered by ID.
+
+        Args:
+            history (dict): The history dictionary containing 'documents', 'ids', and 'metadatas'.
+
+        Returns:
+            str: Formatted general history entries.
+        """
+        channel_entries = {}
+        excluded_metadata = ["id", "response", "reason", "unixtimestamp", "mentions"]
+
+        # Group entries by channel
+        for i, entry in enumerate(history.get('metadatas', []), start=1):
+            document_id = i - 1
+            document = ""
+            if 'documents' in history and 0 <= document_id < len(history['documents']):
+                document = history['documents'][document_id]
+
+            entry_details = []
+            if document:
+                entry_details.append(f"Message: {document}")
+
+            channel = entry.get("channel", "")
+            if channel not in channel_entries:
+                channel_entries[channel] = []
+
+            for key, value in entry.items():
+                if key.lower() not in excluded_metadata:
+                    entry_details.append(f"{key.capitalize()}: {value}")
+
+            channel_entries[channel].append((entry.get("id", 0), "\n".join(entry_details)))
+
+        # Format entries grouped by channel and ordered by ID
+        formatted_entries = []
+        for channel, entries in channel_entries.items():
+            entries.sort(key=lambda x: x[0])  # Sort by ID within each channel
+            channel_formatted_entries = [entry[1] for entry in entries]
+            formatted_entries.append(f"Channel: {channel}\n=====\n" + "\n=====\n".join(channel_formatted_entries))
+
+        return "\n\n".join(formatted_entries).strip()
+
 
 if __name__ == '__main__':
     # Loads Journals from saved journal entries.
@@ -167,5 +209,5 @@ if __name__ == '__main__':
     from agentforge.storage.chroma_storage import ChromaStorage
     chroma = ChromaStorage()
     journal = Journal(chroma)
-    folder_path = "..\\Journal"
-    journal.load_journals_from_backup(folder_path)
+    folder_path2 = "..\\Journal"
+    journal.load_journals_from_backup(folder_path2)

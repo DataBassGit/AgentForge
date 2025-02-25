@@ -4,7 +4,7 @@ from agentforge.agent import Agent
 import re
 
 
-class MemoryFunctions:
+class AdvancedMemoryFunctions:
 
     def __init__(self, chroma_instance):
         self.memory = chroma_instance
