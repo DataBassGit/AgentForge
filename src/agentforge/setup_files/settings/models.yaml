@@ -120,6 +120,24 @@ model_library:
         temperature: 0.8
         top_p: 0.1
 
+  akash_api:
+    Akash:
+      models:
+        DeepSeek-R1:
+          identifier: DeepSeek-R1
+        DeepSeek-R1-Distill-Llama-70B:
+          identifier: DeepSeek-R1-Distill-Llama-70B
+        Meta-Llama-3-3-70B-Instruct:
+          identifier: Meta-Llama-3-3-70B-Instruct
+        DeepSeek-R1-Distill-Qwen-1.5B:
+          identifier: DeepSeek-R1-Distill-Qwen-1.5B
+
+      params: # Default parameters for Akash models
+        host_url: https://chatapi.akash.network/api/v1
+        max_tokens: 10000
+        stream: false
+        temperature: 0.8
+
 # Embedding library
 embedding_library:
   library: sentence_transformers
