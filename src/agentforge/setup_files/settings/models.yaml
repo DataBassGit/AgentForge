@@ -133,7 +133,7 @@ model_library:
           identifier: DeepSeek-R1-Distill-Qwen-1.5B
 
       params: # Default parameters for Akash models
-        host_url: https://chatapi.akash.network/api/v1
+        host_url: https://chatapi.akash.network/api/v1/chat/completions
         max_tokens: 10000
         stream: false
         temperature: 0.8

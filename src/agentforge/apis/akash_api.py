@@ -17,7 +17,7 @@ class Akash(BaseModel):
 
 
     def _do_api_call(self, prompt, **filtered_params):
-        url = filtered_params.pop('host_url', 'https://chatapi.akash.network/api/v1')
+        url = filtered_params.pop('host_url', 'https://chatapi.akash.network/api/v1/chat/completions')
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
