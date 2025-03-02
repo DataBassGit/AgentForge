@@ -160,7 +160,7 @@ class PromptProcessor:
                 variable_name = match.group(1)  # e.g. "A2.answer"
                 val = self._nested_lookup(data, variable_name)
                 # If val is None, we preserve the original placeholder.
-                return str(val) if val is not None else match.group(0)
+                return str(val).strip() if val is not None else match.group(0)
 
             variable_pattern = re.compile(self.pattern)
             # Perform variable substitution

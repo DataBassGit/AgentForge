@@ -1,11 +1,10 @@
-import sys
 import importlib
 import importlib.util
 from typing import Dict, Any, Optional, List
 from agentforge.config import Config
 from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
-from agentforge.utils.parsing_processor import ParsingProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor, ParsingError
 
 
 class Cog:
@@ -52,7 +51,7 @@ class Cog:
     # Section 2: Interface Methods
     ##########################################################
 
-    def _get_track_flow_trail(self):
+    def get_track_flow_trail(self) -> []:
         return self.thought_flow_trail
 
     ##########################################################
@@ -110,11 +109,11 @@ class Cog:
     def _validate_response_format(self) -> None:
         # Check for a cog-level response_format; if not defined, we simply use None.
         self._parser = ParsingProcessor()
-        self.response_format = self.cog_config.get("cog", {}).get("response_format", None)
+        self.default_response_format = self.cog_config.get("cog", {}).get("response_format", None)
         valid_options = set(self._parser.list_supported_formats() + ['auto', 'none'])
-        if self.response_format and self.response_format.lower() not in valid_options:
+        if self.default_response_format and self.default_response_format.lower() not in valid_options:
             raise ValueError(
-                f"Response format '{self.response_format}' is not valid. "
+                f"Response format '{self.default_response_format}' is not valid. "
                 f"Use one of: {', '.join(valid_options)}."
             )
 
@@ -187,19 +186,13 @@ class Cog:
     def _build_agent_nodes(self) -> None:
         """Instantiate all agents defined in the cog configuration."""
         self.agents = {}
-        default_format = self.cog_config.get("cog", {}).get("response_format")
+        self.agent_response_format = {}
         for agent_def in self.agent_list:
             agent_id = agent_def.get("id")
             agent_class = self._resolve_agent_class(agent_def)
             agent_prompt_file = agent_def.get("template_file", agent_class.__name__)
-            agent_instance = agent_class(agent_prompt_file)
-
-            response_format = agent_def.get("response_format", default_format).lower()
-            if response_format == "none" or not response_format:
-                response_format = None
-
-            agent_instance.response_format = response_format
-            self.agents[agent_id] = agent_instance
+            self.agents[agent_id]= agent_class(agent_prompt_file)
+            self.agent_response_format[agent_id] = self._get_response_format_for_agent(agent_def)
 
     def _check_max_visits(self, current_agent_id: str, transition: dict) -> Optional[str]:
         """
@@ -265,21 +258,53 @@ class Cog:
     # Section 6: Execution
     ##########################################################
 
+    def _get_response_format_for_agent(self, agent_def):
+        response_format = agent_def.get("response_format", self.default_response_format).lower()
+        if response_format == "none" or not response_format:
+            return None
+
+        return response_format
+
+    def _call_agent(self, current_agent_id):
+        attempts = 0
+        max_attempts = 3
+        agent = self.agents.get(current_agent_id)
+
+        while attempts < max_attempts:
+            attempts += 1
+            raw_output = agent.run(**self.global_context)
+
+            # If the agent returned no output, just retry (unless we've exceeded attempts)
+            if not raw_output:
+                self.logger.log(f"No output from agent '{current_agent_id}', retrying... (Attempt {attempts})",
+                                'warning')
+                continue
+
+            # Try parsing the agent's output
+            try:
+                parsed_output = self._parse_agent_output(current_agent_id, raw_output)
+                # If parsing was successful, return
+                return parsed_output
+            except ParsingError as e:
+                self.logger.log(f"Parsing error for agent '{current_agent_id}': {e} (Attempt {attempts})", 'warning')
+                # We'll loop again if we have attempts left
+
+        # If we exit the loop, either we never got valid output or we gave up parsing it
+        self.logger.log(f"Max attempts reached for agent '{current_agent_id}' with no valid parsed output.", 'error')
+        # Decide if you want to return the raw output, None, or raise an exception
+        raise Exception(f"Failed to get valid response from {current_agent_id}. We recommend checking the agent's input/output logs." )
+
     def _execute_flow(self) -> None:
         current_agent_id = self.flow.get("start")
         while current_agent_id:
-            agent = self.agents.get(current_agent_id)
-            raw_output = agent.run(**self.global_context)
-            if not raw_output:
-                return None
-            parsed_output = self._parse_agent_output(current_agent_id, raw_output)
+            parsed_output = self._call_agent(current_agent_id)
             self._track_agent_output(current_agent_id, parsed_output)
             self.global_context[current_agent_id] = parsed_output
             current_agent_id = self._get_next_agent(current_agent_id)
 
     def _parse_agent_output(self, agent_id: str, output: str) -> Any:
         # Get the response format for the current agent
-        response_format = self.agents[agent_id].get("response_format", None)
+        response_format = self.agent_response_format[agent_id]
 
         if not response_format:
             return output
