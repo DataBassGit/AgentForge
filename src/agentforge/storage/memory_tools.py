@@ -4,6 +4,9 @@ from agentforge.agent import Agent
 import re
 
 
+# On Start: Get Categories, Reask, Get Scratchpad, Get Journal
+# On End: Check Scratchpad, Check Journal, Save categories
+
 class AdvancedMemoryFunctions:
 
     def __init__(self, chroma_instance):
@@ -52,6 +55,9 @@ class AdvancedMemoryFunctions:
         return reranked_results
 
     def reask(self):
+        pass
+
+    def categories(self):
         pass
 
 
