@@ -675,3 +675,43 @@ class ChromaStorage:
 
         return unique_results
 
+    def combine_and_rerank(self, query_results: list, rerank_query, num_results=5):
+        """
+        Combine multiple query results, rerank them based on a new query, and return the top results.
+
+        This function takes multiple query results, combines them, and then reranks the combined
+        results based on a new query. It's useful for refining search results across multiple
+        collections or queries.
+
+        Args:
+            query_results (list): A list of query result dictionaries, each containing 'ids',
+                                'embeddings', 'documents', and 'metadatas'.
+            rerank_query (str): The query string used for reranking the combined results.
+            num_results (int, optional): The number of top results to return after reranking.
+                                        Defaults to 5.
+
+        Returns:
+            dict: A dictionary containing the reranked results, including 'ids', 'embeddings',
+                'documents', and 'metadatas' for the top results.
+
+        Raises:
+            ValueError: If query_results is empty or if reranking fails.
+
+        Example:
+            query_results = [results1, results2, results3]
+            rerank_query = "specific query that can be the same or a new query"
+            reranked = query_and_rerank(query_results, rerank_query, num_results=3)
+        """
+
+        # Combine all query results
+        combined_query_results = self.combine_query_results(*query_results)
+
+        reranked_results = self.rerank_results(
+            query_results=combined_query_results,
+            query=rerank_query,
+            temp_collection_name="temp_reranking_collection",
+            num_results=num_results
+        )
+
+        return reranked_results
+

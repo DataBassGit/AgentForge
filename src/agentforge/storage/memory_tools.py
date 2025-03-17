@@ -4,7 +4,7 @@ from agentforge.agent import Agent
 import re
 
 
-# On Start: Get Categories, Reask, Get Scratchpad, Get Journal
+# On Start: Reask, Get Categories, Get Scratchpad, Get Journal
 # On End: Check Scratchpad, Check Journal, Save categories
 
 class AdvancedMemoryFunctions:
@@ -57,7 +57,10 @@ class AdvancedMemoryFunctions:
     def reask(self):
         pass
 
-    def categories(self):
+    def get_categories(self):
+        pass
+
+    def save_categories(self):
         pass
 
 
