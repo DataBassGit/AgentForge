@@ -1,7 +1,0 @@
-prompts:
-  system: Your basic functionality is being tested, please respond to the user to the best of your ability.
-
-  user: |
-      {input_agent.user_input}
-
-
