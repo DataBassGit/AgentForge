@@ -1,6 +1,6 @@
 # src/agentforge/storage/Memory.py
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from chroma_storage import ChromaStorage
 
 
@@ -36,7 +36,7 @@ class Memory:
             return f"{self.cog_name}_{self.persona}"
         return self.cog_name
 
-    def query(self, query_text: str, num_results: int = 1) -> Optional[Dict[str, Any]]:
+    def query(self, query_text: str, num_results: int = 5) -> Optional[Dict[str, Any]]:
         """
         Queries memory for items similar to query_text.
 
@@ -47,31 +47,34 @@ class Memory:
         Returns:
             Optional[Dict[str, Any]]: The query results or None if not found.
         """
-        return self.storage.query_memory(collection_name=self.collection_name,
-                                         query=query_text,
-                                         num_results=num_results)
+        return self.storage.query_storage(collection_name=self.collection_name,
+                                          query = query_text, num_results= num_results)
 
-    def update(self, key: str, data: Any, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def update(self, data: Any, ids: Optional[str | list[str]],  metadata: Optional[list[dict]] = None) -> None:
         """
         Updates the memory entry with the specified key. Creates the entry if it doesn't exist.
 
         Args:
-            key (str): The unique identifier for the memory entry.
+            ids (str): The unique identifier for the memory entry.
             data (Any): The data to store.
-            metadata (Optional[Dict[str, Any]]): Optional metadata.
+            metadata (Optional[list[dict]]): Optional metadata.
         """
-        # The underlying ChromaStorage's update method should act as create-if-not-exists.
-        self.storage.save_memory(collection_name=self.collection_name,
-                                 data=data,
-                                 ids=[key],
-                                 metadata=metadata)
+        self.storage.save_to_storage(collection_name=self.collection_name, data=data, ids=ids, metadata=metadata)
 
-    def delete(self, key: str) -> None:
+    def delete(self, ids: str | list[str]) -> None:
         """
         Deletes the memory entry with the given key.
 
         Args:
-            key (str): The unique identifier for the memory entry to delete.
+            ids (str): The unique identifier for the memory entry to delete.
         """
-        self.storage.delete_memory(collection_name=self.collection_name,
-                                   doc_id=key)
+        self.storage.delete_from_stroage(collection_name=self.collection_name, ids=ids)
+
+    def wipe_memory(self):
+        """
+        Wipes all memory, removing all collections and their data.
+
+        This method should be used with caution as it will permanently delete all data within the storage.
+        """
+
+        self.storage.reset_storage()

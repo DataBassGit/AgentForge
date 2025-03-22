@@ -42,3 +42,4 @@ sandbox/**/Tests/
 AgentForge.log
 src/agentforge/persona/chatbot.json
 *.env
+/.cursorignore
