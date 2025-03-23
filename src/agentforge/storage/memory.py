@@ -1,7 +1,7 @@
 # src/agentforge/storage/Memory.py
 
 from typing import Any, Dict, Optional, Union
-from chroma_storage import ChromaStorage
+from .chroma_storage import ChromaStorage
 
 
 class Memory:
@@ -21,6 +21,7 @@ class Memory:
             cog_name (str): Name of the cog to which this memory belongs.
             persona (Optional[str]): Optional persona name for further partitioning.
         """
+        self.store = {}
         self.cog_name = cog_name
         self.persona = persona
         # Build a collection name based on cog and persona.
@@ -36,7 +37,7 @@ class Memory:
             return f"{self.cog_name}_{self.persona}"
         return self.cog_name
 
-    def query(self, query_text: str, num_results: int = 5) -> Optional[Dict[str, Any]]:
+    def query_memory(self, query_text: str | list[str], num_results: int = 5) -> Optional[Dict[str, Any]]:
         """
         Queries memory for items similar to query_text.
 
@@ -47,10 +48,13 @@ class Memory:
         Returns:
             Optional[Dict[str, Any]]: The query results or None if not found.
         """
-        return self.storage.query_storage(collection_name=self.collection_name,
+        data = self.storage.query_storage(collection_name=self.collection_name,
                                           query = query_text, num_results= num_results)
 
-    def update(self, data: Any, ids: Optional[str | list[str]],  metadata: Optional[list[dict]] = None) -> None:
+        if data:
+            self.store.update(data)
+
+    def update_memory(self, data: Any, ids: Optional[str | list[str]] = None, metadata: Optional[list[dict]] = None) -> None:
         """
         Updates the memory entry with the specified key. Creates the entry if it doesn't exist.
 
@@ -76,5 +80,4 @@ class Memory:
 
         This method should be used with caution as it will permanently delete all data within the storage.
         """
-
         self.storage.reset_storage()

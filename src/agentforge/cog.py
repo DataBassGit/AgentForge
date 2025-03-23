@@ -1,11 +1,12 @@
 import importlib
 import importlib.util
+import logging
 from typing import Dict, Any, Optional, List
 from agentforge.config import Config
 from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
 from agentforge.utils.parsing_processor import ParsingProcessor, ParsingError
-
+from agentforge.storage.memory import Memory
 
 class Cog:
     """
@@ -33,6 +34,9 @@ class Cog:
 
         # Set up Cog (build agent nodes)
         self._build_agent_nodes()
+
+        # Build memory nodes
+        self._build_memory_nodes()
 
     def _load_cog_config(self) -> None:
         self.cog_config = self.config.load_cog_data(self.cog_file).copy()
@@ -255,7 +259,149 @@ class Cog:
         return self._handle_decision(current_agent_id, transition)
 
     ##########################################################
-    # Section 6: Execution
+    # Section 6: Memory
+    ##########################################################
+
+    @staticmethod
+    def _resolve_memory_class(mem_def: dict):
+        mem_type = mem_def.get("type")
+        if not mem_type:
+            # Default to the base Memory class
+            return Memory
+
+        # If there's a type, we need to dynamic import:
+        # e.g. "agentforge.memory.ScratchPadMemory"
+        parts = mem_type.split(".")
+        module_path = ".".join(parts[:-1])
+        class_name = parts[-1]
+
+        spec = importlib.util.find_spec(module_path)
+        if not spec:
+            raise ImportError(f"Memory module '{module_path}' not found for memory '{mem_def['id']}'.")
+
+        mod = importlib.import_module(module_path)
+        if not hasattr(mod, class_name):
+            raise ImportError(f"Class '{class_name}' not found in '{module_path}' for memory '{mem_def['id']}'.")
+
+        return getattr(mod, class_name)
+
+    def _build_memory_nodes(self) -> None:
+        # We expect a list of memory configs under cog_config['cog'].get('memory', [])
+        self.memories = {}
+        memory_list = self.cog_config.get("cog", {}).get("memory", [])
+        for mem_def in memory_list:
+            mem_id = mem_def["id"]
+            mem_class = self._resolve_memory_class(mem_def)
+
+            # we need a way to get the persona for the cog
+
+            mem_obj = mem_class(cog_name=self.cog_file)
+            self.memories[mem_id] = {
+                "instance": mem_obj,
+                "config": mem_def,  # store the raw config for query/update triggers
+            }
+
+    def _memory_query_phase(self, agent_id: str):
+        # Create sub-dict for memory in global_context if not existing
+        if "memory" not in self.global_context:
+            self.global_context["memory"] = {}
+
+        for mem_id, mem_data in self.memories.items():
+            cfg = mem_data["config"]
+            mem_obj = mem_data["instance"]
+
+            if mem_id not in self.global_context["memory"]:
+                self.global_context["memory"][mem_id] = mem_obj.store
+
+            # query_before can be a list or string
+            query_agents = cfg.get("query_before", [])
+            if agent_id in query_agents:
+                # Gather the relevant keys from global_context
+                query_keys = cfg.get("query_keys", [])
+
+                query_text = None
+                if query_keys:
+                    input_for_query = self._extract_keys(self.global_context, query_keys)
+
+                    if not input_for_query:
+                        continue
+
+                    query_text = input_for_query
+
+                query_text = query_text if query_text else self.global_context
+
+                # Call memory.query(...)
+                result = mem_obj.query_memory(query_text=query_text)
+
+                # Combine result with memory’s internal store or skip
+                if result:
+                    self.logger.log(f"Memories Found:\n{result}", 'info', 'Memory')
+                    print(f"----------------\n"
+                          f"Memories Found:\n{result}\n"
+                          f"----------------")
+                    mem_obj.store.update(result)
+
+                # Copy memory store to global_context["memory"]
+                # self.global_context["memory"][mem_id] = mem_obj.store
+
+    def _memory_update_phase(self, agent_id: str):
+        for mem_id, mem_data in self.memories.items():
+            cfg = mem_data["config"]
+            mem_obj = mem_data["instance"]
+
+            update_agents = cfg.get("update_after", [])
+            if agent_id in update_agents:
+                update_keys = cfg.get("update_keys", [])
+                input_for_update = self._extract_keys(self.global_context, update_keys)
+                if input_for_update:
+                    mem_obj.update_memory(data=input_for_update)
+                # Refresh what's in global_context["memory"]
+                # self.global_context["memory"][mem_id] = mem_obj.store
+
+    def _extract_keys(self, context: dict, key_list: list[str]) -> list | dict:
+        """
+        Helper method: given a list of dot-notated keys, pluck them out of context if present.
+        e.g. "thought.user_intent" => context["thought"]["user_intent"]
+        Returns a dict of { <last field in key>: value } or something similar
+        """
+        # result = {}
+        # for k in key_list:
+        #     value = self._lookup_dot_key(context, k)
+        #     # Could store it as "user_intent": value if the final segment was user_intent
+        #     final_field = k.split(".")[-1]
+        #     result[final_field] = value
+        # return result
+
+        if not key_list:
+            return context
+
+        if isinstance(key_list, str):
+            key_list = [key_list]
+
+        # We need to find a better way to do this.
+        result = []
+        for k in key_list:
+            value = self._lookup_dot_key(context, k)
+            if value is not None:
+                result.append(value)
+        return result
+
+    @staticmethod
+    def _lookup_dot_key(obj: dict, dot_key: str):
+        """
+        e.g. obj = {"thought": {"user_intent": "some intent"}}, dot_key="thought.user_intent"
+        => returns "some intent"
+        """
+        parts = dot_key.split(".")
+        current = obj
+        for p in parts:
+            if not isinstance(current, dict) or p not in current:
+                return None
+            current = current[p]
+        return current
+
+    ##########################################################
+    # Section 7: Execution
     ##########################################################
 
     def _get_response_format_for_agent(self, agent_def):
@@ -297,9 +443,18 @@ class Cog:
     def _execute_flow(self) -> None:
         current_agent_id = self.flow.get("start")
         while current_agent_id:
+            # BEFORE calling the agent, do memory queries
+            self._memory_query_phase(current_agent_id)
+
+            # RUN Agent
             parsed_output = self._call_agent(current_agent_id)
             self._track_agent_output(current_agent_id, parsed_output)
             self.global_context[current_agent_id] = parsed_output
+
+            # AFTER the agent finishes, do memory updates
+            self._memory_update_phase(current_agent_id)
+
+            # NEXT Agent
             current_agent_id = self._get_next_agent(current_agent_id)
 
     def _parse_agent_output(self, agent_id: str, output: str) -> Any:

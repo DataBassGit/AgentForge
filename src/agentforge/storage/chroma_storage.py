@@ -1,3 +1,4 @@
+import re
 import os
 import uuid
 from datetime import datetime
@@ -6,6 +7,7 @@ from typing import Optional, Union
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
+from scipy.ndimage import value_indices
 
 from agentforge.utils.logger import Logger
 from agentforge.config import Config
@@ -18,17 +20,60 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 ##########################################################
 
 def validate_collection_name(collection_name: str):
+    # We expected a collection name that:
+    # (1) contains 3-63 characters
+    # (2) starts and ends with an alphanumeric character
+    # (3) otherwise contains only alphanumeric characters, underscores or hyphens (-)
+    # (4) contains no two consecutive periods (..) and
+    # (5) is not a valid IPv4 address.
+
     if not collection_name:
         raise ValueError("Collection name cannot be empty.")
 
-    # need to add the restrictions for collection names 
+    # Replace any invalid characters with an underscore
+    collection_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', collection_name)
 
-def validate_inputs(collection_name: str, data: Union[list, str], ids: list, metadata: list[dict]):
+    # Remove consecutive periods
+    while ".." in collection_name:
+        collection_name = collection_name.replace("..", ".")
+
+    # Check if the first character is not alphanumeric and remove it
+    while len(collection_name) > 0 and not collection_name[0].isalnum():
+        collection_name = collection_name[1:]
+
+    # Check if the last character is not alphanumeric and remove it
+    while len(collection_name) > 0 and not collection_name[-1].isalnum():
+        collection_name = collection_name[:-1]
+
+    # Ensure we don't proceed with an empty name
+    if len(collection_name) <= 0:
+        collection_name = "0"
+
+    # Ensure the name starts with an alphanumeric character
+    if not collection_name[0].isalnum():
+        collection_name = "0" + collection_name
+
+    # Ensure the name ends with an alphanumeric character
+    if not collection_name[-1].isalnum():
+        collection_name = collection_name + "0"
+
+    # Ensure the name is at least 3 characters long
+    while len(collection_name) < 3:
+        collection_name = collection_name + "0"
+
+    # Check if the name exceeds 63 characters
+    if len(collection_name) > 63:
+        raise ValueError(f"Collection name exceeds 63 characters. Ensure it starts/ends with alphanumeric, "
+                         f"contains only alphanumeric, underscores, hyphens, and no consecutive periods.\n"
+                         f"Got: '{collection_name}'")
+
+    return collection_name
+
+def validate_inputs(data: Union[list, str], ids: list, metadata: list[dict]):
     """
     Validates the inputs for the save_memory method.
 
     Parameters:
-        collection_name (str): The name of the collection.
         data (Union[list, str]): The documents to be saved.
         ids (list): The IDs for the documents.
         metadata (list[dict]): The metadata for the documents.
@@ -36,8 +81,6 @@ def validate_inputs(collection_name: str, data: Union[list, str], ids: list, met
     Raises:
         ValueError: If any of the inputs are invalid.
     """
-    validate_collection_name(collection_name)
-
     if not data:
         raise ValueError("Data cannot be empty.")
 
@@ -255,8 +298,8 @@ class ChromaStorage:
             return {}
 
         query_params = {"n_results": self._calculate_num_results(num_results, collection_name)}
-        if query_params["num_results"] <= 0:
-            logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
+        if query_params["n_results"] <= 0:
+            logger.log(f"No Results Found in '{collection_name}' collection!", 'info')
             return {}
 
         query_params["include"] = include if include else ["documents", "metadatas", "distances"]
@@ -296,7 +339,7 @@ class ChromaStorage:
             ValueError: If there's an error in getting or creating the collection.
         """
         try:
-            validate_collection_name(collection_name)
+            collection_name = validate_collection_name(collection_name)
             self.collection = self.client.get_or_create_collection(name=collection_name,
                                                                    embedding_function=self.embedding,
                                                                    metadata={"hnsw:space": "cosine"})
@@ -374,7 +417,7 @@ class ChromaStorage:
         params.update(include=include)
 
         if where is not None:
-            params.update(where=where)
+            params.update_memory(where=where)
 
         if where_doc is not None:
             params.update(where_document=where_doc)
@@ -416,7 +459,7 @@ class ChromaStorage:
         try:
             data = [data] if isinstance(data, str) else data
             ids, metadata = generate_defaults(data, ids, metadata)
-            validate_inputs(collection_name, data, ids, metadata)
+            validate_inputs(data, ids, metadata)
             apply_timestamps(metadata, self.config.data)
 
             self.select_collection(collection_name)
@@ -448,12 +491,16 @@ class ChromaStorage:
         Returns:
             dict or None: The query results, or None if an error occurs.
         """
-        validate_collection_name(collection_name)
-
         try:
-            self.select_collection(collection_name)
-            query_params = self._prepare_query_params(query, filter_condition, include, embeddings, num_results,
-                                                      collection_name)
+            params = {
+                'query': query,
+                'filter_condition': filter_condition,
+                'include': include,
+                'embeddings': embeddings,
+                'num_results': num_results,
+                'collection_name': collection_name
+            }
+            query_params = self._prepare_query_params(**params)
 
             result = {}
             if query_params:
@@ -479,7 +526,7 @@ class ChromaStorage:
         self.collection.delete(ids=ids)
 
     ##########################################################
-    # Section 7: Advance
+    # Section 7: Advanced
     ##########################################################
 
     def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.8,
