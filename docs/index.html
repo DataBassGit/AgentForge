@@ -102,49 +102,150 @@
         if (type !== 'error' && duration > 0) { setTimeout(() => { if (statusElement.textContent === message) { statusElement.style.display = 'none'; } }, duration); }
     }
 
-    // --- Get Path from URL ---
-    function getRepoPathFromURL() { /* ... same ... */
-      const repoBaseUrlPath = `/${GITHUB_REPO}/`; let fullPath = window.location.pathname; fullPath = fullPath.replace(/index\.html$/, '').replace(/\/$/, ''); let relativePath = '';
-      if (fullPath.startsWith(repoBaseUrlPath)) { relativePath = fullPath.substring(repoBaseUrlPath.length); }
-      else { console.warn("Cannot determine repo base path reliably. Assuming root relative."); relativePath = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath; }
-      let repoPath = REPO_DOCS_ROOT ? `${REPO_DOCS_ROOT}/${relativePath}` : relativePath; repoPath = repoPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, ''); return repoPath;
+    // --- Get Path from URL --- (CORRECTED VERSION)
+    function getRepoPathFromURL() {
+        // Base patterns to identify the docs root in the URL pathname
+        // Handles cases like /docs/, /RepoName/docs/, /
+        const docsRootPatternInUrl = new RegExp(`^/?(?:${GITHUB_REPO}/)?${REPO_DOCS_ROOT}/?`, 'i');
+        const repoRootPatternInUrl = new RegExp(`^/?${GITHUB_REPO}/?`, 'i');
+
+        let currentPathname = window.location.pathname.replace(/index\.html$/, ''); // Remove index.html
+
+        let pathRelativeToDocsRoot = '';
+
+        // Try matching GitHub Pages structure first (e.g., /Repo/docs/)
+        if (currentPathname.toLowerCase().startsWith(`/${GITHUB_REPO.toLowerCase()}/${REPO_DOCS_ROOT.toLowerCase()}/`)) {
+             const basePathToRemove = `/${GITHUB_REPO}/${REPO_DOCS_ROOT}/`;
+             pathRelativeToDocsRoot = currentPathname.substring(basePathToRemove.length);
+        }
+        // Try matching simple /docs/ structure (e.g., served from domain root)
+        else if (currentPathname.toLowerCase().startsWith(`/${REPO_DOCS_ROOT.toLowerCase()}/`)) {
+             const basePathToRemove = `/${REPO_DOCS_ROOT}/`;
+             pathRelativeToDocsRoot = currentPathname.substring(basePathToRemove.length);
+        }
+        // Try matching structure where site is served *from within* the 'docs' dir (e.g., localhost:8000/)
+        // Needs careful check: Is it repo root or docs root? Let's assume if ONLY repo matches, it's served from repo root.
+        else if (repoRootPatternInUrl.test(currentPathname) && !docsRootPatternInUrl.test(currentPathname)) {
+             // This case is less common for docs sites. If URL is /RepoName/something_else,
+             // it's likely outside the docs. Let's default to the docs root.
+             console.warn(`URL path ${currentPathname} starts with repo name but not docs root. Assuming docs root.`);
+             pathRelativeToDocsRoot = ''; // Default to root of docs
+        }
+        // Fallback: Assume served directly from *within* the docs directory,
+        // so the pathname itself is relative to the docs root (e.g., /subdir/page.html maps to docs/subdir)
+        else {
+             console.warn("Cannot reliably determine deployment base path (e.g., /Repo/docs/ or /docs/). Assuming pathname is relative *within* the docs root.");
+             // Remove leading slash only
+             pathRelativeToDocsRoot = currentPathname.startsWith('/') ? currentPathname.substring(1) : currentPathname;
+        }
+
+
+        // Clean the relative path (remove trailing slash if any)
+        pathRelativeToDocsRoot = pathRelativeToDocsRoot.replace(/\/$/, '');
+
+        // Construct the final API path: REPO_DOCS_ROOT + cleaned relative path
+        let finalApiPath = REPO_DOCS_ROOT;
+        if (pathRelativeToDocsRoot) {
+            finalApiPath += '/' + pathRelativeToDocsRoot;
+        }
+
+        // Final cleanup of slashes (just in case)
+        finalApiPath = finalApiPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, ''); // Remove leading/trailing slashes
+
+        // console.log(`[getRepoPathFromURL] Pathname: ${window.location.pathname}, Calculated API Path: ${finalApiPath}`); // DEBUG
+        return finalApiPath || REPO_DOCS_ROOT; // Ensure we always return at least the root path
     }
 
     // --- Build File List ---
     async function populateFileList() { /* ... same ... */
-      currentRepoPath = getRepoPathFromURL(); const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${currentRepoPath}?ref=${GITHUB_BRANCH}`; const displayPath = currentRepoPath.replace(new RegExp(`^${REPO_DOCS_ROOT}/?`), '') || 'Root'; currentFolderNameEl.textContent = displayPath; document.title = `${displayPath} - ${GITHUB_REPO}`; fileListElement.innerHTML = '<li><i>Fetching directory contents...</i></li>';
+      currentRepoPath = getRepoPathFromURL(); // This now uses the corrected function
+      // Log the path being used for the API call
+      console.log(`[populateFileList] Using API path: ${currentRepoPath}`);
+      const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${currentRepoPath}?ref=${GITHUB_BRANCH}`;
+      const displayPath = currentRepoPath.replace(new RegExp(`^${REPO_DOCS_ROOT}/?`), '') || 'Root';
+      currentFolderNameEl.textContent = displayPath;
+      document.title = `${displayPath} - ${GITHUB_REPO}`;
+      fileListElement.innerHTML = '<li><i>Fetching directory contents...</i></li>';
       try { /* ... fetch and list building ... */
         const response = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-        if (!response.ok) { if (response.status === 404) { throw new Error(`Directory not found: ${currentRepoPath}`); } else if (response.status === 403) { throw new Error(`API Forbidden (Rate Limit?)`); } else { throw new Error(`API Error: ${response.status}`); } }
-        const items = await response.json(); fileListElement.innerHTML = ''; const isAtDocsRoot = currentRepoPath === REPO_DOCS_ROOT || (REPO_DOCS_ROOT === '' && currentRepoPath === '');
-        if (!isAtDocsRoot) { const li = document.createElement('li'); li.innerHTML = `<a href="../" class="parent-link">Parent Directory</a>`; fileListElement.appendChild(li); }
+        if (!response.ok) {
+            if (response.status === 404) { throw new Error(`Directory not found: ${currentRepoPath}`); }
+            else if (response.status === 403) { throw new Error(`API Forbidden (Rate Limit?) for path: ${currentRepoPath}`); }
+            else { throw new Error(`API Error: ${response.status} for path: ${currentRepoPath}`); }
+        }
+        const items = await response.json(); fileListElement.innerHTML = '';
+        const isAtDocsRoot = currentRepoPath === REPO_DOCS_ROOT || (REPO_DOCS_ROOT === '' && currentRepoPath === ''); // Adjust logic if REPO_DOCS_ROOT can be empty
+
+        // Add parent link only if NOT at the defined REPO_DOCS_ROOT
+        if (!isAtDocsRoot && currentRepoPath !== '') { // Also check currentRepoPath isn't empty just in case
+             const parentPathParts = currentRepoPath.split('/');
+             // If only one part (e.g., 'docs') and it IS the root, don't show parent.
+             // If more than one part (e.g., 'docs/subdir'), go up.
+             if (parentPathParts.length > 1 || (parentPathParts.length === 1 && parentPathParts[0] !== REPO_DOCS_ROOT)) {
+                  const li = document.createElement('li');
+                  // Calculate the correct relative URL for the parent link
+                  // If current URL is /repo/docs/subdir/, parent is ../ which resolves to /repo/docs/
+                  // If current URL is /docs/subdir/, parent is ../ which resolves to /docs/
+                  // If current URL is /subdir/ (served from docs), parent is ../ which resolves to /
+                  // This needs careful handling based on deployment... using '../' is simplest for relative links.
+                  li.innerHTML = `<a href="../" class="parent-link">Parent Directory</a>`;
+                  fileListElement.appendChild(li);
+             }
+        }
+
         items.sort((a, b) => { if (a.type === 'dir' && b.type !== 'dir') return -1; if (a.type !== 'dir' && b.type === 'dir') return 1; return a.name.localeCompare(b.name); });
         items.forEach(item => { const li = document.createElement('li'); let link = '';
           if (item.type === 'dir') { link = `<a href="${item.name}/" class="dir-link">${item.name}/</a>`; }
           else if (item.type === 'file') { if (item.name.toLowerCase().endsWith('.md')) { link = `<a href="${item.name}" class="md-link" data-filename="${item.name}">${item.name}</a>`; } else if (item.name.toLowerCase() !== 'index.html') { link = `<a href="${item.html_url}" class="file-link" target="_blank">${item.name}</a>`; } }
           if(link) { li.innerHTML = link; fileListElement.appendChild(li); } });
-        if (fileListElement.children.length === (isAtDocsRoot ? 0 : 1)) { fileListElement.innerHTML += '<li><i>Empty directory.</i></li>'; } // Adjust check for parent link
+
+        // Check if list is empty *besides* the potential parent link
+        const hasParentLink = fileListElement.querySelector('a.parent-link');
+        if (fileListElement.children.length === (hasParentLink ? 1 : 0)) {
+             fileListElement.innerHTML += '<li><i>Empty directory.</i></li>';
+        }
         autoLoadReadme();
-      } catch (error) { console.error('Error fetching dir contents:', error); fileListElement.innerHTML = `<li><i>Error: ${error.message}</i></li>`; showStatus(`Error loading list: ${error.message}`, 'error', 0); document.title = `Error - ${GITHUB_REPO}`; }
+      } catch (error) {
+         console.error('Error fetching dir contents:', error);
+         fileListElement.innerHTML = `<li><i>Error: ${error.message}</i></li>`;
+         showStatus(`Error loading list: ${error.message}`, 'error', 0);
+         document.title = `Error - ${GITHUB_REPO}`;
+      }
     }
 
     // --- Markdown Loading and Rendering ---
     async function loadAndRenderMarkdown(fileName, linkElement) { /* ... same ... */
-        showStatus(`Loading ${fileName}...`, 'info', 0); if (currentSelectedLink) { currentSelectedLink.classList.remove('selected'); } linkElement.classList.add('selected'); currentSelectedLink = linkElement; const fileRepoPath = currentRepoPath ? `${currentRepoPath}/${fileName}` : fileName; const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${fileRepoPath}`;
+        showStatus(`Loading ${fileName}...`, 'info', 0); if (currentSelectedLink) { currentSelectedLink.classList.remove('selected'); } linkElement.classList.add('selected'); currentSelectedLink = linkElement;
+        // Construct the path relative to the repository root for the raw content URL
+        const fileRepoPath = currentRepoPath ? `${currentRepoPath}/${fileName}` : fileName;
+        // Ensure no double slashes if currentRepoPath was empty or ended with /
+        const cleanedFileRepoPath = fileRepoPath.replace(/\/+/g, '/').replace(/^\//, ''); // Remove leading slash if present
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${cleanedFileRepoPath}`;
+        console.log(`[loadAndRenderMarkdown] Fetching raw content from: ${rawUrl}`); // Log the raw URL
+
         try {
             // **** Check md AGAIN just before use ****
-            if (typeof md !== 'function' && typeof window.markdownit !== 'function') { throw new Error("Markdown renderer (md) is not available."); }
-            // Use window.markdownit directly if md variable assignment failed but window object exists
-            const renderer = md || window.markdownit;
-            if (typeof renderer !== 'function') { throw new Error("Markdown renderer is not a function."); }
-            // **** End Check ****
+            if (typeof md !== 'object' && typeof window.markdownit !== 'function') { // Check md is an object instance or the factory exists
+                 throw new Error("Markdown renderer (md) is not available or not initialized correctly.");
+            }
+            // Use the initialized md instance
+            const renderer = md;
+            if (typeof renderer?.render !== 'function') { // Check if the instance has a render method
+                 // Maybe try initializing again? Or fallback to window.markdownit if desperate?
+                 if(typeof window.markdownit === 'function'){
+                      console.warn("Re-initializing markdown-it instance.");
+                      md = window.markdownit({html:true, linkify:true, typographer:true});
+                 } else {
+                      throw new Error("Markdown renderer instance is invalid and factory is unavailable.");
+                 }
+            }
+             // **** End Check ****
 
             const response = await fetch(rawUrl);
             if (!response.ok) { if (response.status === 404) { throw new Error(`File not found: ${rawUrl}`); } else { throw new Error(`HTTP error fetching raw content! Status: ${response.status}`); } }
             const markdownContent = await response.text();
-            const htmlContent = renderer({html:true, linkify:true, typographer:true}).render(markdownContent); // Instantiate if needed, or just use md.render if md is guaranteed
-            // Safer: Use the initialized instance if available
-            // const htmlContent = md.render(markdownContent);
+
+            const htmlContent = md.render(markdownContent); // Use the initialized instance
 
             contentElement.innerHTML = htmlContent;
             contentElement.querySelectorAll('pre code').forEach((block) => { if (window.hljs) { window.hljs.highlightElement(block); } else { console.warn("hljs not ready."); } });
@@ -204,17 +305,42 @@
         fileListElement.addEventListener('click', (event) => {
             const target = event.target.closest('a');
             if (!target) return;
-            if (target.classList.contains('md-link')) {
-                event.preventDefault();
-                const fileName = target.dataset.filename;
-                if (fileName) { loadAndRenderMarkdown(fileName, target); }
+
+            // Let browser handle external links and non-md files normally
+            if (target.classList.contains('file-link') || target.target === '_blank') {
+                return;
+            }
+
+            // Handle directory links and MD file links via JS
+            if (target.classList.contains('dir-link') || target.classList.contains('md-link') || target.classList.contains('parent-link')) {
+                 event.preventDefault(); // Prevent default navigation
+
+                 if (target.classList.contains('md-link')) {
+                    const fileName = target.dataset.filename;
+                    if (fileName) { loadAndRenderMarkdown(fileName, target); }
+                 } else if (target.classList.contains('dir-link') || target.classList.contains('parent-link')) {
+                    // Navigate to the new directory path - browser handles relative URL resolution
+                    window.location.href = target.href;
+                    // NOTE: Since this causes a page reload, populateFileList will run again
+                    // on the new page load because it's triggered by window.onload.
+                 }
             }
         });
+
+        // Handle back/forward navigation
+        window.addEventListener('popstate', (event) => {
+             console.log("Popstate event fired - navigating via history.");
+             // Re-populate the file list and potentially load README based on the new URL
+             populateFileList();
+             // Clear existing content to show loading state
+             contentElement.innerHTML = `<h1>Loading...</h1><p>Fetching content for the current path.</p>`;
+        });
+
     });
 
     console.log("Initial script parsing finished. Waiting for 'load' event...");
 
-  </script>
+</script>
 
 </body>
 </html>
