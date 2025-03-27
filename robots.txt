@@ -9,6 +9,8 @@ Disallow: /includes/
 Disallow: /cgi-bin/
 Disallow: /tmp/
 
+Allow: /docs/
+
 # Blog section (planned)
 Allow: /blog/
 Allow: /blog/archives/
