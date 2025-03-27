@@ -78,13 +78,11 @@
     </div>
   </main>
 
-  <script>
+      <script>
     // --- Configuration ---
     const GITHUB_OWNER = 'DataBassGit';
     const GITHUB_REPO = 'AgentForge';
-    const GITHUB_BRANCH = 'main'; // Or your default branch
-    // Path within the repo that corresponds to the root of your GitHub Pages site
-    // Since your site is sourced from the /docs folder, this is 'docs'.
+    const GITHUB_BRANCH = 'main';
     const REPO_DOCS_ROOT = 'docs';
     // --- End Configuration ---
 
@@ -93,244 +91,80 @@
     const fileListElement = document.getElementById('file-list');
     const currentFolderNameEl = document.getElementById('current-folder-name');
     let currentSelectedLink = null;
-    let currentRepoPath = ''; // Will store the calculated path relative to the *repo* root (e.g., 'docs' or 'docs/subdir')
+    let currentRepoPath = '';
 
     let md; // Declare md variable here
 
     // --- Status Display ---
-    function showStatus(message, type = 'info', duration = 4000) {
-        statusElement.textContent = message;
-        statusElement.className = ''; // Clear previous types
-        statusElement.classList.add(type); // 'info', 'success', 'error'
+    function showStatus(message, type = 'info', duration = 4000) { /* ... same ... */
+        statusElement.textContent = message; statusElement.className = ''; statusElement.classList.add(type);
         statusElement.style.display = 'block';
-
-        if (type !== 'error' && duration > 0) {
-            setTimeout(() => {
-                if (statusElement.textContent === message) { // Hide only if msg hasn't changed
-                   statusElement.style.display = 'none';
-                }
-            }, duration);
-        }
+        if (type !== 'error' && duration > 0) { setTimeout(() => { if (statusElement.textContent === message) { statusElement.style.display = 'none'; } }, duration); }
     }
 
     // --- Get Path from URL ---
-    function getRepoPathFromURL() {
-      // Define the expected base URL path on GitHub Pages (must start and end with /)
-      // Assumes your site is at owner.github.io/repo/
-      const expectedLiveBasePath = `/${GITHUB_REPO}/`;
-
-      // Get the current full pathname from the URL
-      let currentPathname = window.location.pathname;
-
-      // --- Path Cleaning ---
-      try {
-        currentPathname = decodeURIComponent(currentPathname);
-      } catch (e) { console.error("Error decoding pathname:", currentPathname, e); }
-      let cleanedPath = currentPathname.replace(/index\.html$/, '');
-      if (cleanedPath.length > 1 && cleanedPath.endsWith('/')) {
-          cleanedPath = cleanedPath.slice(0, -1);
-      }
-      // --- End Path Cleaning ---
-
-      let pathRelativeToWebsiteRoot = '';
-
-      // --- Determine Path Relative to Website Root (which is /docs in repo) ---
-      // Check if running on the expected GitHub Pages structure owner.github.io/repo/
-      if (cleanedPath.startsWith(expectedLiveBasePath)) {
-          // Extract the part *after* /repo/
-          // Example: /AgentForge/guides/api -> guides/api
-          pathRelativeToWebsiteRoot = cleanedPath.substring(expectedLiveBasePath.length);
-          console.log(`Detected live structure. Path relative to website root: "${pathRelativeToWebsiteRoot}"`);
-      }
-      // Fallback for Localhost/Other (less reliable)
-      else {
-           // ASSUMPTION: The path after the domain/port corresponds to the path relative to website root
-           // Example: http://localhost:8000/guides/api -> guides/api
-           pathRelativeToWebsiteRoot = cleanedPath.startsWith('/') ? cleanedPath.substring(1) : cleanedPath;
-           console.warn(`URL path "${currentPathname}" doesn't match expected live structure "${expectedLiveBasePath}". Assuming "${pathRelativeToWebsiteRoot}" is the path relative to the website root (/docs in repo).`);
-           if (window.location.protocol === 'file:') {
-                console.error("Running from file:// protocol. Path detection is unreliable. Serve via HTTP.");
-           }
-      }
-      // --- End Path Determination ---
-
-
-      // --- Construct Full Repository Path ---
-      // Start with REPO_DOCS_ROOT ('docs').
-      // Append the pathRelativeToWebsiteRoot *if* it's not empty.
-      let repoPath = REPO_DOCS_ROOT;
-      if (pathRelativeToWebsiteRoot) {
-          // Ensure single slash between parts, handles if REPO_DOCS_ROOT is empty string too
-          repoPath = `${repoPath}/${pathRelativeToWebsiteRoot}`;
-      }
-
-      // Final cleanup: remove potential double slashes and any leading/trailing slashes
-      repoPath = repoPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
-      // --- End Repository Path Construction ---
-
-      console.log(`Path Determination:
-        - Full Pathname: ${window.location.pathname}
-        - Cleaned Path: ${cleanedPath}
-        - Relative Website Path: ${pathRelativeToWebsiteRoot}
-        - Calculated Repo API Path: ${repoPath}`);
-
-      return repoPath;
+    function getRepoPathFromURL() { /* ... same ... */
+      const repoBaseUrlPath = `/${GITHUB_REPO}/`; let fullPath = window.location.pathname; fullPath = fullPath.replace(/index\.html$/, '').replace(/\/$/, ''); let relativePath = '';
+      if (fullPath.startsWith(repoBaseUrlPath)) { relativePath = fullPath.substring(repoBaseUrlPath.length); }
+      else { console.warn("Cannot determine repo base path reliably. Assuming root relative."); relativePath = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath; }
+      let repoPath = REPO_DOCS_ROOT ? `${REPO_DOCS_ROOT}/${relativePath}` : relativePath; repoPath = repoPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, ''); return repoPath;
     }
 
-
     // --- Build File List ---
-    async function populateFileList() {
-      currentRepoPath = getRepoPathFromURL(); // This now correctly gives 'docs' or 'docs/subdir'
-      const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${currentRepoPath}?ref=${GITHUB_BRANCH}`;
-
-      // Update heading based on path *relative* to the docs root for display
-      const displayPath = currentRepoPath.substring(REPO_DOCS_ROOT.length).replace(/^\//, '') || 'Root'; // Show 'Root' or 'subdir'
-      currentFolderNameEl.textContent = displayPath;
-      document.title = `${displayPath} - ${GITHUB_REPO}`;
-
-      fileListElement.innerHTML = '<li><i>Fetching directory contents...</i></li>';
-
-      try {
+    async function populateFileList() { /* ... same ... */
+      currentRepoPath = getRepoPathFromURL(); const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${currentRepoPath}?ref=${GITHUB_BRANCH}`; const displayPath = currentRepoPath.replace(new RegExp(`^${REPO_DOCS_ROOT}/?`), '') || 'Root'; currentFolderNameEl.textContent = displayPath; document.title = `${displayPath} - ${GITHUB_REPO}`; fileListElement.innerHTML = '<li><i>Fetching directory contents...</i></li>';
+      try { /* ... fetch and list building ... */
         const response = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-        if (!response.ok) {
-          if (response.status === 404) { throw new Error(`Directory not found in repo: ${currentRepoPath}. Check path/branch.`); }
-          else if (response.status === 403) { throw new Error(`API Forbidden (Rate Limit?) Status: ${response.status}`); }
-          else { throw new Error(`GitHub API error! Status: ${response.status} - ${response.statusText}`); }
-        }
-        const items = await response.json();
-        fileListElement.innerHTML = '';
-
-        // Add Parent Directory Link (if not at the REPO_DOCS_ROOT itself)
-        const isAtDocsRoot = currentRepoPath === REPO_DOCS_ROOT;
-        if (!isAtDocsRoot) {
-            const li = document.createElement('li');
-            li.innerHTML = `<a href="../" class="parent-link">Parent Directory</a>`;
-            fileListElement.appendChild(li);
-        }
-
-        // Sort items: directories first, then files, alphabetically
-        items.sort((a, b) => {
-          if (a.type === 'dir' && b.type !== 'dir') return -1;
-          if (a.type !== 'dir' && b.type === 'dir') return 1;
-          return a.name.localeCompare(b.name);
-        });
-
-        // Add items from API
-        items.forEach(item => {
-          const li = document.createElement('li');
-          let link = '';
-          if (item.type === 'dir') {
-            link = `<a href="${item.name}/" class="dir-link">${item.name}/</a>`;
-          } else if (item.type === 'file') {
-            if (item.name.toLowerCase().endsWith('.md')) {
-              link = `<a href="${item.name}" class="md-link" data-filename="${item.name}">${item.name}</a>`;
-            } else if (item.name.toLowerCase() !== 'index.html') { // Hide index.html itself
-               link = `<a href="${item.html_url}" class="file-link" target="_blank">${item.name}</a>`;
-            }
-          }
-          if(link) {
-            li.innerHTML = link;
-            fileListElement.appendChild(li);
-          }
-        });
-
-        // Check if only parent link is present (if not at root) or list is empty (if at root)
-         if (fileListElement.children.length === (isAtDocsRoot ? 0 : 1)) {
-            fileListElement.innerHTML += '<li><i>Empty directory.</i></li>';
-         }
-
-        autoLoadReadme(); // Attempt to load README after list is built
-
-      } catch (error) {
-        console.error('Error fetching directory contents:', error);
-        fileListElement.innerHTML = `<li><i>Error loading list: ${error.message}</i></li>`;
-        showStatus(`Error loading directory list: ${error.message}`, 'error', 0);
-        document.title = `Error - ${GITHUB_REPO}`;
-      }
+        if (!response.ok) { if (response.status === 404) { throw new Error(`Directory not found: ${currentRepoPath}`); } else if (response.status === 403) { throw new Error(`API Forbidden (Rate Limit?)`); } else { throw new Error(`API Error: ${response.status}`); } }
+        const items = await response.json(); fileListElement.innerHTML = ''; const isAtDocsRoot = currentRepoPath === REPO_DOCS_ROOT || (REPO_DOCS_ROOT === '' && currentRepoPath === '');
+        if (!isAtDocsRoot) { const li = document.createElement('li'); li.innerHTML = `<a href="../" class="parent-link">Parent Directory</a>`; fileListElement.appendChild(li); }
+        items.sort((a, b) => { if (a.type === 'dir' && b.type !== 'dir') return -1; if (a.type !== 'dir' && b.type === 'dir') return 1; return a.name.localeCompare(b.name); });
+        items.forEach(item => { const li = document.createElement('li'); let link = '';
+          if (item.type === 'dir') { link = `<a href="${item.name}/" class="dir-link">${item.name}/</a>`; }
+          else if (item.type === 'file') { if (item.name.toLowerCase().endsWith('.md')) { link = `<a href="${item.name}" class="md-link" data-filename="${item.name}">${item.name}</a>`; } else if (item.name.toLowerCase() !== 'index.html') { link = `<a href="${item.html_url}" class="file-link" target="_blank">${item.name}</a>`; } }
+          if(link) { li.innerHTML = link; fileListElement.appendChild(li); } });
+        if (fileListElement.children.length === (isAtDocsRoot ? 0 : 1)) { fileListElement.innerHTML += '<li><i>Empty directory.</i></li>'; } // Adjust check for parent link
+        autoLoadReadme();
+      } catch (error) { console.error('Error fetching dir contents:', error); fileListElement.innerHTML = `<li><i>Error: ${error.message}</i></li>`; showStatus(`Error loading list: ${error.message}`, 'error', 0); document.title = `Error - ${GITHUB_REPO}`; }
     }
 
     // --- Markdown Loading and Rendering ---
-    async function loadAndRenderMarkdown(fileName, linkElement) {
-        showStatus(`Loading ${fileName}...`, 'info', 0);
-        if (currentSelectedLink) {
-            currentSelectedLink.classList.remove('selected');
-        }
-        linkElement.classList.add('selected');
-        currentSelectedLink = linkElement;
-
-        // Construct the full path within the repo for the raw content URL
-        const fileRepoPath = `${currentRepoPath}/${fileName}`; // currentRepoPath is already 'docs' or 'docs/subdir'
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${fileRepoPath}`;
-
+    async function loadAndRenderMarkdown(fileName, linkElement) { /* ... same ... */
+        showStatus(`Loading ${fileName}...`, 'info', 0); if (currentSelectedLink) { currentSelectedLink.classList.remove('selected'); } linkElement.classList.add('selected'); currentSelectedLink = linkElement; const fileRepoPath = currentRepoPath ? `${currentRepoPath}/${fileName}` : fileName; const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${fileRepoPath}`;
         try {
-            // Check md AGAIN just before use for safety
-            if (typeof md !== 'function' && typeof window.markdownit !== 'function') {
-                throw new Error("Markdown renderer (md) is not available.");
-            }
-            const renderer = md || window.markdownit; // Fallback just in case
-            if (typeof renderer !== 'function') {
-                throw new Error("Markdown renderer is not a function.");
-            }
-            const mdInstance = renderer({html:true, linkify:true, typographer:true}); // Ensure options are set
+            // **** Check md AGAIN just before use ****
+            if (typeof md !== 'function' && typeof window.markdownit !== 'function') { throw new Error("Markdown renderer (md) is not available."); }
+            // Use window.markdownit directly if md variable assignment failed but window object exists
+            const renderer = md || window.markdownit;
+            if (typeof renderer !== 'function') { throw new Error("Markdown renderer is not a function."); }
+            // **** End Check ****
 
             const response = await fetch(rawUrl);
-            if (!response.ok) {
-                 if (response.status === 404) { throw new Error(`File not found at ${rawUrl}`); }
-                 else { throw new Error(`HTTP error fetching raw content! Status: ${response.status}`); }
-            }
+            if (!response.ok) { if (response.status === 404) { throw new Error(`File not found: ${rawUrl}`); } else { throw new Error(`HTTP error fetching raw content! Status: ${response.status}`); } }
             const markdownContent = await response.text();
-
-            // Use the instance created above or the globally initialized 'md'
-            const htmlContent = md ? md.render(markdownContent) : mdInstance.render(markdownContent);
+            const htmlContent = renderer({html:true, linkify:true, typographer:true}).render(markdownContent); // Instantiate if needed, or just use md.render if md is guaranteed
+            // Safer: Use the initialized instance if available
+            // const htmlContent = md.render(markdownContent);
 
             contentElement.innerHTML = htmlContent;
-            contentElement.querySelectorAll('pre code').forEach((block) => {
-                if (window.hljs) {
-                    window.hljs.highlightElement(block);
-                } else {
-                    console.warn("highlight.js (hljs) not ready for highlighting.");
-                }
-            });
-            const firstHeading = contentElement.querySelector('h1, h2');
-            document.title = firstHeading ? `${firstHeading.textContent}` : fileName;
-            showStatus(`Loaded ${fileName} successfully.`, 'success');
-            document.getElementById('content-area').scrollTop = 0; // Scroll content to top
-
-        } catch (error) {
-            console.error('Error loading or rendering markdown:', error);
-            contentElement.innerHTML = `<h1>Error</h1><p>Could not load <code>${fileName}</code>.</p><p><strong>Error:</strong> ${error.message}</p>`;
-            document.title = `Error - ${fileName}`;
-            showStatus(`Error loading ${fileName}: ${error.message}`, 'error', 0);
-            if (currentSelectedLink === linkElement) { // Deselect on error
-                 linkElement.classList.remove('selected');
-                 currentSelectedLink = null;
-            }
+            contentElement.querySelectorAll('pre code').forEach((block) => { if (window.hljs) { window.hljs.highlightElement(block); } else { console.warn("hljs not ready."); } });
+            const firstHeading = contentElement.querySelector('h1, h2'); document.title = firstHeading ? `${firstHeading.textContent}` : fileName; showStatus(`Loaded ${fileName} successfully.`, 'success'); document.getElementById('content-area').scrollTop = 0;
+        } catch (error) { /* ... error handling ... */
+            console.error('Error loading/rendering markdown:', error); contentElement.innerHTML = `<h1>Error</h1><p>Could not load <code>${fileName}</code>.</p><p><strong>Error:</strong> ${error.message}</p>`; document.title = `Error - ${fileName}`; showStatus(`Error loading ${fileName}: ${error.message}`, 'error', 0); if (currentSelectedLink === linkElement) { linkElement.classList.remove('selected'); currentSelectedLink = null; }
         }
     }
 
     // --- Auto-load README ---
-    function autoLoadReadme() {
-         const readmeLink = fileListElement.querySelector('a.md-link[data-filename="README.md"], a.md-link[data-filename="readme.md"]');
-         if (readmeLink) {
-             // Check if content area is still the default welcome message OR empty
-             const isDefaultContent = contentElement.querySelector('h1')?.textContent === 'Welcome' || contentElement.innerHTML.trim() === '';
-             if(isDefaultContent) {
-                 console.log("Attempting to autoload README...");
-                 loadAndRenderMarkdown(readmeLink.dataset.filename, readmeLink);
-             } else {
-                 console.log("Content already loaded, skipping README autoload.");
-             }
-         } else {
-             console.log("No README found in list for autoloading.");
-         }
+    function autoLoadReadme() { /* ... same ... */
+         const readmeLink = fileListElement.querySelector('a.md-link[data-filename="README.md"], a.md-link[data-filename="readme.md"]'); if (readmeLink) { const isDefaultContent = contentElement.querySelector('h1')?.textContent === 'Welcome'; if(isDefaultContent) { loadAndRenderMarkdown(readmeLink.dataset.filename, readmeLink); } }
     }
 
-
     // --- Initialization ---
+    // Using window.onload event - fires after all resources are loaded
     window.addEventListener('load', () => {
         console.log("Window 'load' event fired.");
 
-        // Initialize markdown-it
+        // Explicitly check if the library is available
         if (typeof window.markdownit === 'function') {
             console.log("markdown-it library IS available on window object.");
             try {
@@ -343,24 +177,27 @@
             } catch (e) {
                  console.error("Error during markdown-it initialization:", e);
                  showStatus("Fatal Error: Could not initialize Markdown renderer. Check console.", 'error', 0);
-                 return;
+                 return; // Stop if initialization fails
             }
         } else {
+            // Library failed to load or define itself globally
             console.error("FATAL: markdown-it library is NOT available on window object.");
             showStatus("Fatal Error: Markdown library (markdown-it) failed to load. Check console and network tab.", 'error', 0);
+            // Display a more prominent error in the main content area
             contentElement.innerHTML = `<h1>Initialization Error</h1><p>The required Markdown rendering library (markdown-it) failed to load from the CDN. Please check your network connection, browser console (F12), and network tab for errors related to <code>markdown-it.min.js</code>.</p>`;
-            return;
+            return; // Stop further execution
         }
 
-        // Check highlight.js
+        // Check highlight.js too, although less critical for core function
         if (typeof window.hljs !== 'object' || window.hljs === null) {
              console.warn("highlight.js (hljs) library not found or failed to load. Syntax highlighting will be disabled.");
+             // No need to stop execution, just warn
         } else {
              console.log("highlight.js library loaded.");
         }
 
 
-        // Proceed with fetching the file list
+        // Proceed with fetching the file list etc. ONLY if md was initialized
         populateFileList();
 
         // Event delegation for clicking on file/directory links
@@ -372,7 +209,6 @@
                 const fileName = target.dataset.filename;
                 if (fileName) { loadAndRenderMarkdown(fileName, target); }
             }
-            // Let directory and parent links navigate normally
         });
     });
 
