@@ -1,7 +1,7 @@
 import importlib
 import importlib.util
 import logging
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from agentforge.config import Config
 from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
@@ -20,6 +20,7 @@ class Cog:
     def __init__(self, cog_file: str, enable_trail_logging: bool = True, log_file: Optional[str] = 'cog'):
         # Set instance variables
         self.cog_file = cog_file
+        self.latest_raw_output: str = ''
         self.enable_trail_logging = enable_trail_logging
         self._module_cache: Dict[str, Any] = {}  # cache for imported modules
         self._reset_context_and_thoughts()
@@ -46,7 +47,8 @@ class Cog:
         self._reset_thought_flow_trail()
 
     def _reset_global_context(self):
-        self.global_context: Dict[str, Any] = {}
+        self.external_context: dict = {}
+        self.internal_context: dict = {}
 
     def _reset_thought_flow_trail(self):
         self.thought_flow_trail: List[Dict] = []
@@ -204,7 +206,7 @@ class Cog:
         If it is exceeded, return the 'default' branch specified in the transition.
         Otherwise, return None.
         """
-        max_visits = transition.get("max_visits")
+        max_visits = transition.get("max_visits", None)
         if max_visits is not None:
             if not hasattr(self, "agent_visit_counts"):
                 self.agent_visit_counts = {}
@@ -213,14 +215,11 @@ class Cog:
                 return transition.get("default")
         return None
 
-    def _get_next_agent(self, current_agent_id: str) -> Optional[str]:
-        """
-        Determine the next agent (node) ID based on the current node's transition and global context.
-        """
+    def get_agent_transition(self, agent_id):
         transitions = self.flow.get("transitions", {})
-        agent_transition = transitions.get(current_agent_id)
+        agent_transition = transitions.get(agent_id)
         if agent_transition is None:
-            return None
+            raise Exception(f"There is no transition defined for agent: {agent_id}")
 
         # If the transition is not a dictionary, it's a direct next agent.
         if not isinstance(agent_transition, dict):
@@ -230,7 +229,11 @@ class Cog:
         if self._is_end_transition(agent_transition):
             return None
 
-        # Otherwise, handle it as a decision-based transition.
+    def _get_next_agent(self, current_agent_id: str) -> Optional[str]:
+        """
+        Determine the next agent (node) ID based on the current node's transition and global context.
+        """
+        agent_transition = self.get_agent_transition(current_agent_id)
         return self._handle_decision_transition(current_agent_id, agent_transition)
 
     def _handle_decision(self, current_agent_id: str, transition: dict) -> Optional[str]:
@@ -242,7 +245,7 @@ class Cog:
         decision_key = self._get_decision_key(transition, reserved_keys)
         if decision_key:
             decision_map = transition[decision_key]
-            decision_value = self.global_context[current_agent_id].get(decision_key)
+            decision_value = self.internal_context[current_agent_id].get(decision_key)
             return decision_map.get(decision_value, decision_map.get("default"))
         return None
 
@@ -301,48 +304,39 @@ class Cog:
                 "config": mem_def,  # store the raw config for query/update triggers
             }
 
-    def _memory_query_phase(self, agent_id: str):
-        # Create sub-dict for memory in global_context if not existing
-        if "memory" not in self.global_context:
-            self.global_context["memory"] = {}
+    def _get_global_context(self):
+        # Combine internal_context and external_context attributes
+        return {**self.internal_context, **self.external_context}
 
+    def _memory_query_phase(self, agent_id: str):
         for mem_id, mem_data in self.memories.items():
             cfg = mem_data["config"]
             mem_obj = mem_data["instance"]
-
-            if mem_id not in self.global_context["memory"]:
-                self.global_context["memory"][mem_id] = mem_obj.store
 
             # query_before can be a list or string
             query_agents = cfg.get("query_before", [])
             if agent_id in query_agents:
                 # Gather the relevant keys from global_context
                 query_keys = cfg.get("query_keys", [])
-
                 query_text = None
                 if query_keys:
-                    input_for_query = self._extract_keys(self.global_context, query_keys)
-
+                    input_for_query = self._extract_keys(query_keys)
                     if not input_for_query:
                         continue
-
                     query_text = input_for_query
 
-                query_text = query_text if query_text else self.global_context
+                query_text = query_text if query_text else self.external_context
 
                 # Call memory.query(...)
                 result = mem_obj.query_memory(query_text=query_text)
 
-                # Combine result with memory’s internal store or skip
+                # Combine result with memory's internal store or skip
                 if result:
                     self.logger.log(f"Memories Found:\n{result}", 'info', 'Memory')
                     print(f"----------------\n"
                           f"Memories Found:\n{result}\n"
                           f"----------------")
                     mem_obj.store.update(result)
-
-                # Copy memory store to global_context["memory"]
-                # self.global_context["memory"][mem_id] = mem_obj.store
 
     def _memory_update_phase(self, agent_id: str):
         for mem_id, mem_data in self.memories.items():
@@ -352,38 +346,47 @@ class Cog:
             update_agents = cfg.get("update_after", [])
             if agent_id in update_agents:
                 update_keys = cfg.get("update_keys", [])
-                input_for_update = self._extract_keys(self.global_context, update_keys)
+                input_for_update = self._extract_keys(update_keys)
                 if input_for_update:
-                    mem_obj.update_memory(data=input_for_update)
-                # Refresh what's in global_context["memory"]
-                # self.global_context["memory"][mem_id] = mem_obj.store
-
-    def _extract_keys(self, context: dict, key_list: list[str]) -> list | dict:
+                    # Combine contexts for metadata generation
+                    combined_context = {'external': self.external_context, 'internal': self.internal_context}
+                    mem_obj.update_memory(data=input_for_update,
+                                          context=combined_context)
+                
+    
+    def _extract_keys(self, key_list: Union[list[str], str]) -> dict:
         """
-        Helper method: given a list of dot-notated keys, pluck them out of context if present.
+        Helper method: given a list or single dot-notated key, extract the values from context.
         e.g. "thought.user_intent" => context["thought"]["user_intent"]
-        Returns a dict of { <last field in key>: value } or something similar
+        
+        Args:
+            key_list (Union[list[str], str]): List of keys or single key to extract.
+            
+        Returns:
+            dict: A dict of extracted keys and values of the form { <context key>: value }
         """
-        # result = {}
-        # for k in key_list:
-        #     value = self._lookup_dot_key(context, k)
-        #     # Could store it as "user_intent": value if the final segment was user_intent
-        #     final_field = k.split(".")[-1]
-        #     result[final_field] = value
-        # return result
-
+        # If no specific keys are requested, return the latest raw output
         if not key_list:
-            return context
+            return {'latest_raw_output': self.latest_raw_output}
 
+        # Convert a single key string to a list for uniform processing
         if isinstance(key_list, str):
             key_list = [key_list]
-
-        # We need to find a better way to do this.
-        result = []
+        
+        # Get combined context for lookup
+        context = self._get_global_context()
+        
+        # Extract each key from the context
+        result = {}
         for k in key_list:
             value = self._lookup_dot_key(context, k)
             if value is not None:
-                result.append(value)
+                result[k] = value
+        
+        # If nothing was found but we have raw output, include it
+        if not result and hasattr(self, 'latest_raw_output') and self.latest_raw_output:
+            result['latest_raw_output'] = self.latest_raw_output
+        
         return result
 
     @staticmethod
@@ -418,27 +421,35 @@ class Cog:
 
         while attempts < max_attempts:
             attempts += 1
-            raw_output = agent.run(**self.global_context)
+            # Get the combined context from internal_context and external_context
+            combined_context = self._get_global_context()
 
-            # If the agent returned no output, just retry (unless we've exceeded attempts)
+            # Append memory from self.memories to the combined context under the key "memory".
+            combined_context["memory"] = {
+                mem_id: mem_data["instance"].store
+                for mem_id, mem_data in self.memories.items()
+            }
+            raw_output = agent.run(**combined_context)
+
+            # If the agent returned no output, retry.
             if not raw_output:
-                self.logger.log(f"No output from agent '{current_agent_id}', retrying... (Attempt {attempts})",
-                                'warning')
+                self.logger.log(
+                    f"No output from agent '{current_agent_id}', retrying... (Attempt {attempts})", "warning"
+                )
                 continue
 
-            # Try parsing the agent's output
             try:
+                self.latest_raw_output = raw_output
                 parsed_output = self._parse_agent_output(current_agent_id, raw_output)
-                # If parsing was successful, return
+                # Store the raw output so we can reference it later in memory update.
                 return parsed_output
             except ParsingError as e:
-                self.logger.log(f"Parsing error for agent '{current_agent_id}': {e} (Attempt {attempts})", 'warning')
-                # We'll loop again if we have attempts left
+                self.logger.log(
+                    f"Parsing error for agent '{current_agent_id}': {e} (Attempt {attempts})", "warning"
+                )
 
-        # If we exit the loop, either we never got valid output or we gave up parsing it
-        self.logger.log(f"Max attempts reached for agent '{current_agent_id}' with no valid parsed output.", 'error')
-        # Decide if you want to return the raw output, None, or raise an exception
-        raise Exception(f"Failed to get valid response from {current_agent_id}. We recommend checking the agent's input/output logs." )
+        self.logger.log(f"Max attempts reached for agent '{current_agent_id}' with no valid parsed output.","error")
+        raise Exception(f"Failed to get valid response from {current_agent_id}. We recommend checking the agent's input/output logs.")
 
     def _execute_flow(self) -> None:
         current_agent_id = self.flow.get("start")
@@ -449,7 +460,7 @@ class Cog:
             # RUN Agent
             parsed_output = self._call_agent(current_agent_id)
             self._track_agent_output(current_agent_id, parsed_output)
-            self.global_context[current_agent_id] = parsed_output
+            self.internal_context[current_agent_id] = parsed_output
 
             # AFTER the agent finishes, do memory updates
             self._memory_update_phase(current_agent_id)
@@ -486,6 +497,5 @@ class Cog:
         """
 
         self._reset_context_and_thoughts()
-        self.global_context.update(kwargs)
+        self.external_context.update(kwargs)
         self._execute_flow()
-        return self.global_context

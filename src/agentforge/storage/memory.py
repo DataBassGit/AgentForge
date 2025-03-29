@@ -1,7 +1,19 @@
 # src/agentforge/storage/Memory.py
-
+import json
 from typing import Any, Dict, Optional, Union
 from .chroma_storage import ChromaStorage
+
+
+def flatten_dict(d: dict, parent_key: str = '', sep: str = '.') -> dict:
+    """Recursively flattens a nested dictionary using a given separator."""
+    items = {}
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.update(flatten_dict(v, new_key, sep=sep))
+        else:
+            items[new_key] = v
+    return items
 
 
 class Memory:
@@ -37,40 +49,93 @@ class Memory:
             return f"{self.cog_name}_{self.persona}"
         return self.cog_name
 
-    def query_memory(self, query_text: str | list[str], num_results: int = 5) -> Optional[Dict[str, Any]]:
+    def query_memory(self, query_text: Union[str, list[str]], num_results: int = 5) -> Optional[Dict[str, Any]]:
         """
         Queries memory for items similar to query_text.
 
         Args:
-            query_text (str): The text to search for.
+            query_text (Union[str, list[str]]): The text or texts to search for.
             num_results (int): The number of results to return.
 
         Returns:
             Optional[Dict[str, Any]]: The query results or None if not found.
         """
-        data = self.storage.query_storage(collection_name=self.collection_name,
-                                          query = query_text, num_results= num_results)
+        data = self.storage.query_storage(
+            collection_name=self.collection_name,
+            query=query_text, 
+            num_results=num_results
+        )
 
         if data:
             self.store.update(data)
+            return data
+        return None
 
-    def update_memory(self, data: Any, ids: Optional[str | list[str]] = None, metadata: Optional[list[dict]] = None) -> None:
+    @staticmethod
+    def _prepare_memory_data(data: dict, context: Optional[dict] = None) -> tuple:
         """
-        Updates the memory entry with the specified key. Creates the entry if it doesn't exist.
+        Prepares data for storage by processing and creating appropriate metadata.
+        
+        Args:
+            data (dict): The primary data to store
+            context (dict, optional): Additional context to include in metadata
+            
+        Returns:
+            tuple: (processed_data, metadata_list)
+        """
+        # If the data is a dictionary, flatten it for storage
+        flattened_data = flatten_dict(data) if isinstance(data, dict) else data
+        
+        # Convert values to strings for storage
+        processed_data = [str(value) for value in flattened_data.values()]
+        
+        # Create metadata from the flattened data and additional context
+        metadata_dict = flattened_data.copy()
+        if context:
+            # Add context as additional metadata with a prefix to avoid collisions
+            context_metadata = {"context_" + k: v for k, v in flatten_dict(context).items()}
+            metadata_dict.update(context_metadata)
+        
+        # Create a list of the same metadata for each data item
+        metadata_list = [metadata_dict.copy() for _ in processed_data]
+        
+        return processed_data, metadata_list
+
+    def update_memory(self, data: dict, 
+                     context: Optional[dict] = None,
+                     ids: Optional[Union[str, list[str]]] = None,
+                     metadata: Optional[list[dict]] = None) -> None:
+        """
+        Updates memory with new data, using contexts for metadata if provided.
 
         Args:
-            ids (str): The unique identifier for the memory entry.
-            data (Any): The data to store.
-            metadata (Optional[list[dict]]): Optional metadata.
+            data (dict): Dictionary containing the data to be stored.
+            context (dict, optional): Dictionary containing the cog's external and internal context.
+            ids (Union[str, list[str]], optional): The IDs for the documents.
+            metadata (list[dict], optional): Custom metadata for the documents (overrides generated metadata).
         """
-        self.storage.save_to_storage(collection_name=self.collection_name, data=data, ids=ids, metadata=metadata)
+        # If custom metadata is not provided, generate it from data and context
+        if metadata is None:
+            processed_data, generated_metadata = self._prepare_memory_data(data, context)
+            metadata = generated_metadata
+        else:
+            # If metadata is provided but data is a dictionary, flatten it
+            processed_data = [str(value) for value in flatten_dict(data).values()] if isinstance(data, dict) else data
+            
+        # Save to storage with the prepared data
+        self.storage.save_to_storage(
+            collection_name=self.collection_name, 
+            data=processed_data, 
+            ids=ids, 
+            metadata=metadata
+        )
 
-    def delete(self, ids: str | list[str]) -> None:
+    def delete(self, ids: Union[str, list[str]]) -> None:
         """
-        Deletes the memory entry with the given key.
+        Deletes the memory entry with the given key(s).
 
         Args:
-            ids (str): The unique identifier for the memory entry to delete.
+            ids (Union[str, list[str]]): The unique identifier(s) for the memory entries to delete.
         """
         self.storage.delete_from_stroage(collection_name=self.collection_name, ids=ids)
 

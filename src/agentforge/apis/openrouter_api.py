@@ -40,4 +40,22 @@ class OpenRouter(BaseModel):
         return response.json()
 
     def _process_response(self, raw_response):
-        return raw_response['choices'][0]['message']['content']
+        # First, check if the response is empty
+        if not raw_response:
+            self.logger.log("Empty response received from API", "error")
+            return None
+
+        # If there's an error in the response, log it and return an error message
+        if 'error' in raw_response:
+            error_code = raw_response['error'].get('code', 'unknown')
+            error_message = raw_response['error'].get('message', 'No error message provided.')
+            self.logger.log(f"API Error {error_code}: {error_message}", "error")
+            return f"Error {error_code}: {error_message}"
+
+        # Otherwise, try to extract the content from the choices
+        try:
+            return raw_response['choices'][0]['message']['content']
+        except (IndexError, KeyError) as e:
+            self.logger.log(f"Unexpected response format: {e}", "error")
+            return None
+
