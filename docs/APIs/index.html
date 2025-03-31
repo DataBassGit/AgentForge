@@ -498,7 +498,7 @@
         // If it's external, let the default behavior handle it
         if (isExternal) return;
         
-        // Check if it's a markdown file in our docs
+        // Check if it's a markdown file
         if (href.toLowerCase().endsWith('.md')) {
             event.preventDefault();
             
@@ -509,23 +509,34 @@
             // Get the path relative to current location
             let targetPath = tempLink.pathname;
             
-            // Check if this is a docs path
-            if (!targetPath.includes(REPO_DOCS_ROOT)) {
-                // If it's not in our docs directory, treat it as external
-                window.location.href = href;
-                return;
-            }
-            
             // Remove leading slash and any repo/docs prefix if present
             targetPath = targetPath.replace(/^\//, '');
             targetPath = targetPath.replace(new RegExp(`^(?:${GITHUB_REPO}/)?(?:${REPO_DOCS_ROOT}/)?`), '');
+            
+            // Handle relative paths
+            if (targetPath.startsWith('./')) {
+                targetPath = targetPath.substring(2);
+            } else if (targetPath.startsWith('../')) {
+                const currentPathParts = currentRepoPath.split('/');
+                currentPathParts.pop();
+                targetPath = targetPath.substring(3);
+                if (currentPathParts.length > 0) {
+                    targetPath = currentPathParts.join('/') + '/' + targetPath;
+                }
+            } else if (!targetPath.startsWith('/')) {
+                // If it's a relative path without ./ or ../, append it to current path
+                targetPath = currentRepoPath + '/' + targetPath;
+            }
+
+            // Clean up any double slashes
+            targetPath = targetPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
             
             // Create a temporary element to act as the link target
             const tempElement = document.createElement('a');
             tempElement.classList.add('md-link');
             tempElement.dataset.filename = targetPath;
             
-            // Load and render the markdown
+            // Load and render the markdown using the same method as nav
             loadAndRenderMarkdown(targetPath, tempElement);
             
             // Update the URL without triggering a page reload
