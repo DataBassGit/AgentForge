@@ -1,346 +1,533 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loading Documentation...</title> <!-- Title will be updated -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <style>
-    /* Reuse the same CSS styles from the previous "manual list" example */
-    :root {
-      --bg-color: #0d1117; --text-color: #c9d1d9; --panel-bg: #161b22; --border-color: #30363d;
-      --link-color: #58a6ff; --link-hover-color: #80baff; --selected-bg: #1f6feb; --selected-text: #ffffff;
-      --hover-bg: #21262d; --code-bg: #21262d; --error-border: #f85149; --success-border: #3fb950;
-      --info-border: #58a6ff; --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-      --font-mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { font-size: 16px; }
-    body { font-family: var(--font-sans); display: flex; min-height: 100vh; flex-direction: column; background-color: var(--bg-color); color: var(--text-color); }
-    #nav-list { background-color: var(--panel-bg); border-bottom: 1px solid var(--border-color); padding: 1rem 1.5rem; flex-shrink: 0; }
-    #nav-list h3 { margin-bottom: 0.75rem; font-size: 1.2em; color: var(--text-color); }
-    #nav-list ul { list-style-type: none; padding-left: 0; }
-    #nav-list li { margin-bottom: 0.3rem; }
-    #nav-list a { display: inline-block; padding: 4px 8px; border-radius: 5px; text-decoration: none; color: var(--link-color); transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; white-space: nowrap; }
-    #nav-list a:hover { background-color: var(--hover-bg); color: var(--link-hover-color); text-decoration: none; }
-    #nav-list a.selected { background-color: var(--selected-bg); color: var(--selected-text); font-weight: 600; }
-    #nav-list a::before { display: inline-block; width: 1.5em; text-align: center; margin-right: 4px; font-size: 0.9em; }
-    #nav-list a.dir-link::before { content: '📁'; }
-    #nav-list a.file-link::before { content: '📄'; } /* Generic file */
-    #nav-list a.md-link::before { content: '📝'; }
-    #nav-list a.parent-link::before { content: '⤴️'; }
-    #content-area { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; background-color: var(--bg-color); }
-    #status-message { background-color: var(--panel-bg); border-left: 4px solid var(--info-border); padding: 0.8rem 1rem; margin-bottom: 1.5rem; border-radius: 4px; display: none; font-size: 0.9em; }
-    #status-message.error { border-left-color: var(--error-border); }
-    #status-message.success { border-left-color: var(--success-border); }
-    .markdown-body { /* ... include the full .markdown-body styles ... */
-        font-size: 1rem; line-height: 1.6; word-wrap: break-word; color: var(--text-color); }
-    .markdown-body > *:first-child { margin-top: 0 !important; } .markdown-body > *:last-child { margin-bottom: 0 !important; }
-    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 { margin-top: 1.5em; margin-bottom: 1em; font-weight: 600; line-height: 1.25; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
-    .markdown-body h1 { font-size: 2em; } .markdown-body h2 { font-size: 1.5em; } .markdown-body h3 { font-size: 1.25em; } .markdown-body h4 { font-size: 1em; } .markdown-body h5 { font-size: 0.875em; } .markdown-body h6 { font-size: 0.85em; color: #8b949e; }
-    .markdown-body h1:first-child, .markdown-body h2:first-child { margin-top: 0; }
-    .markdown-body p, .markdown-body blockquote, .markdown-body ul, .markdown-body ol, .markdown-body dl, .markdown-body table, .markdown-body pre, .markdown-body details { margin-top: 0; margin-bottom: 1em; }
-    .markdown-body ul, .markdown-body ol { padding-left: 2em; } .markdown-body li > p { margin-bottom: 0.25em; }
-    .markdown-body a { color: var(--link-color); text-decoration: none; } .markdown-body a:hover { text-decoration: underline; color: var(--link-hover-color); }
-    .markdown-body code { font-family: var(--font-mono); padding: 0.2em 0.4em; margin: 0; font-size: 85%; background-color: var(--code-bg); border-radius: 6px; }
-    .markdown-body pre { font-family: var(--font-mono); font-size: 85%; line-height: 1.45; background-color: var(--code-bg); border-radius: 6px; padding: 1rem; overflow: auto; word-wrap: normal; }
-    .markdown-body pre > code { padding: 0; margin: 0; font-size: 100%; word-break: normal; white-space: pre; background: transparent; border: 0; }
-    .markdown-body blockquote { margin-left: 0; padding: 0 1em; color: #8b949e; border-left: 0.25em solid var(--border-color); }
-    .markdown-body img { max-width: 100%; height: auto; box-sizing: content-box; background-color: var(--bg-color); }
-    .markdown-body hr { height: .25em; padding: 0; margin: 1.5em 0; background-color: var(--border-color); border: 0; }
-    .markdown-body table { display: block; width: max-content; max-width: 100%; overflow: auto; border-spacing: 0; border-collapse: collapse; margin-bottom: 1em; }
-    .markdown-body th, .markdown-body td { padding: 6px 13px; border: 1px solid var(--border-color); } .markdown-body th { font-weight: 600; }
-    .markdown-body tr { background-color: var(--bg-color); border-top: 1px solid var(--border-color); } .markdown-body tr:nth-child(2n) { background-color: var(--panel-bg); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentForge Documentation | Open Source AI Agent Framework</title>
 
-    @media (min-width: 769px) { body { flex-direction: row; } #nav-list { width: 300px; height: 100vh; border-bottom: none; border-right: 1px solid var(--border-color); overflow-y: auto; } #content-area { height: 100vh; overflow-y: auto; flex: 1; } }
-  </style>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Documentation browser for AgentForge - Open Source AI Agent Framework for Building Cognitive Architectures">
+    <meta name="keywords" content="AgentForge, AI agents, cognitive architecture, customizable agents, AI framework, open source">
+    <meta name="author" content="AgentForge">
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="AgentForge Documentation Browser">
+    <meta property="og:description" content="Browse documentation for AgentForge - Open Source AI Agent Framework for Building Cognitive Architectures">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://agentforge.net/docs">
+    <meta property="og:image" content="https://agentforge.net/images/logo.png">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AgentForge Documentation">
+    <meta name="twitter:description" content="Comprehensive documentation for the AgentForge AI agent framework">
+    <meta name="twitter:image" content="https://agentforge.net/images/logo.png">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- CSS Styles -->
+    <style>
+        /* CSS Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 2rem;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #3498db;
+        }
+
+        main {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: #34495e;
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 1.2rem;
+            font-size: 1.3rem;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 0.5rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #2c3e50;
+        }
+
+        .content {
+            flex: 1;
+            padding: 2rem;
+            background-color: white;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .content h1 {
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            font-size: 2.2rem;
+        }
+
+        .content h2 {
+            margin: 1.5rem 0 1rem;
+            color: #34495e;
+            font-size: 1.8rem;
+        }
+
+        .content h3 {
+            margin: 1.2rem 0 0.8rem;
+            color: #2c3e50;
+            font-size: 1.4rem;
+        }
+
+        .content p {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        .content code {
+            background-color: #f8f8f8;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #e74c3c;
+        }
+
+        .content pre {
+            background-color: #f8f8f8;
+            padding: 1.2rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border: 1px solid #eee;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Custom styles for documentation browser */
+        #file-tree {
+            margin-bottom: 1.5rem;
+        }
+
+        #file-tree .directory {
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0.4rem 0.2rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        #file-tree .directory:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        #file-tree .file {
+            cursor: pointer;
+            padding: 0.3rem 0.2rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        #file-tree .file:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        #file-tree .selected {
+            background-color: #3498db;
+            color: white;
+        }
+
+        #content-display {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 1.5rem;
+            min-height: 500px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Feature badges */
+        .feature-badge {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            header {
+                flex-direction: column;
+                text-align: center;
+                padding: 1rem;
+            }
+
+            nav ul {
+                margin-top: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            nav ul li {
+                margin: 0.3rem 0.8rem;
+            }
+
+            .content {
+                padding: 1.2rem;
+            }
+        }
+    </style>
+
+    <!-- External CSS Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/styles/atom-one-dark.min.css">
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.3.2/markdown-it.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
 </head>
 <body>
+    <header>
+        <div class="logo">AgentForge Documentation</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#agents">Agents</a></li>
+                <li><a href="#tools">Tools & Actions</a></li>
+                <li><a href="#personas">Personas</a></li>
+                <li><a href="https://github.com/databassgit/agentforge" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
 
-  <nav id="nav-list">
-    <h3 id="current-folder-name">Loading...</h3>
-    <ul id="file-list">
-      <!-- File list will be populated by JavaScript -->
-      <li><i>Fetching directory contents...</i></li>
-    </ul>
-  </nav>
+    <main>
+        <aside class="sidebar">
+            <h3>Repository Files</h3>
+            <div id="file-tree">
+                <!-- File tree will be populated by JavaScript -->
+                <p>Loading repository files...</p>
+            </div>
+        </aside>
 
-  <main id="content-area">
-    <div id="status-message"></div>
-    <div id="markdown-content" class="markdown-body">
-      <!-- Content loads here -->
-      <h1>Welcome</h1>
-      <p>Fetching directory listing. Select a file to view its content.</p>
-      <hr>
-      <p><small>Powered by GitHub API, markdown-it, and highlight.js.</small></p>
-    </div>
-  </main>
+        <section class="content">
+            <h1>AgentForge Documentation Browser</h1>
+            <p>Welcome to the AgentForge documentation - your comprehensive resource for building cognitive architectures with our open source AI agent framework. Select a file from the repository to view its contents.</p>
 
-      <script>
-    // --- Configuration ---
-    const GITHUB_OWNER = 'DataBassGit';
-    const GITHUB_REPO = 'AgentForge';
-    const GITHUB_BRANCH = 'main';
-    const REPO_DOCS_ROOT = 'docs';
-    // --- End Configuration ---
+            <div class="feature-badges">
+                <span class="feature-badge">Customizable Agents</span>
+                <span class="feature-badge">Tools & Actions</span>
+                <span class="feature-badge">Persona Management</span>
+                <span class="feature-badge">Flexible Storage</span>
+                <span class="feature-badge">Cognitive Architectures</span>
+            </div>
 
-    const contentElement = document.getElementById('markdown-content');
-    const statusElement = document.getElementById('status-message');
-    const fileListElement = document.getElementById('file-list');
-    const currentFolderNameEl = document.getElementById('current-folder-name');
-    let currentSelectedLink = null;
-    let currentRepoPath = '';
+            <div id="content-display">
+                <p>Select a file to view its content.</p>
+            </div>
+        </section>
+    </main>
 
-    let md; // Declare md variable here
+    <footer>
+        <p>&copy; 2025 AgentForge - Open Source AI Agent Framework for Building Cognitive Architectures.</p>
+        <p>Powered by GitHub API, markdown-it, and highlight.js.</p>
+    </footer>
 
-    // --- Status Display ---
-    function showStatus(message, type = 'info', duration = 4000) { /* ... same ... */
-        statusElement.textContent = message; statusElement.className = ''; statusElement.classList.add(type);
-        statusElement.style.display = 'block';
-        if (type !== 'error' && duration > 0) { setTimeout(() => { if (statusElement.textContent === message) { statusElement.style.display = 'none'; } }, duration); }
-    }
+    <script>
+        // GitHub API access
+        const githubApiUrl = 'https://api.github.com/repos/databassgit/agentforge/contents';
+        const token = ''; // Token should be populated by the user if needed
 
-    // --- Get Path from URL --- (CORRECTED VERSION)
-    function getRepoPathFromURL() {
-        // Base patterns to identify the docs root in the URL pathname
-        // Handles cases like /docs/, /RepoName/docs/, /
-        const docsRootPatternInUrl = new RegExp(`^/?(?:${GITHUB_REPO}/)?${REPO_DOCS_ROOT}/?`, 'i');
-        const repoRootPatternInUrl = new RegExp(`^/?${GITHUB_REPO}/?`, 'i');
-
-        let currentPathname = window.location.pathname.replace(/index\.html$/, ''); // Remove index.html
-
-        let pathRelativeToDocsRoot = '';
-
-        // Try matching GitHub Pages structure first (e.g., /Repo/docs/)
-        if (currentPathname.toLowerCase().startsWith(`/${GITHUB_REPO.toLowerCase()}/${REPO_DOCS_ROOT.toLowerCase()}/`)) {
-             const basePathToRemove = `/${GITHUB_REPO}/${REPO_DOCS_ROOT}/`;
-             pathRelativeToDocsRoot = currentPathname.substring(basePathToRemove.length);
-        }
-        // Try matching simple /docs/ structure (e.g., served from domain root)
-        else if (currentPathname.toLowerCase().startsWith(`/${REPO_DOCS_ROOT.toLowerCase()}/`)) {
-             const basePathToRemove = `/${REPO_DOCS_ROOT}/`;
-             pathRelativeToDocsRoot = currentPathname.substring(basePathToRemove.length);
-        }
-        // Try matching structure where site is served *from within* the 'docs' dir (e.g., localhost:8000/)
-        // Needs careful check: Is it repo root or docs root? Let's assume if ONLY repo matches, it's served from repo root.
-        else if (repoRootPatternInUrl.test(currentPathname) && !docsRootPatternInUrl.test(currentPathname)) {
-             // This case is less common for docs sites. If URL is /RepoName/something_else,
-             // it's likely outside the docs. Let's default to the docs root.
-             console.warn(`URL path ${currentPathname} starts with repo name but not docs root. Assuming docs root.`);
-             pathRelativeToDocsRoot = ''; // Default to root of docs
-        }
-        // Fallback: Assume served directly from *within* the docs directory,
-        // so the pathname itself is relative to the docs root (e.g., /subdir/page.html maps to docs/subdir)
-        else {
-             console.warn("Cannot reliably determine deployment base path (e.g., /Repo/docs/ or /docs/). Assuming pathname is relative *within* the docs root.");
-             // Remove leading slash only
-             pathRelativeToDocsRoot = currentPathname.startsWith('/') ? currentPathname.substring(1) : currentPathname;
-        }
-
-
-        // Clean the relative path (remove trailing slash if any)
-        pathRelativeToDocsRoot = pathRelativeToDocsRoot.replace(/\/$/, '');
-
-        // Construct the final API path: REPO_DOCS_ROOT + cleaned relative path
-        let finalApiPath = REPO_DOCS_ROOT;
-        if (pathRelativeToDocsRoot) {
-            finalApiPath += '/' + pathRelativeToDocsRoot;
-        }
-
-        // Final cleanup of slashes (just in case)
-        finalApiPath = finalApiPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, ''); // Remove leading/trailing slashes
-
-        // console.log(`[getRepoPathFromURL] Pathname: ${window.location.pathname}, Calculated API Path: ${finalApiPath}`); // DEBUG
-        return finalApiPath || REPO_DOCS_ROOT; // Ensure we always return at least the root path
-    }
-
-    // --- Build File List ---
-    async function populateFileList() { /* ... same ... */
-      currentRepoPath = getRepoPathFromURL(); // This now uses the corrected function
-      // Log the path being used for the API call
-      console.log(`[populateFileList] Using API path: ${currentRepoPath}`);
-      const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${currentRepoPath}?ref=${GITHUB_BRANCH}`;
-      const displayPath = currentRepoPath.replace(new RegExp(`^${REPO_DOCS_ROOT}/?`), '') || 'Root';
-      currentFolderNameEl.textContent = displayPath;
-      document.title = `${displayPath} - ${GITHUB_REPO}`;
-      fileListElement.innerHTML = '<li><i>Fetching directory contents...</i></li>';
-      try { /* ... fetch and list building ... */
-        const response = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-        if (!response.ok) {
-            if (response.status === 404) { throw new Error(`Directory not found: ${currentRepoPath}`); }
-            else if (response.status === 403) { throw new Error(`API Forbidden (Rate Limit?) for path: ${currentRepoPath}`); }
-            else { throw new Error(`API Error: ${response.status} for path: ${currentRepoPath}`); }
-        }
-        const items = await response.json(); fileListElement.innerHTML = '';
-        const isAtDocsRoot = currentRepoPath === REPO_DOCS_ROOT || (REPO_DOCS_ROOT === '' && currentRepoPath === ''); // Adjust logic if REPO_DOCS_ROOT can be empty
-
-        // Add parent link only if NOT at the defined REPO_DOCS_ROOT
-        if (!isAtDocsRoot && currentRepoPath !== '') { // Also check currentRepoPath isn't empty just in case
-             const parentPathParts = currentRepoPath.split('/');
-             // If only one part (e.g., 'docs') and it IS the root, don't show parent.
-             // If more than one part (e.g., 'docs/subdir'), go up.
-             if (parentPathParts.length > 1 || (parentPathParts.length === 1 && parentPathParts[0] !== REPO_DOCS_ROOT)) {
-                  const li = document.createElement('li');
-                  // Calculate the correct relative URL for the parent link
-                  // If current URL is /repo/docs/subdir/, parent is ../ which resolves to /repo/docs/
-                  // If current URL is /docs/subdir/, parent is ../ which resolves to /docs/
-                  // If current URL is /subdir/ (served from docs), parent is ../ which resolves to /
-                  // This needs careful handling based on deployment... using '../' is simplest for relative links.
-                  li.innerHTML = `<a href="../" class="parent-link">Parent Directory</a>`;
-                  fileListElement.appendChild(li);
-             }
-        }
-
-        items.sort((a, b) => { if (a.type === 'dir' && b.type !== 'dir') return -1; if (a.type !== 'dir' && b.type === 'dir') return 1; return a.name.localeCompare(b.name); });
-        items.forEach(item => { const li = document.createElement('li'); let link = '';
-          if (item.type === 'dir') { link = `<a href="${item.name}/" class="dir-link">${item.name}/</a>`; }
-          else if (item.type === 'file') { if (item.name.toLowerCase().endsWith('.md')) { link = `<a href="${item.name}" class="md-link" data-filename="${item.name}">${item.name}</a>`; } else if (item.name.toLowerCase() !== 'index.html') { link = `<a href="${item.html_url}" class="file-link" target="_blank">${item.name}</a>`; } }
-          if(link) { li.innerHTML = link; fileListElement.appendChild(li); } });
-
-        // Check if list is empty *besides* the potential parent link
-        const hasParentLink = fileListElement.querySelector('a.parent-link');
-        if (fileListElement.children.length === (hasParentLink ? 1 : 0)) {
-             fileListElement.innerHTML += '<li><i>Empty directory.</i></li>';
-        }
-        autoLoadReadme();
-      } catch (error) {
-         console.error('Error fetching dir contents:', error);
-         fileListElement.innerHTML = `<li><i>Error: ${error.message}</i></li>`;
-         showStatus(`Error loading list: ${error.message}`, 'error', 0);
-         document.title = `Error - ${GITHUB_REPO}`;
-      }
-    }
-
-    // --- Markdown Loading and Rendering ---
-    async function loadAndRenderMarkdown(fileName, linkElement) { /* ... same ... */
-        showStatus(`Loading ${fileName}...`, 'info', 0); if (currentSelectedLink) { currentSelectedLink.classList.remove('selected'); } linkElement.classList.add('selected'); currentSelectedLink = linkElement;
-        // Construct the path relative to the repository root for the raw content URL
-        const fileRepoPath = currentRepoPath ? `${currentRepoPath}/${fileName}` : fileName;
-        // Ensure no double slashes if currentRepoPath was empty or ended with /
-        const cleanedFileRepoPath = fileRepoPath.replace(/\/+/g, '/').replace(/^\//, ''); // Remove leading slash if present
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${cleanedFileRepoPath}`;
-        console.log(`[loadAndRenderMarkdown] Fetching raw content from: ${rawUrl}`); // Log the raw URL
-
-        try {
-            // **** Check md AGAIN just before use ****
-            if (typeof md !== 'object' && typeof window.markdownit !== 'function') { // Check md is an object instance or the factory exists
-                 throw new Error("Markdown renderer (md) is not available or not initialized correctly.");
+        // Markdown renderer setup
+        const md = window.markdownit({
+            html: true,
+            linkify: true,
+            typographer: true,
+            highlight: function (str, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return hljs.highlight(str, { language: lang }).value;
+                    } catch (__) {}
+                }
+                return ''; // Use external default escaping
             }
-            // Use the initialized md instance
-            const renderer = md;
-            if (typeof renderer?.render !== 'function') { // Check if the instance has a render method
-                 // Maybe try initializing again? Or fallback to window.markdownit if desperate?
-                 if(typeof window.markdownit === 'function'){
-                      console.warn("Re-initializing markdown-it instance.");
-                      md = window.markdownit({html:true, linkify:true, typographer:true});
-                 } else {
-                      throw new Error("Markdown renderer instance is invalid and factory is unavailable.");
-                 }
-            }
-             // **** End Check ****
+        });
 
-            const response = await fetch(rawUrl);
-            if (!response.ok) { if (response.status === 404) { throw new Error(`File not found: ${rawUrl}`); } else { throw new Error(`HTTP error fetching raw content! Status: ${response.status}`); } }
-            const markdownContent = await response.text();
+        // DOM elements
+        const fileTree = document.getElementById('file-tree');
+        const contentDisplay = document.getElementById('content-display');
 
-            const htmlContent = md.render(markdownContent); // Use the initialized instance
+        // Fetch repository contents
+        async function fetchRepoContents(path = '') {
+            const url = path ? `${githubApiUrl}/${path}` : githubApiUrl;
 
-            contentElement.innerHTML = htmlContent;
-            contentElement.querySelectorAll('pre code').forEach((block) => { if (window.hljs) { window.hljs.highlightElement(block); } else { console.warn("hljs not ready."); } });
-            const firstHeading = contentElement.querySelector('h1, h2'); document.title = firstHeading ? `${firstHeading.textContent}` : fileName; showStatus(`Loaded ${fileName} successfully.`, 'success'); document.getElementById('content-area').scrollTop = 0;
-        } catch (error) { /* ... error handling ... */
-            console.error('Error loading/rendering markdown:', error); contentElement.innerHTML = `<h1>Error</h1><p>Could not load <code>${fileName}</code>.</p><p><strong>Error:</strong> ${error.message}</p>`; document.title = `Error - ${fileName}`; showStatus(`Error loading ${fileName}: ${error.message}`, 'error', 0); if (currentSelectedLink === linkElement) { linkElement.classList.remove('selected'); currentSelectedLink = null; }
-        }
-    }
-
-    // --- Auto-load README ---
-    function autoLoadReadme() { /* ... same ... */
-         const readmeLink = fileListElement.querySelector('a.md-link[data-filename="README.md"], a.md-link[data-filename="readme.md"]'); if (readmeLink) { const isDefaultContent = contentElement.querySelector('h1')?.textContent === 'Welcome'; if(isDefaultContent) { loadAndRenderMarkdown(readmeLink.dataset.filename, readmeLink); } }
-    }
-
-    // --- Initialization ---
-    // Using window.onload event - fires after all resources are loaded
-    window.addEventListener('load', () => {
-        console.log("Window 'load' event fired.");
-
-        // Explicitly check if the library is available
-        if (typeof window.markdownit === 'function') {
-            console.log("markdown-it library IS available on window object.");
             try {
-                 md = window.markdownit({ // Assign to the global 'md' variable
-                    html: true,
-                    linkify: true,
-                    typographer: true,
-                 });
-                 console.log("markdown-it initialized successfully into 'md' variable.");
-            } catch (e) {
-                 console.error("Error during markdown-it initialization:", e);
-                 showStatus("Fatal Error: Could not initialize Markdown renderer. Check console.", 'error', 0);
-                 return; // Stop if initialization fails
+                const headers = token ? { Authorization: `token ${token}` } : {};
+                const response = await fetch(url, { headers });
+
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching repository contents:', error);
+                fileTree.innerHTML = `<p>Error loading repository: ${error.message}</p>`;
+                return [];
             }
-        } else {
-            // Library failed to load or define itself globally
-            console.error("FATAL: markdown-it library is NOT available on window object.");
-            showStatus("Fatal Error: Markdown library (markdown-it) failed to load. Check console and network tab.", 'error', 0);
-            // Display a more prominent error in the main content area
-            contentElement.innerHTML = `<h1>Initialization Error</h1><p>The required Markdown rendering library (markdown-it) failed to load from the CDN. Please check your network connection, browser console (F12), and network tab for errors related to <code>markdown-it.min.js</code>.</p>`;
-            return; // Stop further execution
         }
 
-        // Check highlight.js too, although less critical for core function
-        if (typeof window.hljs !== 'object' || window.hljs === null) {
-             console.warn("highlight.js (hljs) library not found or failed to load. Syntax highlighting will be disabled.");
-             // No need to stop execution, just warn
-        } else {
-             console.log("highlight.js library loaded.");
+        // Build file tree
+        async function buildFileTree(path = '') {
+            const contents = await fetchRepoContents(path);
+
+            if (!contents || !contents.length) {
+                return '';
+            }
+
+            // Sort directories first, then files
+            contents.sort((a, b) => {
+                if (a.type === b.type) {
+                    return a.name.localeCompare(b.name);
+                }
+                return a.type === 'dir' ? -1 : 1;
+            });
+
+            let html = '<ul>';
+
+            for (const item of contents) {
+                const itemPath = path ? `${path}/${item.name}` : item.name;
+
+                if (item.type === 'dir') {
+                    html += `
+                        <li>
+                            <div class="directory" data-path="${itemPath}">📁 ${item.name}</div>
+                            <div class="directory-contents" id="dir-${itemPath}" style="display: none;"></div>
+                        </li>
+                    `;
+                } else {
+                    html += `<li><div class="file" data-path="${itemPath}">📄 ${item.name}</div></li>`;
+                }
+            }
+
+            html += '</ul>';
+            return html;
         }
 
+        // Fetch and display file content
+        async function fetchFileContent(path) {
+            try {
+                const headers = token ? { Authorization: `token ${token}` } : {};
+                const response = await fetch(`${githubApiUrl}/${path}`, { headers });
 
-        // Proceed with fetching the file list etc. ONLY if md was initialized
-        populateFileList();
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
 
-        // Event delegation for clicking on file/directory links
-        fileListElement.addEventListener('click', (event) => {
-            const target = event.target.closest('a');
-            if (!target) return;
+                const data = await response.json();
+                const content = atob(data.content); // Decode base64 content
 
-            // Let browser handle external links and non-md files normally
-            if (target.classList.contains('file-link') || target.target === '_blank') {
-                return;
+                // Determine file type and render accordingly
+                const fileExtension = path.split('.').pop().toLowerCase();
+
+                if (['md', 'markdown'].includes(fileExtension)) {
+                    // Render markdown
+                    contentDisplay.innerHTML = md.render(content);
+                } else if (['js', 'ts', 'py', 'java', 'c', 'cpp', 'cs', 'go', 'rb', 'php', 'html', 'css', 'json', 'xml'].includes(fileExtension)) {
+                    // Render code with syntax highlighting
+                    contentDisplay.innerHTML = `<pre><code class="language-${fileExtension}">${escapeHtml(content)}</code></pre>`;
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                } else {
+                    // Render as plain text
+                    contentDisplay.innerHTML = `<pre>${escapeHtml(content)}</pre>`;
+                }
+
+                // Add file name as heading
+                const fileName = path.split('/').pop();
+                contentDisplay.innerHTML = `<h2>${fileName}</h2>${contentDisplay.innerHTML}`;
+
+                // Add structured data for SEO
+                addStructuredData(fileName, path);
+
+            } catch (error) {
+                console.error('Error fetching file content:', error);
+                contentDisplay.innerHTML = `<p>Error loading file: ${error.message}</p>`;
+            }
+        }
+
+        // Add structured data for SEO
+        function addStructuredData(fileName, path) {
+            // Remove any existing structured data
+            const existingScript = document.getElementById('structured-data');
+            if (existingScript) {
+                existingScript.remove();
             }
 
-            // Handle directory links and MD file links via JS
-            if (target.classList.contains('dir-link') || target.classList.contains('md-link') || target.classList.contains('parent-link')) {
-                 event.preventDefault(); // Prevent default navigation
+            // Create structured data for technical documentation
+            const structuredData = {
+                "@context": "https://schema.org",
+                "@type": "TechArticle",
+                "headline": `AgentForge Documentation: ${fileName}`,
+                "description": `Technical documentation for ${fileName} in the AgentForge AI agent framework.`,
+                "author": {
+                    "@type": "Organization",
+                    "name": "AgentForge"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "AgentForge",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://agentforge.net/images/logo.png"
+                    }
+                },
+                "datePublished": new Date().toISOString().split('T')[0],
+                "dateModified": new Date().toISOString().split('T')[0]
+            };
 
-                 if (target.classList.contains('md-link')) {
-                    const fileName = target.dataset.filename;
-                    if (fileName) { loadAndRenderMarkdown(fileName, target); }
-                 } else if (target.classList.contains('dir-link') || target.classList.contains('parent-link')) {
-                    // Navigate to the new directory path - browser handles relative URL resolution
-                    window.location.href = target.href;
-                    // NOTE: Since this causes a page reload, populateFileList will run again
-                    // on the new page load because it's triggered by window.onload.
-                 }
-            }
-        });
+            // Add structured data to page
+            const script = document.createElement('script');
+            script.id = 'structured-data';
+            script.type = 'application/ld+json';
+            script.innerHTML = JSON.stringify(structuredData);
+            document.head.appendChild(script);
+        }
 
-        // Handle back/forward navigation
-        window.addEventListener('popstate', (event) => {
-             console.log("Popstate event fired - navigating via history.");
-             // Re-populate the file list and potentially load README based on the new URL
-             populateFileList();
-             // Clear existing content to show loading state
-             contentElement.innerHTML = `<h1>Loading...</h1><p>Fetching content for the current path.</p>`;
-        });
+        // Helper to escape HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
-    });
+        // Initialize the documentation browser
+        async function initDocBrowser() {
+            fileTree.innerHTML = await buildFileTree();
 
-    console.log("Initial script parsing finished. Waiting for 'load' event...");
+            // Event delegation for file tree interactions
+            fileTree.addEventListener('click', async (event) => {
+                const target = event.target;
 
-</script>
+                if (target.classList.contains('directory')) {
+                    const path = target.dataset.path;
+                    const dirContentsEl = document.getElementById(`dir-${path}`);
 
+                    if (dirContentsEl.style.display === 'none') {
+                        // Expand directory
+                        dirContentsEl.style.display = 'block';
+
+                        // If directory contents haven't been loaded yet
+                        if (!dirContentsEl.innerHTML.trim()) {
+                            dirContentsEl.innerHTML = 'Loading...';
+                            dirContentsEl.innerHTML = await buildFileTree(path);
+                        }
+                    } else {
+                        // Collapse directory
+                        dirContentsEl.style.display = 'none';
+                    }
+                } else if (target.classList.contains('file')) {
+                    // Remove selected class from all files
+                    document.querySelectorAll('.file').forEach(file => {
+                        file.classList.remove('selected');
+                    });
+
+                    // Add selected class to clicked file
+                    target.classList.add('selected');
+
+                    // Display file content
+                    const path = target.dataset.path;
+                    contentDisplay.innerHTML = 'Loading file content...';
+                    await fetchFileContent(path);
+                }
+            });
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initDocBrowser);
+    </script>
 </body>
 </html>
