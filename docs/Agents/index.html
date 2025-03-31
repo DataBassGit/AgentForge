@@ -502,33 +502,26 @@
         if (href.toLowerCase().endsWith('.md')) {
             event.preventDefault();
             
-            // Create a temporary link element to parse the href
-            const tempLink = document.createElement('a');
-            tempLink.href = href;
-            
-            // Get the path relative to current location
-            let targetPath = tempLink.pathname;
-            
-            // Remove leading slash and any repo/docs prefix if present
-            targetPath = targetPath.replace(/^\//, '');
-            targetPath = targetPath.replace(new RegExp(`^(?:${GITHUB_REPO}/)?(?:${REPO_DOCS_ROOT}/)?`), '');
-            
             // Handle relative paths
-            if (targetPath.startsWith('./')) {
-                targetPath = targetPath.substring(2);
-            } else if (targetPath.startsWith('../')) {
+            let targetPath;
+            if (href.startsWith('./')) {
+                // Same directory
+                targetPath = href.substring(2);
+            } else if (href.startsWith('../')) {
+                // Up one directory
                 const currentPathParts = currentRepoPath.split('/');
                 currentPathParts.pop();
-                targetPath = targetPath.substring(3);
-                if (currentPathParts.length > 0) {
-                    targetPath = currentPathParts.join('/') + '/' + targetPath;
-                }
-            } else if (!targetPath.startsWith('/')) {
-                // If it's a relative path without ./ or ../, append it to current path
-                targetPath = currentRepoPath + '/' + targetPath;
+                targetPath = currentPathParts.join('/') + '/' + href.substring(3);
+            } else if (href.startsWith('/')) {
+                // Absolute path from docs root
+                targetPath = href.substring(1);
+            } else {
+                // Relative path in current directory
+                const currentPathParts = currentRepoPath.split('/');
+                targetPath = currentPathParts.join('/') + '/' + href;
             }
 
-            // Clean up any double slashes
+            // Clean up any double slashes and ensure proper path
             targetPath = targetPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
             
             // Create a temporary element to act as the link target
@@ -536,12 +529,13 @@
             tempElement.classList.add('md-link');
             tempElement.dataset.filename = targetPath;
             
-            // Load and render the markdown using the same method as nav
+            // Load and render the markdown
             loadAndRenderMarkdown(targetPath, tempElement);
             
             // Update the URL without triggering a page reload
             const newUrl = new URL(window.location.href);
-            newUrl.pathname = tempLink.pathname;
+            const urlPath = `/${REPO_DOCS_ROOT}/${targetPath}`;
+            newUrl.pathname = urlPath;
             window.history.pushState({}, '', newUrl);
         }
     }
