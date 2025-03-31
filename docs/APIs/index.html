@@ -502,23 +502,24 @@
         if (href.toLowerCase().endsWith('.md')) {
             event.preventDefault();
             
+            // Get the current directory path
+            const currentDir = currentRepoPath.split('/').slice(0, -1).join('/');
+            
             // Handle relative paths
             let targetPath;
             if (href.startsWith('./')) {
-                // Same directory
-                targetPath = href.substring(2);
+                // Same directory - use current directory path
+                targetPath = currentDir + '/' + href.substring(2);
             } else if (href.startsWith('../')) {
-                // Up one directory
-                const currentPathParts = currentRepoPath.split('/');
-                currentPathParts.pop();
-                targetPath = currentPathParts.join('/') + '/' + href.substring(3);
+                // Up one directory - remove one level from current path
+                const upDir = currentDir.split('/').slice(0, -1).join('/');
+                targetPath = upDir + '/' + href.substring(3);
             } else if (href.startsWith('/')) {
-                // Absolute path from docs root
+                // Absolute path from docs root - remove leading slash
                 targetPath = href.substring(1);
             } else {
-                // Relative path in current directory
-                const currentPathParts = currentRepoPath.split('/');
-                targetPath = currentPathParts.join('/') + '/' + href;
+                // Relative path - use current directory
+                targetPath = currentDir + '/' + href;
             }
 
             // Clean up any double slashes and ensure proper path
@@ -528,6 +529,8 @@
             const tempElement = document.createElement('a');
             tempElement.classList.add('md-link');
             tempElement.dataset.filename = targetPath;
+            
+            console.log('Loading markdown file:', targetPath); // Debug log
             
             // Load and render the markdown
             loadAndRenderMarkdown(targetPath, tempElement);
