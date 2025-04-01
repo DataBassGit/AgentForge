@@ -428,21 +428,13 @@
             currentSelectedLink = linkElement;
         }
 
-        // Handle relative paths in the filename
-        let targetPath = fileName;
-        if (targetPath.startsWith('./')) {
-            targetPath = targetPath.substring(2);
-        } else if (targetPath.startsWith('../')) {
-            // Go up one level in the current path
-            const currentPathParts = currentRepoPath.split('/');
-            currentPathParts.pop();
-            targetPath = currentPathParts.join('/') + '/' + targetPath.substring(3);
-        }
-
-        // Construct the path relative to the repository root
-        const fileRepoPath = currentRepoPath ? `${currentRepoPath}/${targetPath}` : targetPath;
-        const cleanedFileRepoPath = fileRepoPath.replace(/\/+/g, '/').replace(/^\//, '');
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${cleanedFileRepoPath}`;
+        // Clean up the file path
+        const cleanedPath = cleanPath(fileName);
+        
+        // Construct the raw URL
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${cleanedPath}`;
+        
+        console.log('Loading from URL:', rawUrl);
 
         try {
             // **** Check md AGAIN just before use ****
@@ -502,38 +494,30 @@
         if (href.toLowerCase().endsWith('.md')) {
             event.preventDefault();
             
-            // Get the current document's path parts (excluding the current file)
-            const currentPathParts = currentRepoPath.split('/');
-            if (currentPathParts[currentPathParts.length - 1].includes('.')) {
-                currentPathParts.pop();
-            }
+            // Get the current document's directory path
+            const currentDir = getCurrentDirectory();
             
             // Resolve the target path based on the href
-            let targetParts;
+            let targetPath;
             if (href.startsWith('/')) {
                 // Absolute path from docs root
-                targetParts = [REPO_DOCS_ROOT, ...href.substring(1).split('/')];
+                targetPath = REPO_DOCS_ROOT + href;
+            } else if (href.startsWith('../')) {
+                // Go up one directory level
+                const upDir = currentDir.split('/').slice(0, -1).join('/');
+                targetPath = upDir + '/' + href.substring(3);
+            } else if (href.startsWith('./')) {
+                // Same directory
+                targetPath = currentDir + '/' + href.substring(2);
             } else {
-                // Start with current path for relative links
-                targetParts = [...currentPathParts];
-                
-                // Split the href into parts
-                const hrefParts = href.split('/');
-                
-                // Process each part of the href
-                hrefParts.forEach(part => {
-                    if (part === '..') {
-                        targetParts.pop();
-                    } else if (part !== '.' && part !== '') {
-                        targetParts.push(part);
-                    }
-                });
+                // Relative path in current directory
+                targetPath = currentDir + '/' + href;
             }
+
+            // Clean up the path
+            targetPath = cleanPath(targetPath);
             
-            // Join the parts to create the final path
-            const targetPath = targetParts.join('/');
-            
-            console.log('Current path:', currentRepoPath);
+            console.log('Current directory:', currentDir);
             console.log('Target path:', targetPath);
             
             // Create a temporary element to act as the link target
@@ -546,11 +530,25 @@
             
             // Update the URL without triggering a page reload
             const newUrl = new URL(window.location.href);
-            // Remove the docs prefix if it exists and add it back properly
             const urlPath = targetPath.replace(new RegExp(`^${REPO_DOCS_ROOT}/?`), '');
             newUrl.pathname = `/${REPO_DOCS_ROOT}/${urlPath}`;
             window.history.pushState({}, '', newUrl);
         }
+    }
+
+    // Add these helper functions
+    function getCurrentDirectory() {
+        // Get the current path and remove any file name
+        const pathParts = currentRepoPath.split('/');
+        if (pathParts[pathParts.length - 1].includes('.')) {
+            pathParts.pop();
+        }
+        return pathParts.join('/');
+    }
+
+    function cleanPath(path) {
+        // Remove any double slashes and leading/trailing slashes
+        return path.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
     }
 
     // --- Initialization ---
