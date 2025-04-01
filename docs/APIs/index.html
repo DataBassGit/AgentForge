@@ -502,35 +502,39 @@
         if (href.toLowerCase().endsWith('.md')) {
             event.preventDefault();
             
-            // Parse the current path to get the directory
-            const pathParts = currentRepoPath.split('/');
-            // Remove the last part if it's a file
-            if (pathParts[pathParts.length - 1].includes('.')) {
-                pathParts.pop();
+            // Get the current document's path parts (excluding the current file)
+            const currentPathParts = currentRepoPath.split('/');
+            if (currentPathParts[currentPathParts.length - 1].includes('.')) {
+                currentPathParts.pop();
             }
-            const currentDir = pathParts.join('/');
             
-            // Handle relative paths
-            let targetPath;
-            if (href.startsWith('./')) {
-                // Same directory
-                targetPath = `${currentDir}/${href.substring(2)}`;
-            } else if (href.startsWith('../')) {
-                // Up one directory
-                pathParts.pop(); // Remove current directory
-                targetPath = `${pathParts.join('/')}/${href.substring(3)}`;
-            } else if (href.startsWith('/')) {
-                // Absolute path from docs root - remove leading slash and add docs prefix
-                targetPath = href.substring(1);
+            // Resolve the target path based on the href
+            let targetParts;
+            if (href.startsWith('/')) {
+                // Absolute path from docs root
+                targetParts = [REPO_DOCS_ROOT, ...href.substring(1).split('/')];
             } else {
-                // Relative path in current directory
-                targetPath = `${currentDir}/${href}`;
+                // Start with current path for relative links
+                targetParts = [...currentPathParts];
+                
+                // Split the href into parts
+                const hrefParts = href.split('/');
+                
+                // Process each part of the href
+                hrefParts.forEach(part => {
+                    if (part === '..') {
+                        targetParts.pop();
+                    } else if (part !== '.' && part !== '') {
+                        targetParts.push(part);
+                    }
+                });
             }
-
-            // Clean up any double slashes and ensure proper path
-            targetPath = targetPath.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
             
-            console.log('Loading markdown file:', targetPath); // Debug log
+            // Join the parts to create the final path
+            const targetPath = targetParts.join('/');
+            
+            console.log('Current path:', currentRepoPath);
+            console.log('Target path:', targetPath);
             
             // Create a temporary element to act as the link target
             const tempElement = document.createElement('a');
@@ -542,11 +546,9 @@
             
             // Update the URL without triggering a page reload
             const newUrl = new URL(window.location.href);
-            // Remove any duplicate /docs/ in the path
-            const urlPath = `/${targetPath}`
-                .replace(/^\/+/, '/') // Remove leading slashes
-                .replace(/\/+/g, '/'); // Replace multiple slashes with single slash
-            newUrl.pathname = urlPath;
+            // Remove the docs prefix if it exists and add it back properly
+            const urlPath = targetPath.replace(new RegExp(`^${REPO_DOCS_ROOT}/?`), '');
+            newUrl.pathname = `/${REPO_DOCS_ROOT}/${urlPath}`;
             window.history.pushState({}, '', newUrl);
         }
     }
