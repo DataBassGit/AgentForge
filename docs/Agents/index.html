@@ -418,23 +418,14 @@
     }
 
     // --- Markdown Loading and Rendering ---
-    async function loadAndRenderMarkdown(fileName, linkElement) {
-        showStatus(`Loading ${fileName}...`, 'info', 0);
-        if (currentSelectedLink) {
-            currentSelectedLink.classList.remove('selected');
-        }
-        if (linkElement) {
-            linkElement.classList.add('selected');
-            currentSelectedLink = linkElement;
-        }
-
-        // Clean up the file path
-        const cleanedPath = cleanPath(fileName);
-        
-        // Construct the raw URL
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${cleanedPath}`;
-        
-        console.log('Loading from URL:', rawUrl);
+    async function loadAndRenderMarkdown(fileName, linkElement) { /* ... same ... */
+        showStatus(`Loading ${fileName}...`, 'info', 0); if (currentSelectedLink) { currentSelectedLink.classList.remove('selected'); } linkElement.classList.add('selected'); currentSelectedLink = linkElement;
+        // Construct the path relative to the repository root for the raw content URL
+        const fileRepoPath = currentRepoPath ? `${currentRepoPath}/${fileName}` : fileName;
+        // Ensure no double slashes if currentRepoPath was empty or ended with /
+        const cleanedFileRepoPath = fileRepoPath.replace(/\/+/g, '/').replace(/^\//, ''); // Remove leading slash if present
+        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${cleanedFileRepoPath}`;
+        console.log(`[loadAndRenderMarkdown] Fetching raw content from: ${rawUrl}`); // Log the raw URL
 
         try {
             // **** Check md AGAIN just before use ****
@@ -471,84 +462,6 @@
     // --- Auto-load README ---
     function autoLoadReadme() { /* ... same ... */
          const readmeLink = fileListElement.querySelector('a.md-link[data-filename="README.md"], a.md-link[data-filename="readme.md"]'); if (readmeLink) { const isDefaultContent = contentElement.querySelector('h1')?.textContent === 'Welcome'; if(isDefaultContent) { loadAndRenderMarkdown(readmeLink.dataset.filename, readmeLink); } }
-    }
-
-    // Update the handleMarkdownLink function
-    function handleMarkdownLink(event) {
-        const link = event.target.closest('a');
-        if (!link) return;
-
-        // Get the href
-        const href = link.getAttribute('href');
-        
-        // Skip if no href or it's an anchor link
-        if (!href || href.startsWith('#')) return;
-        
-        // Check if it's an external link
-        const isExternal = href.startsWith('http') || href.startsWith('https') || href.startsWith('//');
-        
-        // If it's external, let the default behavior handle it
-        if (isExternal) return;
-        
-        // Check if it's a markdown file
-        if (href.toLowerCase().endsWith('.md')) {
-            event.preventDefault();
-            
-            // Get the current document's directory path
-            const currentDir = getCurrentDirectory();
-            
-            // Resolve the target path based on the href
-            let targetPath;
-            if (href.startsWith('/')) {
-                // Absolute path from docs root
-                targetPath = REPO_DOCS_ROOT + href;
-            } else if (href.startsWith('../')) {
-                // Go up one directory level
-                const upDir = currentDir.split('/').slice(0, -1).join('/');
-                targetPath = upDir + '/' + href.substring(3);
-            } else if (href.startsWith('./')) {
-                // Same directory
-                targetPath = currentDir + '/' + href.substring(2);
-            } else {
-                // Relative path in current directory
-                targetPath = currentDir + '/' + href;
-            }
-
-            // Clean up the path
-            targetPath = cleanPath(targetPath);
-            
-            console.log('Current directory:', currentDir);
-            console.log('Target path:', targetPath);
-            
-            // Create a temporary element to act as the link target
-            const tempElement = document.createElement('a');
-            tempElement.classList.add('md-link');
-            tempElement.dataset.filename = targetPath;
-            
-            // Load and render the markdown
-            loadAndRenderMarkdown(targetPath, tempElement);
-            
-            // Update the URL without triggering a page reload
-            const newUrl = new URL(window.location.href);
-            const urlPath = targetPath.replace(new RegExp(`^${REPO_DOCS_ROOT}/?`), '');
-            newUrl.pathname = `/${REPO_DOCS_ROOT}/${urlPath}`;
-            window.history.pushState({}, '', newUrl);
-        }
-    }
-
-    // Add these helper functions
-    function getCurrentDirectory() {
-        // Get the current path and remove any file name
-        const pathParts = currentRepoPath.split('/');
-        if (pathParts[pathParts.length - 1].includes('.')) {
-            pathParts.pop();
-        }
-        return pathParts.join('/');
-    }
-
-    function cleanPath(path) {
-        // Remove any double slashes and leading/trailing slashes
-        return path.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
     }
 
     // --- Initialization ---
@@ -626,9 +539,6 @@
              // Clear existing content to show loading state
              contentElement.innerHTML = `<h1>Loading...</h1><p>Fetching content for the current path.</p>`;
         });
-
-        // Add click handler for markdown links in content
-        contentElement.addEventListener('click', handleMarkdownLink);
 
     });
 
