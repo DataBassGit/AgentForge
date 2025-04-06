@@ -1,5 +1,6 @@
 # Virtual environments
 /venv/
+/.venv/
 
 # Configuration files
 .env

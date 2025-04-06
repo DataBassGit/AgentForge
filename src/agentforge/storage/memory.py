@@ -137,7 +137,7 @@ class Memory:
         Args:
             ids (Union[str, list[str]]): The unique identifier(s) for the memory entries to delete.
         """
-        self.storage.delete_from_stroage(collection_name=self.collection_name, ids=ids)
+        self.storage.delete_from_storage(collection_name=self.collection_name, ids=ids)
 
     def wipe_memory(self):
         """

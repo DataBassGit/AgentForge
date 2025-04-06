@@ -200,65 +200,199 @@ class Cog:
             self.agents[agent_id]= agent_class(agent_prompt_file)
             self.agent_response_format[agent_id] = self._get_response_format_for_agent(agent_def)
 
-    def _check_max_visits(self, current_agent_id: str, transition: dict) -> Optional[str]:
+    def _check_max_visits(self, current_agent_id: str, transition) -> Optional[str]:
         """
         Check if the max_visits limit for the given agent is exceeded.
         If it is exceeded, return the 'default' branch specified in the transition.
         Otherwise, return None.
+        
+        Args:
+            current_agent_id: The ID of the current agent
+            transition: The transition definition (dict or str)
+            
+        Returns:
+            Optional[str]: The default branch if max_visits is exceeded, otherwise None
         """
-        max_visits = transition.get("max_visits", None)
-        if max_visits is not None:
+        # If the transition is None or not a dictionary, we don't need to check max_visits.
+        if transition is None or not isinstance(transition, dict):
+            return None
+        
+        # If the max_visits is not a number or is not positive, we don't need to check max_visits.
+        max_visits = transition.get("max_visits", 0)
+        if max_visits is not None and isinstance(max_visits, int) and max_visits > 0:
+            # If the agent_visit_counts dictionary doesn't exist, create it.
             if not hasattr(self, "agent_visit_counts"):
                 self.agent_visit_counts = {}
+
+            # Increment the visit count for the current agent.
             self.agent_visit_counts[current_agent_id] = self.agent_visit_counts.get(current_agent_id, 0) + 1
+
+            # If the visit count exceeds the max_visits, return the 'default' branch specified in the transition.
             if self.agent_visit_counts[current_agent_id] > max_visits:
                 return transition.get("default")
         return None
 
+    def _normalize_transition(self, transition):
+        """
+        Normalize a transition to a consistent format for easier handling.
+        
+        Args:
+            transition: The raw transition (str, dict, or None)
+            
+        Returns:
+            dict: A normalized transition with a 'type' key indicating the transition type
+                - {'type': 'direct', 'next': agent_id} for string transitions
+                - {'type': 'end'} for end transitions
+                - {'type': 'decision', ...original keys...} for decision transitions
+            None: If the transition is None
+        """
+        if transition is None:
+            return None
+            
+        # String transitions are direct jumps to the next agent
+        if isinstance(transition, str):
+            return {'type': 'direct', 'next': transition}
+            
+        # Check if this is an end transition
+        if self._is_end_transition(transition):
+            return {'type': 'end'}
+            
+        # This is a decision-based transition
+        result = transition.copy()
+        result['type'] = 'decision'
+        return result
+            
     def get_agent_transition(self, agent_id):
+        """
+        Get the transition definition for the specified agent.
+        
+        Args:
+            agent_id: The ID of the agent to get the transition for
+            
+        Returns:
+            - str: If the transition is a direct reference to the next agent
+            - dict: If the transition is a decision-based transition map
+            - None: If the transition indicates the end of the flow
+            
+        Raises:
+            Exception: If no transition is defined for the agent
+        """
         transitions = self.flow.get("transitions", {})
         agent_transition = transitions.get(agent_id)
         if agent_transition is None:
             raise Exception(f"There is no transition defined for agent: {agent_id}")
 
-        # If the transition is not a dictionary, it's a direct next agent.
-        if not isinstance(agent_transition, dict):
-            return agent_transition
-
-        # Check if this transition indicates termination.
-        if self._is_end_transition(agent_transition):
-            return None
+        # Return the transition in its original form (for backward compatibility)
+        # In the future, this could return the normalized form
+        return agent_transition
 
     def _get_next_agent(self, current_agent_id: str) -> Optional[str]:
         """
         Determine the next agent (node) ID based on the current node's transition and global context.
+        
+        Args:
+            current_agent_id: The ID of the current agent
+            
+        Returns:
+            Optional[str]: The ID of the next agent, or None if the flow should terminate
         """
+        # Get the transition for the current agent
         agent_transition = self.get_agent_transition(current_agent_id)
+        
+        # Process and handle the transition
         return self._handle_decision_transition(current_agent_id, agent_transition)
 
     def _handle_decision(self, current_agent_id: str, transition: dict) -> Optional[str]:
         """
         Handles decision-based transitions by determining the decision key
         and selecting the appropriate branch based on the agent's output.
+        
+        Args:
+            current_agent_id: The ID of the current agent
+            transition: The transition dictionary (must be a dict)
+            
+        Returns:
+            Optional[str]: The ID of the next agent, or None if no matching branch is found
+            
+        Raises:
+            TypeError: If transition is not a dictionary
         """
-        reserved_keys = {"end", "max_visits"}
+        # Ensure transition is a dictionary
+        if not isinstance(transition, dict):
+            raise TypeError(f"Expected dictionary for transition, got {type(transition).__name__}")
+            
+        reserved_keys = {"end", "max_visits", "type"}
         decision_key = self._get_decision_key(transition, reserved_keys)
-        if decision_key:
-            decision_map = transition[decision_key]
-            decision_value = self.internal_context[current_agent_id].get(decision_key)
-            return decision_map.get(decision_value, decision_map.get("default"))
-        return None
+        
+        if not decision_key:
+            return None
+            
+        # Ensure the decision key exists in the transition
+        if decision_key not in transition:
+            self.logger.warning(f"Decision key '{decision_key}' not found in transition for agent '{current_agent_id}'")
+            return None
+            
+        decision_map = transition[decision_key]
+        
+        # Ensure decision_map is a dictionary
+        if not isinstance(decision_map, dict):
+            self.logger.warning(f"Decision map for key '{decision_key}' is not a dictionary in agent '{current_agent_id}'")
+            return None
+            
+        # Get the decision value from the agent's output
+        if current_agent_id not in self.internal_context:
+            self.logger.warning(f"No output found for agent '{current_agent_id}' in internal context")
+            return decision_map.get("default")
+            
+        decision_value = self.internal_context[current_agent_id].get(decision_key)
+        
+        # If the decision value is not found, use the default branch
+        if decision_value is None:
+            self.logger.warning(f"Decision value for key '{decision_key}' not found in output of agent '{current_agent_id}'")
+            return decision_map.get("default")
+            
+        # Get the next agent ID based on the decision value
+        next_agent = decision_map.get(decision_value, decision_map.get("default"))
+        
+        if next_agent is None:
+            self.logger.warning(f"No matching branch found for decision value '{decision_value}' and no default branch defined")
+            
+        return next_agent
 
-    def _handle_decision_transition(self, current_agent_id: str, transition: dict) -> Optional[str]:
+    def _handle_decision_transition(self, current_agent_id: str, transition) -> Optional[str]:
         """
         Handle decision-based transitions:
           - Check if the max_visits limit for this agent is exceeded.
           - Otherwise, use the decision variable to select the next agent.
+          
+        Args:
+            current_agent_id: The ID of the current agent
+            transition: Either a string (direct transition) or a dictionary (decision-based transition)
+            
+        Returns:
+            Optional[str]: The ID of the next agent, or None if the flow should terminate
         """
+        # Normalize the transition for easier handling
+        norm_transition = self._normalize_transition(transition)
+        
+        # If transition is None, we're at the end of the flow
+        if norm_transition is None:
+            return None
+            
+        # Handle direct transitions
+        if norm_transition['type'] == 'direct':
+            return norm_transition['next']
+            
+        # Handle end transitions
+        if norm_transition['type'] == 'end':
+            return None
+            
+        # Check if max_visits is exceeded (only for decision transitions)
         default_branch = self._check_max_visits(current_agent_id, transition)
         if default_branch is not None:
             return default_branch
 
+        # Handle decision-based transition (transition is a dictionary)
         return self._handle_decision(current_agent_id, transition)
 
     ##########################################################
@@ -323,7 +457,16 @@ class Cog:
                     input_for_query = self._extract_keys(query_keys)
                     if not input_for_query:
                         continue
-                    query_text = input_for_query
+                    # Extract just the values from the dictionary, not the whole dict
+                    if isinstance(input_for_query, dict) and len(input_for_query) > 0:
+                        # If there's only one value, use it directly
+                        if len(input_for_query) == 1:
+                            query_text = next(iter(input_for_query.values()))
+                        else:
+                            # If multiple values, use a list of the values
+                            query_text = list(input_for_query.values())
+                    else:
+                        query_text = input_for_query
 
                 query_text = query_text if query_text else self.external_context
 
@@ -453,6 +596,7 @@ class Cog:
 
     def _execute_flow(self) -> None:
         current_agent_id = self.flow.get("start")
+        self.last_executed_agent = None
         while current_agent_id:
             # BEFORE calling the agent, do memory queries
             self._memory_query_phase(current_agent_id)
@@ -461,6 +605,9 @@ class Cog:
             parsed_output = self._call_agent(current_agent_id)
             self._track_agent_output(current_agent_id, parsed_output)
             self.internal_context[current_agent_id] = parsed_output
+            
+            # Store the last executed agent
+            self.last_executed_agent = current_agent_id
 
             # AFTER the agent finishes, do memory updates
             self._memory_update_phase(current_agent_id)
@@ -491,11 +638,48 @@ class Cog:
             self.thought_flow_trail.append({agent_id: output})
             self.logger.log(f'******\n{agent_id}\n******\n{output}\n******', 'debug')
 
-    def run(self, **kwargs: Any) -> Optional[Dict[str, Any]]:
+    def get_internal_context(self) -> Dict[str, Any]:
+        """
+        Returns the full internal context after execution.
+        
+        Returns:
+            Dict[str, Any]: The internal context containing all agent outputs
+        """
+        return self.internal_context.copy()
+
+    def run(self, **kwargs: Any) -> Any:
         """
         Execute the cog by iteratively running agents as defined in the flow.
+        
+        Args:
+            **kwargs: Initial context values to provide to the agents
+            
+        Returns:
+            Any: Based on the 'end' keyword in the flow:
+                - If 'end: true', returns the output of the last agent executed
+                - If 'end: <dot.notation.key>', returns the value from the internal context
+                - Otherwise, returns the full internal context
         """
-
         self._reset_context_and_thoughts()
         self.external_context.update(kwargs)
         self._execute_flow()
+        
+        # Get the transition for the last executed agent
+        if self.last_executed_agent:
+            agent_transition = self.get_agent_transition(self.last_executed_agent)
+            
+            # Handle the 'end' keyword
+            if isinstance(agent_transition, dict) and "end" in agent_transition:
+                end_value = agent_transition["end"]
+                
+                # If end: true, return the last agent's output
+                if end_value is True:
+                    return self.internal_context.get(self.last_executed_agent)
+                
+                # If end is a string in dot notation, return the specified value
+                if isinstance(end_value, str):
+                    combined_context = self._get_global_context()
+                    return self._lookup_dot_key(combined_context, end_value)
+        
+        # Default behavior: return the full internal context
+        return self.internal_context

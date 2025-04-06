@@ -214,20 +214,25 @@ class ChromaStorage:
         try:
             self.db_path, self.db_embed = self.chromadb_settings()
 
+
             # Initialize embedding based on the specified backend in the configuration
-            if self.db_embed == 'openai_ada2':
+            if not self.db_embed:
+                self.embedding = embedding_functions.DefaultEmbeddingFunction()
+                return
+            
+            if self.db_embed == 'text-embedding-ada-002':
                 openai_api_key = os.getenv('OPENAI_API_KEY')
                 self.embedding = embedding_functions.OpenAIEmbeddingFunction(
                     api_key=openai_api_key,
-                    model_name="text-embedding-ada-002"
+                    model_name=self.db_embed
                 )
-            elif self.db_embed == 'all-distilroberta-v1':
-                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(
-                    model_name="all-distilroberta-v1")
-            # Additional embeddings can be initialized here similarly
-            else:
-                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(
-                    model_name="all-MiniLM-L12-v2")
+                return
+            
+            if self.db_embed:
+                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=self.db_embed)
+                return
+
+            raise ValueError(f"Unsupported embedding backend: {self.db_embed}")
         except KeyError as e:
             logger.log(f"[init_embeddings] Missing environment variable or setting: {e}", 'error')
             raise
@@ -251,8 +256,8 @@ class ChromaStorage:
 
         # Get the database path and embedding settings
         db_path_setting = storage_settings['options'].get('persist_directory', None)
-        db_embed = storage_settings['embedding'].get('selected', None)
-
+        selected_embed = storage_settings['embedding'].get('selected', None)
+        db_embed = storage_settings['embedding_library'].get(selected_embed, None)
         # Construct the absolute path of the database using the project root
         if db_path_setting:
             db_path = str(self.config.project_root / db_path_setting / self.persona_name)
@@ -518,7 +523,7 @@ class ChromaStorage:
             logger.log(f"[query_memory] Error querying storage: {e}", 'error')
             return None
 
-    def delete_from_stroage(self, collection_name, ids):
+    def delete_from_storage(self, collection_name, ids):
         if ids and not isinstance(ids, list):
             ids = [ids]
 
