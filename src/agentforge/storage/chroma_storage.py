@@ -172,12 +172,19 @@ class ChromaStorage:
     # Section 3: Initialization
     ##########################################################
 
-    def __init__(self, persona_name="default"):
+    def __init__(self, collection_name: str, cog_context: Optional[str] = None, persona_context: Optional[str] = None):
         """
         Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
         upon creation.
+        
+        Args:
+            collection_name (str): The name of the collection to use
+            cog_context (Optional[str]): The cog name to use for context path
+            persona_context (Optional[str]): The persona name to use for context path
         """
-        self.persona_name = persona_name
+        self.collection_name = collection_name
+        self.cog_context = cog_context or "default"
+        self.persona_context = persona_context or "default"
         self.config = Config()
         self.init_embeddings()
         self.init_storage()
@@ -258,10 +265,13 @@ class ChromaStorage:
         db_path_setting = storage_settings['options'].get('persist_directory', None)
         selected_embed = storage_settings['embedding'].get('selected', None)
         db_embed = storage_settings['embedding_library'].get(selected_embed, None)
-        # Construct the absolute path of the database using the project root
+        
+        # Construct the absolute path of the database using the project root and namespace path
         if db_path_setting:
-            db_path = str(self.config.project_root / db_path_setting / self.persona_name)
-
+            # Use a path-based approach for namespacing by cog and persona
+            # This creates directories like {persist_directory}/{cog_name}/{persona_name}/
+            namespace_path = f"{self.cog_context}/{self.persona_context}"
+            db_path = str(self.config.project_root / db_path_setting / namespace_path)
         else:
             db_path = None
 

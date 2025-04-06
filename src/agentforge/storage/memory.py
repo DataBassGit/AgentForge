@@ -25,29 +25,34 @@ class Memory:
     update acts as create-if-not-exists.
     """
 
-    def __init__(self, cog_name: str, persona: Optional[str] = None):
+    def __init__(self, cog_name: str, persona: Optional[str] = None, collection_id: Optional[str] = None):
         """
         Initializes a Memory instance for a specific cog and persona.
 
         Args:
             cog_name (str): Name of the cog to which this memory belongs.
             persona (Optional[str]): Optional persona name for further partitioning.
+            collection_id (Optional[str]): Optional identifier for the collection. 
+                                          If not provided, uses a derived name.
         """
         self.store = {}
         self.cog_name = cog_name
         self.persona = persona
-        # Build a collection name based on cog and persona.
-        self.collection_name = self._build_collection_name()
+        # Build or use provided collection name
+        self.collection_name = collection_id or self._build_collection_name()
         # Initialize the underlying storage using our ChromaStorage wrapper.
-        self.storage = ChromaStorage(self.collection_name)
+        # Pass cog and persona as context for proper namespace pathing
+        self.storage = ChromaStorage(self.collection_name, cog_context=self.cog_name, persona_context=self.persona)
 
     def _build_collection_name(self) -> str:
         """
-        Builds a collection name from the cog name and persona.
+        Builds a collection name. By default, uses "default" as the collection name.
+        This method can be overridden by subclasses to provide custom collection naming.
+        
+        Returns:
+            str: The collection name to use for storage
         """
-        if self.persona:
-            return f"{self.cog_name}_{self.persona}"
-        return self.cog_name
+        return "default"
 
     def query_memory(self, query_text: Union[str, list[str]], num_results: int = 5) -> Optional[Dict[str, Any]]:
         """

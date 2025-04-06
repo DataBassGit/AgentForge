@@ -422,17 +422,41 @@ class Cog:
 
         return getattr(mod, class_name)
 
+    def _resolve_persona(self) -> Optional[str]:
+        """
+        Resolve the persona to use for this cog using the deterministic hierarchy via Config.resolve_persona.
+        
+        Returns:
+            Optional[str]: The resolved persona name or None if personas are disabled
+        """
+        # Get the persona data using the Config's centralized resolution method
+        persona_data = self.config.resolve_persona(cog_config=self.cog_config)
+        
+        # If personas are disabled or no persona was found, return None
+        if persona_data is None:
+            return None
+            
+        # Return the name from the persona data (needed for memory path naming)
+        # This assumes each persona has a 'name' field, which is a common convention
+        return persona_data.get('name', 'default')
+
     def _build_memory_nodes(self) -> None:
         # We expect a list of memory configs under cog_config['cog'].get('memory', [])
         self.memories = {}
         memory_list = self.cog_config.get("cog", {}).get("memory", [])
+        
+        # Resolve persona for the cog using the deterministic hierarchy
+        cog_persona = self._resolve_persona()
+        
         for mem_def in memory_list:
             mem_id = mem_def["id"]
             mem_class = self._resolve_memory_class(mem_def)
+            
+            # Create a unique collection ID that's independent of the cog/persona namespacing
+            collection_id = mem_def.get("collection_id", mem_id)
 
-            # we need a way to get the persona for the cog
-
-            mem_obj = mem_class(cog_name=self.cog_file)
+            # Pass cog_name and resolved persona to the Memory constructor
+            mem_obj = mem_class(cog_name=self.cog_file, persona=cog_persona, collection_id=collection_id)
             self.memories[mem_id] = {
                 "instance": mem_obj,
                 "config": mem_def,  # store the raw config for query/update triggers
@@ -475,7 +499,7 @@ class Cog:
 
                 # Combine result with memory's internal store or skip
                 if result:
-                    self.logger.log(f"Memories Found:\n{result}", 'info', 'Memory')
+                    self.logger.log(f"Memories Found:\n{result}", 'debug', 'Memory')
                     print(f"----------------\n"
                           f"Memories Found:\n{result}\n"
                           f"----------------")

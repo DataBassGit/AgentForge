@@ -90,7 +90,7 @@ class Config:
             if agentforge_dir.is_dir():
                 if self._debug: print(f"\n\nUsing custom project root: {custom_root}")
                 return custom_root
-            # Early return or raise an error if .agentforge isn’t found in the custom path
+            # Early return or raise an error if .agentforge isn't found in the custom path
             raise FileNotFoundError(f"No .agentforge found in custom root path: {custom_root}")
 
         # Otherwise, fall back to the original search logic
@@ -175,7 +175,7 @@ class Config:
 
     def load_agent_data(self, agent_name: str) -> Dict[str, Any]:
         """
-        Loads configuration data for a specified agent, applying any overrides in the agent’s config.
+        Loads configuration data for a specified agent, applying any overrides in the agent's config.
         Returns a dict containing everything needed to run that agent.
         """
 
@@ -464,6 +464,49 @@ class Config:
             data = data[part]
         return data
 
+    def resolve_persona(self, cog_config: Optional[Dict[str, Any]] = None, agent_config: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Resolves the persona to use based on the deterministic hierarchy:
+        1. Cog-defined persona (highest priority)
+        2. Agent-defined persona
+        3. System default persona (lowest priority)
+        
+        Args:
+            cog_config (Optional[Dict]): The cog configuration (if any)
+            agent_config (Optional[Dict]): The agent configuration (if any)
+            
+        Returns:
+            Optional[Dict[str, Any]]: The resolved persona data or None if personas are disabled
+        """
+        # First check if personas are enabled
+        settings = self.data['settings']
+        if not settings['system']['persona'].get('enabled', False):
+            return None
+            
+        # Determine persona name based on priority
+        persona_name = None
+        
+        # 1. Cog-defined persona (highest priority)
+        if cog_config and 'persona' in cog_config:
+            persona_name = cog_config['persona']
+            
+        # 2. Agent-defined persona (medium priority)
+        elif agent_config and 'persona' in agent_config:
+            persona_name = agent_config['persona']
+            
+        # 3. System default persona (lowest priority)
+        else:
+            persona_name = settings['system']['persona'].get('name', 'default')
+            
+        # Load the persona data
+        if persona_name not in self.data.get('personas', {}):
+            raise FileNotFoundError(
+                f"Selected Persona '{persona_name}' not found. "
+                "Please make sure the corresponding persona file is in the personas folder"
+            )
+            
+        return self.data['personas'][persona_name]
+        
     def load_persona(self, agent_config: dict) -> Optional[Dict[str, Any]]:
         """
         Loads the persona for the agent, if personas are enabled.
@@ -477,18 +520,8 @@ class Config:
         Raises:
             FileNotFoundError: If the persona file is not found.
         """
-        settings = self.data['settings']
-        if not settings['system']['persona'].get('enabled', False):
-            return None
-
-        persona_file = agent_config.get('persona') or settings['system']['persona'].get('name', 'default')
-        if persona_file not in self.data.get('personas', {}):
-            raise FileNotFoundError(
-                f"Selected Persona '{persona_file}' not found. "
-                "Please make sure the corresponding persona file is in the personas folder"
-            )
-
-        return self.data['personas'][persona_file]
+        # For backward compatibility, call the more generic resolve_persona method
+        return self.resolve_persona(agent_config=agent_config)
 
     def reload(self):
         """
