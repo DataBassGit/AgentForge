@@ -8,9 +8,11 @@ import configparser
 import csv
 from io import StringIO
 
+
 class ParsingError(Exception):
     """Custom exception for parsing errors."""
     pass
+
 
 class ParsingProcessor:
     DEFAULT_CODE_FENCES = ["```", "~~~"]
@@ -36,30 +38,100 @@ class ParsingProcessor:
         return code_fences if code_fences is not None else self.default_code_fences
 
     def extract_code_block(self, text: str, code_fences: Optional[List[str]] = None) -> Tuple[Optional[str], str]:
+        """
+        Extract a code block from text, returning the language and content.
+        
+        Args:
+            text: The text containing code blocks
+            code_fences: Optional list of fence markers to use (default: self.default_code_fences)
+            
+        Returns:
+            Tuple of (language, content)
+        """
         code_fences = self.get_code_fences(code_fences)
+        
+        # First try standard fence pattern matching
         for fence in code_fences:
             escaped_fence = re.escape(fence)
-            # Look for an optional language specifier, a newline, then everything until the closing fence.
-            pattern = fr"{escaped_fence}([a-zA-Z]*)\r?\n([\s\S]*?){escaped_fence}"
+            # Match fenced code blocks with language specifier
+            pattern = fr"{escaped_fence}([a-zA-Z]*)[ \t]*\r?\n?([\s\S]*?){escaped_fence}"
             match = re.search(pattern, text, re.DOTALL)
             if match:
                 language = match.group(1).strip() or None
                 content = match.group(2).strip()
                 return language, content
+
+            # Also try handling no-language blocks with just the fence
+            pattern = fr"{escaped_fence}\s*\r?\n([\s\S]*?){escaped_fence}"
+            match = re.search(pattern, text, re.DOTALL)
+            if match:
+                return None, match.group(1).strip()
+        
+        # No code blocks found with standard patterns
         return None, text.strip()
+
+    def sanitize_yaml_content(self, content: str, 
+                             primary_fence: str = None, 
+                             alternate_fence: str = None) -> str:
+        """
+        Sanitize YAML content by handling nested code blocks.
+        
+        Args:
+            content: The YAML content to sanitize
+            primary_fence: The main fence to replace (defaults to first in DEFAULT_CODE_FENCES)
+            alternate_fence: The replacement fence (defaults to second in DEFAULT_CODE_FENCES)
+        """
+        primary = primary_fence or self.default_code_fences[0]
+        alternate = alternate_fence or self.default_code_fences[1]
+        
+        def replace_inner_fences(match):
+            inner_block = match.group(0)
+            return inner_block.replace(primary, alternate)
+        
+        # Pattern based on primary fence
+        pattern = fr"{re.escape(primary)}[a-zA-Z]*\s*\r?\n[\s\S]*?{re.escape(primary)}"
+        content = re.sub(pattern, replace_inner_fences, content)
+        
+        # Then handle any other sanitization
+        if content.strip().startswith('```'):
+            content = re.sub(r'^```.*?\n', '', content, flags=re.DOTALL)
+            content = re.sub(r'```\s*$', '', content)
+            self.logger.log("Removed outer code blocks in YAML content", 'warning')
+        
+        return content.strip()
 
     def parse_content(self, content_string: str, parser_func: Callable[[str], Any],
                       expected_language: str, code_fences: Optional[List[str]] = None) -> Any:
         code_fences = self.get_code_fences(code_fences)
         language, cleaned_string = self.extract_code_block(content_string, code_fences)
+        
         if language and language.lower() != expected_language.lower():
             self.logger.log(f"Expected {expected_language.upper()} code block, but found '{language}'", 'warning')
+            
         if cleaned_string:
             try:
+                # Apply format-specific preprocessing
+                if expected_language.lower() == 'yaml':
+                    cleaned_string = self.sanitize_yaml_content(cleaned_string)
+                
                 return parser_func(cleaned_string)
             except Exception as e:
-                self.logger.log(f"Parsing error: {e}\nContent: {content_string}", 'error')
-                raise ParsingError(e) from e
+                # Log a more detailed error with a preview of the content
+                preview = cleaned_string[:100] + ('...' if len(cleaned_string) > 100 else '')
+                self.logger.log(f"Parsing error: {str(e)}\nContent preview: {preview}", 'error')
+                self.logger.log(f"Content type: {expected_language}, Content length: {len(cleaned_string)}", 'error')
+
+                # Try alternative parsing approaches for common error cases
+                if expected_language.lower() == 'yaml':
+                    try:
+                        # More aggressive YAML cleanup as a last resort
+                        cleaned_again = re.sub(r'[`~]', '', cleaned_string)  # Remove any remaining backticks
+                        self.logger.log("Attempting alternative YAML parsing after aggressive cleanup", 'info')
+                        return parser_func(cleaned_again)
+                    except Exception as e2:
+                        self.logger.log(f"Alternative parsing also failed: {e2}", 'error')
+
+                raise ParsingError(f"Failed to parse {expected_language}: {e}") from e
         return None
 
     def parse_by_format(self, content_string: str, parser_type: str, code_fences: Optional[List[str]] = None) -> Any:
@@ -94,7 +166,8 @@ class ParsingProcessor:
         return ['xml', 'json', 'yaml', 'ini', 'csv', 'markdown']
 
     @staticmethod
-    def parse_markdown_to_dict(markdown_text: str, min_heading_level=2, max_heading_level=6) -> Optional[Dict[str, Any]]:
+    def parse_markdown_to_dict(markdown_text: str, min_heading_level=2, max_heading_level=6) -> Optional[
+        Dict[str, Any]]:
         parsed_dict = {}
         current_heading = None
         content_lines = []
@@ -113,212 +186,7 @@ class ParsingProcessor:
             parsed_dict[current_heading] = '\n'.join(content_lines).strip()
         return parsed_dict if parsed_dict else None
 
-
-
-# import re
-# import json
-# import yaml
-# from typing import Optional, Dict, Any, Callable, Type, List, Tuple
-# from agentforge.utils.logger import Logger
-# import xmltodict
-# import configparser
-# import csv
-# from io import StringIO
-#
-# class ParsingProcessor:
-#
-#     def __init__(self):
-#         """
-#         Initializes the ParsingProcessor class.
-#         """
-#         name = self.__class__.__name__.__str__()
-#         self.logger = Logger(name=name, default_logger=name)
-#
-#     def auto_parse_content(self, text: str, code_fences: Optional[List[str]] = None) -> Any:
-#         if code_fences is None:
-#             code_fences = ["```", "~~~"]
-#         language, content = self.extract_code_block(text, code_fences=code_fences)
-#         if language and language.lower() in self.list_supported_formats():
-#             return self.parse_by_format(content, language, code_fences=code_fences)
-#
-#         self.logger.log("No valid language detected for automatic parsing, returning raw text instead.", "warning")
-#         return text
-#
-#     def extract_code_block(self, text: str, code_fences: Optional[List[str]] = None) -> Optional[Tuple[Optional[str], str]]:
-#         """
-#         Extracts a code block from a string using one of the specified code fence delimiters.
-#         Iterates through the provided list of code fences (defaulting to ["```"]) and returns the first matching
-#         code block along with its language specifier. If no code block is found, returns the original text.
-#         """
-#         if code_fences is None:
-#             code_fences = ["```", "~~~"]
-#         try:
-#             for fence in code_fences:
-#                 escaped_fence = re.escape(fence)
-#                 code_block_pattern = fr"{escaped_fence}([a-zA-Z]*)\r?\n([\s\S]*?){escaped_fence}"
-#                 match = re.search(code_block_pattern, text, re.DOTALL)
-#                 if match:
-#                     language = match.group(1).strip() or None
-#                     content = match.group(2).strip()
-#                     return language, content
-#             return None, text.strip()
-#         except Exception as e:
-#             self.logger.log(f"Regex Error Extracting Code Block: {e}", 'error')
-#             return None
-#
-#     def parse_content(self, content_string: str, parser_func: Callable[[str], Any],
-#                       expected_language: str, exception_class: Type[Exception],
-#                       code_fences: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-#         """
-#         A generic method to parse content using a specified parser function.
-#         """
-#         if code_fences is None:
-#             code_fences = ["```", "~~~"]
-#         try:
-#             language, cleaned_string = self.extract_code_block(content_string, code_fences=code_fences)
-#             if language and language.lower() != expected_language.lower():
-#                 self.logger.log(f"Expected {expected_language.upper()} code block, but found '{language}'", 'warning')
-#
-#             if cleaned_string:
-#                 return parser_func(cleaned_string)
-#             return None
-#         except exception_class as e:
-#             self.logger.log(f"Parsing error: {e}\n"
-#                             f"Content: {content_string}", 'error')
-#             return None
-#         except Exception as e:
-#             self.logger.log(f"Unexpected error parsing {expected_language.upper()} content: {e}", 'error')
-#             return None
-#
-#     def parse_by_format(self, content_string: str, parser_type: str, code_fences: Optional[List[str]] = None) -> Any:
-#         if code_fences is None:
-#             code_fences = ["```", "~~~"]
-#         parser_method_name = f"parse_{parser_type.lower()}_content"
-#         parser_method = getattr(self, parser_method_name, None)
-#         if callable(parser_method):
-#             return parser_method(content_string, code_fences=code_fences)
-#         else:
-#             self.logger.log(f"No parser method found for type '{parser_type}'", 'error')
-#             return None
-#
-#     def parse_markdown_content(self, markdown_string: str, min_heading_level=2, max_heading_level=6, code_fences: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-#         """
-#         Parses a Markdown-formatted string into a Python dictionary.
-#         """
-#         def parser_func(s):
-#             return self.parse_markdown_to_dict(s, min_heading_level, max_heading_level)
-#
-#         return self.parse_content(
-#             content_string=markdown_string,
-#             parser_func=parser_func,
-#             expected_language='markdown',
-#             exception_class=Exception,
-#             code_fences=code_fences
-#         )
-#
-#     def parse_yaml_content(self, yaml_string: str, code_fences: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-#         """
-#         Parses a YAML-formatted string into a Python dictionary.
-#         """
-#         return self.parse_content(
-#             content_string=yaml_string,
-#             parser_func=yaml.safe_load,
-#             expected_language='yaml',
-#             exception_class=yaml.YAMLError,
-#             code_fences=code_fences
-#         )
-#
-#     def parse_json_content(self, json_string: str, code_fences: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-#         """
-#         Parses a JSON-formatted string into a Python dictionary.
-#         """
-#         return self.parse_content(
-#             content_string=json_string,
-#             parser_func=json.loads,
-#             expected_language='json',
-#             exception_class=json.JSONDecodeError,
-#             code_fences=code_fences
-#         )
-#
-#     def parse_xml_content(self, xml_string: str, code_fences: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-#         """
-#         Parses an XML-formatted string into a Python dictionary.
-#         """
-#         return self.parse_content(
-#             content_string=xml_string,
-#             parser_func=xmltodict.parse,
-#             expected_language='xml',
-#             exception_class=Exception,
-#             code_fences=code_fences
-#         )
-#
-#     def parse_ini_content(self, ini_string: str, code_fences: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
-#         """
-#         Parses an INI-formatted string into a Python dictionary.
-#         """
-#         def parser_func(s):
-#             parser = configparser.ConfigParser()
-#             parser.read_string(s)
-#             return {section: dict(parser.items(section)) for section in parser.sections()}
-#
-#         return self.parse_content(
-#             content_string=ini_string,
-#             parser_func=parser_func,
-#             expected_language='ini',
-#             exception_class=configparser.Error,
-#             code_fences=code_fences
-#         )
-#
-#     def parse_csv_content(self, csv_string: str, code_fences: Optional[List[str]] = None) -> Optional[List[Dict[str, Any]]]:
-#         """
-#         Parses a CSV-formatted string into a list of dictionaries.
-#         """
-#         def parser_func(s):
-#             reader = csv.DictReader(StringIO(s))
-#             return [row for row in reader]
-#
-#         return self.parse_content(
-#             content_string=csv_string,
-#             parser_func=parser_func,
-#             expected_language='csv',
-#             exception_class=csv.Error,
-#             code_fences=code_fences
-#         )
-#
-#     @staticmethod
-#     def list_supported_formats():
-#         return ['xml', 'json', 'yaml', 'ini', 'csv', 'markdown']
-#
-#     @staticmethod
-#     def parse_markdown_to_dict(markdown_text: str, min_heading_level=2, max_heading_level=6) -> Optional[Dict[str, Any]]:
-#         """
-#         Parses a markdown-formatted string into a dictionary, mapping each heading to its corresponding content.
-#         """
-#         parsed_dict = {}
-#         current_heading = None
-#         content_lines = []
-#
-#         heading_pattern = re.compile(r'^(#{%d,%d})\s+(.*)' % (min_heading_level, max_heading_level))
-#
-#         lines = markdown_text.split('\n')
-#         for line in lines:
-#             match = heading_pattern.match(line)
-#             if match:
-#                 if current_heading is not None:
-#                     parsed_dict[current_heading] = '\n'.join(content_lines).strip()
-#                     content_lines = []
-#                 current_heading = match.group(2).strip()
-#             else:
-#                 if current_heading is not None:
-#                     content_lines.append(line)
-#         if current_heading is not None:
-#             parsed_dict[current_heading] = '\n'.join(content_lines).strip()
-#
-#         return parsed_dict if parsed_dict else None
-
-
     def format_string(self, input_str):
-
         """
         Formats a string to meet requirements of chroma collection name. Performs the following steps in order:
 
