@@ -152,6 +152,7 @@ def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
 # Section 2: ChromaDB
 ##########################################################
 
+
 class ChromaStorage:
     """
     A utility class for managing interactions with ChromaDB, offering a range of functionalities including
@@ -172,17 +173,15 @@ class ChromaStorage:
     # Section 3: Initialization
     ##########################################################
 
-    def __init__(self, collection_name: str, cog_context: Optional[str] = None, persona_context: Optional[str] = None):
+    def __init__(self, cog_context: Optional[str] = None, persona_context: Optional[str] = None):
         """
         Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
         upon creation.
         
         Args:
-            collection_name (str): The name of the collection to use
             cog_context (Optional[str]): The cog name to use for context path
             persona_context (Optional[str]): The persona name to use for context path
         """
-        self.collection_name = collection_name
         self.cog_context = cog_context or "default"
         self.persona_context = persona_context or "default"
         self.config = Config()
@@ -432,7 +431,7 @@ class ChromaStorage:
         params.update(include=include)
 
         if where is not None:
-            params.update_memory(where=where)
+            params.update(where=where)
 
         if where_doc is not None:
             params.update(where_document=where_doc)

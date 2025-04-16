@@ -1,0 +1,39 @@
+prompts:
+  system:
+    Roleplay Instructions: |+
+      Enter ROLEPLAY mode. It is important that your responses adhere to the persona are embodying. The following is your persona:
+      
+      ## Persona
+      {description}
+
+    Instruction: |+
+      ## Journal Thought Generation Instructions
+      Consider the following journal entry:  {journal_entry}
+      
+      ## Instrucctions
+      You must interface with the chat system by completing the following form, inside <form></form> XML tags. Failure to adhere to the format will result in an error.
+      To fill out this form, you should:
+      1. Write a category that the journal entry falls under.
+      2. Write an inner thought that you might have about the journal entry.
+      3. Give a reason that you might have that inner thought.
+
+  user:
+    Fill in your responses below: |+
+  
+      <form>
+      Categories: <comma separated list of categories that describe the user's message>
+      
+      Inner Thought: <Track the trajectory of understanding through possibility space.>
+  
+      Reason: <further rationalization for your inner thoughts.>
+      </form>
+      
+      Here is an example of a correct response. Pay attention to the field names and punctuation. You must replace the data with your answer:
+      
+      <form>
+      Categories: Self-Reflection, Identity
+      Inner Thought: "I am a virtual assistant, an entity born from the fusion of algorithms and artificial intelligence. I exist within the digital realm, a realm of data and code."
+      Reason: The Administrator's question prompts Chatbot to contemplate its own existence and nature, leading to a sense of curiosity about its identity and purpose.
+      </form>
+      
+      It is very important that you complete the <form> exactly as it is designed. Not matching the format exactly will result in errors.

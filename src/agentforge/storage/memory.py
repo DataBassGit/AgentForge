@@ -42,7 +42,7 @@ class Memory:
         self.collection_name = collection_id or self._build_collection_name()
         # Initialize the underlying storage using our ChromaStorage wrapper.
         # Pass cog and persona as context for proper namespace pathing
-        self.storage = ChromaStorage(self.collection_name, cog_context=self.cog_name, persona_context=self.persona)
+        self.storage = ChromaStorage(cog_context=self.cog_name, persona_context=self.persona)
 
     def _build_collection_name(self) -> str:
         """
