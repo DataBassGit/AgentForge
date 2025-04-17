@@ -1,164 +1,113 @@
 # ChromaStorage Guide
 
-## Introduction
+ChromaStorage is the core interface to ChromaDB in **AgentForge**. It uses a thread‑safe registry keyed by `storage_id` to provide singleton storage clients, and supports both persistent and in‑memory (ephemeral) modes based on your configuration.
 
-The **ChromaStorage** class in **AgentForge** provides a robust interface for interacting with **ChromaDB**, a high-performance vector database. With **ChromaStorage**, agents can efficiently save and retrieve data—enabling persistent memory capabilities for context retention, recall of past interactions, or any data-driven functionality you need.
-
-This guide explains how to use **ChromaStorage** to:
-- Save documents (and their metadata) to persistent storage.
-- Query and retrieve stored documents based on similarity, filters, or metadata.
-- Manage collections (create, list, delete, and peek into collections).
-- Generate embeddings for text using your chosen embedding model.
-
----
-
-## Overview
-
-**ChromaStorage** is implemented in the `chroma_storage.py` file. Its key features include:
-- **Initialization of Storage**: It sets up a persistent or ephemeral ChromaDB client, based on your configuration.
-- **Embedding Initialization**: It configures an embedding function (for example, using SentenceTransformer or OpenAI’s embedding models) as specified in your settings.
-- **Collection Management**: Methods to select, create, delete, and list collections.
-- **Data Operations**: Methods to save, load, and query data, as well as functions for generating document IDs, applying timestamps, and more.
-
-The ChromaStorage class uses your system’s storage settings (found in `storage.yaml`) to control aspects such as persistence, timestamping, and the selected embedding model.
-
----
-
-## Using ChromaStorage in Your Agents
-
-When storage is enabled in **AgentForge**, each agent gains access to persistent memory via an instance of **ChromaStorage** (commonly exposed as `self.storage`). For example, an agent can save conversational memory or other context by calling `self.storage.save_memory(...)`, and later query that memory with `self.storage.query_memory(...)`.
-
-### Example Usage in an Agent
-
+## 1. Quick Start
 ```python
-from agentforge.agent import Agent
+from agentforge.storage.chroma_storage import ChromaStorage
 
-class MemoryAgent(Agent):
-    def process_data(self):
-        # Save a document to the 'agent_memory' collection
-        self.storage.save_memory(
-            collection_name='agent_memory',
-            data="Remember to follow up on user feedback.",
-            metadata=[{'type': 'reminder'}]
-        )
+# Obtain (or create) a storage client for your context
+storage = ChromaStorage.get_or_create(storage_id="my_context_id")
+```  
+Every call to `get_or_create` with the same `storage_id` returns the same instance.
 
-    def retrieve_memory(self):
-        # Query for stored documents matching a keyword
-        results = self.storage.query_memory(
-            collection_name='agent_memory',
-            query="feedback",
-            num_results=3
-        )
-        if results and results.get('documents'):
-            for doc in results['documents']:
-                print(f"Memory: {doc}")
+## 2. Registry & Lifecycle
+- **get_or_create(storage_id: str) → ChromaStorage**
+  - Returns a singleton for `storage_id`. Raises ValueError if `storage_id` is empty.
+- **clear_registry()**
+  - Removes all stored instances (useful for tests).
+- **describe_instance() → dict**
+  - Returns `{ storage_id, db_path, db_embed }` for debugging and verification.
+
+## 3. Configuration Source
+ChromaStorage reads from your storage settings (see [Storage Settings](../Settings/Storage.md)):
+```yaml
+options:
+  persist_directory: ./db/ChromaDB
+  fresh_start: false
+embedding:
+  selected: distil_roberta
+embedding_library:
+  distil_roberta: all-distilroberta-v1
+  all_mini: all-MiniLM-L6-v2
 ```
+- **db_path**: `<project_root>/<persist_directory>/<storage_id>`
+- **db_embed**: Resolved via `embedding_library[selected]`
 
----
+## 4. Initialization Steps
+1. **init_embeddings()**
+   - No `db_embed` → uses `DefaultEmbeddingFunction()`
+   - `text-embedding-ada-002` → uses `OpenAIEmbeddingFunction` (requires `OPENAI_API_KEY`)
+   - Otherwise → uses `SentenceTransformerEmbeddingFunction(model_name=db_embed)`
+2. **init_storage()**
+   - **Persistent Mode**: `PersistentClient(path=db_path)` when `db_path` directory exists or is configured.
+   - **Ephemeral Mode**: `EphemeralClient()` if no valid `db_path` or purely in-memory use; data will not persist after process exits.
+   - If `fresh_start: true`, calls `reset_storage()` to wipe all existing data for the `storage_id`.
 
-## Key Methods
-
-Below is a summary of the primary methods provided by the **ChromaStorage** class:
-
-### Initialization and Setup
-
-- **`init_storage()`**  
-  Initializes the ChromaDB client. If a persistent database path is set, a persistent client is created; otherwise, an ephemeral client is used. If the configuration specifies a fresh start, it resets storage upon initialization.
-
-- **`init_embeddings()`**  
-  Configures the embedding function based on the `embedding.selected` value from your settings. Supported backends (e.g., `all-distilroberta-v1`, `openai_ada2`, etc.) are initialized here.
-
-- **`chromadb_settings()`**  
-  Retrieves storage settings such as the database path and the selected embedding from the configuration.
-
+## 5. Core Methods
 ### Collection Management
-
-- **`select_collection(collection_name)`**  
-  Selects or creates a collection within ChromaDB by the given name.
-
-- **`delete_collection(collection_name)`**  
-  Deletes an entire collection from storage.
-
-- **`collection_list()`**  
-  Lists all collections currently available in storage.
-
-- **`peek(collection_name)`**  
-  Provides a brief overview of a collection's contents.
-
-- **`count_collection(collection_name)`**  
-  Returns the number of documents in a specified collection.
+- **select_collection(name: str)** - 
+  Create or switch to a collection by name.
+- **collection_list() → list[str]** - 
+  List all collections in the current database.
+- **delete_collection(name: str)** - 
+  Permanently remove a collection.
+- **count_collection(name: str) → int** - 
+  Return the number of documents in a collection.
+- **peek(name: str) → dict** - 
+  Get a quick summary of a collection's content.
 
 ### Data Operations
+- **save_to_storage(name: str, data: list[str], ids: list[str], metadata: list[dict])** - 
+  Upsert documents with optional IDs and metadata. Applies timestamps from settings.
+- **load_collection(name: str, include: dict = None, where: dict = None, where_doc: dict = None) → dict** - 
+  Retrieve raw documents with filter conditions.
+- **query_storage(name: str, query: Union[str,list], num_results: int = 1, filter_condition: dict = None, include: list = None, embeddings: list = None) → dict** - 
+  Perform similarity search over vector embeddings.
+- **delete_from_storage(name: str, ids: Union[str,list])** - 
+  Delete documents by ID.
+- **return_embedding(text: str) → list[float]** - 
+  Compute embedding for a text snippet using the configured model.
 
-- **`save_memory(collection_name, data, ids=None, metadata=None)`**  
-  Saves one or more documents into the specified collection. If document IDs or metadata aren’t provided, they’re automatically generated. Timestamps (ISO or Unix) are applied based on configuration.
+## 6. Advanced Operations
+- **search_storage_by_threshold(name, query, threshold: float, num_results: int)** - 
+  Returns documents found within the storage that meet the similiarity threshold.
+- **combine_query_results(\*results) → dict** - 
+  Merge multiple query results, dedupe entries, reassign IDs.
+- **rerank_results(results, query, temp_collection, num_results: int)** - 
+  Rerank a result set by temporarily indexing and re-querying.
 
-- **`query_memory(collection_name, query=None, filter_condition=None, include=None, embeddings=None, num_results=1)`**  
-  Queries a collection to retrieve documents similar to the provided text or embedding. You can also filter results based on metadata.
+## 7. Usage Examples
+```python
+# Initialize or reuse storage client
+storage = ChromaStorage.get_or_create(storage_id="session_42")
 
-- **`load_collection(collection_name, include=None, where=None, where_doc=None)`**  
-  Loads data from a collection based on filtering conditions.
+# Save a note
+storage.save_to_storage(
+    name="user_notes",
+    data=["Check logs for errors."],
+    ids=["note1"],
+    metadata=[{"tag": "reminder"}]
+)
 
-- **`return_embedding(text_to_embed)`**  
-  Generates an embedding vector for a given piece of text using the configured embedding function.
+# Perform a semantic search
+results = storage.query_storage(
+    name="user_notes",
+    query="errors",
+    num_results=3
+)
+for doc in results.get("documents", []):
+    print(doc)
+```
 
-- **`delete_memory(collection_name, doc_id)`**  
-  Deletes a specific document from a collection using its unique ID.
+## 8. Best Practices
+- Use clear, context‑specific `storage_id` values (e.g., `persona_name`, `cog_name`).
+- Consistently name collections to avoid overlap.
+- Attach meaningful metadata for effective filtering.
+- Validate setup with `describe_instance()`.
+- Call `clear_registry()` in tests to isolate state.
 
-### Advanced Data Operations
-
-- **`search_storage_by_threshold(collection_name, query, threshold=0.8, num_results=1)`**  
-  Searches a collection for documents that meet or exceed a specified similarity threshold.
-
-- **`search_metadata_min_max(collection_name, metadata_tag, min_max)`**  
-  Retrieves the document with the minimum or maximum value for a given metadata tag.
-
-- **`rerank_results(query_results, query, temp_collection_name, num_results=None)`**  
-  Re-ranks query results by temporarily storing them in a collection, re-querying, and then deleting the temporary collection.
-
-- **`combine_query_results(*query_results)`**  
-  Merges multiple query results, removes duplicates, and assigns new IDs as needed.
-
----
-
-## Best Practices
-
-- **Consistent Collection Naming**:  
-  Use clear and consistent names for collections to keep your stored data organized.
-
-- **Leverage Metadata**:  
-  Attach meaningful metadata to documents to enhance query filtering and retrieval.
-
-- **Test Query Results**:  
-  Always verify that queries return the expected documents, especially when using similarity thresholds.
-
-- **Use Timestamps**:  
-  Enable ISO or Unix timestamp settings for a clear audit trail of when data was saved.
-
-- **Be Cautious with Data Deletion**:  
-  Methods like `reset_memory` or `delete_collection` permanently remove data. Use these with care.
-
-- **Combine Query Results**:  
-  When retrieving data from multiple queries, use `combine_query_results` to eliminate duplicates and create a unified view.
-
----
-
-## Additional Resources
-
-
-- **[Settings Overview](../Settings/Settings.md)** 
-- **[Storage Guide](../Storage/ChromaStorage.md)**
-
----
-
-## Conclusion
-
-The **ChromaStorage** class in **AgentForge** empowers your agents with persistent memory using ChromaDB. With methods to save, query, and manage collections, it provides a powerful backend for building context-aware, stateful agents. By following the usage guidelines and best practices outlined above, you can effectively integrate and utilize storage as memory within your projects.
-
----
-
-**Need Help?**
-
-If you have any questions or need further assistance:
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+## 9. Related Documentation
+- [Storage Settings](../Settings/Storage.md)
+- [Memory Guide](Memory.md)
+- [AgentClass API](../Agents/AgentClass.md)

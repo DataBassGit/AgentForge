@@ -173,6 +173,7 @@ class Config:
     # Agent and Flow Configuration
     # ------------------------------------------------------------------------
 
+    # TODO: Include cog overrides in the hierarchy API-level → class-level → model-level → agent-level → cog-level
     def load_agent_data(self, agent_name: str) -> Dict[str, Any]:
         """
         Loads configuration data for a specified agent, applying any overrides in the agent's config.

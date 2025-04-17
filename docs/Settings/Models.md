@@ -1,90 +1,25 @@
 # Model Settings Guide
 
-The `models.yaml` file centralizes all Model configurations used by your agents. This includes default model choices, a comprehensive library of possible APIs and models, and optional embedding libraries. Agents can either use these defaults or override them in their own YAML files.
-
----
+`models.yaml` is loaded from `.agentforge/settings/models.yaml` and merged into `Config().data['settings']['models']`.
 
 ## Location
 
 ```
-your_project_root/.agentforge/settings/models.yaml
+<project_root>/.agentforge/settings/models.yaml
 ```
 
----
-
-## Default Structure
-
-A typical `models.yaml` might look like this:
+## Schema Overview
 
 ```yaml
-# Default model settings for all agents unless overridden
+# Default model selection for agents without overrides
 default_model:
-  api: gemini_api
-  model: gemini_flash
+  api: gemini_api      # API key in model_library
+  model: gemini_flash  # Model key under the chosen API's classes
 
-# Library of models and parameter defaults
+# Detailed library of APIs, classes, models, and parameters
 model_library:
-  openai_api:
-    GPT:
-      models:
-        omni_model:
-          identifier: gpt-4o
-          params:
-            max_new_tokens: 15000
-        fast_model:
-          identifier: gpt-3.5-turbo
-      params:
-        temperature: 0.8
-        max_tokens: 10000
-        n: 1
-
-  gemini_api:
-    Gemini:
-      models:
-        gemini_pro:
-          identifier: gemini-1.5-pro
-        gemini_flash:
-          identifier: gemini-1.5-flash
-      params:
-        temperature: 0.8
-        top_k: 40
-
-  # ... Other API entries ...
-
-# Embedding library
-embedding_library:
-  library: sentence_transformers
-```
-
-In broad strokes, **AgentForge** loads these configurations at startup and merges them into a single dictionary accessible at `agent_data['settings']['models']`.
-
----
-
-## Key Sections
-
-### 1. `default_model`
-
-```yaml
-default_model:
-  api: gemini_api
-  model: gemini_flash
-```
-
-- **`api`**: The name of the API your agents will use if they don’t specify an override (e.g., `gemini_api`, `openai_api`, etc.).  
-- **`model`**: The default model within that API library. 
-
-Any agent that doesn’t declare a `model_overrides` block will use this combination of `api` and `model`.
-
----
-
-### 2. `model_library`
-
-Under the `model_library` key, you’ll find one or more sections for each **API** your project supports. For instance, `openai_api`, `anthropic_api`, `gemini_api`, and so on. Each API section typically has one or more **classes** (like `GPT` or `Gemini`) that define multiple models.
-
-```yaml
-model_library:
-  openai_api:
-    GPT:
+  openai_api:         # Corresponds to agentforge/apis/openai_api.py
+    GPT:              # Python class exported by that module
       models:
         fast_model:
           identifier: gpt-3.5-turbo
@@ -92,57 +27,66 @@ model_library:
             max_new_tokens: 4000
         omni_model:
           identifier: gpt-4o
+      params:         # Default parameters for all GPT models
+        temperature: 0.8
+        max_tokens: 10000
+
+  gemini_api:
+    Gemini:
+      models:
+        gemini_flash:
+          identifier: gemini-1.5-flash
+        gemini_pro:
+          identifier: gemini-1.5-pro
       params:
         temperature: 0.8
-```
+        top_k: 40
 
-1. **API Name** (e.g., `openai_api`)  
-   Corresponds to a Python module under `agentforge/apis/openai_api.py`.  
+  # ...additional API entries (anthropic_api, lm_studio_api, etc.)...
 
-2. **Class Name** (e.g., `GPT`)  
-   Typically the class used to instantiate or connect to the API from within that module.  
-
-3. **`models`**  
-   A dictionary where each key is a **model name** (like `fast_model` or `omni_model`), pointing to a configuration that includes:
-   - **`identifier`**: The actual string your code uses to refer to the LLM (like `gpt-3.5-turbo`).  
-   - **`params`**: (Optional) Parameter overrides specific to this model (e.g., custom `max_new_tokens`).  
-
-4. **`params`**  
-   A dictionary of **default parameters** for all models in this class. For example, if you define `temperature: 0.8` here, each model under `GPT` inherits that unless it’s overridden by the model’s own `params`.
-
-**Merging Parameters**  
-When **AgentForge** resolves which model to use, it merges parameters in the following order:
-1. **API-level `params`** (if present).  
-2. **Class-level `params`** (like the `params` block under `GPT`).  
-3. **Model-level `params`** (the block nested under each specific model).  
-4. **Agent-level overrides** if the agent’s YAML includes a `model_overrides` section.
-
----
-
-### 3. `embedding_library`
-
-```yaml
+# Selective embedding library for specialized tasks
 embedding_library:
   library: sentence_transformers
 ```
 
-This section often appears in `models.yaml` for specifying which embedding toolkit you’re using system-wide. In most cases:
+### default_model
+- **api** (string): Key matching an entry under `model_library`.
+- **model** (string): Model key under one of the classes in that API section.
 
-- **`library`**: The name of the Python module or method used to generate text embeddings.  
-- Additional details can appear here if your embedding approach requires more nuance (though typically it’s handled in `storage.yaml` when specifying how embeddings are used to store data).
+Any agent without a `model_overrides` block uses this selection.
 
----
+### model_library
+A mapping of **API keys** → **Class names** → settings:
 
-## Specifying Model Overrides in Agents
+- **API key** (e.g., `openai_api`): Loads via `agentforge/apis/<api_key>.py` or custom APIs.
+- **Class name** (e.g., `GPT`): Python class used to instantiate calls.
+- **models**: Map of **model names** →
+  - **identifier** (string): The actual LLM identifier your code passes to the API.
+  - **params** (optional map): Overrides for this specific model.
+- **params** (optional map): Default parameters applied to every model under this class.
 
-Agents can override the **API**, **model**, or **params** defined in `default_model` and `model_library`. Here’s how:
+> **Note**: You can also define an API-level `params` key under `model_library.<api_key>` for parameters shared across all classes.
+
+### embedding_library
+- **library** (string): Name of the embedding toolkit used for specialized embedding tasks.
+
+### Parameter Merging
+**AgentForge** uses `Config.resolve_model_overrides(agent_config)` to merge parameters in this order:
+1. **API-level** (`model_library.<api_key>.params`)
+2. **Class-level** (`model_library.<api_key>.<class>.params`)
+3. **Model-level** (`model_library.<api_key>.<class>.models.<model_name>.params`)
+4. **Agent-level** (`model_overrides.params` in your agent YAML)
+
+```python
+from agentforge.config import Config
+# Returns (api_name, class_name, identifier, merged_params)
+api, cls, ident, final_params = Config().resolve_model_overrides(agent_yaml_dict)
+```
+
+## Agent-Level Overrides
+Add a `model_overrides` section to your agent's YAML to change API, model, or parameters:
 
 ```yaml
-# In your agent's .yaml
-prompts:
-  system: "You are a specialized summarizer."
-  user: "Summarize: {text}"
-
 model_overrides:
   api: openai_api
   model: fast_model
@@ -151,68 +95,19 @@ model_overrides:
     max_new_tokens: 5000
 ```
 
-When this agent loads:
-
-1. It starts with the global `default_model` (e.g., `api: gemini_api`, `model: gemini_flash`).  
-2. Sees the override: `api: openai_api` and `model: fast_model`.  
-3. Merges parameters from `model_library.openai_api.GPT.params`, plus `fast_model.params`, plus `agent`-level overrides (`temperature: 0.5, max_new_tokens: 5000`).  
-
-This final merged set of parameters is then used to instantiate the underlying model class.
-
----
-
-## Example Usage in Code
-
-When your agent is instantiated, the system merges the chosen model’s config and creates a model object. For instance:
+## Accessing Model Settings in Code
 
 ```python
-from agentforge.agent import Agent
-
-class SummarizeAgent(Agent):
-    def run_llm(self):
-        # Optionally inspect final parameters
-        final_params = self.agent_data['params']
-        self.logger.log(f"Using model params: {final_params}", "debug", "model_io")
-        
-        # The 'model' field is already an instantiated class from the relevant API module
-        self.result = self.model.generate(self.prompt, **final_params)
+config = Config()
+models_cfg = config.data['settings']['models']
+def_model = models_cfg['default_model']
+lib = models_cfg['model_library']
+emb_lib = models_cfg['embedding_library']
 ```
 
-Here, `self.model` is the Python object created from your `model_library` definitions, and `self.agent_data['params']` is the fully merged parameter dictionary.
-
----
-
-## Adding New APIs or Models
-
-See the [APIs Guide](../APIs/APIs.md/#adding-a-new-api) for more detailed information on how to create your own custom API interface.
-
----
-
-## Best Practices
-
-- **Leverage `default_model`** for common usage, and only override in agent YAML when needed.  
-- **Keep parameter definitions minimal** at each level. If you only need to change `temperature`, specify that alone in your override.  
-- **Use Clear Naming** in your `model_library`. For example, call the class `GPT` or `Gemini` to reflect the actual Python class used.  
-- **Test new models** thoroughly by enabling debug logs at the `model_io` level (`model_io: debug`) to confirm you’re sending the correct parameters.
-
----
-
-## Conclusion
-
-By splitting model configuration into a **default** model and a **model_library**, **AgentForge** offers both convenience and flexibility. Most agents can rely on a universal default, while specialized agents can override exactly what they need. Meanwhile, new APIs or models can be added by simply creating a Python module and updating the `models.yaml` file accordingly.
-
-For more details about how these model settings interact with system or storage configurations, check out:
+## Related Guides
 
 - [Settings Overview](Settings.md)
-- [System Settings Guide](System.md)  
+- [System Settings Guide](System.md)
 - [Storage Settings Guide](Storage.md)
-- [Personas Guide](../Personas/Personas.md)
-
----
-
-**Need Help?**
-
-If you have questions or need assistance, feel free to reach out:
-
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
-- **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
+- [APIs Guide](../APIs/APIs.md)

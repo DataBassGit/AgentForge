@@ -438,7 +438,7 @@ class Cog:
             
         # Return the name from the persona data (needed for memory path naming)
         # This assumes each persona has a 'name' field, which is a common convention
-        return persona_data.get('name', 'default')
+        return persona_data.get('name', 'nameless')
 
     def _build_memory_nodes(self) -> None:
         # We expect a list of memory configs under cog_config['cog'].get('memory', [])

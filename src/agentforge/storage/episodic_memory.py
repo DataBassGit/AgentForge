@@ -202,13 +202,11 @@ class Journal:
 
 
 if __name__ == '__main__':
-    # Loads Journals from saved journal entries.
-    # This will send each journal to the LLM and generate
-    # thoughts, in a similar manner to the thought agent.
-    # All journals must be .md files.
+    # Loads Journals from saved journal entries and saves them to ChromaDB.
+    # This is a standalone example; replace 'your_storage_id' with an appropriate identifier.
     from agentforge.storage.chroma_storage import ChromaStorage
-    # TODO: Replace 'cog_name' and 'persona_name' with actual values from config or runtime context
-    chroma = ChromaStorage.get_or_create(cog_name="cog_name", persona="persona_name")
+    # Retrieve a ChromaStorage instance using a storage_id
+    chroma = ChromaStorage.get_or_create(storage_id="your_storage_id")
     journal = Journal(chroma)
     folder_path2 = "..\\Journal"
     journal.load_journals_from_backup(folder_path2)

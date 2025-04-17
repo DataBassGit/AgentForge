@@ -18,11 +18,10 @@ def flatten_dict(d: dict, parent_key: str = '', sep: str = '.') -> dict:
 
 class Memory:
     """
-    Base Memory class for managing memory operations with contextual awareness.
+    Base Memory class for managing memory operations and storage contexts.
 
-    The Memory class partitions memory by cog and optionally by persona.
-    It delegates CRUD operations to the ChromaStorage instance, ensuring that
-    update acts as create-if-not-exists.
+    Memory uses a storage_id derived from persona or cog_name to partition storage.
+    It delegates CRUD operations to a ChromaStorage instance identified by storage_id.
     """
 
     def __init__(self, cog_name: str, persona: Optional[str] = None, collection_id: Optional[str] = None):
@@ -38,20 +37,45 @@ class Memory:
         self.store = {}
         self.cog_name = cog_name
         self.persona = persona
+        self.collection_id = collection_id
+
+        # Resolve and normalize storage identifier
+        resolved_storage_id = self._resolve_storage_id()
+
+        # Retrieve a shared ChromaStorage instance for the resolved storage_id
+        self.storage = ChromaStorage.get_or_create(storage_id=resolved_storage_id)
+
         # Build or use provided collection name
-        self.collection_name = collection_id or self._build_collection_name()
-        # Retrieve a shared ChromaStorage instance for this cog/persona using the registry pattern.
-        self.storage = ChromaStorage.get_or_create(cog_name=self.cog_name, persona=self.persona)
+        self.collection_name = self._build_collection_name()
 
     def _build_collection_name(self) -> str:
         """
-        Builds a collection name. By default, uses "default" as the collection name.
+        Builds a collection name. By default, uses "general_memory" as the collection name.
         This method can be overridden by subclasses to provide custom collection naming.
         
         Returns:
             str: The collection name to use for storage
         """
-        return "default"
+        return self.collection_id
+
+    def _resolve_storage_id(self) -> str:
+        """
+        Determine the storage_id based on persona or cog_name context.
+
+        Returns:
+            str: A normalized storage_id for ChromaStorage.
+        """
+        fallback_storage_id = "fallback_storage"
+
+        if self.persona: # self.persona is None if personas are disabled
+            storage_id = self.persona
+        elif self.cog_name:
+            storage_id = self.cog_name
+        else:
+            # Fallback storage identifier when no context is available
+            storage_id = fallback_storage_id
+        # Normalize and return
+        return str(storage_id).strip() or fallback_storage_id
 
     def query_memory(self, query_text: Union[str, list[str]], num_results: int = 5) -> Optional[Dict[str, Any]]:
         """
