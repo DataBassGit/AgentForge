@@ -43,7 +43,7 @@ class Actions:
         # Initialize the logger, storage, and functions
         self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
-        self.storage = ChromaStorage()
+        self.storage = ChromaStorage.get_or_create(storage_id="actions_module")
         self.tool_utils = ToolUtils()
         self.parsing_utils = ParsingProcessor()
 

@@ -3,6 +3,7 @@ import os
 import uuid
 from datetime import datetime
 from typing import Optional, Union
+import threading
 
 import chromadb
 from chromadb.config import Settings
@@ -158,9 +159,27 @@ class ChromaStorage:
     A utility class for managing interactions with ChromaDB, offering a range of functionalities including
     initialization, data insertion, query, and collection management.
 
-    This class utilizes a singleton pattern to ensure a single instance manages storage interactions across
-    the application.
+    This class provides a thread-safe, class-level registry for sharing ChromaStorage instances
+    at the desired granularity (e.g., per Cog, per persona, or via a custom storage_id).
+
+    Key/Path Resolution:
+        - If storage_id is provided: key = storage_id, path = {persist_directory}/{storage_id}
+        - If personas are enabled:   key = cog:persona, path = {persist_directory}/{cog}/{persona}
+        - If personas are disabled:  key = cog,        path = {persist_directory}/{cog}
+        - If neither cog nor storage_id is provided: raises ValueError
+
+    Usage:
+        storage = ChromaStorage.get_or_create(cog_name, persona)
+        storage = ChromaStorage.get_or_create(storage_id="my_custom_id")
+
+    To reset the registry (e.g., between tests):
+        ChromaStorage.clear_registry()
+
+    To debug instance resolution:
+        storage.describe_instance()
     """
+    _registry = {}
+    _registry_lock = threading.Lock()
 
     _instance = None
     client = None
@@ -173,20 +192,37 @@ class ChromaStorage:
     # Section 3: Initialization
     ##########################################################
 
-    def __init__(self, cog_context: Optional[str] = None, persona_context: Optional[str] = None):
+    def __init__(self, cog_context: Optional[str] = None, persona_context: Optional[str] = None, storage_id: Optional[str] = None):
         """
-        Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
-        upon creation.
-        
-        Args:
-            cog_context (Optional[str]): The cog name to use for context path
-            persona_context (Optional[str]): The persona name to use for context path
+        Initialize a ChromaStorage instance with explicit context.
+        Requires explicit context for cog/persona or storage_id.
         """
-        self.cog_context = cog_context or "default"
-        self.persona_context = persona_context or "default"
         self.config = Config()
+        self.storage_id = storage_id
+        self.cog_context = cog_context
+        self.persona_context = persona_context
+        self._resolve_context()
         self.init_embeddings()
         self.init_storage()
+
+    def _resolve_context(self):
+        """
+        Internal: Ensures context is valid and sets up for path/key resolution.
+        Raises ValueError if insufficient context is provided.
+        """
+        personas_enabled = self.config.data['settings']['system']['persona'].get('enabled', False)
+        if self.storage_id:
+            # storage_id mode: ignore cog/persona for path/key
+            self._resolved_key = self.storage_id
+            self._resolved_path_mode = 'storage_id'
+        elif self.cog_context and personas_enabled and self.persona_context:
+            self._resolved_key = f"{self.cog_context}:{self.persona_context}"
+            self._resolved_path_mode = 'cog_persona'
+        elif self.cog_context and not personas_enabled:
+            self._resolved_key = self.cog_context
+            self._resolved_path_mode = 'cog_only'
+        else:
+            raise ValueError("ChromaStorage requires either a storage_id or cog_context (with persona if personas are enabled). Provide a unique storage_id for standalone/agent mode or when context is ambiguous.")
 
     def init_storage(self):
         """
@@ -252,28 +288,30 @@ class ChromaStorage:
 
     def chromadb_settings(self):
         """
-        Retrieves the ChromaDB settings from the configuration.
+        Retrieves the ChromaDB settings from the configuration and resolves the database path.
+        - If storage_id is set, path = {persist_directory}/{storage_id}
+        - If personas are enabled, path = {persist_directory}/{cog}/{persona}
+        - If personas are disabled, path = {persist_directory}/{cog}
+        Raises ValueError if insufficient context is provided.
 
         Returns:
-            tuple: A tuple containing the database path and embedding settings.
+            tuple: (db_path, db_embed)
         """
-        # Retrieve the ChromaDB settings
         storage_settings = self.config.data['settings']['storage']
-
-        # Get the database path and embedding settings
         db_path_setting = storage_settings['options'].get('persist_directory', None)
         selected_embed = storage_settings['embedding'].get('selected', None)
         db_embed = storage_settings['embedding_library'].get(selected_embed, None)
-        
-        # Construct the absolute path of the database using the project root and namespace path
-        if db_path_setting:
-            # Use a path-based approach for namespacing by cog and persona
-            # This creates directories like {persist_directory}/{cog_name}/{persona_name}/
-            namespace_path = f"{self.cog_context}/{self.persona_context}"
-            db_path = str(self.config.project_root / db_path_setting / namespace_path)
+        personas_enabled = self.config.data['settings']['system']['persona'].get('enabled', False)
+        if not db_path_setting:
+            raise ValueError("ChromaStorage: persist_directory must be set in the settings YAML.")
+        if self.storage_id:
+            db_path = str(self.config.project_root / db_path_setting / self.storage_id)
+        elif self.cog_context and personas_enabled and self.persona_context:
+            db_path = str(self.config.project_root / db_path_setting / self.cog_context / self.persona_context)
+        elif self.cog_context and not personas_enabled:
+            db_path = str(self.config.project_root / db_path_setting / self.cog_context)
         else:
-            db_path = None
-
+            raise ValueError("ChromaStorage: Cannot resolve db_path. Provide a storage_id or cog_context (with persona if personas are enabled).")
         return db_path, db_embed
 
     def reset_storage(self):
@@ -792,4 +830,60 @@ class ChromaStorage:
         )
 
         return reranked_results
+
+    @classmethod
+    def get_or_create(cls, cog_name: Optional[str] = None, persona: Optional[str] = None, storage_id: Optional[str] = None):
+        """
+        Retrieve a shared ChromaStorage instance for the given cog_name/persona or a custom storage_id.
+        - If storage_id is provided, it is used as the registry key and for pathing.
+        - If personas are enabled, uses cog:persona as key and path.
+        - If personas are disabled, uses cog as key and path.
+        - Raises ValueError if insufficient context is provided.
+
+        Args:
+            cog_name (Optional[str]): The cog name for context (used in default key/path).
+            persona (Optional[str]): The persona for context (used in default key/path).
+            storage_id (Optional[str]): Optional custom key for advanced use cases.
+
+        Returns:
+            ChromaStorage: The shared instance for the given key.
+        """
+        config = Config()
+        personas_enabled = config.data['settings']['system']['persona'].get('enabled', False)
+        if storage_id:
+            key = storage_id
+        elif cog_name and personas_enabled and persona:
+            key = f"{cog_name}:{persona}"
+        elif cog_name and not personas_enabled:
+            key = cog_name
+        else:
+            raise ValueError("ChromaStorage.get_or_create requires either a storage_id or cog_name (with persona if personas are enabled). Provide a unique storage_id for standalone/agent mode or when context is ambiguous.")
+        with cls._registry_lock:
+            if key not in cls._registry:
+                cls._registry[key] = cls(cog_context=cog_name, persona_context=persona, storage_id=storage_id)
+            return cls._registry[key]
+
+    @classmethod
+    def clear_registry(cls):
+        """
+        Clear the ChromaStorage registry. Useful for test isolation or resetting state.
+        """
+        with cls._registry_lock:
+            cls._registry.clear()
+
+    def describe_instance(self):
+        """
+        Returns a dictionary describing the resolved key, path, and context for this instance.
+        Useful for debugging and testing.
+        """
+        db_path, db_embed = self.chromadb_settings()
+        return {
+            'resolved_key': getattr(self, '_resolved_key', None),
+            'resolved_path_mode': getattr(self, '_resolved_path_mode', None),
+            'db_path': db_path,
+            'cog_context': self.cog_context,
+            'persona_context': self.persona_context,
+            'storage_id': self.storage_id,
+            'personas_enabled': self.config.data['settings']['system']['persona'].get('enabled', False),
+        }
 

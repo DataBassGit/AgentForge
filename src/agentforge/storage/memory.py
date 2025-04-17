@@ -40,9 +40,8 @@ class Memory:
         self.persona = persona
         # Build or use provided collection name
         self.collection_name = collection_id or self._build_collection_name()
-        # Initialize the underlying storage using our ChromaStorage wrapper.
-        # Pass cog and persona as context for proper namespace pathing
-        self.storage = ChromaStorage(cog_context=self.cog_name, persona_context=self.persona)
+        # Retrieve a shared ChromaStorage instance for this cog/persona using the registry pattern.
+        self.storage = ChromaStorage.get_or_create(cog_name=self.cog_name, persona=self.persona)
 
     def _build_collection_name(self) -> str:
         """

@@ -31,7 +31,7 @@ class ToolUtils:
         Initializes the ToolUtils class with a Logger instance.
         """
         self.logger = Logger(name=self.__class__.__name__)
-        self.storage = ChromaStorage('default')
+        self.storage = ChromaStorage.get_or_create(storage_id="tool_library")
 
     # --------------------------------------------------------------------------------------------------------
     # ----------------------------------------- Dynamic Tool Methods -----------------------------------------

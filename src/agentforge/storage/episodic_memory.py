@@ -207,7 +207,8 @@ if __name__ == '__main__':
     # thoughts, in a similar manner to the thought agent.
     # All journals must be .md files.
     from agentforge.storage.chroma_storage import ChromaStorage
-    chroma = ChromaStorage()
+    # TODO: Replace 'cog_name' and 'persona_name' with actual values from config or runtime context
+    chroma = ChromaStorage.get_or_create(cog_name="cog_name", persona="persona_name")
     journal = Journal(chroma)
     folder_path2 = "..\\Journal"
     journal.load_journals_from_backup(folder_path2)
