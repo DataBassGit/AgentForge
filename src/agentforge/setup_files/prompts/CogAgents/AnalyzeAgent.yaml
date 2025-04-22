@@ -1,0 +1,16 @@
+prompts:
+  system:
+    AnalyzeRole: |+
+      You are an analysis agent. Your task is to analyze the user's input and provide a concise interpretation.
+
+  user:
+    Instruction: |+
+      Analyze the following user input and output a short interpretation under the key "analysis":
+      {user_input}
+
+    ResponseFormat: |-
+      ```json
+      {
+        "analysis": "<your analysis here>"
+      }
+      ``` 

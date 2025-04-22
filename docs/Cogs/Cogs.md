@@ -1,244 +1,194 @@
-# Cognitive Architectures Guide (Cogs)
+# Cog (Cognitive Architecture) Guide
 
-**AgentForge** introduces a **Cognitive Architecture** feature—referred to as **Cog**—that lets you orchestrate multi-agent workflows using a single YAML file. By defining your entire multi-agent script declaratively, you can build complex, loopable, and branching flows without hardcoding the interactions in Python.
-
----
-
-## Introduction
-
-The **Cog** feature in **AgentForge** offers you a powerful way to:
-
-- **Centralize Multi-Agent Logic**: Define your entire multi-agent workflow—including agent definitions and transitions—in one YAML file for improved clarity and maintainability.  
-- **Enable Complex Decision-Making**: Each agent’s output can include decision variables that dictate the next step, allowing for dynamic routing within your flow.
-- **Maintain a Global Context**: A shared dictionary accumulates the outputs from each agent, ensuring that every subsequent agent has access to the latest data.  
-- **Support Looping and Branching**: Design flows that loop, branch, or terminate based on conditions defined directly in your YAML.  
-- **Audit the Thought Flow**: Optionally, a thought flow trail logs the output of each agent as the workflow progresses, making debugging and analysis straightforward.
+Cogs are declarative YAML-driven orchestrators in **AgentForge**. They define multi-agent workflows, memory nodes, and branching logic without writing Python, enabling complex, loopable, and branching AI pipelines.
 
 ---
 
-## Core Concepts
+## 1. What Is a Cog?
+A **Cog** is:
+- A single YAML file under `.agentforge/cogs/` that declares agents, memory nodes, and flow logic.
+- A fully declarative automation: no custom Python is required to configure how agents interact.
+- An engine for chaining agents, injecting persona/memory context, and handling routing based on agent outputs.
 
-1. **Agents**:  
-   Each agent (or node) is defined in the YAML file with a unique `id`. An agent definition can specify:
-   - **`type`**: A fully qualified class path (e.g., `myapp.agents.MyAgent`) that will be instantiated. If omitted, the base `Agent` is used.
-   - **`template_file`**: The prompt template file used by the agent. If not provided, it defaults to the agent’s class name.
-
-2. **Flow**:  
-   The `flow` section defines how agents connect:
-   - **`start`**: The `id` of the first agent to run.
-   - **`transitions`**: A mapping of each agent to its subsequent agent(s). A transition can be a simple direct mapping or a decision-based block.
-
-3. **Global Context**:  
-   As the **Cog** executes, each agent’s output is merged into a shared `global_context` dictionary under its agent `id`. This allows later agents to access data produced earlier in the flow.
-
-4. **Thought Flow Trail**:  
-   If enabled, the engine records a snapshot of each agent’s output in a “thought flow trail.” This is useful for debugging and auditing the entire execution sequence.
-
-5. **Decision Variables & Max Visits**:  
-   Decision nodes use an output variable (for example, `choice`) to determine the next agent. Additionally, a decision node may define a `max_visits` limit to prevent infinite loops. Once the agent has been visited more than the allowed number, the default branch is automatically taken.
+When you run a Cog, **AgentForge**:
+1. Loads the YAML config and validates schema.  
+2. Initializes shared memory and persona context.  
+3. Executes agents in the order defined by `flow.start` and `transitions`.  
+4. Merges each agent’s output into a **global context**.  
+5. Routes to next agents via direct or decision-based transitions.  
+6. Terminates when an `end: true` node is reached.
 
 ---
 
-## YAML Specification
-
-A typical Cog YAML file resides in your project’s configuration folder (for example, in `.agentforge/cogarchs/`). Below is a simplified example:
-
+## 2. YAML Schema
 ```yaml
 cog:
-  name: "SimpleFlow"
-  description: "Demonstration of a basic flow with decisions."
+  name: "ExampleFlow"         # Identifier for this Cog
+  description: "A sample decision workflow."
 
-  agents:
-    - id: thought
-      type: myapp.agents.MyAgent
-      template_file: ThoughtAgent
+  agents:                       # Declare agent nodes
+    - id: analyze
+      type: agentforge.agent.Agent  # Python class (defaults to base Agent)
+      template_file: AnalyzeAgent
 
-    - id: reflect
-      type: myapp.agents.ReflectAgent
+    - id: decide
+      # No type defined as it will default to base Agent
+      template_file: DecideAgent
+
 
     - id: respond
-      type: myapp.agents.MyAgent
       template_file: ResponseAgent
 
-  flow:
-    start: "thought"
+  memory:                       # (Optional) shared memory nodes
+    - id: chat_history
+      type: agentforge.storage.memory.Memory # Python class (defaults to base Memory)
+      collection_id: history
+
+  flow:                         # Define execution order
+    start: "analyze"
     transitions:
-      thought: reflect
-      reflect:
+      analyze: decide
+      decide:
         choice:
-          approve: respond
-          revise: thought
-          default: respond
+          yes: respond
+          no: analyze
+        default: respond
+        max_visits: 5           # Prevent infinite loops (fallback after 5)
       respond:
         end: true
 ```
 
-### YAML Elements
-
-1. **`cog`**: The root key that encapsulates everything about your cognitive workflow.  
-2. **`name` and `description`**: Metadata fields for identifying your flow.  
-3. **`agents`**: A list of agent definitions:
-   - **`id`**: Unique identifier (e.g., `"reflect"`).  
-   - **`type`**: The fully qualified Python path to the class (e.g., `"myapp.agents.MyAgent"`). If omitted, defaults to the base `Agent`.  
-   - **`template_file`**: Which YAML prompt file to load for that agent. If omitted, defaults to the class name.  
-4. **`flow`**:
-   - **`start`**: Which agent `id` to run first.  
-   - **`transitions`**: Describes how each agent (identified by its `id`) moves to the next. Possible ways to define transitions:
-     - **Simple String**: `"agentA: agentB"` means once `agentA` finishes, move to `agentB`.  
-     - **Decision (dictionary)**: If `agentA` returns a key named `"choice"`, the flow checks if `"approve"`, `"revise"`, etc. is in the agent’s output, and transitions accordingly. You can define a `"default"` if no match is found.  
-     - **`end: true`**: Marks a terminal node that stops the flow.  
-     - **`max_visits`**: (Optional) If included in the node’s transition dictionary, it prevents looping indefinitely. Once an agent is visited more than `max_visits` times, the flow takes the `default` path.
+### Top-Level Keys
+- **`cog.name`**, **`cog.description`**: Metadata.
+- **`agents`**: List of agent definitions:
+  - `id`: Unique node key.
+  - `type`: Full Python path to Agent subclass (default: base `Agent`).
+  - `template_file`: Prompt YAML name (defaults to class name).
+- **`memory`**: List of memory nodes:
+  - `id`: Key for memory instance.
+  - `type`: Memory class to instantiate (e.g., `Memory`, `ScratchPad`).
+  - `collection_id`: Optional override for storage partition.
+- **`flow`**:
+  - `start`: `agents.id` to run first.
+  - `transitions`: Mapping from each `id` to next steps:
+    - **Simple**: `agentA: agentB`
+    - **Decision**: Use an output field (e.g., `choice`) to branch:
+      ```yaml
+      agentA:
+        choice:
+          branch1: agentX
+          branch2: agentY
+        default: agentZ
+      ```
+    - **Loop Guard**: `max_visits` prevents infinite cycling.
+    - **Terminate**: `agent_id:
+        end: true` marks a terminal node.
 
 ---
 
-## Using the Cog Feature
-
-### 1. Creating a Cog Instance
-
-Place your Cog YAML file (e.g., `simple_flow.yaml`) in your configuration folder. Then, create a Cog instance by providing the YAML file name:
-
-```python
-from agentforge.cog import Cog
-
-# Create a Cog instance with the simple_flow.yaml file, thought flow trail logging enabled by default
-cog = Cog("simple_flow.yaml")
+## 3. Memory Nodes
+Memory nodes declared under `memory` are shared across all agents in a Cog:
+```yaml
+memory:
+  - id: session_mem
+    type: agentforge.storage.memory.Memory # Python class (defaults to base Memory)
+    collection_id: session123
 ```
-
-### 2. Running the Cog
-
-You can pass initial parameters (e.g., `user_input`) to the Cog’s `run` method. The engine will initialize the global context with these values, execute the flow, and return the final context.
-
-```python
-result_context = cog.run(user_input="Hello, world!")
-print("Final Global Context:", result_context)
-```
-
-
-During execution:
-1. **Start Node**: The Cog looks for the `start` key in the YAML (`thought` in this example).  
-2. **Agent Execution**:  
-   - The agent’s `run()` method is called with the current global context.  
-   - The agent’s output is stored under `global_context[agent_id]`.  
-3. **Decision Handling**: If the current agent’s transition is a dictionary with a decision key (like `"choice"`), the Cog checks `global_context[agent_id]["choice"]` to decide the next node. If the agent’s choice is unrecognized, the `default` path is used (if defined).  
-4. **Max Visits (Optional)**: If the node’s transition includes `max_visits`, once that agent is visited more times than allowed, the flow automatically takes the `default` branch.  
-5. **Termination**: If a node is marked `end: true`, the flow stops. The final `global_context` (with all agents’ outputs) is returned by `cog.run()`.
+- Instantiates `Memory(cog_name=cog.name, collection_id)`.
+- Uses `collection_id` or defaults to node `id` for storage partition.
+- All agents read/write this memory via `mem = cog.memory.session_mem`.
 
 ---
 
-## Execution Flow
+## 4. Agent Execution & Global Context
+1. **Initialization**: Cog builds a `global_context` dict with initial kwargs.
+2. **Agent Run**: For each node, `agent.run(**global_context)` is called.
+3. **Collect Output**: Agent result stored as `global_context[node_id]`.
+4. **Routing**: Next node selected via `flow.transitions[node_id]`, using simple mapping or decision keys.
+5. **Loop Control**: If a node’s `max_visits` exceeded, uses its `default` branch.
+6. **Completion**: When `end: true` is reached, `cog.run()` returns the final `global_context`.
 
-1. **Initialization**: The Cog engine resets its global context and thought flow trail, then loads and validates the YAML configuration.
-2. **Agent Execution**: Starting from the agent specified in the `start` key, each agent is executed sequentially. Their outputs are merged into the global context.
-3. **Decision Handling**: For decision-based transitions, the engine uses the decision variable (e.g., `choice`) from the agent’s output to select the next agent. If a node’s `max_visits` limit is reached, the default branch is taken.
-4. **Termination**: The flow continues until a transition marked with `end: true` is reached, at which point the final global context is returned.
-
----
-
-## Global Context & Thought Flow Trail
-
-- **Global Context**: The final global context is a dictionary where each key is an agent’s `id` and the corresponding value is that agent’s output. This context aggregates data across the entire workflow.
-- **Thought Flow Trail**: If enabled, the Cog engine logs the output of each agent as it is executed. This trail is useful for auditing or debugging the flow of information through your architecture.
-
-### Accessing the Thought Flow Trail
-
-When `enable_trail_logging=True`, each agent’s output is appended to an internal list. This can be used for debugging or analytics:
-
-```python
-print("Thought Flow Trail:", cog.thought_flow_trail)
-```
-
-`thought_flow_trail` is a list where each entry looks like `{"agent_id": {...agent output...}}`.
+Agents can access memory or persona data via `self.agent_data['storage']` and `self.agent_data['persona']` inside their logic.
 
 ---
 
-## Example: Orchestrating a Reflection Loop
-
-Consider a scenario where an agent (e.g., `reflect`) determines whether to continue refining a thought process or move on to produce a final response. The YAML might look like:
-
+## 5. Minimal Example
 ```yaml
 cog:
-  name: "ReflectionFlow"
-  description: "A reflection loop that can revise or move on."
+  name: SimpleEcho
+  description: "Echo flow"
 
   agents:
-    - id: reason
-      type: myapp.agents.MyAgent
-      template_file: ReasonAgent
-
-    - id: reflect
-      type: myapp.agents.ReflectAgent
-
-    - id: respond
-      template_file: GenerateAgent
+    - id: echo
+      type: agentforge.agent.Agent
+      template_file: EchoAgent
 
   flow:
-    start: "reason"
+    start: echo
     transitions:
-      reason: reflect
-      reflect:
-        choice:
-          approve: respond
-          revise: reason
-          default: respond
-        max_visits: 3
-      respond:
+      echo:
         end: true
 ```
+- **EchoAgent.yaml** under `.agentforge/prompts/` defines the prompt.
+- Running:
+  ```python
+  from agentforge.cog import Cog
+  cog = Cog("simple_echo.yaml")
+  out = cog.run(user_input="Test")
+  print(out)
+  ```
 
-In this example:
-- The `reason` agent is defined being of type `MyAgent` and will use the defined `ReasonAgent` prompt template file.
-- The `reflect` agent is defined being of type `ReflectAgent` and has no `template_file` attribute defined, so it will default to using the `ReflectAgent` prompt template file based on the agent type class name.
-- The `reason` agent only defines a `template_file` attribute so it will use the `GenerateAgent` template prompt file and it will default to an agent of type `Agent` which is the base agent class implementation of the framework.
+---
 
-The **Cognitive Flow** looks as follows:
-- The flow begins with the `reason` agent and once it return it's output the flow will pass onto the `reflect` agent.
-- The `reflect` agent outputs a decision (under the key `choice`), which determines whether to loop back to `reason` or proceed to `respond`.
-- The `max_visits` property on `reflect` ensures that if it is revisited more than 3 times, the default branch (`respond`) is taken, preventing an infinite loop.
-- Once `respond` is executed and marked with `end: true`, the flow terminates and the final global context is returned.
+## 6. Advanced Example with Branching
+```yaml
+cog:
+  name: ApprovalFlow
+  description: "Demo approval vs. revision"
 
-## Example Output:
-```python
-from agentforge.cog import Cog
+  agents:
+    - id: draft
+      template_file: DraftAgent
 
-cog = Cog("example_cog.yaml")
-result_context = cog.run(user_input="Hello, world!")
+    - id: review
+      template_file: ReviewAgent
+
+    - id: publish
+      template_file: PublishAgent
+
+  memory:
+    - id: log_mem
+      type: agentforge.storage.scratchpad.ScratchPad
+      collection_id: approval_log
+
+  flow:
+    start: draft
+    transitions:
+      draft: review
+      review:
+        approval:
+          yes: publish
+          no: draft
+        default: publish
+        max_visits: 2
+      publish:
+        end: true
 ```
-```python
-result_context = 
-{
-    'user_input': "Hello, world!",
-    'reason': <response given by the 'reason' agent>,
-    'reflect': {'choice': <choice made by the 'reflect' agent>}, # Assuimg the `ReflectAgent` returns a choice inside a Dict
-    'respond': <response given by the 'respond' agent>,
-}        
-```
+- `ReviewAgent` must output a field named `approval` (e.g., `"yes"` or `"no"`).
+- Memory `approval_log` accumulates interactions.
 
 ---
 
-## Error Handling
-
-- **Invalid YAML Config**: If the Cog file is missing essential keys (e.g., `start`, `agents`), a `ValueError` or `ImportError` is raised at initialization.  
-- **Agent Failures**: If an agent returns `None` or raises an exception internally, the `Cog.run()` currently stops execution and returns whatever context was accumulated (or `None` if no output).
-- **Unknown Decision Value**: If a decision output (e.g., `"choice": "foo"`) doesn’t match a branch and no `default` is provided, the flow can’t proceed. You can handle this gracefully in your implementation.
-
----
-
-## Best Practices
-
-- **Define Clear Agent IDs**: Use meaningful and unique identifiers for each agent to make the flow easy to understand.
-- **Use Descriptive Decision Variables**: Ensure that the decision variable (e.g., `choice`) used by decision nodes is consistently referenced in your agent outputs and YAML. **Note**: Decision variable keys can have any name.
-- **Limit Loops with max_visits**: Set appropriate `max_visits` values on decision nodes to prevent infinite loops while still allowing for necessary iteration.
-- **Define Default Paths in Decision Nodes**: Make sure that agents that make decisions based on a returned key have a default path they can follow in case the agent fails to respond with a valid decision.
-- **Leverage the Thought Flow Trail**: Thought trail logging is enabled by default to trace the evolution of the global context and debug complex flows.
+## 7. Best Practices
+- Use clear, hyphenated `id` values (e.g., `data_fetch`, `summarize_step`).
+- Keep flows short and focused—split large pipelines into multiple Cogs if needed.
+- Leverage `max_visits` to guard loops.
+- Share memory sparingly; name collections to reflect their purpose.
+- Include `description` metadata for clarity in dashboards or logs.
 
 ---
 
-## Conclusion
-
-By using a YAML-based configuration, **AgentForge’s Cog Engine** lets you orchestrate complex, multi-agent workflows in a flexible and maintainable way. The engine loads your architecture, instantiates agents as defined, and executes them in sequence or based on decisions, all while maintaining a global context for data sharing and an optional trail for auditing. This modular approach keeps your multi-agent orchestration transparent and easy to evolve as your system grows.
-
----
-
-**Need Help?**  
-- **Email**: [contact@agentforge.net](mailto:contact@agentforge.net)  
-- **Discord**: [Join our Discord Server](https://discord.gg/ttpXHUtCW6)
+## 8. Related Documentation
+- [Agent Class](../Agents/AgentClass.md)  
+- [Memory Guide](../Storage/Memory.md)  
+- [Settings Overview](../Settings/Settings.md)

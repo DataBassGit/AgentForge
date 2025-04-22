@@ -1,0 +1,26 @@
+cog:
+  name: "ExampleFlow"
+  description: "A sample decision workflow."
+
+  agents:
+    - id: analyze
+      template_file: AnalyzeAgent
+
+    - id: decide
+      template_file: DecideAgent
+
+    - id: respond
+      template_file: ResponseAgent
+
+  flow:
+    start: analyze
+    transitions:
+      analyze: decide
+      decide:
+        choice:
+          yes: respond
+          no: analyze
+        default: respond
+        max_visits: 3
+      respond:
+        end: true 
