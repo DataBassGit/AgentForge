@@ -1,0 +1,116 @@
+"""In-memory stand-ins for production storage back-ends used in unit tests."""
+from __future__ import annotations
+
+import threading
+from typing import Any, Dict, List, Optional
+
+__all__ = ["FakeChromaStorage"]
+
+
+class _FakeCollection:
+    """Extremely small subset of Chroma collection API sufficient for tests."""
+
+    def __init__(self) -> None:
+        self._docs: Dict[str, str] = {}
+        self._metas: Dict[str, Dict[str, Any]] = {}
+        self._lock = threading.RLock()
+
+    # Core operations -----------------------------------------------------
+    def upsert(self, documents: List[str], metadatas: List[dict], ids: List[str]) -> None:  # noqa: D401
+        with self._lock:
+            for _id, doc, meta in zip(ids, documents, metadatas):
+                self._docs[_id] = doc
+                self._metas[_id] = meta or {}
+
+    def get(self, ids: Optional[List[str]] = None):  # noqa: D401
+        # Lock-free read: copy current state once to avoid partial reads.
+        snapshot_docs = self._docs.copy()
+        snapshot_meta = self._metas.copy()
+        if ids is None:
+            ids = list(snapshot_docs.keys())
+        return {
+            "ids": ids,
+            "documents": [snapshot_docs[i] for i in ids if i in snapshot_docs],
+            "metadatas": [snapshot_meta.get(i, {}) for i in ids],
+        }
+
+    def delete(self, ids: Optional[List[str]] = None) -> None:  # noqa: D401
+        with self._lock:
+            ids = ids or list(self._docs.keys())
+            for _id in ids:
+                self._docs.pop(_id, None)
+                self._metas.pop(_id, None)
+
+    def count(self) -> int:
+        with self._lock:
+            return len(self._docs)
+
+    def query(self, num_results: int = 1):
+        with self._lock:
+            ids = list(self._docs.keys())[:num_results]
+            return self.get(ids=ids)
+
+
+class FakeChromaStorage:
+    """Drop-in replacement for `agentforge.storage.chroma_storage.ChromaStorage`."""
+
+    _registry: Dict[str, "FakeChromaStorage"] = {}
+    _registry_lock = threading.Lock()
+
+    def __init__(self, storage_id: str):
+        self.storage_id = storage_id
+        self._collections: Dict[str, _FakeCollection] = {}
+        self._current: Optional[_FakeCollection] = None
+        self._lock = threading.RLock()
+
+    # Registry helpers ----------------------------------------------------
+    @classmethod
+    def get_or_create(cls, storage_id: str):
+        with cls._registry_lock:
+            if storage_id not in cls._registry:
+                cls._registry[storage_id] = cls(storage_id)
+            return cls._registry[storage_id]
+
+    @classmethod
+    def clear_registry(cls):
+        with cls._registry_lock:
+            cls._registry.clear()
+
+    # Collection management ----------------------------------------------
+    def select_collection(self, collection_name: str):
+        self._current = self._collections.setdefault(collection_name, _FakeCollection())
+        return self._current
+
+    def delete_collection(self, collection_name: str):
+        self._collections.pop(collection_name, None)
+        if self._current is not None and self._current is self._collections.get(collection_name):
+            self._current = None
+
+    def count_collection(self, collection_name: str):
+        return self.select_collection(collection_name).count()
+
+    # High-level API (subset) --------------------------------------------
+    def save_to_storage(self, *, collection_name: str, data: List[str] | str, ids: Optional[List[str]] = None, metadata: Optional[List[dict]] = None):
+        data = [data] if isinstance(data, str) else list(data)
+        if ids is None:
+            # Generate incremental ids based on current collection size
+            existing = self.select_collection(collection_name).count()
+            ids = [str(existing + i + 1) for i in range(len(data))]
+        metadata = metadata or [{} for _ in data]
+        self.select_collection(collection_name).upsert(data, metadata, ids)
+
+    def query_storage(self, *, collection_name: str, query: Optional[str | List[str]] = None, num_results: int = 1, **_):
+        col = self.select_collection(collection_name)
+        res = col.query(num_results=num_results)
+        # If collection empty, return {} to mirror production behaviour
+        if not res["documents"]:
+            return {}
+        return res
+
+    def delete_from_storage(self, collection_name: str, ids: List[str] | str):
+        if not isinstance(ids, list):
+            ids = [ids]
+        self.select_collection(collection_name).delete(ids)
+
+    def reset_storage(self):
+        self._collections.clear() 

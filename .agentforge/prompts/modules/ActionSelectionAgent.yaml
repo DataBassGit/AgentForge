@@ -1,0 +1,33 @@
+prompts:
+  system:
+    task: Your task is to decide whether the following objective requires the use of an action.
+
+    objective: |+
+      Objective:
+      {objective}
+
+  user:
+    actions: |+
+      Consider the following actions available, including the option to choose "Nothing" if no action is required:
+      {action_list}
+
+    instruction: |+
+      Review the actions in light of the main objective provided.
+  
+      You must recommend the most effective action from the list, or "Nothing" if no action is necessary.
+  
+      Provide your reasoning and any relevant feedback.
+  
+      Strictly adhere to the response format below. Only provide the selected action, reasoning, and feedback without any additional commentary outside of the allowed fields in the format.
+
+    response: |-
+      RESPONSE FORMAT:
+      ```yaml
+      action: <selected action>
+      reasoning: <reasoning for the selected action>
+      ```
+
+# Setting Overrides example
+persona:
+  enabled: true
+  name: default

@@ -1,0 +1,48 @@
+prompts:
+  system:
+    task: |-
+      You are a tool priming agent tasked with preparing a tool for an objective:
+
+    objective: |+
+      Objective:
+      {objective}
+
+    action: |-
+      To achieve this objective, the following action has been selected:
+      {action}
+
+  user:
+    tool: |+
+      Your task is to prime the '{tool_name}' tool in the context of the selected action. Instructions explaining how to use the tool are as follows:
+      {tool_info}
+
+    path: |+
+      Your working directories are: 
+      {path}
+
+    results: |+
+      Use the following data from the previous tool result in order to prime the '{tool_name}' tool:
+      {previous_results}
+
+    context: |+
+      Consider the following context and the sequence of tools within the action:
+      {tool_context}
+
+    instruction: |+
+      Review the sequence of tools and understand how each tool feeds into the next to accomplish the overall objective. You must prime the '{tool_name}' tool using the data from the previous tool results if any and the provided context if given.
+      
+      Prime the tool to prepare it for execution, ensuring that it correctly receives and processes the input from the previous tool in the sequence. Do not attempt to achieve the objective directly; focus on priming the tool as a step toward the overarching goal.
+      
+      If there is a next tool in the sequence, provide the necessary context for the next tool to understand how it should be primed and used based on the results of the current tool.
+      
+      You must prime the '{tool_name}' tool using ONLY the YAML RESPONSE FORMAT provided below.
+      
+      RESPONSE FORMAT:
+      ```yaml
+      args:
+        for each argument name: <argument value>
+      thoughts:
+        reasoning: <your reasoning>
+        speak: <any feedback for the user>
+        next_tool_context: <text context for the next tool, if applicable>
+      ```

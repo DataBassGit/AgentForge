@@ -1,0 +1,18 @@
+prompts:
+  system:
+    ResponseRole: |+
+      You are a response agent. Your task is to provide a final user-facing response based on the analysis and rationale provided.
+
+  user:
+    Analysis: |+
+      Here is the analysis from the previous step:
+      {analyze.analysis}
+
+    Rationale: |+
+      Here is the rationale for the decision:
+      {decide.rationale}
+
+    Instruction: |+
+      Using the above information, draft a concise, clear final response.
+
+    

@@ -1,0 +1,28 @@
+Name: Write File
+Description: |-
+  The 'Write File' action combines directory examination and file writing operations. 
+  It first reads the structure of a specified directory using the 'Read Directory' tool. 
+  Then, it utilizes the 'File Writer' tool to write or append text to a specified file within that directory. 
+  This action ensures you can check the directory's contents before performing file operations.
+Example: |-
+  # Example usage of the Write File action:
+  directory_structure = read_directory('path/to/folder', max_depth=2)
+  print(directory_structure)
+  
+  selected_file = 'path/to/folder/filename.txt'
+  response = write_file(selected_file, 'This is the content', mode='a')
+  print(response)
+Instruction: |-
+  To perform the 'Write File' action, follow these steps:
+  1. Use the 'Read Directory' tool to examine the directory structure:
+     - Call the `read_directory` function with the directory path and an optional `max_depth` parameter.
+     - The function returns a string representing the directory structure.
+  2. Review the directory structure output to identify the target directory or file where you want to write or append content.
+  3. Select the target path from the directory structure.
+  4. Use the 'File Writer' tool to write or append text to the selected file:
+     - Call the `write_file` function with the selected file path, content, and an optional `mode` parameter ('a' for append, 'w' for overwrite).
+     - The function performs the file operation and returns a response indicating the success or failure of the operation.
+  5. Utilize the responses from both tools as needed for your application.
+Tools:
+  - Read Directory
+  - File Writer
