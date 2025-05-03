@@ -10,7 +10,7 @@
 - Saves results or context to storage if enabled.
 - Returns the final output (text, images, data) to the caller.
 
-Agents adhere to a standard lifecycle (see [Agent Class](AgentClass.md)) but can be subclassed for specialized behaviors.
+Agents adhere to a standard lifecycle (see [Agent Class](AgentClass.md)) but can be subclassed for specialized behaviors. Agents can be used standalone or as part of a [Cog](../Cogs/Cogs.md) in multi-agent workflows.
 
 ---
 
@@ -27,4 +27,7 @@ Agents adhere to a standard lifecycle (see [Agent Class](AgentClass.md)) but can
 
 ### **[Overriding LLM Settings](../Settings/Models.md/#specifying-model-overrides-in-agents)**
 - Each agent holds the power to tailor the Large Language Model (LLM) settings it employs. This section delves into how agents can utilize default LLMs or opt for specific models fine-tuned for unique tasks, offering flexibility and precision.
+
+### **[Multi-Agent Orchestration (Cogs)](../Cogs/Cogs.md)**
+- Discover how to compose multiple agents into powerful cognitive architectures using **Cogs**. Cogs allow you to define complex, branching workflows in YAML without writing Python code, connecting agents through decision-based transitions and shared memory.
 

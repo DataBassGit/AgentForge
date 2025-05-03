@@ -25,9 +25,9 @@ cog:
       analyze: decide
       decide:
         choice:
-          yes: respond
-          no: analyze
-        default: respond
+          "approve": respond
+          "reject": analyze
+        fallback: respond
         max_visits: 3
       respond:
         end: true 

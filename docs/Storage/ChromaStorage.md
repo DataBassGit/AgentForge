@@ -110,4 +110,5 @@ for doc in results.get("documents", []):
 ## 9. Related Documentation
 - [Storage Settings](../Settings/Storage.md)
 - [Memory Guide](Memory.md)
-- [AgentClass API](../Agents/AgentClass.md)
+- [Cogs Guide](../Cogs/Cogs.md)
+- [Agent Class API](../Agents/AgentClass.md)

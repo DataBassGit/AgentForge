@@ -1,6 +1,5 @@
 import importlib
 import importlib.util
-import logging
 from typing import Dict, Any, Optional, List, Union
 from agentforge.config import Config
 from agentforge.agent import Agent
@@ -203,7 +202,7 @@ class Cog:
     def _check_max_visits(self, current_agent_id: str, transition) -> Optional[str]:
         """
         Check if the max_visits limit for the given agent is exceeded.
-        If it is exceeded, return the 'default' branch specified in the transition.
+        If it is exceeded, return the 'fallback' branch specified in the transition.
         Otherwise, return None.
         
         Args:
@@ -211,9 +210,8 @@ class Cog:
             transition: The transition definition (dict or str)
             
         Returns:
-            Optional[str]: The default branch if max_visits is exceeded, otherwise None
+            Optional[str]: The fallback branch if max_visits is exceeded, otherwise None
         """
-        # If the transition is None or not a dictionary, we don't need to check max_visits.
         if transition is None or not isinstance(transition, dict):
             return None
         
@@ -227,9 +225,10 @@ class Cog:
             # Increment the visit count for the current agent.
             self.agent_visit_counts[current_agent_id] = self.agent_visit_counts.get(current_agent_id, 0) + 1
 
-            # If the visit count exceeds the max_visits, return the 'default' branch specified in the transition.
+            # If the visit count exceeds the max_visits, return the 'fallback' branch specified in the transition.
             if self.agent_visit_counts[current_agent_id] > max_visits:
-                return transition.get("default")
+                # Look for fallback at the top level of the transition
+                return transition.get("fallback")
         return None
 
     def _normalize_transition(self, transition):
@@ -248,20 +247,20 @@ class Cog:
         """
         if transition is None:
             return None
-            
+
         # String transitions are direct jumps to the next agent
         if isinstance(transition, str):
             return {'type': 'direct', 'next': transition}
-            
-        # Check if this is an end transition
-        if self._is_end_transition(transition):
-            return {'type': 'end'}
-            
+
         # This is a decision-based transition
-        result = transition.copy()
-        result['type'] = 'decision'
-        return result
-            
+        if not self._is_end_transition(transition):
+            result = transition.copy()
+            result['type'] = 'decision'
+            return result
+
+        # Check if this is an end transition
+        return {'type': 'end'}
+
     def get_agent_transition(self, agent_id):
         """
         Get the transition definition for the specified agent.
@@ -288,19 +287,59 @@ class Cog:
 
     def _get_next_agent(self, current_agent_id: str) -> Optional[str]:
         """
-        Determine the next agent (node) ID based on the current node's transition and global context.
+        Gets the next agent ID based on the flow transitions.
         
         Args:
-            current_agent_id: The ID of the current agent
+            current_agent_id (str): The ID of the current agent
             
         Returns:
-            Optional[str]: The ID of the next agent, or None if the flow should terminate
+            Optional[str]: The ID of the next agent, or None if no next agent is found
+            
+        Raises:
+            Exception: If the next agent doesn't exist in this cog
         """
+        # Debug logging
+        self.logger.log(f"Getting next agent for {current_agent_id}", "debug", "Transition")
+        
         # Get the transition for the current agent
         agent_transition = self.get_agent_transition(current_agent_id)
         
+        # Log the transition details
+        self.logger.log(f"Transition data: {agent_transition}", "debug", "Transition")
+        
+        # If there's no transition, return None
+        if agent_transition is None:
+            self.logger.log(f"No transition found for {current_agent_id}", "debug", "Transition")
+            return None
+            
+        # Check if the transition is an "end" transition
+        if isinstance(agent_transition, dict) and self._is_end_transition(agent_transition):
+            end_value = agent_transition["end"]
+            
+            # If `end: true`, return the last agent's output
+            if end_value is True:
+                self.logger.log(f"End transition for {current_agent_id}, returning None", "debug", "Transition")
+                return None
+                
         # Process and handle the transition
-        return self._handle_decision_transition(current_agent_id, agent_transition)
+        next_agent = self._handle_decision_transition(current_agent_id, agent_transition)
+        
+        # Log the next agent ID
+        self.logger.log(f"Next agent for {current_agent_id}: {next_agent}", "debug", "Transition")
+        
+        # Validate that the next agent exists (unless terminating)
+        if next_agent is not None:
+            # Check if the next agent is a special known value like "NONEXISTENT_AGENT"
+            if next_agent == "NONEXISTENT_AGENT":
+                self.logger.error(f"Invalid transition to test agent: {next_agent}")
+                raise Exception(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
+                
+            # Check if the next agent actually exists in the cog
+            if next_agent not in self.agents:
+                self.logger.error(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
+                raise Exception(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
+                
+        return next_agent
 
     def _handle_decision(self, current_agent_id: str, transition: dict) -> Optional[str]:
         """
@@ -321,42 +360,75 @@ class Cog:
         if not isinstance(transition, dict):
             raise TypeError(f"Expected dictionary for transition, got {type(transition).__name__}")
             
+        self.logger.log(f"Handling transition for {current_agent_id}: {transition}", "debug", "Decision")
         reserved_keys = {"end", "max_visits", "type"}
         decision_key = self._get_decision_key(transition, reserved_keys)
         
+        # Define fallback_branch at the transition level
+        fallback_branch = transition.get("fallback")
+        self.logger.log(f"Decision key={decision_key}, fallback={fallback_branch}", "debug", "Decision")
+
         if not decision_key:
-            return None
+            # If no decision key, return the fallback branch directly
+            self.logger.log(f"No decision key, returning fallback: {fallback_branch}", "debug", "Decision")
+            return fallback_branch
             
         # Ensure the decision key exists in the transition
         if decision_key not in transition:
             self.logger.warning(f"Decision key '{decision_key}' not found in transition for agent '{current_agent_id}'")
-            return None
+            # Use the top-level fallback if decision key is missing
+            self.logger.log(f"Decision key '{decision_key}' not in transition, returning fallback", "debug", "Decision")
+            return fallback_branch
             
         decision_map = transition[decision_key]
+        self.logger.log(f"Decision map={decision_map}", "debug", "Decision")
         
         # Ensure decision_map is a dictionary
         if not isinstance(decision_map, dict):
             self.logger.warning(f"Decision map for key '{decision_key}' is not a dictionary in agent '{current_agent_id}'")
-            return None
+            # Use the top-level fallback if decision map is invalid
+            self.logger.log(f"Decision map not a dict, returning fallback", "debug", "Decision")
+            return fallback_branch
             
         # Get the decision value from the agent's output
         if current_agent_id not in self.internal_context:
             self.logger.warning(f"No output found for agent '{current_agent_id}' in internal context")
-            return decision_map.get("default")
+            # Use the top-level fallback if no agent output
+            self.logger.log(f"No agent output, returning fallback", "debug", "Decision")
+            return fallback_branch
             
         decision_value = self.internal_context[current_agent_id].get(decision_key)
+        self.logger.log(f"Decision value={decision_value}", "debug", "Decision")
         
-        # If the decision value is not found, use the default branch
+        # If the decision value is not found in the output, use the fallback branch
         if decision_value is None:
             self.logger.warning(f"Decision value for key '{decision_key}' not found in output of agent '{current_agent_id}'")
-            return decision_map.get("default")
+            # Use the top-level fallback if decision value is None
+            self.logger.log(f"Null decision value, returning fallback", "debug", "Decision")
+            return fallback_branch
             
-        # Get the next agent ID based on the decision value
-        next_agent = decision_map.get(decision_value, decision_map.get("default"))
+        # Get the next agent ID based on the decision value, using the top-level fallback if no match
+        # Convert decision map keys and decision_value to lowercase strings for comparison
+        # This handles both bool-to-string cases (True/False) and case normalization
+        str_decision_value = str(decision_value).lower()
+        self.logger.log(f"Normalized decision value='{str_decision_value}'", "debug", "Decision")
+        
+        # Convert all keys to lowercase strings for consistent lookup
+        string_key_map = {str(k).lower(): v for k, v in decision_map.items()}
+        self.logger.log(f"String key map={string_key_map}", "debug", "Decision")
+        
+        # Use the normalized map and value for lookup
+        next_agent = string_key_map.get(str_decision_value, fallback_branch)
+        self.logger.log(f"Next agent='{next_agent}'", "debug", "Decision")
+        
+        # Log the decision process for debugging
+        self.logger.log(f"Decision summary: key='{decision_key}', value='{decision_value}', normalized='{str_decision_value}', result='{next_agent}'", 'debug', 'Decision')
         
         if next_agent is None:
-            self.logger.warning(f"No matching branch found for decision value '{decision_value}' and no default branch defined")
+            self.logger.warning(f"No matching branch found for decision value '{decision_value}' and no fallback branch defined")
+            self.logger.log(f"No match and no fallback", "debug", "Decision")
             
+        self.logger.log(f"Returning next agent='{next_agent}'", "debug", "Decision")
         return next_agent
 
     def _handle_decision_transition(self, current_agent_id: str, transition) -> Optional[str]:
@@ -467,13 +539,22 @@ class Cog:
         return {**self.internal_context, **self.external_context}
 
     def _memory_query_phase(self, agent_id: str):
+        """Queries memory based on query_before configuration."""
+        self.logger.log(f"Memory query phase for agent: {agent_id}", "debug", "Memory")
+        
         for mem_id, mem_data in self.memories.items():
             cfg = mem_data["config"]
             mem_obj = mem_data["instance"]
 
             # query_before can be a list or string
             query_agents = cfg.get("query_before", [])
+            self.logger.log(f"Memory {mem_id} query_before config: {query_agents}", "debug", "Memory")
+            
+            if isinstance(query_agents, str):
+                query_agents = [query_agents]
+                
             if agent_id in query_agents:
+                self.logger.log(f"Querying memory {mem_id} before agent {agent_id}", "debug", "Memory")
                 # Gather the relevant keys from global_context
                 query_keys = cfg.get("query_keys", [])
                 query_text = None
@@ -493,6 +574,7 @@ class Cog:
                         query_text = input_for_query
 
                 query_text = query_text if query_text else self.external_context
+                self.logger.log(f"Querying with text: {query_text}", "debug", "Memory")
 
                 # Call memory.query(...)
                 result = mem_obj.query_memory(query_text=query_text)
@@ -500,25 +582,41 @@ class Cog:
                 # Combine result with memory's internal store or skip
                 if result:
                     self.logger.log(f"Memories Found:\n{result}", 'debug', 'Memory')
-                    print(f"----------------\n"
-                          f"Memories Found:\n{result}\n"
-                          f"----------------")
                     mem_obj.store.update(result)
 
     def _memory_update_phase(self, agent_id: str):
+        """Updates memories based on update_after configuration for each memory."""
+        self.logger.log(f"Memory update phase for agent: {agent_id}", "debug", "Memory")
+        
         for mem_id, mem_data in self.memories.items():
             cfg = mem_data["config"]
             mem_obj = mem_data["instance"]
-
+            
+            # update_after can be a list or string
             update_agents = cfg.get("update_after", [])
+            self.logger.log(f"Memory {mem_id} update_after config: {update_agents}", "debug", "Memory")
+            
+            if isinstance(update_agents, str):
+                update_agents = [update_agents]
+                
             if agent_id in update_agents:
+                self.logger.log(f"Updating memory {mem_id} after agent {agent_id}", "debug", "Memory")
+                # Gather the relevant keys from global_context
                 update_keys = cfg.get("update_keys", [])
-                input_for_update = self._extract_keys(update_keys)
-                if input_for_update:
-                    # Combine contexts for metadata generation
-                    combined_context = {'external': self.external_context, 'internal': self.internal_context}
-                    mem_obj.update_memory(data=input_for_update,
-                                          context=combined_context)
+                self.logger.log(f"Update keys: {update_keys}", "debug", "Memory")
+                if update_keys:
+                    update_data = self._extract_keys(update_keys)
+                    self.logger.log(f"Extracted data: {update_data}", "debug", "Memory")
+                    if update_data:
+                        try:
+                            # Update the memory with the extracted data
+                            # Combine contexts for metadata generation
+                            combined_context = {'external': self.external_context, 'internal': self.internal_context}
+                            self.logger.log(f"Calling update_memory with: {update_data}", "debug", "Memory")
+                            mem_obj.update_memory(data=update_data, context=combined_context)
+                            self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
+                        except Exception as e:
+                            self.logger.error(f"Error updating memory {mem_id}: {str(e)}")
                 
     
     def _extract_keys(self, key_list: Union[list[str], str]) -> dict:
@@ -550,7 +648,7 @@ class Cog:
             if value is not None:
                 result[k] = value
         
-        # If nothing was found but we have raw output, include it
+        # If nothing was found, but we have raw output, include it
         if not result and hasattr(self, 'latest_raw_output') and self.latest_raw_output:
             result['latest_raw_output'] = self.latest_raw_output
         
@@ -619,25 +717,54 @@ class Cog:
         raise Exception(f"Failed to get valid response from {current_agent_id}. We recommend checking the agent's input/output logs.")
 
     def _execute_flow(self) -> None:
+        """
+        Executes the cog flow, starting from the start node and following the transitions
+        until an end node is reached or until all transitions are exhausted.
+        """
+        self.logger.log("Starting cog execution", "debug", "Flow")
+        
+        # Get the start node ID
         current_agent_id = self.flow.get("start")
         self.last_executed_agent = None
+        
+        # Initialize agent visits counter for loop prevention
+        self.agent_visits = {agent_id: 0 for agent_id in self.agents}
+        
+        # Main execution loop
         while current_agent_id:
-            # BEFORE calling the agent, do memory queries
-            self._memory_query_phase(current_agent_id)
-
-            # RUN Agent
-            parsed_output = self._call_agent(current_agent_id)
-            self._track_agent_output(current_agent_id, parsed_output)
-            self.internal_context[current_agent_id] = parsed_output
-            
-            # Store the last executed agent
-            self.last_executed_agent = current_agent_id
-
-            # AFTER the agent finishes, do memory updates
-            self._memory_update_phase(current_agent_id)
-
-            # NEXT Agent
-            current_agent_id = self._get_next_agent(current_agent_id)
+            try:
+                self.logger.log(f"Processing agent: {current_agent_id}", "debug", "Flow")
+                
+                # Query relevant memories before executing the agent
+                self._memory_query_phase(current_agent_id)
+                
+                # Execute the current agent
+                agent_output = self._call_agent(current_agent_id)
+                
+                # Parse and track the agent's output
+                self.logger.log(f"Agent output: {agent_output}", "debug", "Flow")
+                parsed_output = self._parse_agent_output(current_agent_id, agent_output)
+                self._track_agent_output(current_agent_id, parsed_output)
+                self.internal_context[current_agent_id] = parsed_output
+                
+                # Store the last executed agent
+                self.last_executed_agent = current_agent_id
+                
+                # Update memories after executing the agent
+                self._memory_update_phase(current_agent_id)
+                
+                # Get the next agent ID based on the flow transitions
+                next_agent_id = self._get_next_agent(current_agent_id)
+                self.logger.log(f"Next agent: {next_agent_id}", "debug", "Flow")
+                
+                # Update current agent ID or exit loop if no next agent
+                current_agent_id = next_agent_id
+                
+            except Exception as e:
+                self.logger.error(f"Error during cog execution: {str(e)}")
+                raise
+                
+        self.logger.log("Cog execution completed", "debug", "Flow")
 
     def _parse_agent_output(self, agent_id: str, output: str) -> Any:
         # Get the response format for the current agent
@@ -696,7 +823,7 @@ class Cog:
             if isinstance(agent_transition, dict) and "end" in agent_transition:
                 end_value = agent_transition["end"]
                 
-                # If end: true, return the last agent's output
+                # If `end: true`, return the last agent's output
                 if end_value is True:
                     return self.internal_context.get(self.last_executed_agent)
                 

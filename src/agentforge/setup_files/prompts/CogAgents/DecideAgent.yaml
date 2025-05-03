@@ -9,12 +9,12 @@ prompts:
       {analyze.analysis}
 
     Instruction: |+
-      Determine the appropriate choice among "yes", "no", or "other". Then provide the rationale for your decision.
+      Determine the appropriate choice among "approve", "reject", or "other". Then provide the rationale for your decision.
 
     ResponseFormat: |-
       ```json
       {
-        "choice": "<yes|no|other>",
+        "choice": "<approve|reject|other>",
         "rationale": "<reason for decision>"
       }
       ``` 

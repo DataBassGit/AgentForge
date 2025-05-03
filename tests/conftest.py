@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+import os, pathlib, sys
+project_root = pathlib.Path(__file__).parent.parent.resolve()
+os.chdir(project_root)
+sys.path.insert(0, str(project_root / "src"))
+
+# == prevent Config() from hunting in the wrong place ==
+import agentforge.config as _afcfg
+_afcfg.Config.find_project_root = lambda self, _root_path: project_root
+
 import logging
 import shutil
 import sys
@@ -53,11 +62,49 @@ def isolated_config(tmp_path) -> Config:
     setup_src = SRC_PATH / "agentforge" / "setup_files"
     shutil.copytree(setup_src, tmp_path / ".agentforge")
 
+    # Store the original YAML content for ExampleCog
+    example_cog_path = tmp_path / ".agentforge" / "cogs" / "ExampleCog.yaml"
+    original_yaml = example_cog_path.read_text()
+
+    # Create the Config instance
     cfg = Config.reset(root_path=str(tmp_path))
+    
+    # Provide the config to the test
     yield cfg
 
+    # After the test completes, restore the original YAML
+    # This ensures that changes made by one test don't affect others
+    example_cog_path.write_text(original_yaml)
+    
     # Ensure singleton cleaned up for next test
     Config._instance = None
+
+
+@pytest.fixture()
+def clean_yaml_after_test():
+    """Fixture to ensure that ExampleCog.yaml is restored to its original state after each test."""
+    # Get the path to the repo's .agentforge directory
+    agentforge_dir = REPO_ROOT / ".agentforge"
+    example_cog_path = agentforge_dir / "cogs" / "ExampleCog.yaml"
+    
+    # Save the original content
+    original_content = None
+    if example_cog_path.exists():
+        original_content = example_cog_path.read_text()
+    
+    # Let the test run
+    yield
+    
+    # After the test, restore the original content
+    if original_content is not None:
+        example_cog_path.write_text(original_content)
+
+# Apply the clean_yaml_after_test fixture to all tests in the cog_tests directory
+@pytest.fixture(autouse=True, scope="function")
+def auto_clean_yaml(request):
+    """Automatically apply clean_yaml_after_test to all tests in cog_tests."""
+    if "cog_tests" in request.module.__name__:
+        request.getfixturevalue("clean_yaml_after_test")
 
 
 @pytest.fixture()
@@ -78,7 +125,7 @@ def stubbed_agents(monkeypatch):
     from agentforge.agent import Agent
 
     original_run = Agent.run
-    decision_values = ["yes", "no", "other"]
+    decision_values = ["approve", "reject", "other"]
 
     def fake_run(self: Agent, **context):  # type: ignore[override]
         name_l = self.agent_name.lower()
@@ -111,4 +158,20 @@ def stubbed_agents(monkeypatch):
 @pytest.fixture()
 def example_cog(isolated_config):
     from agentforge.cog import Cog
-    return Cog("ExampleCog") 
+    return Cog("ExampleCog")
+
+
+@pytest.fixture(autouse=True, scope="session")
+def cleanup_root_dot_agentforge():
+    """Clean up any .agentforge directory at the repo root after all tests have run."""
+    # Let the tests run
+    yield
+    
+    # After all tests, clean up any .agentforge directory at the repo root
+    root_dot_agentforge = REPO_ROOT / ".agentforge"
+    if root_dot_agentforge.exists() and root_dot_agentforge.is_dir():
+        try:
+            shutil.rmtree(root_dot_agentforge)
+            print(f"Cleaned up {root_dot_agentforge}")
+        except Exception as e:
+            print(f"Failed to clean up {root_dot_agentforge}: {e}") 

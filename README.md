@@ -8,7 +8,9 @@
 
 # AgentForge
 
-**AgentForge** is a low-code framework designed for rapid development, testing, and iteration of AI-powered autonomous agents and cognitive architectures. Compatible with a range of LLM models—including OpenAI, Google's Gemini, Anthropic's Claude, and local models via [Ollama](https://ollama.com) or [LMStudio](https://lmstudio.ai)—it offers the flexibility to run different models for different agents based on your specific needs.
+**AgentForge** is a low-code framework designed for rapid development, testing, and iteration of AI-powered autonomous agents and cognitive architectures. Built around two core concepts—flexible Agents and declarative Cogs—AgentForge enables both simple agent implementations and sophisticated multi-agent orchestration with minimal code.
+
+Compatible with a range of LLM models—including OpenAI, Google's Gemini, Anthropic's Claude, and local models via [Ollama](https://ollama.com) or [LMStudio](https://lmstudio.ai)—it offers the flexibility to run different models for different agents based on your specific needs.
 
 Whether you're a newcomer seeking an easy entry point or a seasoned developer aiming to build complex cognitive architectures, **AgentForge** provides the tools you need to craft intelligent, model-agnostic, and database-flexible autonomous agents.
 
@@ -26,12 +28,14 @@ Whether you're a newcomer seeking an easy entry point or a seasoned developer ai
 
 ## Features
 
-Easily build agents or cognitive architectures (multi-agent scripts) with the following **AgentForge** functionality:
+Easily build agents or cognitive architectures (multi-agent systems) with the following **AgentForge** functionality:
 
 - **Customizable Agents**: Tailor agents to fit your specific use cases with ease.
+- **Declarative Cogs**: Orchestrate multi-agent workflows using simple YAML configurations without writing code.
+- **Vectorized Memory**: Add long and short-term memory to agents and cogs for context-aware conversations.
 - **Custom Tools & Actions**: Extend functionality by creating custom tools and actions.
 - **Dynamic Prompt Templates**: Utilize flexible prompt templates that adapt to various contexts.
-- **LLM Agnostic Agents**: Run different agents with different LLMs as per your requirements.
+- **LLM Agnostic**: Run different agents with different LLMs as per your requirements.
 - **On-The-Fly Prompt Editing**: Modify prompts in real-time without restarting the system.
 - **OpenAI, Google & Anthropic API Support**: Seamlessly integrate with popular LLM APIs.
 - **Open-Source Model Support**: Leverage local models through [Ollama](https://ollama.com) and [LMStudio](https://lmstudio.ai).
@@ -51,11 +55,13 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 
 ### **Core Concepts**
 
-- **[Agents](docs/Agents/Agents.md)**: Dive deep into the world of agents. Learn how they operate, respond, and can be customized.
+- **[Agents](docs/Agents/Agents.md)**: Learn how to create and customize individual AI agents for various tasks.
+- **[Cogs](docs/Cogs/Cogs.md)**: Design multi-agent workflows with branching logic using simple YAML configurations.
+- **[Memory](docs/Storage/Memory.md)**: Add contextual memory to your agents and cogs for more coherent interactions.
 - **[API Integration](docs/APIs/APIs.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
 - **[Personas](docs/Personas/Personas.md)**: Utilize personas to encapsulate information accessible to the agents, acting as a resource of knowledge.
 - **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
-- **[Storage](docs/Storage/ChromaStorage.md)**: **AgentForge** uses ChromaDB as it's vector store implementation, learn how to use it to add memory to your agents.
+- **[Storage](docs/Storage/ChromaStorage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
 - **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: Discover the system's toolbox and learn how to choreograph tools into actionable sequences.
 - **[Utilities](docs/Utils/UtilsOverview.md)**: Explore utility functions and tools that enhance the system's capabilities.
 

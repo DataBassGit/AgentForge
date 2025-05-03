@@ -205,6 +205,7 @@ class Config:
     def load_cog_data(self, cog_name):
         cog = self.find_config('cogs', cog_name)
         return cog
+
     # ------------------------------------------------------------------------
     # Model API and Overrides
     # ------------------------------------------------------------------------
