@@ -135,6 +135,8 @@ cog:
   from agentforge.cog import Cog
   cog = Cog("simple_echo.yaml")
   out = cog.run(user_input="Test")
+  flow = cog.get_track_flow_trail()
+  print(flow)
   print(out)
   ```
 
