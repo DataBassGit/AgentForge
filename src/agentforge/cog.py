@@ -707,7 +707,7 @@ class Cog:
                 self.latest_raw_output = raw_output
                 parsed_output = self._parse_agent_output(current_agent_id, raw_output)
                 # Store the raw output so we can reference it later in memory update.
-                return parsed_output
+                return parsed_output  # Return already-parsed output to caller
             except ParsingError as e:
                 self.logger.log(
                     f"Parsing error for agent '{current_agent_id}': {e} (Attempt {attempts})", "warning"
@@ -738,14 +738,16 @@ class Cog:
                 # Query relevant memories before executing the agent
                 self._memory_query_phase(current_agent_id)
                 
-                # Execute the current agent
+                # Execute the current agent and retrieve the parsed output
+                # Note: _call_agent already parses the agent's raw output before returning
                 agent_output = self._call_agent(current_agent_id)
                 
-                # Parse and track the agent's output
+                # Log the agent's output (which is already parsed by _call_agent)
                 self.logger.log(f"Agent output: {agent_output}", "debug", "Flow")
-                parsed_output = self._parse_agent_output(current_agent_id, agent_output)
-                self._track_agent_output(current_agent_id, parsed_output)
-                self.internal_context[current_agent_id] = parsed_output
+                
+                # Track the already parsed output and store it in internal context
+                self._track_agent_output(current_agent_id, agent_output)
+                self.internal_context[current_agent_id] = agent_output
                 
                 # Store the last executed agent
                 self.last_executed_agent = current_agent_id
@@ -766,7 +768,12 @@ class Cog:
                 
         self.logger.log("Cog execution completed", "debug", "Flow")
 
-    def _parse_agent_output(self, agent_id: str, output: str) -> Any:
+    def _parse_agent_output(self, agent_id: str, output: Any) -> Any:
+        # If output is already parsed (e.g., a dictionary), just return it directly
+        # This prevents double-parsing and supports test mocks that return dicts directly
+        if isinstance(output, dict):
+            return output
+
         # Get the response format for the current agent
         response_format = self.agent_response_format[agent_id]
 

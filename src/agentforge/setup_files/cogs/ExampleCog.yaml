@@ -1,6 +1,7 @@
 cog:
   name: "ExampleFlow"
   description: "A sample decision workflow."
+  response_format: "auto"
 
   agents:
     - id: analyze
@@ -11,6 +12,7 @@ cog:
 
     - id: respond
       template_file: ResponseAgent
+      response_format: "none"
 
   memory:
     - id: general_memory

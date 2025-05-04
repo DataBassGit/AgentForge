@@ -1,16 +1,37 @@
+# DecideAgent.yaml
 prompts:
   system:
     DecisionRole: |+
       You are a decision agent. Your task is to choose the next step based on the analysis provided.
 
   user:
+    Memory: |+
+      ### Evidence from prior interactions
+      Weigh any information here that supports or contradicts the current analysis, and cite it briefly in your rationale.
+      ---
+      {memory.general_memory.readable}
+      ---
+
+    UserInput: |+
+      ### User Input
+      ---
+      {user_input}
+      ---
+
     Analysis: |+
-      Here is the analysis from the previous step:
+      ### Analysis
+      ---
       {analyze.analysis}
+      ---
 
     Instruction: |+
-      Determine the appropriate choice among "approve", "reject", or "other". Then provide the rationale for your decision.
-
+      ### Instructions
+      Decide whether the analysis is ready to go straight to the `respond to user` step (response step).  
+      • If it is sound and complete, set `"choice": "approve"` and give some rationale as your feedback to the response step.
+      • If it is flawed or incomplete, set `"choice": "reject"` **and** explain what must improve; that rationale will be fed back to the analyzer step.  
+      • Use `"other"` only for corner‑cases and briefly explain why so the response step can handle the situation accordingly.
+      • Provide your rationale as if you're addressing the corresponding step directly.
+    
     ResponseFormat: |-
       ```json
       {

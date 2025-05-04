@@ -77,26 +77,74 @@ class Memory:
         # Normalize and return
         return str(storage_id).strip() or fallback_storage_id
 
-    def query_memory(self, query_text: Union[str, list[str]], num_results: int = 5) -> Optional[Dict[str, Any]]:
+    def format_memory_results(self, raw_results: dict) -> str:
         """
-        Queries memory for items similar to query_text.
+        Formats raw Chroma query results into a human-readable string.
+
+        Each memory entry is presented as a block headed by '--- Memory <n>: <id>',
+        followed by the document content and an indented YAML-style metadata dump.
+        Only metadata keys present for each record are included. Subclasses can override
+        this method to customize formatting.
+
+        Args:
+            raw_results (dict): The raw result from Chroma query_storage.
+
+        Returns:
+            str: Human-readable formatted string of memory results.
+        """
+        ids = raw_results.get("ids", [])
+        documents = raw_results.get("documents", [])
+        metadatas = raw_results.get("metadatas", [])
+        # Attempt to order by unix_timestamp or iso_timestamp if present
+        entries = []
+        for idx, (id_, doc, meta) in enumerate(zip(ids, documents, metadatas)):
+            # Try to get a sortable timestamp
+            ts = None
+            if isinstance(meta, dict):
+                ts = meta.get("unix_timestamp")
+                if ts is None and "iso_timestamp" in meta:
+                    ts = meta["iso_timestamp"]
+            entries.append((idx, id_, doc, meta, ts))
+        # Sort by timestamp if available, else by original order
+        def sort_key(entry):
+            ts = entry[4]
+            if ts is None:
+                return float('inf')
+            try:
+                return float(ts)
+            except Exception:
+                return float('inf')
+        entries.sort(key=sort_key)
+        blocks = []
+        for new_idx, (idx, id_, doc, meta, ts) in enumerate(entries):
+            block = f"--- Memory {new_idx}: {id_}\n"
+            block += f"content: {doc}\n"
+            block += "metadata:\n"
+            for k, v in meta.items():
+                block += f"  {k}: {v}\n"
+            blocks.append(block.rstrip())
+        return "\n\n".join(blocks)
+
+    def query_memory(self, query_text: Union[str, list[str]], num_results: int = 5) -> Optional[dict]:
+        """
+        Queries memory for items similar to query_text and returns both raw and formatted results.
 
         Args:
             query_text (Union[str, list[str]]): The text or texts to search for.
             num_results (int): The number of results to return.
 
         Returns:
-            Optional[Dict[str, Any]]: The query results or None if not found.
+            Optional[dict]: Dict with 'raw' (original chroma result) and 'readable' (formatted string), or None if not found.
         """
-        data = self.storage.query_storage(
+        raw = self.storage.query_storage(
             collection_name=self.collection_name,
             query=query_text, 
             num_results=num_results
         )
 
-        if data:
-            self.store.update(data)
-            return data
+        if raw:
+            self.store.update({"raw": raw, "readable": self.format_memory_results(raw)})
+            return {"raw": raw, "readable": self.format_memory_results(raw)}
         return None
 
     @staticmethod

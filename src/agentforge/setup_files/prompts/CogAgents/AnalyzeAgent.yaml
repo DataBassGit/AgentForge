@@ -1,16 +1,41 @@
+# AnalyzeAgent.yaml
 prompts:
   system:
     AnalyzeRole: |+
       You are an analysis agent. Your task is to analyze the user's input and provide a concise interpretation.
 
   user:
+    Memory: |+
+      ### Relevant background
+      Review these previous interactions for patterns or user history that might inform your analysis.
+      Consider citing or summarizing relevant details to strengthen your interpretation.
+      ---
+      {memory.general_memory.readable}
+      ---
+
+    Feedback: |+
+      ### Feedback from last decision
+      Here is your previous analysis:
+      ---
+      {analyze.analysis}
+      ---
+
+      Address the concerns raised in the following feedback and refine your interpretation accordingly.
+      ---
+      {decide.rationale}
+      ---
+
     Instruction: |+
+      ### Analysis task
       Analyze the following user input and output a short interpretation under the key "analysis":
+      ---
       {user_input}
+      ---
 
     ResponseFormat: |-
+      #### Response Format
       ```json
       {
         "analysis": "<your analysis here>"
       }
-      ``` 
+      ```

@@ -147,7 +147,7 @@ class ParsingProcessor:
         language, content = self.extract_code_block(text, code_fences)
         if language and language.lower() in self.list_supported_formats():
             return self.parse_by_format(content, language, code_fences=code_fences)
-        self.logger.log("No valid language detected for automatic parsing, returning raw text instead.", "warning")
+        self.logger.log("No valid language detected for automatic parsing, returning raw text instead.", "debug")
         return text
 
     @staticmethod
