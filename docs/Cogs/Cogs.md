@@ -35,12 +35,11 @@ cog:
       # No type defined as it will default to base Agent
       template_file: DecideAgent
 
-
     - id: respond
       template_file: ResponseAgent
 
   memory:                       # (Optional) shared memory nodes
-    - id: chat_history
+    - id: general_memory
       type: agentforge.storage.memory.Memory # Python class (defaults to base Memory)
       collection_id: history
 
@@ -153,15 +152,85 @@ transitions:
 Memory nodes declared under `memory` are shared across all agents in a Cog:
 ```yaml
 memory:
-  - id: session_mem
-    type: agentforge.storage.memory.Memory
-    collection_id: session123
+  - id: general_memory
     query_before: [agent1, agent2]  # Query this memory before these agents
     update_after: [agent3]          # Update this memory after these agents
+    query_keys: [user_input]        # Keys to extract for querying
+    update_keys: [respond]          # Keys to extract for updates
 ```
-- Instantiates `Memory(cog_name=cog.name, collection_id)`.
-- Uses `collection_id` or defaults to node `id` for storage partition.
-- All agents can access memory via the context's `memory` key.
+
+### Memory Subclasses and Collection Names
+By default, memory nodes use the base Memory class. For specialized memory behavior, specify a subclass with `type`. 
+
+Additionally, memory nodes can be instanciated with a specific vector store collection name `collection_id`, allowing flexibility for each memory node to define where it will store and retreives memories from.
+
+```yaml
+memory:
+  # Default memory using base Memory class
+  - id: general_memory
+    collection_id: conversation_history
+    ...
+    
+  # Journal memory for structured conversation history
+  - id: conversation_journal
+    type: agentforge.storage.journal.Journal
+    ...
+    
+  # Scratchpad for maintaining working notes
+  - id: agent_notes
+    collection_id: working_notes
+    type: agentforge.storage.scratchpad.ScratchPad
+    ...
+```
+
+### Core Configuration
+- **id**: Required. Unique identifier for the memory node, used to access it via `memory[id]` in the context.
+- **collection_id**: Optional. The storage collection to use. Defaults to the node's `id` if not specified.
+- **type**: Optional. Specifies a Memory subclass to use. Defaults to `agentforge.storage.memory.Memory` (base Memory class) when omitted.
+
+### Query and Update Configuration
+Control when memory is used during Cog execution:
+- **query_before**: List of agent IDs - memory is queried before these agents run
+- **update_after**: List of agent IDs - memory is updated after these agents run
+- **query_keys**: Keys to extract from global context for querying memory
+- **update_keys**: Keys to extract from global context for updating memory
+
+Each Memory instantiates with the cog's name and uses the collection_id (specified or default). All agents can access memory via their context's `memory` key.
+
+### Accessing Memory in Prompt Templates
+
+Memory is available in two formats in agent prompt templates:
+
+```
+# Human-readable formatted string (recommended for prompts)
+{memory.general_memory.readable}
+
+# Access to raw Chroma result data
+{memory.general_memory.raw.documents[0]}
+{memory.general_memory.raw.metadatas[0].timestamp}
+```
+
+Example template section using memory:
+```yaml
+prompts:
+  user:
+    Memory: |+
+      ### Relevant background
+      Review these previous interactions for context:
+      ---
+      {memory.general_memory.readable}
+      ---
+```
+
+The readable format presents each memory entry as:
+```
+--- Memory 0: <document_id>
+content: <document_text>
+metadata:
+  timestamp: <timestamp>
+  user_input: <user message>
+  # Other metadata fields as available
+```
 
 ---
 
@@ -169,11 +238,10 @@ memory:
 1. **Initialization**: Cog builds a `global_context` dict with initial kwargs.
 2. **Agent Run**: For each node, `agent.run(**global_context)` is called.
 3. **Collect Output**: Agent result stored as `global_context[node_id]`.
-4. **Routing**: Next node selected via `flow.transitions[node_id]`, using simple mapping or decision keys.
-5. **Loop Control**: If a node's `max_visits` exceeded, uses its `fallback` branch.
-6. **Completion**: When `end: true` is reached, `cog.run()` returns the final `global_context`.
-
-Agents can access memory or persona data via `self.agent_data['storage']` and `self.agent_data['persona']` inside their logic.
+4. **Memory Query/Update**: Memory is queried before and updated after agents based on configuration.
+5. **Routing**: Next node selected via `flow.transitions[node_id]`, using simple mapping or decision keys.
+6. **Loop Control**: If a node's `max_visits` exceeded, uses its `fallback` branch.
+7. **Completion**: When `end: true` is reached, `cog.run()` returns the final `global_context`.
 
 ---
 
@@ -218,26 +286,25 @@ If `fallback` is not defined in these error cases, the behavior depends on the e
 ## 8. Minimal Example
 ```yaml
 cog:
-  name: SimpleEcho
-  description: "Echo flow"
+  name: "SimpleAnalysis"
+  description: "Basic analysis flow"
 
   agents:
-    - id: echo
-      type: agentforge.agent.Agent
-      template_file: EchoAgent
+    - id: analyze
+      template_file: AnalyzeAgent
 
   flow:
-    start: echo
+    start: analyze
     transitions:
-      echo:
+      analyze:
         end: true
 ```
-- **EchoAgent.yaml** under `.agentforge/prompts/` defines the prompt.
+- **AnalyzeAgent.yaml** under `.agentforge/prompts/` defines the prompt.
 - Running:
   ```python
   from agentforge.cog import Cog
-  cog = Cog("SimpleEcho")
-  out = cog.run(user_input="Test")
+  cog = Cog("SimpleAnalysis")
+  out = cog.run(user_input="Analyze this text")
   flow = cog.get_track_flow_trail()
   print(flow)
   print(out)
@@ -248,49 +315,85 @@ cog:
 ## 9. Advanced Example with Branching
 ```yaml
 cog:
-  name: ApprovalFlow
-  description: "Demo approval vs. revision"
+  name: "AnalysisDecisionFlow"
+  description: "A multi-step workflow with decision branching"
+  response_format: "auto"
 
   agents:
-    - id: draft
-      template_file: DraftAgent
+    - id: analyze
+      template_file: AnalyzeAgent
 
-    - id: review
-      template_file: ReviewAgent
+    - id: decide
+      template_file: DecideAgent
 
-    - id: publish
-      template_file: PublishAgent
+    - id: respond
+      template_file: ResponseAgent
+      response_format: "none"
 
   memory:
-    - id: log_mem
-      type: agentforge.storage.scratchpad.ScratchPad
-      collection_id: approval_log
+    - id: general_memory
+      query_before: [analyze, respond]   # Query this memory before these agents
+      update_after: [respond]            # Update this memory after these agents
+      query_keys: [user_input]           # Query using user_input
+      update_keys: [user_input, respond] # Update with user input and response
 
   flow:
-    start: draft
+    start: analyze
     transitions:
-      draft: review
-      review:
-        approval:
-          "yes": publish  # Quoted to ensure string matching
-          "no": draft
-        fallback: publish
-        max_visits: 2
-      publish:
+      analyze: decide
+      decide:
+        choice:
+          "approve": respond
+          "reject": analyze  # Loop back to analyze
+        fallback: respond
+        max_visits: 3        # Prevent infinite loops
+      respond:
         end: true
 ```
-- `ReviewAgent` must output a field named `approval` (e.g., `"yes"` or `"no"`).
-- Memory `approval_log` accumulates interactions.
+
+In this workflow:
+1. The `analyze` agent examines user input
+2. The `decide` agent evaluates the analysis and makes a decision
+3. If approved, flow continues to `respond`
+4. If rejected, flow loops back to `analyze` for refinement
+5. If other, or After 3 loops, the flow proceeds to `respond` via fallback
+
+Example prompt template using memory (from AnalyzeAgent.yaml):
+```yaml
+prompts:
+  user:
+    Memory: |+
+      ### Relevant background
+      Review these previous interactions for patterns or user history:
+      ---
+      {memory.general_memory.readable}
+      ---
+```
 
 ---
 
 ## 10. Best Practices
-- Use clear, hyphenated `id` values (e.g., `data_fetch`, `summarize_step`).
-- Always quote string values in YAML transitions (`"yes"`, `"no"`, `"true"`, `"false"`) to avoid automatic conversion.
-- Keep flows short and focused—split large pipelines into multiple Cogs if needed.
-- Leverage `max_visits` and `fallback` to guard loops and handle edge cases.
-- Share memory sparingly; name collections to reflect their purpose.
-- Include `description` metadata for clarity in dashboards or logs.
+
+1. **Prompt Engineering**
+   - Structure prompts with clear sections
+   - Use memory in context sections
+   - Include relevant parts of previous agent outputs
+
+2. **Decision Branches**
+   - Always quote branch names in YAML (`"yes"`, not just yes)
+   - Set reasonable `max_visits` limits
+   - Always define `fallback` paths
+
+3. **Memory Management**
+   - Use appropriate `query_before` and `update_after` configurations
+   - Be explicit about `query_keys` and `update_keys`
+   - Ensure memory nodes have descriptive `id` values
+   - Use `{memory.node_id.readable}` in prompts for human-friendly formatting
+
+4. **Testing**
+   - Use `cog.get_track_flow_trail()` to inspect execution path
+   - Review the global context to see how data flows between agents
+   - Test edge cases for decision branches
 
 ---
 

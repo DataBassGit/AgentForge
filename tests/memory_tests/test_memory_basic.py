@@ -17,7 +17,7 @@ def mem_a(fake_chroma):
 def test_update_and_query_round_trip(mem_a):  # noqa: D103
     mem_a.update_memory({"k": "v"})
     res = mem_a.query_memory("v")
-    assert res["documents"] == ["v"]
+    assert res["raw"]["documents"] == ["v"]
 
 
 def test_storage_id_isolation(fake_chroma):  # noqa: D103
@@ -25,7 +25,7 @@ def test_storage_id_isolation(fake_chroma):  # noqa: D103
     m2 = Memory(cog_name="c2", persona=None, collection_id="col")
 
     m1.update_memory({"x": "1"})
-    assert m2.query_memory("1") is None or m2.query_memory("1")["documents"] == []
+    assert m2.query_memory("1") is None or m2.query_memory("1")["raw"]["documents"] == []
 
 
 # 5 workers, 20 writes each, must finish quickly
