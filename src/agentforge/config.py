@@ -155,7 +155,7 @@ class Config:
                     for key, value in self.data['settings']['system'].items():
                         if isinstance(value, dict) and key in existing_data:
                             # Merge dictionaries for nested structures
-                            existing_data[key].update_memory(value)
+                            existing_data[key].update(value)
                             continue
 
                         # Replace or add the top-level key

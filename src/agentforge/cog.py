@@ -673,7 +673,7 @@ class Cog:
     ##########################################################
 
     def _get_response_format_for_agent(self, agent_def):
-        response_format = agent_def.get("response_format", self.default_response_format).lower()
+        response_format = agent_def.get("response_format", self.default_response_format)
         if response_format == "none" or not response_format:
             return None
 

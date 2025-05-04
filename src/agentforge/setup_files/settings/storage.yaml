@@ -15,4 +15,5 @@ embedding:
 embedding_library:
   distil_roberta: all-distilroberta-v1
   all_mini: all-MiniLM-L6-v2
+  openai_ada2: text-embedding-ada-002
 
