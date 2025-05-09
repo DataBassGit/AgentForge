@@ -36,6 +36,10 @@ model_library:
           identifier: gpt-4-turbo
         fast_model:
           identifier: gpt-3.5-turbo
+        gpt41_model:
+          identifier: gpt-4.1
+          params:
+            max_tokens: 100000  # 1M token context window (max output set to 100k)
 
       params:  # Default parameters for GPT models
         max_tokens: 10000

@@ -15,11 +15,8 @@ class ParsingError(Exception):
 
 
 class ParsingProcessor:
-    DEFAULT_CODE_FENCES = ["```", "~~~"]
-
     def __init__(self):
         self.logger = Logger(name=self.__class__.__name__, default_logger=self.__class__.__name__.lower())
-        self.default_code_fences = self.DEFAULT_CODE_FENCES
         self._define_parsers()
 
     def _define_parsers(self):
@@ -34,21 +31,20 @@ class ParsingProcessor:
                 s, lambda t: self.parse_markdown_to_dict(t, 2, 6), 'markdown', code_fences=fences)
         }
 
-    def get_code_fences(self, code_fences: Optional[List[str]] = None) -> List[str]:
-        return code_fences if code_fences is not None else self.default_code_fences
-
-    def extract_code_block(self, text: str, code_fences: Optional[List[str]] = None) -> Tuple[Optional[str], str]:
+    def extract_code_block(self, text: str, code_fences: List[str] = []) -> Tuple[Optional[str], str]:
         """
         Extract a code block from text, returning the language and content.
         
         Args:
             text: The text containing code blocks
-            code_fences: Optional list of fence markers to use (default: self.default_code_fences)
+            code_fences: List of fence markers to use (default: empty list)
             
         Returns:
             Tuple of (language, content)
         """
-        code_fences = self.get_code_fences(code_fences)
+        # Early exit if no code fences provided
+        if not code_fences:
+            return None, text.strip()
         
         # First try standard fence pattern matching
         for fence in code_fences:
@@ -78,18 +74,18 @@ class ParsingProcessor:
         
         Args:
             content: The YAML content to sanitize
-            primary_fence: The main fence to replace (defaults to first in DEFAULT_CODE_FENCES)
-            alternate_fence: The replacement fence (defaults to second in DEFAULT_CODE_FENCES)
+            primary_fence: The main fence to replace
+            alternate_fence: The replacement fence
         """
-        primary = primary_fence or self.default_code_fences[0]
-        alternate = alternate_fence or self.default_code_fences[1]
+        if not primary_fence or not alternate_fence:
+            return content.strip()
         
         def replace_inner_fences(match):
             inner_block = match.group(0)
-            return inner_block.replace(primary, alternate)
+            return inner_block.replace(primary_fence, alternate_fence)
         
         # Pattern based on primary fence
-        pattern = fr"{re.escape(primary)}[a-zA-Z]*\s*\r?\n[\s\S]*?{re.escape(primary)}"
+        pattern = fr"{re.escape(primary_fence)}[a-zA-Z]*\s*\r?\n[\s\S]*?{re.escape(primary_fence)}"
         content = re.sub(pattern, replace_inner_fences, content)
         
         # Then handle any other sanitization
@@ -101,8 +97,7 @@ class ParsingProcessor:
         return content.strip()
 
     def parse_content(self, content_string: str, parser_func: Callable[[str], Any],
-                      expected_language: str, code_fences: Optional[List[str]] = None) -> Any:
-        code_fences = self.get_code_fences(code_fences)
+                      expected_language: str, code_fences: List[str] = []) -> Any:
         language, cleaned_string = self.extract_code_block(content_string, code_fences)
         
         if language and language.lower() != expected_language.lower():
@@ -134,16 +129,14 @@ class ParsingProcessor:
                 raise ParsingError(f"Failed to parse {expected_language}: {e}") from e
         return None
 
-    def parse_by_format(self, content_string: str, parser_type: str, code_fences: Optional[List[str]] = None) -> Any:
-        code_fences = self.get_code_fences(code_fences)
+    def parse_by_format(self, content_string: str, parser_type: str, code_fences: List[str] = []) -> Any:
         parser = self.parsers.get(parser_type.lower())
         if parser:
             return parser(content_string, code_fences)
         self.logger.log(f"No parser method found for type '{parser_type}'", 'error')
         raise ParsingError(f"No parser method found for type '{parser_type}'")
 
-    def auto_parse_content(self, text: str, code_fences: Optional[List[str]] = None) -> Any:
-        code_fences = self.get_code_fences(code_fences)
+    def auto_parse_content(self, text: str, code_fences: List[str] = []) -> Any:
         language, content = self.extract_code_block(text, code_fences)
         if language and language.lower() in self.list_supported_formats():
             return self.parse_by_format(content, language, code_fences=code_fences)
