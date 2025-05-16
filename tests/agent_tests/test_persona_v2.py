@@ -39,7 +39,7 @@ def oversized_persona_file():
         persona_data = {
             'static': {
                 'name': 'Test Agent',
-                'description': 'A' * 3000  # Create a string larger than static_char_cap
+                'description': 'A' * 10000  # Create a string larger than static_char_cap
             }
         }
         yaml.dump(persona_data, tmp)
@@ -66,7 +66,7 @@ def test_static_and_retrieval_blocks(isolated_config, test_persona_file):
                 'persona': {
                     'enabled': True,
                     'auto_inject_persona': True,
-                    'static_char_cap': 2048,
+                    'static_char_cap': 8000,
                     'allow_legacy_placeholders': True
                 }
             }
@@ -213,20 +213,94 @@ def test_persona_md_injection(isolated_config, test_persona_file):
         agent = Agent()
         agent.agent_data = agent_data
         agent.persona = agent_data['persona']
+        agent.persona_settings = agent_data['settings']['system']['persona'] 
         agent.prompt_template = {'system': 'System prompt', 'user': 'User prompt'}
         agent.template_data = {}
-        agent.prompt_processor = MagicMock()
-        agent.prompt_processor.render_prompts.return_value = {'system': 'Rendered system prompt', 'user': 'Rendered user prompt'}
+        
+        # Create and set the prompt processor mock
+        prompt_processor_mock = MagicMock()
+        
+        # Setup build_persona_markdown to return a mock persona_md
+        persona_md = "**name**: Test Agent\n**description**: A test agent for unit tests"
+        prompt_processor_mock.build_persona_markdown.return_value = persona_md
+        
+        # Setup render_prompts to return a mock rendered prompt
+        rendered_prompts = {'system': 'Rendered system prompt', 'user': 'Rendered user prompt'}
+        prompt_processor_mock.render_prompts.return_value = rendered_prompts
+        
+        # Setup check_inject_persona_md to modify and return the prompt
+        modified_prompts = {'system': f"Rendered system prompt\n\n{persona_md}", 'user': 'Rendered user prompt'}
+        prompt_processor_mock.check_inject_persona_md.return_value = modified_prompts
+        
+        agent.prompt_processor = prompt_processor_mock
         agent.logger = MagicMock()
         
-        # Call load_persona_data to set up template_data
-        agent.load_persona_data()
+        # Call load_persona_data to set up template_data (this will add persona_md to template_data)
+        with patch.object(Agent, '_build_persona_markdown') as mock_build_md:
+            # Make the method set persona_md directly
+            def set_persona_md():
+                agent.template_data['persona_md'] = persona_md
+            mock_build_md.side_effect = set_persona_md
+            agent.load_persona_data()
         
         # Call the method
         agent.render_prompt()
         
         # Assert
-        # The mock would have returned a rendered prompt, but our additional processing should append persona_md
+        assert agent.prompt == modified_prompts
         assert 'system' in agent.prompt
-        assert agent.prompt['system'].startswith('Rendered system prompt')
-        assert agent.prompt['system'].endswith(agent.template_data['persona_md']) 
+        
+        # Verify the persona_md is included in the system prompt
+        assert persona_md in agent.prompt['system']
+        
+        # Verify correct method calls
+        prompt_processor_mock.render_prompts.assert_called_once_with(agent.prompt_template, agent.template_data)
+        prompt_processor_mock.check_inject_persona_md.assert_called_once_with(
+            rendered_prompts, agent.template_data, agent.persona_settings
+        )
+
+
+def test_no_truncation_when_cap_is_zero(isolated_config, oversized_persona_file):
+    """Tests that no truncation happens when static_char_cap is set to 0."""
+    # Setup
+    persona_name = os.path.basename(oversized_persona_file).replace('.yaml', '')
+    
+    # Add the test persona to the Config data
+    isolated_config.data['personas'] = {persona_name: yaml.safe_load(open(oversized_persona_file))}
+    
+    # Mock agent data with static_char_cap set to 0
+    agent_data = {
+        'name': 'test_agent',
+        'settings': {
+            'system': {
+                'persona': {
+                    'enabled': True,
+                    'auto_inject_persona': True,
+                    'static_char_cap': 0,  # Set to 0 to disable truncation
+                    'allow_legacy_placeholders': True
+                }
+            }
+        },
+        'persona': isolated_config.data['personas'][persona_name],
+        'prompts': {'system': 'Test prompt', 'user': 'Test user prompt'},
+        'params': {}
+    }
+    
+    # Create agent and manually set properties rather than initializing
+    with patch.object(Agent, 'initialize_agent_config'):
+        agent = Agent()
+        agent.agent_data = agent_data
+        agent.persona = agent_data['persona']
+        agent.template_data = {}
+        agent.logger = MagicMock()
+        
+        # Call the method
+        agent.load_persona_data()
+        
+        # Assert that persona_md is in template_data and has not been truncated
+        assert 'persona_md' in agent.template_data
+        
+        # The description in the persona is 10,000 characters
+        # Verify it's not truncated (length should be more than 10,000 including markdown formatting)
+        assert len(agent.template_data['persona_md']) > 10000
+        assert not agent.template_data['persona_md'].endswith('...')  # Should not end with truncation indicator 

@@ -3,7 +3,7 @@ persona:
   enabled: true
   name: DefaultAssistant
   auto_inject_persona: true
-  static_char_cap: 8000
+  static_char_cap: 8000  # Max character length for persona markdown in system prompt (set to 0 to disable truncation)
   allow_legacy_placeholders: true
 
 # Debug settings

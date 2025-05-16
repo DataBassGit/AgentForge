@@ -27,6 +27,7 @@ class Agent:
         # Initialize data attributes
         self.agent_data: Optional[Dict[str, Any]] = None
         self.persona: Optional[Dict[str, Any]] = None
+        self.persona_settings: Optional[Dict[str, Any]] = None
         self.model: Optional[BaseModel] = None
         self.prompt_template: Optional[Dict[str, Any]] = None
         self.template_data: Dict[str, Any] = {}
@@ -180,29 +181,10 @@ class Agent:
         if not static_content:
             return
             
-        # Format static content into markdown
-        md_lines = []
-        for key, value in static_content.items():
-            if isinstance(value, str):
-                md_lines.append(f"**{key}**: {value}")
-            elif isinstance(value, list):
-                md_lines.append(f"**{key}**:")
-                for item in value:
-                    md_lines.append(f"- {item}")
-            elif isinstance(value, dict):
-                md_lines.append(f"**{key}**:")
-                for k, v in value.items():
-                    md_lines.append(f"- {k}: {v}")
-        
-        persona_md = "\n".join(md_lines)
-        
-        # Truncate if exceeds character cap
-        static_char_cap = self.persona_settings.get('static_char_cap', 2048)
-        if len(persona_md) > static_char_cap:
-            persona_md = persona_md[:static_char_cap] + "..."
-        
-        # Store persona_md in template_data
-        self.template_data['persona_md'] = persona_md
+        persona_md = self.prompt_processor.build_persona_markdown(static_content, self.persona_settings)
+        if persona_md:
+            # Store persona_md in template_data
+            self.template_data['persona_md'] = persona_md
 
     def load_model(self) -> None:
         """Load and validate the model for the agent."""
@@ -302,18 +284,11 @@ class Agent:
         self.prompt_processor.validate_rendered_prompts(self.prompt)
         
         # Check if we need to inject persona_md into system prompt
-        if 'persona_md' in self.template_data and self.prompt and 'system' in self.prompt:
-            personas_enabled = self.agent_data['settings']['system']['persona'].get('enabled', False)
-            auto_inject = self.agent_data['settings']['system']['persona'].get('auto_inject_persona', True)
-            
-            if personas_enabled and auto_inject:
-                # Append persona_md to the end of the system prompt
-                system_prompt = self.prompt['system']
-                persona_md = self.template_data['persona_md']
-                
-                if system_prompt and persona_md:
-                    # Add two newlines before the persona info for better formatting
-                    self.prompt['system'] = f"{system_prompt}\n\n{persona_md}"
+        self.prompt = self.prompt_processor.check_inject_persona_md(
+            self.prompt, 
+            self.template_data, 
+            self.persona_settings
+        )
 
     # ---------------------------------
     # Model Execution

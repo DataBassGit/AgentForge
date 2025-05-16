@@ -237,6 +237,82 @@ class PromptProcessor:
                 self.logger.log(error_message, 'error')
                 raise ValueError(error_message)
 
+    def build_persona_markdown(self, static_content, persona_settings):
+        """
+        Build markdown representation of static persona content for system prompt injection.
+        Truncate if exceeds character cap from settings.
+        
+        Args:
+            static_content (dict): Dictionary containing static content from persona
+            persona_settings (dict): Dictionary containing persona settings
+            
+        Returns:
+            str: Markdown formatted representation of persona static content
+        """
+        if not static_content:
+            return None
+            
+        # Format static content into markdown
+        md_lines = []
+        for key, value in static_content.items():
+            if isinstance(value, str):
+                md_lines.append(f"**{key}**: {value}")
+            elif isinstance(value, list):
+                md_lines.append(f"**{key}**:")
+                for item in value:
+                    md_lines.append(f"- {item}")
+            elif isinstance(value, dict):
+                md_lines.append(f"**{key}**:")
+                for k, v in value.items():
+                    md_lines.append(f"- {k}: {v}")
+        
+        persona_md = "\n".join(md_lines)
+        
+        # Get character cap from settings - treat 0 as no cap
+        static_char_cap = persona_settings.get('static_char_cap', 8000)
+        
+        # Only truncate if cap is greater than 0 and persona_md exceeds the cap
+        if static_char_cap > 0 and len(persona_md) > static_char_cap:
+            self.logger.warning(
+                f"Persona markdown exceeds character cap ({len(persona_md)} > {static_char_cap}). "
+                f"Truncating to {static_char_cap} characters."
+            )
+            persona_md = persona_md[:static_char_cap] + "..."
+        
+        return persona_md
+        
+    def check_inject_persona_md(self, prompt, template_data, persona_settings):
+        """
+        Check if persona_md should be injected into system prompt and perform the injection if needed.
+        
+        Args:
+            prompt (dict): Dictionary containing rendered prompts
+            template_data (dict): Dictionary containing template data including persona_md
+            persona_settings (dict): Dictionary containing persona settings
+            
+        Returns:
+            dict: Updated prompt dictionary with persona_md injected if applicable
+        """
+        if not prompt or 'system' not in prompt:
+            return prompt
+            
+        if 'persona_md' not in template_data:
+            return prompt
+            
+        personas_enabled = persona_settings.get('enabled', False)
+        auto_inject = persona_settings.get('auto_inject_persona', True)
+        
+        if personas_enabled and auto_inject:
+            # Append persona_md to the end of the system prompt
+            system_prompt = prompt['system']
+            persona_md = template_data['persona_md']
+            
+            if system_prompt and persona_md:
+                # Add two newlines before the persona info for better formatting
+                prompt['system'] = f"{system_prompt}\n\n{persona_md}"
+                
+        return prompt
+
     @staticmethod
     def unescape_braces(template: str) -> str:
         """
