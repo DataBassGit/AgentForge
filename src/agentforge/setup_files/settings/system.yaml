@@ -1,7 +1,10 @@
 # Persona settings
 persona:
   enabled: true
-  name: default
+  name: DefaultAssistant
+  auto_inject_persona: true
+  static_char_cap: 8000
+  allow_legacy_placeholders: true
 
 # Debug settings
 debug:

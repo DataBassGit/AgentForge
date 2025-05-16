@@ -498,7 +498,7 @@ class Config:
             
         # 3. System default persona (lowest priority)
         else:
-            persona_name = settings['system']['persona'].get('name', 'default')
+            persona_name = settings['system']['persona'].get('name', 'DefaultAssistant')
             
         # Load the persona data
         if persona_name not in self.data.get('personas', {}):
@@ -523,7 +523,21 @@ class Config:
             FileNotFoundError: If the persona file is not found.
         """
         # For backward compatibility, call the more generic resolve_persona method
-        return self.resolve_persona(agent_config=agent_config)
+        persona_data = self.resolve_persona(agent_config=agent_config)
+        
+        # Mark all keys as originating from persona file for legacy placeholder processing
+        if persona_data:
+            # Add metadata about persona origins for legacy placeholder handling
+            persona_data['_from_persona_file'] = True
+            
+            # Mark nested structures if they exist
+            if 'static' in persona_data and isinstance(persona_data['static'], dict):
+                persona_data['static']['_from_persona_file'] = True
+                
+            if 'retrieval' in persona_data and isinstance(persona_data['retrieval'], dict):
+                persona_data['retrieval']['_from_persona_file'] = True
+        
+        return persona_data
 
     def reload(self):
         """

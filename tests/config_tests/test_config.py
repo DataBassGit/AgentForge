@@ -60,9 +60,15 @@ def test_environment_override_and_reset(monkeypatch, isolated_config: Config):  
 
 
 def test_find_config_utility(isolated_config: Config):  # noqa: D103
-    person = isolated_config.find_config("personas", "default")
-    # YAML defines "Name" with capital N
-    assert person.get("Name") or person.get("name")
+    person = isolated_config.find_config("personas", "DefaultAssistant")
+    # With persona v2, Name can be in static or retrieval sections
+    if 'static' in person:
+        assert person['static'].get('name') or person['static'].get('Name'), "Name not found in static section"
+    elif 'retrieval' in person:
+        assert person['retrieval'].get('name') or person['retrieval'].get('Name'), "Name not found in retrieval section"
+    else:
+        # Legacy format check
+        assert person.get("name") or person.get("Name"), "Name not found in persona"
 
     with pytest.raises(FileNotFoundError):
         isolated_config.find_config("prompts", "does-not-exist") 

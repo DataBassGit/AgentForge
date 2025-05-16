@@ -102,6 +102,11 @@ class Agent:
         """
         Load persona data if personas are enabled in system settings.
         Add persona data to template variables for prompt rendering.
+        
+        With v2 persona structure:
+        1. Flatten static and retrieval sections
+        2. Build persona_md for system prompt injection
+        3. Process according to auto_inject_persona and other flags
         """
         personas_enabled = self.agent_data['settings']['system']['persona'].get('enabled', False)
         if not personas_enabled:
@@ -111,9 +116,93 @@ class Agent:
         self.validate_persona_data()
         self.logger.debug(f"Persona Data Loaded for '{self.agent_name}'.")
         
-        if self.persona:
-            for key, value in self.persona.items():
-                self.template_data[key.lower()] = value
+        if not self.persona:
+            return
+        
+        # Get persona settings
+        self.persona_settings = self.agent_data['settings']['system']['persona']
+        
+        # Process the persona data according to settings
+        flattened_persona = self._flatten_persona()
+        
+        # Add flattened persona to template data for legacy placeholder support
+        if self.persona_settings.get('allow_legacy_placeholders', True):
+            self._add_legacy_placeholders(flattened_persona)
+        
+        # Build and add persona_md for system prompt injection
+        if self.persona_settings.get('auto_inject_persona', True):
+            self._build_persona_markdown()
+
+    def _flatten_persona(self) -> Dict[str, Any]:
+        """
+        Flatten the persona structure for legacy placeholder support.
+        Static sections override retrieval sections for duplicate keys.
+        
+        Returns:
+            Dict[str, Any]: Flattened persona with lowercase keys
+        """
+        flattened_persona = {}
+        
+        # Process static section
+        static_content = self.persona.get('static', {})
+        for key, value in static_content.items():
+            flattened_persona[key.lower()] = value
+        
+        # Process retrieval section 
+        retrieval_content = self.persona.get('retrieval', {})
+        for key, value in retrieval_content.items():
+            # Don't override static keys
+            if key.lower() not in flattened_persona:
+                flattened_persona[key.lower()] = value
+        
+        # If no static/retrieval sections but has data, treat as legacy
+        if not static_content and not retrieval_content and self.persona:
+            flattened_persona = {k.lower(): v for k, v in self.persona.items()}
+            
+        return flattened_persona
+        
+    def _add_legacy_placeholders(self, flattened_persona: Dict[str, Any]) -> None:
+        """
+        Add flattened persona keys to template_data for legacy placeholder support.
+        
+        Args:
+            flattened_persona (Dict[str, Any]): The flattened persona dictionary
+        """
+        for key, value in flattened_persona.items():
+            self.template_data[key] = value
+            
+    def _build_persona_markdown(self) -> None:
+        """
+        Build markdown representation of static persona content for system prompt injection.
+        Truncate if exceeds character cap from settings.
+        """
+        static_content = self.persona.get('static', {})
+        if not static_content:
+            return
+            
+        # Format static content into markdown
+        md_lines = []
+        for key, value in static_content.items():
+            if isinstance(value, str):
+                md_lines.append(f"**{key}**: {value}")
+            elif isinstance(value, list):
+                md_lines.append(f"**{key}**:")
+                for item in value:
+                    md_lines.append(f"- {item}")
+            elif isinstance(value, dict):
+                md_lines.append(f"**{key}**:")
+                for k, v in value.items():
+                    md_lines.append(f"- {k}: {v}")
+        
+        persona_md = "\n".join(md_lines)
+        
+        # Truncate if exceeds character cap
+        static_char_cap = self.persona_settings.get('static_char_cap', 2048)
+        if len(persona_md) > static_char_cap:
+            persona_md = persona_md[:static_char_cap] + "..."
+        
+        # Store persona_md in template_data
+        self.template_data['persona_md'] = persona_md
 
     def load_model(self) -> None:
         """Load and validate the model for the agent."""
@@ -208,9 +297,23 @@ class Agent:
         pass
 
     def render_prompt(self) -> None:
-        """Render prompt templates with the current template data."""
+        """Render prompt templates with the current template data and inject persona if available."""
         self.prompt = self.prompt_processor.render_prompts(self.prompt_template, self.template_data)
         self.prompt_processor.validate_rendered_prompts(self.prompt)
+        
+        # Check if we need to inject persona_md into system prompt
+        if 'persona_md' in self.template_data and self.prompt and 'system' in self.prompt:
+            personas_enabled = self.agent_data['settings']['system']['persona'].get('enabled', False)
+            auto_inject = self.agent_data['settings']['system']['persona'].get('auto_inject_persona', True)
+            
+            if personas_enabled and auto_inject:
+                # Append persona_md to the end of the system prompt
+                system_prompt = self.prompt['system']
+                persona_md = self.template_data['persona_md']
+                
+                if system_prompt and persona_md:
+                    # Add two newlines before the persona info for better formatting
+                    self.prompt['system'] = f"{system_prompt}\n\n{persona_md}"
 
     # ---------------------------------
     # Model Execution
