@@ -4,7 +4,6 @@ from typing import Dict, Any, Optional, List, Union
 from agentforge.config import Config
 from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
-from agentforge.utils.parsing_processor import ParsingProcessor, ParsingError
 from agentforge.storage.memory import Memory
 
 class Cog:
@@ -16,13 +15,13 @@ class Cog:
     # Section 1: Initialization & Configuration Loading
     ##########################################################
 
-    def __init__(self, cog_file: str, enable_trail_logging: bool = True, log_file: Optional[str] = 'cog'):
+    def __init__(self, cog_file: str, enable_trail_logging: Optional[bool] = None, log_file: Optional[str] = 'cog'):
         # Set instance variables
         self.cog_file = cog_file
-        self.latest_raw_output: str = ''
-        self.enable_trail_logging = enable_trail_logging
-        self._module_cache: Dict[str, Any] = {}  # cache for imported modules
         self._reset_context_and_thoughts()
+
+        # Initialize visit counter
+        self.agent_visit_counts = {}
 
         # Set Config and Logger
         self.config = Config()
@@ -30,6 +29,11 @@ class Cog:
 
         # Load and validate configuration
         self._load_cog_config()
+        
+        # Set trail logging flag from YAML config or constructor override
+        yaml_trail_logging = self.cog_config.get("cog", {}).get("trail_logging", True)
+        self.enable_trail_logging = enable_trail_logging if enable_trail_logging is not None else yaml_trail_logging
+        
         self._validate_config()
 
         # Set up Cog (build agent nodes)
@@ -44,6 +48,7 @@ class Cog:
     def _reset_context_and_thoughts(self):
         self._reset_global_context()
         self._reset_thought_flow_trail()
+        self.agent_visit_counts = {}
 
     def _reset_global_context(self):
         self.external_context: dict = {}
@@ -56,7 +61,7 @@ class Cog:
     # Section 2: Interface Methods
     ##########################################################
 
-    def get_track_flow_trail(self) -> []:
+    def get_track_flow_trail(self) -> List[Dict]:
         return self.thought_flow_trail
 
     ##########################################################
@@ -68,7 +73,6 @@ class Cog:
         self._validate_cog_config()
         self._validate_agent_config()
         self._validate_flow_config()
-        self._validate_response_format()
 
     def _validate_cog_config(self) -> None:
         cog = self.cog_config.get("cog")
@@ -110,17 +114,17 @@ class Cog:
             raise ValueError("Flow must have a 'transitions' dictionary defined.")
         if not isinstance(self.flow["transitions"], dict):
             raise ValueError("Flow 'transitions' must be a dictionary.")
-
-    def _validate_response_format(self) -> None:
-        # Check for a cog-level response_format; if not defined, we simply use None.
-        self._parser = ParsingProcessor()
-        self.default_response_format = self.cog_config.get("cog", {}).get("response_format", None)
-        valid_options = set(self._parser.list_supported_formats() + ['auto', 'none'])
-        if self.default_response_format and self.default_response_format.lower() not in valid_options:
-            raise ValueError(
-                f"Response format '{self.default_response_format}' is not valid. "
-                f"Use one of: {', '.join(valid_options)}."
+        
+        # Warn if no 'end' transition is present
+        if not any(
+            isinstance(t, dict) and 'end' in t
+            for t in self.flow['transitions'].values()
+        ):
+            self.logger.log(
+                "Flow has no 'end:' transition; cog may loop forever.", "warning", "Flow"
             )
+
+
 
     def _validate_module_exists(self, full_class_path: str, agent_id: str) -> None:
         """
@@ -140,7 +144,7 @@ class Cog:
             raise ImportError(
                 f"Module '{module_path}' for agent '{agent_id}' not found in the project root."
             )
-        module = self._get_module(module_path)
+        module = importlib.import_module(module_path)
         if not hasattr(module, class_name):
             raise ImportError(
                 f"Class '{class_name}' not found in module '{module_path}' for agent '{agent_id}'."
@@ -149,16 +153,6 @@ class Cog:
     ##########################################################
     # Section 4: Module Resolution
     ##########################################################
-
-    def _get_module(self, module_path: str):
-        """
-        Return the module object from cache if available; otherwise, import and cache it.
-        """
-        if module_path in self._module_cache:
-            return self._module_cache[module_path]
-        module = importlib.import_module(module_path)
-        self._module_cache[module_path] = module
-        return module
 
     def _resolve_agent_class(self, agent_def: Dict[str, Any]) -> type:
         """
@@ -171,7 +165,7 @@ class Cog:
         parts = agent_def["type"].split(".")
         module_path = ".".join(parts[:-1])
         class_name = parts[-1]
-        module = self._get_module(module_path)
+        module = importlib.import_module(module_path)
         return getattr(module, class_name)
 
     ##########################################################
@@ -191,13 +185,11 @@ class Cog:
     def _build_agent_nodes(self) -> None:
         """Instantiate all agents defined in the cog configuration."""
         self.agents = {}
-        self.agent_response_format = {}
         for agent_def in self.agent_list:
             agent_id = agent_def.get("id")
             agent_class = self._resolve_agent_class(agent_def)
             agent_prompt_file = agent_def.get("template_file", agent_class.__name__)
-            self.agents[agent_id]= agent_class(agent_prompt_file)
-            self.agent_response_format[agent_id] = self._get_response_format_for_agent(agent_def)
+            self.agents[agent_id] = agent_class(agent_prompt_file)
 
     def _check_max_visits(self, current_agent_id: str, transition) -> Optional[str]:
         """
@@ -218,10 +210,6 @@ class Cog:
         # If the max_visits is not a number or is not positive, we don't need to check max_visits.
         max_visits = transition.get("max_visits", 0)
         if max_visits is not None and isinstance(max_visits, int) and max_visits > 0:
-            # If the agent_visit_counts dictionary doesn't exist, create it.
-            if not hasattr(self, "agent_visit_counts"):
-                self.agent_visit_counts = {}
-
             # Increment the visit count for the current agent.
             self.agent_visit_counts[current_agent_id] = self.agent_visit_counts.get(current_agent_id, 0) + 1
 
@@ -331,12 +319,12 @@ class Cog:
         if next_agent is not None:
             # Check if the next agent is a special known value like "NONEXISTENT_AGENT"
             if next_agent == "NONEXISTENT_AGENT":
-                self.logger.error(f"Invalid transition to test agent: {next_agent}")
+                self.logger.log(f"Invalid transition to test agent: {next_agent}", "error", "Transition")
                 raise Exception(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
                 
             # Check if the next agent actually exists in the cog
             if next_agent not in self.agents:
-                self.logger.error(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
+                self.logger.log(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.", "error", "Transition")
                 raise Exception(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
                 
         return next_agent
@@ -375,7 +363,7 @@ class Cog:
             
         # Ensure the decision key exists in the transition
         if decision_key not in transition:
-            self.logger.warning(f"Decision key '{decision_key}' not found in transition for agent '{current_agent_id}'")
+            self.logger.log(f"Decision key '{decision_key}' not found in transition for agent '{current_agent_id}'", "warning", "Decision")
             # Use the top-level fallback if decision key is missing
             self.logger.log(f"Decision key '{decision_key}' not in transition, returning fallback", "debug", "Decision")
             return fallback_branch
@@ -385,14 +373,14 @@ class Cog:
         
         # Ensure decision_map is a dictionary
         if not isinstance(decision_map, dict):
-            self.logger.warning(f"Decision map for key '{decision_key}' is not a dictionary in agent '{current_agent_id}'")
+            self.logger.log(f"Decision map for key '{decision_key}' is not a dictionary in agent '{current_agent_id}'", "warning", "Decision")
             # Use the top-level fallback if decision map is invalid
             self.logger.log(f"Decision map not a dict, returning fallback", "debug", "Decision")
             return fallback_branch
             
         # Get the decision value from the agent's output
         if current_agent_id not in self.internal_context:
-            self.logger.warning(f"No output found for agent '{current_agent_id}' in internal context")
+            self.logger.log(f"No output found for agent '{current_agent_id}' in internal context", "warning", "Decision")
             # Use the top-level fallback if no agent output
             self.logger.log(f"No agent output, returning fallback", "debug", "Decision")
             return fallback_branch
@@ -402,7 +390,7 @@ class Cog:
         
         # If the decision value is not found in the output, use the fallback branch
         if decision_value is None:
-            self.logger.warning(f"Decision value for key '{decision_key}' not found in output of agent '{current_agent_id}'")
+            self.logger.log(f"Decision value for key '{decision_key}' not found in output of agent '{current_agent_id}'", "warning", "Decision")
             # Use the top-level fallback if decision value is None
             self.logger.log(f"Null decision value, returning fallback", "debug", "Decision")
             return fallback_branch
@@ -425,7 +413,7 @@ class Cog:
         self.logger.log(f"Decision summary: key='{decision_key}', value='{decision_value}', normalized='{str_decision_value}', result='{next_agent}'", 'debug', 'Decision')
         
         if next_agent is None:
-            self.logger.warning(f"No matching branch found for decision value '{decision_value}' and no fallback branch defined")
+            self.logger.log(f"No matching branch found for decision value '{decision_value}' and no fallback branch defined", "warning", "Decision")
             self.logger.log(f"No match and no fallback", "debug", "Decision")
             
         self.logger.log(f"Returning next agent='{next_agent}'", "debug", "Decision")
@@ -534,112 +522,173 @@ class Cog:
                 "config": mem_def,  # store the raw config for query/update triggers
             }
 
-    def _get_global_context(self):
-        # Combine internal_context and external_context attributes
-        return {**self.internal_context, **self.external_context}
 
-    def _memory_query_phase(self, agent_id: str):
-        """Queries memory based on query_before configuration."""
-        self.logger.log(f"Memory query phase for agent: {agent_id}", "debug", "Memory")
+
+    def _build_ctx(self) -> dict:
+        """
+        Build the context structure for agent execution.
+        
+        Returns:
+            dict: Nested context with external and internal sections
+        """
+        return {
+            "external": self.external_context,
+            "internal": self.internal_context
+        }
+
+    def _build_mem(self) -> dict:
+        """
+        Build the memory structure for agent execution.
+        
+        Returns:
+            dict: Memory stores indexed by memory node ID
+        """
+        return {mem_id: mem_data["instance"].store for mem_id, mem_data in self.memories.items()}
+
+    def _query_memory_nodes(self, agent_id: str) -> None:
+        """
+        Query memory nodes configured to run before the specified agent.
+        
+        Args:
+            agent_id: The agent ID about to be executed
+        """
+        self.logger.log(f"Querying memory nodes before agent: {agent_id}", "debug", "Memory")
         
         for mem_id, mem_data in self.memories.items():
             cfg = mem_data["config"]
             mem_obj = mem_data["instance"]
 
-            # query_before can be a list or string
+            # Check if this memory should be queried before this agent
             query_agents = cfg.get("query_before", [])
-            self.logger.log(f"Memory {mem_id} query_before config: {query_agents}", "debug", "Memory")
-            
             if isinstance(query_agents, str):
                 query_agents = [query_agents]
                 
-            if agent_id in query_agents:
-                self.logger.log(f"Querying memory {mem_id} before agent {agent_id}", "debug", "Memory")
-                # Gather the relevant keys from global_context
-                query_keys = cfg.get("query_keys", [])
-                query_text = None
-                if query_keys:
-                    input_for_query = self._extract_keys(query_keys)
-                    if not input_for_query:
-                        continue
-                    # Extract just the values from the dictionary, not the whole dict
-                    if isinstance(input_for_query, dict) and len(input_for_query) > 0:
-                        # If there's only one value, use it directly
-                        if len(input_for_query) == 1:
-                            query_text = next(iter(input_for_query.values()))
-                        else:
-                            # If multiple values, use a list of the values
-                            query_text = list(input_for_query.values())
-                    else:
-                        query_text = input_for_query
+            if agent_id not in query_agents:
+                continue
+                
+            self.logger.log(f"Querying memory {mem_id} before agent {agent_id}", "debug", "Memory")
+            
+            # Handle query keys - if empty or missing, use entire external context
+            query_keys = cfg.get("query_keys", [])
+            if not query_keys:
+                # Use external context as query text
+                context = self._build_ctx()
+                query_text = context.get("external", {})
+                if query_text:
+                    self.logger.log(f"Using external context for memory {mem_id} query", "debug", "Memory")
+                    result = mem_obj.query_memory(query_text=query_text)
+                    if result:
+                        self.logger.log(f"Found memories in {mem_id}", "debug", "Memory")
+                        mem_obj.store.update(result)
+                else:
+                    self.logger.log(f"No external context available for memory {mem_id} query", "debug", "Memory")
+                continue
+                
+            try:
+                input_for_query = self._extract_keys(query_keys)
+                if not input_for_query:
+                    self.logger.log(f"No query data extracted for memory {mem_id}", "debug", "Memory")
+                    continue
+                
+                # Prepare query text from extracted values
+                if len(input_for_query) == 1:
+                    query_text = next(iter(input_for_query.values()))
+                else:
+                    query_text = list(input_for_query.values())
 
-                query_text = query_text if query_text else self.external_context
-                self.logger.log(f"Querying with text: {query_text}", "debug", "Memory")
-
-                # Call memory.query(...)
+                self.logger.log(f"Querying memory {mem_id} with: {query_text}", "debug", "Memory")
+                
+                # Execute query - empty result is normal
                 result = mem_obj.query_memory(query_text=query_text)
-
-                # Combine result with memory's internal store or skip
                 if result:
-                    self.logger.log(f"Memories Found:\n{result}", 'debug', 'Memory')
+                    self.logger.log(f"Found memories in {mem_id}", "debug", "Memory")
                     mem_obj.store.update(result)
+                    
+            except Exception as e:
+                # Storage-level errors should be fatal
+                self.logger.log(f"Memory query failed for {mem_id}: {e}", "error", "Memory")
+                raise
 
-    def _memory_update_phase(self, agent_id: str):
-        """Updates memories based on update_after configuration for each memory."""
-        self.logger.log(f"Memory update phase for agent: {agent_id}", "debug", "Memory")
+    def _update_memory_nodes(self, agent_id: str) -> None:
+        """
+        Update memory nodes configured to run after the specified agent.
+        
+        Args:
+            agent_id: The agent ID that just completed execution
+        """
+        self.logger.log(f"Updating memory nodes after agent: {agent_id}", "debug", "Memory")
         
         for mem_id, mem_data in self.memories.items():
             cfg = mem_data["config"]
             mem_obj = mem_data["instance"]
             
-            # update_after can be a list or string
+            # Check if this memory should be updated after this agent
             update_agents = cfg.get("update_after", [])
-            self.logger.log(f"Memory {mem_id} update_after config: {update_agents}", "debug", "Memory")
-            
             if isinstance(update_agents, str):
                 update_agents = [update_agents]
                 
-            if agent_id in update_agents:
-                self.logger.log(f"Updating memory {mem_id} after agent {agent_id}", "debug", "Memory")
-                # Gather the relevant keys from global_context
-                update_keys = cfg.get("update_keys", [])
-                self.logger.log(f"Update keys: {update_keys}", "debug", "Memory")
-                if update_keys:
-                    update_data = self._extract_keys(update_keys)
-                    self.logger.log(f"Extracted data: {update_data}", "debug", "Memory")
-                    if update_data:
-                        try:
-                            # Update the memory with the extracted data
-                            # Combine contexts for metadata generation
-                            combined_context = {'external': self.external_context, 'internal': self.internal_context}
-                            self.logger.log(f"Calling update_memory with: {update_data}", "debug", "Memory")
-                            mem_obj.update_memory(data=update_data, context=combined_context)
-                            self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
-                        except Exception as e:
-                            self.logger.error(f"Error updating memory {mem_id}: {str(e)}")
+            if agent_id not in update_agents:
+                continue
+                
+            self.logger.log(f"Updating memory {mem_id} after agent {agent_id}", "debug", "Memory")
+            
+            # Handle update keys - if empty or missing, use entire external context
+            update_keys = cfg.get("update_keys", [])
+            if not update_keys:
+                # Use entire external context for update
+                context = self._build_ctx()
+                update_data = context.get("external", {})
+                if update_data:
+                    self.logger.log(f"Using external context for memory {mem_id} update", "debug", "Memory")
+                    mem_obj.update_memory(data=update_data, context=context)
+                    self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
+                else:
+                    self.logger.log(f"No external context available for memory {mem_id} update", "debug", "Memory")
+                continue
+                
+            try:
+                update_data = self._extract_keys(update_keys)
+                if not update_data:
+                    self.logger.log(f"No update data extracted for memory {mem_id}", "debug", "Memory")
+                    continue
+                
+                self.logger.log(f"Updating memory {mem_id} with: {list(update_data.keys())}", "debug", "Memory")
+                
+                # Update memory with extracted data and full context for metadata
+                context = self._build_ctx()
+                mem_obj.update_memory(data=update_data, context=context)
+                self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
+                
+            except Exception as e:
+                # Storage-level errors should be fatal
+                self.logger.log(f"Memory update failed for {mem_id}: {e}", "error", "Memory")
+                raise
                 
     
     def _extract_keys(self, key_list: Union[list[str], str]) -> dict:
         """
-        Helper method: given a list or single dot-notated key, extract the values from context.
-        e.g. "thought.user_intent" => context["thought"]["user_intent"]
+        Extract values from context using dot-notated keys with external.* / internal.* prefixes.
         
         Args:
-            key_list (Union[list[str], str]): List of keys or single key to extract.
+            key_list: List of dot-notated keys to extract from context
             
         Returns:
-            dict: A dict of extracted keys and values of the form { <context key>: value }
+            dict: Extracted key-value pairs
+            
+        Raises:
+            ValueError: If provided keys are missing from context (strict mode for update_keys)
         """
-        # If no specific keys are requested, return the latest raw output
         if not key_list:
-            return {'latest_raw_output': self.latest_raw_output}
+            # Return entire external context if no keys specified
+            context = self._build_ctx()
+            return context.get("external", {})
 
-        # Convert a single key string to a list for uniform processing
+        # Convert single key to list for uniform processing
         if isinstance(key_list, str):
             key_list = [key_list]
         
-        # Get combined context for lookup
-        context = self._get_global_context()
+        # Get context for lookup
+        context = self._build_ctx()
         
         # Extract each key from the context
         result = {}
@@ -648,9 +697,10 @@ class Cog:
             if value is not None:
                 result[k] = value
         
-        # If nothing was found, but we have raw output, include it
-        if not result and hasattr(self, 'latest_raw_output') and self.latest_raw_output:
-            result['latest_raw_output'] = self.latest_raw_output
+        # If keys were provided but all are missing, raise error
+        if not result and key_list:
+            raise ValueError(f"All requested keys missing from context: {key_list}. "
+                           f"Keys must use external.* or internal.* prefixes.")
         
         return result
 
@@ -672,129 +722,91 @@ class Cog:
     # Section 7: Execution
     ##########################################################
 
-    def _get_response_format_for_agent(self, agent_def):
-        response_format = agent_def.get("response_format", self.default_response_format)
-        if response_format == "none" or not response_format:
-            return None
-
-        return response_format
-
-    def _call_agent(self, current_agent_id):
+    def _call_agent(self, current_agent_id: str):
+        """
+        Execute an agent with retry logic.
+        
+        Args:
+            current_agent_id: The agent to execute
+            
+        Returns:
+            Agent output on success
+            
+        Raises:
+            Exception: If agent fails after max attempts
+        """
         attempts = 0
         max_attempts = 3
         agent = self.agents.get(current_agent_id)
 
         while attempts < max_attempts:
             attempts += 1
-            # Get the combined context from internal_context and external_context
-            combined_context = self._get_global_context()
+            # Build context and memory structures once per attempt
+            ctx = self._build_ctx()
+            mem = self._build_mem()
+            
+            # Execute agent with separated context and memory
+            agent_output = agent.run(_ctx=ctx, _mem=mem)
 
-            # Append memory from self.memories to the combined context under the key "memory".
-            combined_context["memory"] = {
-                mem_id: mem_data["instance"].store
-                for mem_id, mem_data in self.memories.items()
-            }
-            raw_output = agent.run(**combined_context)
-
-            # If the agent returned no output, retry.
-            if not raw_output:
-                self.logger.log(
-                    f"No output from agent '{current_agent_id}', retrying... (Attempt {attempts})", "warning"
-                )
+            if not agent_output:
+                self.logger.log(f"No output from agent '{current_agent_id}', retrying... (Attempt {attempts})", "warning")
                 continue
 
-            try:
-                self.latest_raw_output = raw_output
-                parsed_output = self._parse_agent_output(current_agent_id, raw_output)
-                # Store the raw output so we can reference it later in memory update.
-                return parsed_output  # Return already-parsed output to caller
-            except ParsingError as e:
-                self.logger.log(
-                    f"Parsing error for agent '{current_agent_id}': {e} (Attempt {attempts})", "warning"
-                )
+            return agent_output
 
-        self.logger.log(f"Max attempts reached for agent '{current_agent_id}' with no valid parsed output.","error")
+        self.logger.log(f"Max attempts reached for agent '{current_agent_id}' with no valid output.", "error")
         raise Exception(f"Failed to get valid response from {current_agent_id}. We recommend checking the agent's input/output logs.")
 
     def _execute_flow(self) -> None:
         """
-        Executes the cog flow, starting from the start node and following the transitions
-        until an end node is reached or until all transitions are exhausted.
+        Execute the cog flow from start to completion.
+        Orchestrates agent execution with memory query/update cycles.
         """
         self.logger.log("Starting cog execution", "debug", "Flow")
         
-        # Get the start node ID
         current_agent_id = self.flow.get("start")
         self.last_executed_agent = None
+        self.agent_visit_counts = {}
         
-        # Initialize agent visits counter for loop prevention
-        self.agent_visits = {agent_id: 0 for agent_id in self.agents}
-        
-        # Main execution loop
         while current_agent_id:
             try:
                 self.logger.log(f"Processing agent: {current_agent_id}", "debug", "Flow")
                 
-                # Query relevant memories before executing the agent
-                self._memory_query_phase(current_agent_id)
+                # Query memory nodes before agent execution
+                self._query_memory_nodes(current_agent_id)
                 
-                # Execute the current agent and retrieve the parsed output
-                # Note: _call_agent already parses the agent's raw output before returning
+                # Execute the current agent
                 agent_output = self._call_agent(current_agent_id)
                 
-                # Log the agent's output (which is already parsed by _call_agent)
-                self.logger.log(f"Agent output: {agent_output}", "debug", "Flow")
-                
-                # Track the already parsed output and store it in internal context
-                self._track_agent_output(current_agent_id, agent_output)
+                # Store agent output in internal context
                 self.internal_context[current_agent_id] = agent_output
-                
-                # Store the last executed agent
                 self.last_executed_agent = current_agent_id
                 
-                # Update memories after executing the agent
-                self._memory_update_phase(current_agent_id)
+                # Track output for logging if enabled
+                self._track_agent_output(current_agent_id, agent_output)
                 
-                # Get the next agent ID based on the flow transitions
+                # Update memory nodes after agent execution
+                self._update_memory_nodes(current_agent_id)
+                
+                # Determine next agent in flow
                 next_agent_id = self._get_next_agent(current_agent_id)
                 self.logger.log(f"Next agent: {next_agent_id}", "debug", "Flow")
                 
-                # Update current agent ID or exit loop if no next agent
                 current_agent_id = next_agent_id
                 
             except Exception as e:
-                self.logger.error(f"Error during cog execution: {str(e)}")
+                self.logger.log(f"Error during cog execution: {e}", "error", "Flow")
                 raise
                 
         self.logger.log("Cog execution completed", "debug", "Flow")
 
-    def _parse_agent_output(self, agent_id: str, output: Any) -> Any:
-        # If output is already parsed (e.g., a dictionary), just return it directly
-        # This prevents double-parsing and supports test mocks that return dicts directly
-        if isinstance(output, dict):
-            return output
 
-        # Get the response format for the current agent
-        response_format = self.agent_response_format[agent_id]
 
-        if not response_format:
-            return output
-
-        if response_format == "auto":
-            return self._parser.auto_parse_content(output)
-
-        if response_format in self._parser.list_supported_formats():
-            return self._parser.parse_by_format(output, response_format)
-
-        # Should never get here because validation should catch it, but just in case:
-        self.logger.warning(f"Unrecognized response_format '{response_format}' for agent '{agent_id}'. "
-                            f"Returning raw output.")
-        return output
-
-    def _track_agent_output(self, agent_id: str, output: Dict[str, Any]) -> None:
+    def _track_agent_output(self, agent_id: str, output: Any) -> None:
+        """Track agent output in thought flow trail if logging is enabled."""
         if self.enable_trail_logging:
             self.thought_flow_trail.append({agent_id: output})
-            self.logger.log(f'******\n{agent_id}\n******\n{output}\n******', 'debug')
+            self.logger.log(f"******\n{agent_id}\n******\n{output}\n******", "debug", "Trail")
 
     def get_internal_context(self) -> Dict[str, Any]:
         """
@@ -813,9 +825,10 @@ class Cog:
             **kwargs: Initial context values to provide to the agents
             
         Returns:
-            Any: Based on the 'end' keyword in the flow:
+            Any: Based on the 'end' keyword in the final transition:
                 - If 'end: true', returns the output of the last agent executed
-                - If 'end: <dot.notation.key>', returns the value from the internal context
+                - If 'end: <agent_id>', returns the output of that specific agent
+                - If 'end: <agent_id>.field.subfield', returns that nested value
                 - Otherwise, returns the full internal context
         """
         self._reset_context_and_thoughts()
@@ -834,10 +847,14 @@ class Cog:
                 if end_value is True:
                     return self.internal_context.get(self.last_executed_agent)
                 
-                # If end is a string in dot notation, return the specified value
+                # If end is a string, it could be an agent_id or dot notation
                 if isinstance(end_value, str):
-                    combined_context = self._get_global_context()
-                    return self._lookup_dot_key(combined_context, end_value)
+                    # Check if it's just an agent ID
+                    if end_value in self.internal_context:
+                        return self.internal_context[end_value]
+                    # Otherwise treat as dot notation in context
+                    context = self._build_ctx()
+                    return self._lookup_dot_key(context, end_value)
         
         # Default behavior: return the full internal context
         return self.internal_context

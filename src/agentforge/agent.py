@@ -25,9 +25,15 @@ class Agent:
         self.prompt_processor = PromptProcessor()
         
         # Initialize data attributes
+        self._initialize_data_attributes()
+        
+        # Load configuration
+        self.initialize_agent_config()
+
+    def _initialize_data_attributes(self) -> None:
+        """Initialize all agent data attributes to their default values."""
         self.agent_data: Optional[Dict[str, Any]] = None
         self.persona: Optional[Dict[str, Any]] = None
-        self.persona_settings: Optional[Dict[str, Any]] = None
         self.model: Optional[BaseModel] = None
         self.prompt_template: Optional[Dict[str, Any]] = None
         self.template_data: Dict[str, Any] = {}
@@ -35,9 +41,6 @@ class Agent:
         self.result: Optional[str] = None
         self.output: Optional[str] = None
         self.images: List[str] = []
-        
-        # Load configuration
-        self.initialize_agent_config()
 
     # ---------------------------------
     # Execution
@@ -56,13 +59,7 @@ class Agent:
         try:
             self.logger.info(f"{self.agent_name} - Running...")
             
-            self.load_data(**kwargs)
-            self.process_data()
-            self.render_prompt()
-            self.run_model()
-            self.parse_result()
-            self.save_to_storage()
-            self.build_output()
+            self._execute_workflow(**kwargs)
             
             self.logger.info(f"{self.agent_name} - Done!")
             return self.output
@@ -70,167 +67,107 @@ class Agent:
             self.logger.error(f"Agent execution failed: {e}")
             return None
 
+    def _execute_workflow(self, **kwargs: Any) -> None:
+        """Execute the complete agent workflow steps."""
+        self.load_data(**kwargs)
+        self.process_data()
+        self.render_prompt()
+        self.run_model()
+        self.parse_result()
+        self.post_process_result()
+        self.build_output()
+
     # ---------------------------------
     # Configuration Loading
     # ---------------------------------
 
     def initialize_agent_config(self) -> None:
-        """Load all agent configurations and resolve storage requirements."""
+        """Load all agent configurations."""
         self.load_agent_data()
         self.load_prompt_template()
         self.load_persona_data()
         self.load_model()
-        self.resolve_storage()
 
     def load_agent_data(self) -> None:
         """Load and validate the agent's configuration data."""
         self.agent_data = self.config.load_agent_data(self.agent_name).copy()
-        self.validate_agent_data()
+        self._validate_agent_data()
 
     def load_prompt_template(self) -> None:
         """Load and validate prompt templates for the agent."""
         self.prompt_template = self.agent_data.get('prompts', {})
         
         if not self.prompt_template:
-            error_msg = f"No prompts defined for agent '{self.agent_name}'."
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            self._raise_config_error(f"No prompts defined for agent '{self.agent_name}'.")
 
         self.prompt_processor.check_prompt_format(self.prompt_template)
         self.logger.debug(f"Prompts for '{self.agent_name}' validated.")
 
     def load_persona_data(self) -> None:
-        """
-        Load persona data if personas are enabled in system settings.
-        Add persona data to template variables for prompt rendering.
-        
-        With v2 persona structure:
-        1. Flatten static and retrieval sections
-        2. Build persona_md for system prompt injection
-        3. Process according to auto_inject_persona and other flags
-        """
-        personas_enabled = self.agent_data['settings']['system']['persona'].get('enabled', False)
-        if not personas_enabled:
+        """Load persona data if personas are enabled in system settings."""
+        if not self._is_persona_enabled():
             return
             
+        self._load_and_add_persona()
+
+    def _is_persona_enabled(self) -> bool:
+        """Check if personas are enabled in agent settings."""
+        return self.agent_data['settings']['system']['persona'].get('enabled', False)
+
+    def _load_and_add_persona(self) -> None:
+        """Load persona data and add it to template variables."""
         self.persona = self.agent_data.get('persona', {})
-        self.validate_persona_data()
+        self._validate_persona_data()
         self.logger.debug(f"Persona Data Loaded for '{self.agent_name}'.")
         
         if not self.persona:
             return
         
-        # Get persona settings
-        self.persona_settings = self.agent_data['settings']['system']['persona']
-        
-        # Process the persona data according to settings
-        flattened_persona = self._flatten_persona()
-        
-        # Add flattened persona to template data for legacy placeholder support
-        if self.persona_settings.get('allow_legacy_placeholders', True):
-            self._add_legacy_placeholders(flattened_persona)
-        
-        # Build and add persona_md for system prompt injection
-        if self.persona_settings.get('auto_inject_persona', True):
-            self._build_persona_markdown()
-
-    def _flatten_persona(self) -> Dict[str, Any]:
-        """
-        Flatten the persona structure for legacy placeholder support.
-        Static sections override retrieval sections for duplicate keys.
-        
-        Returns:
-            Dict[str, Any]: Flattened persona with lowercase keys
-        """
-        flattened_persona = {}
-        
-        # Process static section
-        static_content = self.persona.get('static', {})
-        for key, value in static_content.items():
-            flattened_persona[key.lower()] = value
-        
-        # Process retrieval section 
-        retrieval_content = self.persona.get('retrieval', {})
-        for key, value in retrieval_content.items():
-            # Don't override static keys
-            if key.lower() not in flattened_persona:
-                flattened_persona[key.lower()] = value
-        
-        # If no static/retrieval sections but has data, treat as legacy
-        if not static_content and not retrieval_content and self.persona:
-            flattened_persona = {k.lower(): v for k, v in self.persona.items()}
-            
-        return flattened_persona
-        
-    def _add_legacy_placeholders(self, flattened_persona: Dict[str, Any]) -> None:
-        """
-        Add flattened persona keys to template_data for legacy placeholder support.
-        
-        Args:
-            flattened_persona (Dict[str, Any]): The flattened persona dictionary
-        """
-        for key, value in flattened_persona.items():
-            self.template_data[key] = value
-            
-    def _build_persona_markdown(self) -> None:
-        """
-        Build markdown representation of static persona content for system prompt injection.
-        Truncate if exceeds character cap from settings.
-        """
-        static_content = self.persona.get('static', {})
-        if not static_content:
-            return
-            
-        persona_md = self.prompt_processor.build_persona_markdown(static_content, self.persona_settings)
-        if persona_md:
-            # Store persona_md in template_data
-            self.template_data['persona_md'] = persona_md
+        self.template_data['persona'] = self.persona.copy()
 
     def load_model(self) -> None:
         """Load and validate the model for the agent."""
         self.model = self.agent_data.get('model')
         
         if not self.model:
-            error_msg = f"Model not specified for agent '{self.agent_name}'."
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
-
-    def resolve_storage(self) -> None:
-        """Configure storage for the agent if enabled in settings."""
-        storage_enabled = self.agent_data['settings']['storage']['options'].get('enabled', False)
-        
-        if not storage_enabled:
-            self.agent_data['storage'] = None
+            self._raise_config_error(f"Model not specified for agent '{self.agent_name}'.")
 
     # ---------------------------------
     # Validation
     # ---------------------------------
 
-    def validate_agent_data(self) -> None:
+    def _validate_agent_data(self) -> None:
         """Ensure agent data has all required keys and structure."""
         if not self.agent_data:
-            error_msg = f"Agent data for '{self.agent_name}' is not loaded."
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            self._raise_config_error(f"Agent data for '{self.agent_name}' is not loaded.")
 
+        self._validate_required_keys()
+        self._validate_system_settings()
+
+    def _validate_required_keys(self) -> None:
+        """Validate that all required keys are present in agent data."""
         required_keys = ['params', 'prompts', 'settings']
         for key in required_keys:
             if key not in self.agent_data:
-                error_msg = f"Agent data missing required key '{key}' for agent '{self.agent_name}'."
-                self.logger.error(error_msg)
-                raise ValueError(error_msg)
+                self._raise_config_error(f"Agent data missing required key '{key}' for agent '{self.agent_name}'.")
 
+    def _validate_system_settings(self) -> None:
+        """Validate that system settings are properly configured."""
         if 'system' not in self.agent_data['settings']:
-            error_msg = f"Agent data settings missing 'system' key for agent '{self.agent_name}'."
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            self._raise_config_error(f"Agent data settings missing 'system' key for agent '{self.agent_name}'.")
 
-    def validate_persona_data(self) -> None:
+    def _validate_persona_data(self) -> None:
         """Validate persona data if available."""
         if not self.persona:
             self.logger.warning(f"Personas are enabled but no persona data found for agent '{self.agent_name}'.")
-        else:
-            self.logger.debug(f"Persona for '{self.agent_name}' validated!")
+            return
+            
+        self.logger.debug(f"Persona for '{self.agent_name}' validated!")
+
+    def _raise_config_error(self, message: str) -> None:
+        """Log error and raise ValueError for configuration issues."""
+        self.logger.error(message)
+        raise ValueError(message)
 
     # ---------------------------------
     # Data Loading
@@ -243,26 +180,25 @@ class Agent:
         Args:
             **kwargs: Additional data to incorporate into template variables.
         """
-        if self.agent_data['settings']['system']['misc'].get('on_the_fly', False):
+        if self._should_reload_config():
             self.initialize_agent_config()
 
-        self.load_from_storage()
         self.load_additional_data()
         self.template_data.update(kwargs)
 
-    def load_from_storage(self) -> None:
-        """
-        Load data from configured storage.
-        
-        Override this method in subclasses to implement specific storage loading.
-        """
-        pass
+    def _should_reload_config(self) -> bool:
+        """Check if configuration should be reloaded on the fly."""
+        return self.agent_data['settings']['system']['misc'].get('on_the_fly', False)
 
     def load_additional_data(self) -> None:
         """
         Load custom additional data for the agent.
         
         Override this method in subclasses to load custom data.
+        
+        Note: If your subclass needs to load data from memory or storage,
+        you should implement this method or add a new method for that purpose.
+        Memory is exclusively managed through cogs.
         """
         pass
 
@@ -279,16 +215,9 @@ class Agent:
         pass
 
     def render_prompt(self) -> None:
-        """Render prompt templates with the current template data and inject persona if available."""
+        """Render prompt templates with the current template data."""
         self.prompt = self.prompt_processor.render_prompts(self.prompt_template, self.template_data)
         self.prompt_processor.validate_rendered_prompts(self.prompt)
-        
-        # Check if we need to inject persona_md into system prompt
-        self.prompt = self.prompt_processor.check_inject_persona_md(
-            self.prompt, 
-            self.template_data, 
-            self.persona_settings
-        )
 
     # ---------------------------------
     # Model Execution
@@ -296,17 +225,30 @@ class Agent:
 
     def run_model(self) -> None:
         """Execute the model with the rendered prompt and configured parameters."""
-        if self.agent_data['settings']['system']['debug'].get('mode', False):
+        if self._is_debug_mode():
             self.result = self.agent_data['simulated_response']
             return
 
-        params: Dict[str, Any] = self.agent_data.get("params", {})
+        self._execute_model_generation()
+
+    def _is_debug_mode(self) -> bool:
+        """Check if agent is running in debug mode."""
+        return self.agent_data['settings']['system']['debug'].get('mode', False)
+
+    def _execute_model_generation(self) -> None:
+        """Execute the actual model generation with configured parameters."""
+        params = self._build_model_params()
+        self.result = self.model.generate(self.prompt, **params).strip()
+
+    def _build_model_params(self) -> Dict[str, Any]:
+        """Build parameters for model generation."""
+        params = self.agent_data.get("params", {}).copy()
         params['agent_name'] = self.agent_name
         
         if self.images:
             params['images'] = self.images
             
-        self.result = self.model.generate(self.prompt, **params).strip()
+        return params
 
     # ---------------------------------
     # Result Handling
@@ -320,11 +262,14 @@ class Agent:
         """
         pass
 
-    def save_to_storage(self) -> None:
+    def post_process_result(self) -> None:
         """
-        Save results to configured storage.
+        Extension point for additional processing after parsing the model's response.
         
-        Override this method in subclasses to implement custom storage saving.
+        This method is an extension point meant to be overridden in subclasses.
+        It's called after the model result has been parsed but before building
+        the final output, making it ideal for any additional data transformations,
+        side effects, or external system interactions.
         """
         pass
 

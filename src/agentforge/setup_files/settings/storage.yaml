@@ -1,7 +1,7 @@
-# Default storage settings for all agents unless overridden
+# Storage settings for cogs and memory nodes
 options:
   enabled: true
-  save_memory: true          # Note: Saving memory won't work if storage is disabled
+  save_memory: true          # Controls whether memory nodes persist data
   iso_timestamp: true        # Use ISO format for timestamps
   unix_timestamp: true       # Use Unix format for timestamps
   persist_directory: ./db/ChromaDB   # Relative path for persistent storage

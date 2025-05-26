@@ -15,6 +15,26 @@ class ParsingError(Exception):
 
 
 class ParsingProcessor:
+    """
+    A robust parsing processor that supports multiple serialization formats with two-stage parsing.
+    
+    The ParsingProcessor implements a two-stage parsing approach for all supported formats:
+    1. Code-fenced parsing: First attempts to extract and parse content from code blocks
+    2. Bare parsing fallback: If code-fenced parsing fails, attempts to parse the entire content
+    
+    Supported formats: JSON, YAML, XML, INI, CSV, Markdown
+    
+    Features:
+    - Robust error handling with detailed logging
+    - Support for both fenced and unfenced agent outputs
+    - Format-specific preprocessing (e.g., YAML sanitization)
+    - Comprehensive debug logging for troubleshooting
+    - Default code fence extraction using triple backticks (['```'])
+    """
+    
+    # Default code fences to use for extraction - can be overridden by passing code_fences parameter
+    DEFAULT_CODE_FENCES = ['```']
+    
     def __init__(self):
         self.logger = Logger(name=self.__class__.__name__, default_logger=self.__class__.__name__.lower())
         self._define_parsers()
@@ -31,17 +51,26 @@ class ParsingProcessor:
                 s, lambda t: self.parse_markdown_to_dict(t, 2, 6), 'markdown', code_fences=fences)
         }
 
-    def extract_code_block(self, text: str, code_fences: List[str] = []) -> Tuple[Optional[str], str]:
+    def extract_code_block(self, text: str, code_fences: Optional[List[str]] = None) -> Tuple[Optional[str], str]:
         """
-        Extract a code block from text, returning the language and content.
+        Extract the first code block from text, returning the language and content.
+        
+        This method is used in the first stage of the two-stage parsing approach.
+        If no code fences are found, returns the entire stripped text for fallback parsing.
         
         Args:
-            text: The text containing code blocks
-            code_fences: List of fence markers to use (default: empty list)
+            text: The text containing potential code blocks
+            code_fences: List of fence markers to use. If None, uses DEFAULT_CODE_FENCES (['```']).
+                        Pass an empty list [] to disable code fence extraction and return full text.
             
         Returns:
-            Tuple of (language, content)
+            Tuple of (language, content) where:
+            - language: The detected language specifier (or None if not found/specified)
+            - content: The extracted code block content or stripped full text if no fence found
         """
+        # Use default code fences if None provided, otherwise use the provided list (including empty list)
+        if code_fences is None:
+            code_fences = self.DEFAULT_CODE_FENCES
         # Early exit if no code fences provided
         if not code_fences:
             return None, text.strip()
@@ -97,46 +126,155 @@ class ParsingProcessor:
         return content.strip()
 
     def parse_content(self, content_string: str, parser_func: Callable[[str], Any],
-                      expected_language: str, code_fences: List[str] = []) -> Any:
-        language, cleaned_string = self.extract_code_block(content_string, code_fences)
+                      expected_language: str, code_fences: Optional[List[str]] = None) -> Any:
+        """
+        Parse content using a two-stage approach: code-fenced first, then bare parsing fallback.
         
+        Args:
+            content_string: The input string to parse
+            parser_func: The function to use for parsing (e.g., json.loads, yaml.safe_load)
+            expected_language: The expected language/format type
+            code_fences: List of fence markers to look for. If None, uses DEFAULT_CODE_FENCES (['```']).
+                        Pass an empty list [] to disable code fence extraction and parse full content.
+            
+        Returns:
+            Parsed content or None if parsing fails
+        """
+        # Use default code fences if None provided
+        if code_fences is None:
+            code_fences = self.DEFAULT_CODE_FENCES
+        
+        # Stage 1: Try code-fenced parsing
+        language, extracted_content = self.extract_code_block(content_string, code_fences)
+        
+        # Log the code-fenced extraction attempt
+        if language is not None:
+            self.logger.log(f"Code-fenced block detected with language '{language}' for {expected_language.upper()} parsing", 'debug')
+        elif code_fences:
+            self.logger.log(f"No code-fenced block found using fences {code_fences}, extracted content length: {len(extracted_content)}", 'debug')
+        else:
+            self.logger.log(f"No code fences specified, proceeding with full content for {expected_language.upper()} parsing", 'debug')
+        
+        # Check language match and warn if different
         if language and language.lower() != expected_language.lower():
             self.logger.log(f"Expected {expected_language.upper()} code block, but found '{language}'", 'warning')
-            
-        if cleaned_string:
+        
+        # Attempt to parse the extracted (code-fenced) content
+        if extracted_content:
             try:
                 # Apply format-specific preprocessing
+                processed_content = extracted_content
                 if expected_language.lower() == 'yaml':
-                    cleaned_string = self.sanitize_yaml_content(cleaned_string)
+                    processed_content = self.sanitize_yaml_content(extracted_content)
                 
-                return parser_func(cleaned_string)
+                self.logger.log(f"Attempting code-fenced {expected_language.upper()} parsing on content of length {len(processed_content)}", 'debug')
+                result = parser_func(processed_content)
+                self.logger.log(f"Code-fenced {expected_language.upper()} parsing succeeded", 'debug')
+                return result
+                
             except Exception as e:
-                # Log a more detailed error with a preview of the content
-                preview = cleaned_string[:100] + ('...' if len(cleaned_string) > 100 else '')
-                self.logger.log(f"Parsing error: {str(e)}\nContent preview: {preview}", 'error')
-                self.logger.log(f"Content type: {expected_language}, Content length: {len(cleaned_string)}", 'error')
+                # Log the code-fenced parsing failure
+                preview = processed_content[:100] + ('...' if len(processed_content) > 100 else '')
+                self.logger.log(f"Code-fenced {expected_language.upper()} parsing failed: {str(e)}", 'warning')
+                self.logger.log(f"Failed content preview: {preview}", 'debug')
+                
+                # Stage 2: Fallback to bare parsing if code-fenced parsing failed
+                # Only attempt if we had extracted a code block and it failed
+                if language is not None or code_fences:
+                    return self._attempt_bare_parsing(content_string, parser_func, expected_language)
+                else:
+                    # If no code fences were specified, don't try again
+                    raise ParsingError(f"Failed to parse {expected_language}: {e}") from e
+        
+        # If no content was extracted, attempt bare parsing
+        return self._attempt_bare_parsing(content_string, parser_func, expected_language)
+    
+    def _attempt_bare_parsing(self, content_string: str, parser_func: Callable[[str], Any], 
+                            expected_language: str) -> Any:
+        """
+        Attempt to parse the entire content string as the expected format (bare parsing).
+        
+        Args:
+            content_string: The full input string
+            parser_func: The parsing function to use
+            expected_language: The expected format type
+            
+        Returns:
+            Parsed content or raises ParsingError if parsing fails
+        """
+        
+        stripped_content = content_string.strip()
+        self.logger.log(f"Attempting bare {expected_language.upper()} parsing fallback on full content (length: {len(stripped_content)})", 'info')
+        
+        try:
+            # Apply format-specific preprocessing for bare content too
+            processed_content = stripped_content
+            if expected_language.lower() == 'yaml':
+                processed_content = self.sanitize_yaml_content(stripped_content)
+            
+            result = parser_func(processed_content)
+            self.logger.log(f"Bare {expected_language.upper()} parsing fallback succeeded", 'info')
+            return result
+            
+        except Exception as e:
+            # Log the bare parsing failure
+            preview = processed_content[:100] + ('...' if len(processed_content) > 100 else '')
+            self.logger.log(f"Bare {expected_language.upper()} parsing fallback failed: {str(e)}", 'error')
+            self.logger.log(f"Failed content preview: {preview}", 'debug')
+            self.logger.log(f"Content type: {expected_language}, Content length: {len(processed_content)}", 'error')
+            
+            # Special handling for YAML auto-cleanup (keeping existing behavior as requested)
+            if expected_language.lower() == 'yaml':
+                try:
+                    # More aggressive YAML cleanup as a last resort
+                    cleaned_content = re.sub(r'[`~]', '', processed_content)  # Remove any remaining backticks
+                    self.logger.log("Attempting alternative YAML parsing after aggressive cleanup", 'info')
+                    result = parser_func(cleaned_content)
+                    self.logger.log("Alternative YAML parsing succeeded", 'info')
+                    return result
+                except Exception as e2:
+                    self.logger.log(f"Alternative YAML parsing also failed: {e2}", 'error')
+            
+            raise ParsingError(f"Failed to parse {expected_language}: {e}") from e
 
-                # Try alternative parsing approaches for common error cases
-                if expected_language.lower() == 'yaml':
-                    try:
-                        # More aggressive YAML cleanup as a last resort
-                        cleaned_again = re.sub(r'[`~]', '', cleaned_string)  # Remove any remaining backticks
-                        self.logger.log("Attempting alternative YAML parsing after aggressive cleanup", 'info')
-                        return parser_func(cleaned_again)
-                    except Exception as e2:
-                        self.logger.log(f"Alternative parsing also failed: {e2}", 'error')
-
-                raise ParsingError(f"Failed to parse {expected_language}: {e}") from e
-        return None
-
-    def parse_by_format(self, content_string: str, parser_type: str, code_fences: List[str] = []) -> Any:
+    def parse_by_format(self, content_string: str, parser_type: str, code_fences: Optional[List[str]] = None) -> Any:
+        """
+        Parse content using the specified format with two-stage parsing approach.
+        
+        This method uses the two-stage parsing approach:
+        1. First attempts to extract and parse content from code blocks (using DEFAULT_CODE_FENCES by default)
+        2. Falls back to parsing the entire content as the specified format if stage 1 fails
+        
+        Args:
+            content_string: The input string to parse
+            parser_type: The format type to parse (json, yaml, xml, ini, csv, markdown)
+            code_fences: List of fence markers to look for. If None, uses DEFAULT_CODE_FENCES (['```']).
+                        Pass an empty list [] to disable code fence extraction and parse full content.
+            
+        Returns:
+            Parsed content in the appropriate Python data structure
+            
+        Raises:
+            ParsingError: If the format is unsupported or parsing fails completely
+        """
         parser = self.parsers.get(parser_type.lower())
         if parser:
             return parser(content_string, code_fences)
         self.logger.log(f"No parser method found for type '{parser_type}'", 'error')
         raise ParsingError(f"No parser method found for type '{parser_type}'")
 
-    def auto_parse_content(self, text: str, code_fences: List[str] = []) -> Any:
+    def auto_parse_content(self, text: str, code_fences: Optional[List[str]] = None) -> Any:
+        """
+        Automatically parse content by detecting the language from code fences.
+        
+        Args:
+            text: The input text to parse
+            code_fences: List of fence markers to look for. If None, uses DEFAULT_CODE_FENCES (['```']).
+                        Pass an empty list [] to disable code fence extraction.
+                        
+        Returns:
+            Parsed content if a supported language is detected, otherwise returns the raw text.
+        """
         language, content = self.extract_code_block(text, code_fences)
         if language and language.lower() in self.list_supported_formats():
             return self.parse_by_format(content, language, code_fences=code_fences)

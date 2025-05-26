@@ -128,30 +128,41 @@ def stubbed_agents(monkeypatch):
     decision_values = ["approve", "reject", "other"]
 
     def fake_run(self: Agent, **context):  # type: ignore[override]
+        # Check if this agent has debug mode enabled and should use original behavior
+        if hasattr(self, 'settings') and self.settings.get('system', {}).get('debug', {}).get('mode', False):
+            # Let debug mode handle this agent normally
+            return original_run(self, **context)
+        
         name_l = self.agent_name.lower()
-        if any(k in name_l for k in ("analyze", "decide", "response")):
-            if "analyze" in name_l:
-                return {"analysis": "stub-analysis"}
-            if "decide" in name_l:
-                idx = getattr(self, "_call_idx", 0)
-                self._call_idx = idx + 1
-                val = decision_values[idx % len(decision_values)]
-                return {"choice": val, "rationale": "stub"}
-            if "response" in name_l:
-                return "FINAL RESPONSE"
-        # otherwise defer to original behavior (e.g., TestAgent in unit tests)
-        return original_run(self, **context)
+        
+        # Handle specific agent types with their expected outputs
+        if "analyze" in name_l:
+            return {"analysis": "stub-analysis"}
+        elif "decide" in name_l:
+            idx = getattr(self, "_call_idx", 0)
+            self._call_idx = idx + 1
+            val = decision_values[idx % len(decision_values)]
+            return {"choice": val, "rationale": "stub"}
+        elif "response" in name_l or "respond" in name_l:
+            return "FINAL RESPONSE"
+        elif "understand" in name_l:
+            return {
+                "insights": "User is asking about programming topics",
+                "user_intent": "Seeking information or help",
+                "relevant_topics": ["programming", "learning"],
+                "persona_relevant": "User shows interest in technical topics"
+            }
+        else:
+            # For any other agent, check if it's a known test agent that should use original behavior
+            if "test" in name_l:
+                return original_run(self, **context)
+            # Otherwise provide a generic response for cog agents
+            return f"Simulated response from {self.agent_name}"
 
     monkeypatch.setattr(Agent, "run", fake_run, raising=True)
 
-    # Patch Cog._get_response_format_for_agent to be None-safe
-    from agentforge.cog import Cog
-
-    def _safe_get(self: Cog, agent_def):  # type: ignore[override]
-        rf = agent_def.get("response_format", self.default_response_format)
-        return rf.lower() if isinstance(rf, str) else None
-
-    monkeypatch.setattr(Cog, "_get_response_format_for_agent", _safe_get, raising=True)
+    # Note: _get_response_format_for_agent method was removed during Cog refactor
+    # Response format handling is now done by individual agents
     yield
 
 

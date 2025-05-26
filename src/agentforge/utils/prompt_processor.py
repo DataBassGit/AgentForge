@@ -1,4 +1,5 @@
 import re
+from typing import Any
 from agentforge.utils.logger import Logger
 
 class PromptProcessor:
@@ -160,7 +161,12 @@ class PromptProcessor:
                 variable_name = match.group(1)  # e.g. "A2.answer"
                 val = self._nested_lookup(data, variable_name)
                 # If val is None, we preserve the original placeholder.
-                return str(val).strip() if val is not None else match.group(0)
+                if val is not None:
+                    # Use markdown formatting for dict/list values
+                    formatted_val = self.value_to_markdown(val)
+                    return formatted_val.strip()
+                else:
+                    return match.group(0)
 
             variable_pattern = re.compile(self.pattern)
             # Perform variable substitution
@@ -252,21 +258,8 @@ class PromptProcessor:
         if not static_content:
             return None
             
-        # Format static content into markdown
-        md_lines = []
-        for key, value in static_content.items():
-            if isinstance(value, str):
-                md_lines.append(f"**{key}**: {value}")
-            elif isinstance(value, list):
-                md_lines.append(f"**{key}**:")
-                for item in value:
-                    md_lines.append(f"- {item}")
-            elif isinstance(value, dict):
-                md_lines.append(f"**{key}**:")
-                for k, v in value.items():
-                    md_lines.append(f"- {k}: {v}")
-        
-        persona_md = "\n".join(md_lines)
+        # Use the centralized markdown formatting helper
+        persona_md = self._dict_to_markdown(static_content)
         
         # Get character cap from settings - treat 0 as no cap
         static_char_cap = persona_settings.get('static_char_cap', 8000)
@@ -281,37 +274,7 @@ class PromptProcessor:
         
         return persona_md
         
-    def check_inject_persona_md(self, prompt, template_data, persona_settings):
-        """
-        Check if persona_md should be injected into system prompt and perform the injection if needed.
-        
-        Args:
-            prompt (dict): Dictionary containing rendered prompts
-            template_data (dict): Dictionary containing template data including persona_md
-            persona_settings (dict): Dictionary containing persona settings
-            
-        Returns:
-            dict: Updated prompt dictionary with persona_md injected if applicable
-        """
-        if not prompt or 'system' not in prompt:
-            return prompt
-            
-        if 'persona_md' not in template_data:
-            return prompt
-            
-        personas_enabled = persona_settings.get('enabled', False)
-        auto_inject = persona_settings.get('auto_inject_persona', True)
-        
-        if personas_enabled and auto_inject:
-            # Append persona_md to the end of the system prompt
-            system_prompt = prompt['system']
-            persona_md = template_data['persona_md']
-            
-            if system_prompt and persona_md:
-                # Add two newlines before the persona info for better formatting
-                prompt['system'] = f"{system_prompt}\n\n{persona_md}"
-                
-        return prompt
+
 
     @staticmethod
     def unescape_braces(template: str) -> str:
@@ -325,4 +288,77 @@ class PromptProcessor:
             str: The template with escaped braces unescaped.
         """
         return re.sub(r'/\{(.*?)/}', r'{\1}', template)
+
+    ##################################################
+    # Value Formatting
+    ##################################################
+
+    @staticmethod
+    def value_to_markdown(val: Any) -> str:
+        """
+        Convert a value to markdown-formatted string for prompt insertion.
+        
+        - If val is a dict → return bold keys with bullet list formatting
+        - If val is a list → join items with '- ' bullet prefix
+        - Else → return str(val)
+        
+        Args:
+            val: The value to convert to markdown format
+            
+        Returns:
+            str: Markdown-formatted string representation of the value
+        """
+        if isinstance(val, dict):
+            return PromptProcessor._dict_to_markdown(val)
+        elif isinstance(val, list):
+            return PromptProcessor._list_to_markdown(val)
+        else:
+            return str(val)
+    
+    @staticmethod
+    def _dict_to_markdown(data: dict) -> str:
+        """
+        Convert dictionary to markdown format with bold keys and bullet lists.
+        
+        Args:
+            data: Dictionary to convert
+            
+        Returns:
+            str: Markdown formatted string
+        """
+        if not data:
+            return ""
+            
+        md_lines = []
+        for key, value in data.items():
+            if isinstance(value, str):
+                md_lines.append(f"**{key}**: {value}")
+            elif isinstance(value, list):
+                md_lines.append(f"**{key}**:")
+                for item in value:
+                    md_lines.append(f"- {item}")
+            elif isinstance(value, dict):
+                md_lines.append(f"**{key}**:")
+                for k, v in value.items():
+                    md_lines.append(f"- {k}: {v}")
+            else:
+                md_lines.append(f"**{key}**: {value}")
+        
+        return "\n".join(md_lines)
+    
+    @staticmethod
+    def _list_to_markdown(data: list) -> str:
+        """
+        Convert list to markdown format with bullet points.
+        
+        Args:
+            data: List to convert
+            
+        Returns:
+            str: Markdown formatted string
+        """
+        if not data:
+            return ""
+            
+        return "\n".join(f"- {item}" for item in data)
 

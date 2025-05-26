@@ -18,8 +18,8 @@ cog:
     - id: general_memory
       query_before: analyze
       update_after: respond
-      query_keys: [user_input]
-      update_keys: [user_input, respond]
+      query_keys: [external.user_input]
+      update_keys: [external.user_input, internal.respond]
 
   flow:
     start: analyze
