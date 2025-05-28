@@ -99,13 +99,15 @@ class TestPersonaMemoryDeduplication:
     def test_update_memory_skips_duplicate_add(self, persona_memory):
         """Test that update_memory skips adding duplicate facts."""
         # Setup agent responses
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": ["existing facts"]}'
-        persona_memory._test_agents['update'].run.return_value = '''
-        {
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["existing facts"]}
+        persona_memory._test_agents['update'].run.return_value = {
             "action": "add",
-            "new_fact": "User enjoys classical music"
+            "new_facts": [
+                {
+                    "fact": "User enjoys classical music"
+                }
+            ]
         }
-        '''
         
         # Add the exact same fact to storage first (will cause duplicate detection)
         persona_memory._test_storage.save_to_storage(
@@ -128,13 +130,15 @@ class TestPersonaMemoryDeduplication:
     def test_update_memory_adds_non_duplicate(self, persona_memory):
         """Test that update_memory adds facts that are not duplicates."""
         # Setup agent responses
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": ["existing facts"]}'
-        persona_memory._test_agents['update'].run.return_value = '''
-        {
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["existing facts"]}
+        persona_memory._test_agents['update'].run.return_value = {
             "action": "add",
-            "new_fact": "User enjoys classical music"
+            "new_facts": [
+                {
+                    "fact": "User enjoys classical music"
+                }
+            ]
         }
-        '''
         
         # Add some different facts to storage (not the one we're about to add)
         persona_memory._test_storage.save_to_storage(
@@ -164,14 +168,16 @@ class TestPersonaMemoryDeduplication:
     def test_update_memory_update_action_not_affected(self, persona_memory):
         """Test that update action (not add) is not affected by deduplication."""
         # Setup agent responses
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": ["music preferences"]}'
-        persona_memory._test_agents['update'].run.return_value = '''
-        {
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["music preferences"]}
+        persona_memory._test_agents['update'].run.return_value = {
             "action": "update",
-            "new_fact": "User now prefers jazz music",
-            "supersedes": ["fact123"]
+            "new_facts": [
+                {
+                    "fact": "User now prefers jazz music",
+                    "supersedes": ["fact123"]
+                }
+            ]
         }
-        '''
         
         # Add some existing facts to storage
         persona_memory._test_storage.save_to_storage(

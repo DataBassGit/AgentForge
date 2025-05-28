@@ -117,14 +117,12 @@ class TestPersonaMemory:
     def test_query_memory_success(self, persona_memory):
         """Test successful query memory operation."""
         # Setup mocks
-        persona_memory._test_agents['retrieval'].run.return_value = '''
-        {
+        persona_memory._test_agents['retrieval'].run.return_value = {
             "queries": [
                 "assistant preferences and settings",
                 "user interaction history"
             ]
         }
-        '''
         
         # Setup FakeChromaStorage to return results for each query
         storage = persona_memory._test_storage
@@ -147,11 +145,9 @@ class TestPersonaMemory:
         
         # Mock the query_storage method
         with patch.object(storage, 'query_storage', side_effect=query_side_effect):
-            persona_memory._test_agents['narrative'].run.return_value = '''
-            {
+            persona_memory._test_agents['narrative'].run.return_value = {
                 "narrative": "The assistant is configured for a user who prefers concise responses and has shown interest in Python programming."
             }
-            '''
             
             # Execute query
             result = persona_memory.query_memory("What does the user prefer?")
@@ -169,7 +165,7 @@ class TestPersonaMemory:
     def test_query_memory_no_queries_generated(self, persona_memory):
         """Test query memory when retrieval agent returns no queries."""
         # Setup mocks
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": []}'
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": []}
         
         # Execute query
         result = persona_memory.query_memory("Test query")
@@ -179,10 +175,10 @@ class TestPersonaMemory:
         assert "Based on the static persona information" in result['_narrative']
         assert result['raw'] is None
         
-    def test_query_memory_parsing_error(self, persona_memory):
-        """Test query memory with parsing errors."""
-        # Setup mock to return invalid JSON
-        persona_memory._test_agents['retrieval'].run.return_value = "Invalid JSON response"
+    def test_query_memory_invalid_response(self, persona_memory):
+        """Test query memory with invalid response format."""
+        # Setup mock to return invalid response format
+        persona_memory._test_agents['retrieval'].run.return_value = "Invalid response format"
         
         # Execute query - should handle gracefully
         result = persona_memory.query_memory("Test query")
@@ -194,7 +190,7 @@ class TestPersonaMemory:
     def test_update_memory_add_action(self, persona_memory):
         """Test update memory with add action."""
         # Setup mocks
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": ["existing facts"]}'
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["existing facts"]}
         
         # Mock empty query result
         with patch.object(persona_memory._test_storage, 'query_storage') as mock_query:
@@ -204,12 +200,14 @@ class TestPersonaMemory:
                 'metadatas': []
             }
             
-            persona_memory._test_agents['update'].run.return_value = '''
-            {
+            persona_memory._test_agents['update'].run.return_value = {
                 "action": "add",
-                "new_fact": "User enjoys classical music"
+                "new_facts": [
+                    {
+                        "fact": "User enjoys classical music"
+                    }
+                ]
             }
-            '''
             
             # Mock save_to_storage to capture the call
             with patch.object(persona_memory._test_storage, 'save_to_storage') as mock_save:
@@ -228,7 +226,7 @@ class TestPersonaMemory:
     def test_update_memory_update_action(self, persona_memory):
         """Test update memory with update action (superseding facts)."""
         # Setup mocks
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": ["music preferences"]}'
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["music preferences"]}
         
         with patch.object(persona_memory._test_storage, 'query_storage') as mock_query:
             mock_query.return_value = {
@@ -237,13 +235,15 @@ class TestPersonaMemory:
                 'metadatas': [{'type': 'preference'}]
             }
             
-            persona_memory._test_agents['update'].run.return_value = '''
-            {
+            persona_memory._test_agents['update'].run.return_value = {
                 "action": "update",
-                "new_fact": "User now prefers jazz music",
-                "supersedes": ["fact123"]
+                "new_facts": [
+                    {
+                        "fact": "User now prefers jazz music",
+                        "supersedes": ["fact123"]
+                    }
+                ]
             }
-            '''
             
             with patch.object(persona_memory._test_storage, 'save_to_storage') as mock_save:
                 # Execute update
@@ -260,8 +260,8 @@ class TestPersonaMemory:
     def test_update_memory_no_action(self, persona_memory):
         """Test update memory with no action required."""
         # Setup mocks
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": []}'
-        persona_memory._test_agents['update'].run.return_value = '{"action": "none"}'
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": []}
+        persona_memory._test_agents['update'].run.return_value = {"action": "none"}
         
         with patch.object(persona_memory._test_storage, 'save_to_storage') as mock_save:
             # Execute update
@@ -283,7 +283,7 @@ class TestPersonaMemory:
     def test_narrative_placeholder_access(self, persona_memory):
         """Test that narrative is accessible via placeholder after query."""
         # Setup successful query
-        persona_memory._test_agents['retrieval'].run.return_value = '{"queries": ["test"]}'
+        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["test"]}
         
         with patch.object(persona_memory._test_storage, 'query_storage') as mock_query:
             mock_query.return_value = {
@@ -291,7 +291,7 @@ class TestPersonaMemory:
                 'ids': ['1'],
                 'metadatas': [{}]
             }
-            persona_memory._test_agents['narrative'].run.return_value = '{"narrative": "Test narrative content"}'
+            persona_memory._test_agents['narrative'].run.return_value = {"narrative": "Test narrative content"}
             
             # Execute query
             persona_memory.query_memory("Test")

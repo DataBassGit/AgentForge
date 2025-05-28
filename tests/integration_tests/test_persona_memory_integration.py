@@ -158,11 +158,11 @@ class TestPersonaMemoryIntegration:
             agent_name = getattr(self, 'agent_name', 'unknown')
             
             if agent_name == "retrieval_agent":
-                return '{"queries": ["user preferences", "interaction patterns"]}'
+                return {"queries": ["user preferences", "interaction patterns"]}
             elif agent_name == "narrative_agent":
-                return '{"narrative": "User is a developer who prefers concise explanations and enjoys Python programming."}'
+                return {"narrative": "User is a developer who prefers concise explanations and enjoys Python programming."}
             elif agent_name == "update_agent":
-                return '{"action": "add", "new_fact": "User enjoys discussing programming topics"}'
+                return {"action": "add", "new_facts": [{"fact": "User enjoys discussing programming topics"}]}
             else:
                 # Fall back to the original stubbed behavior for other agents
                 return stubbed_run(self, **context)
