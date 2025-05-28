@@ -18,13 +18,21 @@ prompts:
     context: |
       - Current Context:
       ---
-      {context}
+      {_ctx}
+      ---
+
+    state: |
+      - Current Internal State:
+      ---
+      {_state}
       ---
 
   user: |
     Write a concise narrative that naturally combines the given information and persona facts into a summary suitable for prompt injection.
 
-    Respond in valid JSON:
+    Respond with pure JSON only (no code blocks or markdown formatting):
     {
       "narrative": "..."
     }
+
+parse_response_as: json

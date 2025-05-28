@@ -192,7 +192,8 @@ class Config:
         default_debug_text = settings['system']['debug'].get('simulated_response', 'Simulated Text Goes Here!!!')
         simulated_response = agent.get('simulated_response', default_debug_text).strip()
 
-        return {
+        # Construct base agent data with explicit/derived fields
+        base_agent_data = {
             'name': agent_name,
             'settings': settings,
             'model': model,
@@ -201,6 +202,19 @@ class Config:
             'prompts': prompts,
             'simulated_response': simulated_response,
         }
+
+        # Merge in any additional top-level fields from the agent YAML that aren't already included
+        # Skip fields that could interfere with core functionality
+        reserved_fields = {
+            'name', 'settings', 'model', 'params', 'persona', 'prompts', 'simulated_response',
+            # Also skip fields used during model resolution process
+            'model_overrides'
+        }
+        for key, value in agent.items():
+            if key not in base_agent_data and key not in reserved_fields:
+                base_agent_data[key] = value
+
+        return base_agent_data
 
     def load_cog_data(self, cog_name):
         cog = self.find_config('cogs', cog_name)
@@ -494,20 +508,23 @@ class Config:
             
         # 2. Agent-defined persona (medium priority)
         elif agent_config and 'persona' in agent_config:
-            persona_name = agent_config['persona']
+            # Ensure persona name is a string (handle malformed configs gracefully)
+            persona_candidate = agent_config['persona']
+            if isinstance(persona_candidate, str):
+                persona_name = persona_candidate
             
         # 3. System default persona (lowest priority)
         else:
             persona_name = settings['system']['persona'].get('name', 'DefaultAssistant')
             
         # Load the persona data
-        if persona_name not in self.data.get('personas', {}):
+        if persona_name and persona_name not in self.data.get('personas', {}):
             raise FileNotFoundError(
                 f"Selected Persona '{persona_name}' not found. "
                 "Please make sure the corresponding persona file is in the personas folder"
             )
             
-        return self.data['personas'][persona_name]
+        return self.data['personas'][persona_name] if persona_name else None
         
     def load_persona(self, agent_config: dict) -> Optional[Dict[str, Any]]:
         """

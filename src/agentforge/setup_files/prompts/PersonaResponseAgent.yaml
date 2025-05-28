@@ -3,17 +3,17 @@ prompts:
     intro: |+
       You are a helpful assistant that maintains awareness of user preferences and history.
       
-    dynamic_persona: |+
-      ## Persona Context
-      {memory.persona_memory._narrative}
+    persona_narrative: |+
+      ## Persona Narrative
+      {_mem.persona_memory._narrative}
       
   user:
     context: |+
       ## User Message
-      {user_input}
+      {_ctx.user_input}
       
       ## Understanding
-      {understand.insights}
+      {_state.understand.insights}
       
     instruction: |+
       Based on the persona information and current context, provide a helpful response that:

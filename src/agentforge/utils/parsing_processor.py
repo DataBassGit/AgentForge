@@ -257,6 +257,10 @@ class ParsingProcessor:
         Raises:
             ParsingError: If the format is unsupported or parsing fails completely
         """
+        # Explicitly set default code fences when None is provided
+        if code_fences is None:
+            code_fences = self.DEFAULT_CODE_FENCES
+            
         parser = self.parsers.get(parser_type.lower())
         if parser:
             return parser(content_string, code_fences)
@@ -275,6 +279,10 @@ class ParsingProcessor:
         Returns:
             Parsed content if a supported language is detected, otherwise returns the raw text.
         """
+        # Explicitly set default code fences when None is provided
+        if code_fences is None:
+            code_fences = self.DEFAULT_CODE_FENCES
+            
         language, content = self.extract_code_block(text, code_fences)
         if language and language.lower() in self.list_supported_formats():
             return self.parse_by_format(content, language, code_fences=code_fences)

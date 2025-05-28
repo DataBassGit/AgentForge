@@ -6,6 +6,7 @@ from .config import Config
 from agentforge.apis.base_api import BaseModel
 from agentforge.utils.logger import Logger
 from agentforge.utils.prompt_processor import PromptProcessor
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 
 class Agent:
@@ -39,8 +40,10 @@ class Agent:
         self.template_data: Dict[str, Any] = {}
         self.prompt: Optional[Dict[str]] = None
         self.result: Optional[str] = None
+        self.parsed_result: Optional[Any] = None
         self.output: Optional[str] = None
         self.images: List[str] = []
+        self.parsing_processor = ParsingProcessor()
 
     # ---------------------------------
     # Execution
@@ -256,11 +259,16 @@ class Agent:
 
     def parse_result(self) -> None:
         """
-        Process model output as needed.
-        
-        Override this method in subclasses to implement custom result parsing.
+        Parse the model output using the agent's parse_response_as, if specified.
+        If parsing fails or the format is unrecognized, a ParsingError (or relevant exception) is raised.
+        The parsed result is stored in self.parsed_result.
         """
-        pass
+        self.parsed_result = self.result
+        if not self.result:
+            return
+        parse_response_as = self.agent_data.get('parse_response_as', None)
+        if parse_response_as and isinstance(parse_response_as, str):
+            self.parsed_result = self.parsing_processor.parse_by_format(self.result, parse_response_as)
 
     def post_process_result(self) -> None:
         """
@@ -275,9 +283,8 @@ class Agent:
 
     def build_output(self) -> None:
         """
-        Build the final output from model results.
-        
+        Build the final output from parsed model results.
         Override this method in subclasses to implement custom output formatting.
-        By default, uses the raw model result as output.
+        By default, uses the parsed result as output.
         """
-        self.output = self.result
+        self.output = self.parsed_result

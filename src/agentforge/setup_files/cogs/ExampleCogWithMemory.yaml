@@ -17,9 +17,9 @@ cog:
       type: agentforge.storage.episodic.EpisodicMemory
       collection_id: user_interactions
       query_before: analyze
-      query_keys: [external.user_input, external.importance_threshold, external.context_filter]
+      query_keys: [user_input, importance_threshold, context_filter]
       update_after: respond
-      update_keys: [internal.respond]
+      update_keys: [respond]
 
   flow:
     start: analyze

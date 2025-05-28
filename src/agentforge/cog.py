@@ -46,13 +46,10 @@ class Cog:
         self.cog_config = self.config.load_cog_data(self.cog_file).copy()
 
     def _reset_context_and_thoughts(self):
-        self._reset_global_context()
+        self.context: dict = {}  # external context (runtime/user input)
+        self.state: dict = {}    # internal state (agent-local/internal data)
         self._reset_thought_flow_trail()
         self.agent_visit_counts = {}
-
-    def _reset_global_context(self):
-        self.external_context: dict = {}
-        self.internal_context: dict = {}
 
     def _reset_thought_flow_trail(self):
         self.thought_flow_trail: List[Dict] = []
@@ -379,13 +376,13 @@ class Cog:
             return fallback_branch
             
         # Get the decision value from the agent's output
-        if current_agent_id not in self.internal_context:
-            self.logger.log(f"No output found for agent '{current_agent_id}' in internal context", "warning", "Decision")
+        if current_agent_id not in self.state:
+            self.logger.log(f"No output found for agent '{current_agent_id}' in internal state", "warning", "Decision")
             # Use the top-level fallback if no agent output
             self.logger.log(f"No agent output, returning fallback", "debug", "Decision")
             return fallback_branch
             
-        decision_value = self.internal_context[current_agent_id].get(decision_key)
+        decision_value = self.state[current_agent_id].get(decision_key)
         self.logger.log(f"Decision value={decision_value}", "debug", "Decision")
         
         # If the decision value is not found in the output, use the fallback branch
@@ -522,20 +519,6 @@ class Cog:
                 "config": mem_def,  # store the raw config for query/update triggers
             }
 
-
-
-    def _build_ctx(self) -> dict:
-        """
-        Build the context structure for agent execution.
-        
-        Returns:
-            dict: Nested context with external and internal sections
-        """
-        return {
-            "external": self.external_context,
-            "internal": self.internal_context
-        }
-
     def _build_mem(self) -> dict:
         """
         Build the memory structure for agent execution.
@@ -568,20 +551,19 @@ class Cog:
                 
             self.logger.log(f"Querying memory {mem_id} before agent {agent_id}", "debug", "Memory")
             
-            # Handle query keys - if empty or missing, use entire external context
+            # Handle query keys - if empty or missing, use both context and state
             query_keys = cfg.get("query_keys", [])
             if not query_keys:
-                # Use external context as query text
-                context = self._build_ctx()
-                query_text = context.get("external", {})
+                # Use merged context and state as query text
+                query_text = {**self.context, **self.state}
                 if query_text:
-                    self.logger.log(f"Using external context for memory {mem_id} query", "debug", "Memory")
+                    self.logger.log(f"Using merged context/state for memory {mem_id} query", "debug", "Memory")
                     result = mem_obj.query_memory(query_text=query_text)
                     if result:
                         self.logger.log(f"Found memories in {mem_id}", "debug", "Memory")
                         mem_obj.store.update(result)
                 else:
-                    self.logger.log(f"No external context available for memory {mem_id} query", "debug", "Memory")
+                    self.logger.log(f"No context or state available for memory {mem_id} query", "debug", "Memory")
                 continue
                 
             try:
@@ -632,18 +614,17 @@ class Cog:
                 
             self.logger.log(f"Updating memory {mem_id} after agent {agent_id}", "debug", "Memory")
             
-            # Handle update keys - if empty or missing, use entire external context
+            # Handle update keys - if empty or missing, use both context and state
             update_keys = cfg.get("update_keys", [])
             if not update_keys:
-                # Use entire external context for update
-                context = self._build_ctx()
-                update_data = context.get("external", {})
+                # Use merged context and state for update
+                update_data = {**self.context, **self.state}
                 if update_data:
-                    self.logger.log(f"Using external context for memory {mem_id} update", "debug", "Memory")
-                    mem_obj.update_memory(data=update_data, context=context)
+                    self.logger.log(f"Using merged context/state for memory {mem_id} update", "debug", "Memory")
+                    mem_obj.update_memory(data=update_data, context={**self.context, **self.state})
                     self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
                 else:
-                    self.logger.log(f"No external context available for memory {mem_id} update", "debug", "Memory")
+                    self.logger.log(f"No context or state available for memory {mem_id} update", "debug", "Memory")
                 continue
                 
             try:
@@ -654,68 +635,52 @@ class Cog:
                 
                 self.logger.log(f"Updating memory {mem_id} with: {list(update_data.keys())}", "debug", "Memory")
                 
-                # Update memory with extracted data and full context for metadata
-                context = self._build_ctx()
-                mem_obj.update_memory(data=update_data, context=context)
+                # Update memory with extracted data and merged context/state for metadata
+                mem_obj.update_memory(data=update_data, context={**self.context, **self.state})
                 self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
                 
             except Exception as e:
                 # Storage-level errors should be fatal
                 self.logger.log(f"Memory update failed for {mem_id}: {e}", "error", "Memory")
                 raise
-                
-    
-    def _extract_keys(self, key_list: Union[list[str], str]) -> dict:
+
+    def _extract_keys(self, key_list):
         """
-        Extract values from context using dot-notated keys with external.* / internal.* prefixes.
-        
-        Args:
-            key_list: List of dot-notated keys to extract from context
-            
-        Returns:
-            dict: Extracted key-value pairs
-            
-        Raises:
-            ValueError: If provided keys are missing from context (strict mode for update_keys)
+        Extract values for the given keys from self.context (external) first, then self.state (internal).
+        Supports dot-notated keys for nested dict access.
+        If key_list is empty or None, returns a merged dict of self.context and self.state.
         """
         if not key_list:
-            # Return entire external context if no keys specified
-            context = self._build_ctx()
-            return context.get("external", {})
-
-        # Convert single key to list for uniform processing
-        if isinstance(key_list, str):
-            key_list = [key_list]
-        
-        # Get context for lookup
-        context = self._build_ctx()
-        
-        # Extract each key from the context
+            merged = {**self.state, **self.context}
+            return merged
         result = {}
-        for k in key_list:
-            value = self._lookup_dot_key(context, k)
+        for key in key_list:
+            value = self._get_dot_notated(self.context, key)
             if value is not None:
-                result[k] = value
-        
-        # If keys were provided but all are missing, raise error
-        if not result and key_list:
-            raise ValueError(f"All requested keys missing from context: {key_list}. "
-                           f"Keys must use external.* or internal.* prefixes.")
-        
+                result[key] = value
+                continue
+            value = self._get_dot_notated(self.state, key)
+            if value is not None:
+                result[key] = value
+                continue
+            raise ValueError(f"Key '{key}' not found in context or state.")
         return result
 
     @staticmethod
-    def _lookup_dot_key(obj: dict, dot_key: str):
+    def _get_dot_notated(source, key):
         """
-        e.g. obj = {"thought": {"user_intent": "some intent"}}, dot_key="thought.user_intent"
-        => returns "some intent"
+        Helper to get a value from a dict using dot notation (e.g., 'foo.bar.baz').
+        Returns None if any part of the path is missing.
         """
-        parts = dot_key.split(".")
-        current = obj
-        for p in parts:
-            if not isinstance(current, dict) or p not in current:
+        if not isinstance(source, dict):
+            return None
+        parts = key.split('.')
+        current = source
+        for part in parts:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
+            else:
                 return None
-            current = current[p]
         return current
 
     ##########################################################
@@ -741,17 +706,11 @@ class Cog:
 
         while attempts < max_attempts:
             attempts += 1
-            # Build context and memory structures once per attempt
-            ctx = self._build_ctx()
             mem = self._build_mem()
-            
-            # Execute agent with separated context and memory
-            agent_output = agent.run(_ctx=ctx, _mem=mem)
-
+            agent_output = agent.run(_ctx=self.context, _state=self.state, _mem=mem)
             if not agent_output:
                 self.logger.log(f"No output from agent '{current_agent_id}', retrying... (Attempt {attempts})", "warning")
                 continue
-
             return agent_output
 
         self.logger.log(f"Max attempts reached for agent '{current_agent_id}' with no valid output.", "error")
@@ -778,8 +737,8 @@ class Cog:
                 # Execute the current agent
                 agent_output = self._call_agent(current_agent_id)
                 
-                # Store agent output in internal context
-                self.internal_context[current_agent_id] = agent_output
+                # Store agent output in state
+                self.state[current_agent_id] = agent_output
                 self.last_executed_agent = current_agent_id
                 
                 # Track output for logging if enabled
@@ -797,10 +756,7 @@ class Cog:
             except Exception as e:
                 self.logger.log(f"Error during cog execution: {e}", "error", "Flow")
                 raise
-                
         self.logger.log("Cog execution completed", "debug", "Flow")
-
-
 
     def _track_agent_output(self, agent_id: str, output: Any) -> None:
         """Track agent output in thought flow trail if logging is enabled."""
@@ -810,12 +766,12 @@ class Cog:
 
     def get_internal_context(self) -> Dict[str, Any]:
         """
-        Returns the full internal context after execution.
+        Returns the full internal state after execution.
         
         Returns:
-            Dict[str, Any]: The internal context containing all agent outputs
+            Dict[str, Any]: The internal state containing all agent outputs
         """
-        return self.internal_context.copy()
+        return self.state.copy()
 
     def run(self, **kwargs: Any) -> Any:
         """
@@ -829,10 +785,10 @@ class Cog:
                 - If 'end: true', returns the output of the last agent executed
                 - If 'end: <agent_id>', returns the output of that specific agent
                 - If 'end: <agent_id>.field.subfield', returns that nested value
-                - Otherwise, returns the full internal context
+                - Otherwise, returns the full internal state
         """
         self._reset_context_and_thoughts()
-        self.external_context.update(kwargs)
+        self.context.update(kwargs)
         self._execute_flow()
         
         # Get the transition for the last executed agent
@@ -845,16 +801,14 @@ class Cog:
                 
                 # If `end: true`, return the last agent's output
                 if end_value is True:
-                    return self.internal_context.get(self.last_executed_agent)
+                    return self.state.get(self.last_executed_agent)
                 
                 # If end is a string, it could be an agent_id or dot notation
                 if isinstance(end_value, str):
                     # Check if it's just an agent ID
-                    if end_value in self.internal_context:
-                        return self.internal_context[end_value]
-                    # Otherwise treat as dot notation in context
-                    context = self._build_ctx()
-                    return self._lookup_dot_key(context, end_value)
-        
-        # Default behavior: return the full internal context
-        return self.internal_context
+                    if end_value in self.state:
+                        return self.state[end_value]
+                    # Otherwise treat as dot notation in state
+                    return self._get_dot_notated(self.state, end_value)
+        # Default behavior: return the full internal state
+        return self.state

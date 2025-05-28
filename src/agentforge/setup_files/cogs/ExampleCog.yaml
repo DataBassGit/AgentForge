@@ -1,7 +1,6 @@
 cog:
   name: "ExampleFlow"
   description: "A sample decision workflow."
-  response_format: "auto"
 
   agents:
     - id: analyze
@@ -12,14 +11,13 @@ cog:
 
     - id: respond
       template_file: ResponseAgent
-      response_format: "none"
 
   memory:
     - id: general_memory
       query_before: analyze
       update_after: respond
-      query_keys: [external.user_input]
-      update_keys: [external.user_input, internal.respond]
+      query_keys: [user_input]
+      update_keys: [user_input, respond]
 
   flow:
     start: analyze
