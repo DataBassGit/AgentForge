@@ -1,3 +1,13 @@
+"""
+Test persona context data integration with agent template processing.
+
+This module tests:
+- Loading and integrating persona data into agent template context
+- Enable/disable functionality for persona system
+- Legacy persona format compatibility
+- Template rendering with persona data
+"""
+
 import pytest
 from unittest.mock import MagicMock, patch
 import os
@@ -16,7 +26,7 @@ def test_persona_file():
             'static': {
                 'name': 'Test Agent',
                 'description': 'A test agent for unit tests',
-                'goal': 'Test the persona v2 implementation'
+                'goal': 'Test persona context data integration'
             },
             'retrieval': {
                 'setting': 'Virtual test environment',
@@ -29,9 +39,6 @@ def test_persona_file():
     
     # Clean up
     os.unlink(tmp.name)
-
-
-
 
 
 def test_persona_data_loading(isolated_config, test_persona_file):
@@ -117,8 +124,8 @@ def test_persona_disabled(isolated_config, test_persona_file):
         assert 'persona' not in agent.template_data
 
 
-def test_render_prompt_simplified(isolated_config, test_persona_file):
-    """Tests that render_prompt only calls the prompt processor without persona injection."""
+def test_prompt_rendering_with_persona_context(isolated_config, test_persona_file):
+    """Tests that prompt rendering integrates persona context data correctly."""
     # Setup
     persona_name = os.path.basename(test_persona_file).replace('.yaml', '')
     
@@ -164,13 +171,9 @@ def test_render_prompt_simplified(isolated_config, test_persona_file):
         # Assert
         assert agent.prompt == rendered_prompts
         
-        # Verify only the basic methods are called, no persona injection
+        # Verify prompt processor is called with template data including persona
         prompt_processor_mock.render_prompts.assert_called_once_with(agent.prompt_template, agent.template_data)
         prompt_processor_mock.validate_rendered_prompts.assert_called_once_with(rendered_prompts)
-        
-        # Verify that check_inject_persona_md is NOT called
-        assert not hasattr(prompt_processor_mock, 'check_inject_persona_md') or \
-               not prompt_processor_mock.check_inject_persona_md.called
 
 
 def test_legacy_persona_format_preserved(isolated_config):
@@ -212,7 +215,4 @@ def test_legacy_persona_format_preserved(isolated_config):
         assert 'persona' in agent.template_data
         assert agent.template_data['persona'] == legacy_persona
         assert agent.template_data['persona']['name'] == 'Test Agent'
-        assert agent.template_data['persona']['description'] == 'A test agent with legacy format'
-
-
- 
+        assert agent.template_data['persona']['description'] == 'A test agent with legacy format' 

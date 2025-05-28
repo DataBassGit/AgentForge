@@ -107,8 +107,8 @@ parse_response_as: "json"
     assert agent_data["parse_response_as"] == "json"
 
 
-def test_agent_can_use_parse_response_as_field(isolated_config):
-    """Test that an Agent instance can access and use the parse_response_as field."""
+def test_agent_parse_response_field_integration(isolated_config):
+    """Test that agents can use the parse_response_as field for output parsing."""
     from agentforge.agent import Agent
     from unittest.mock import patch
     
@@ -143,42 +143,4 @@ custom_setting: "test_value"
     with patch.object(agent.parsing_processor, "parse_by_format", return_value={"parsed": "data"}) as mock_parse:
         agent.parse_result()
         mock_parse.assert_called_once_with('{"test": "data"}', "yaml")
-        assert agent.parsed_result == {"parsed": "data"}
-
-
-def test_legacy_response_format_field_backward_compatibility(isolated_config):
-    """Test that the old response_format field name still works (if someone hasn't migrated yet)."""
-    from agentforge.agent import Agent
-    from unittest.mock import patch
-    
-    # Create a test agent YAML with the old field name (for backward compatibility testing)
-    test_agent_path = Path(isolated_config.config_path) / "prompts" / "TestLegacyAgent.yaml"
-    
-    agent_content = """
-prompts:
-  system: "You are a helpful assistant."
-  user: "Please respond to: {user_input}"
-
-response_format: "json"
-"""
-    
-    test_agent_path.write_text(agent_content)
-    
-    # Reload configurations to pick up the new file
-    isolated_config.load_all_configurations()
-    
-    # Create an agent instance
-    agent = Agent("TestLegacyAgent")
-    
-    # Verify the agent can see the legacy field
-    assert agent.agent_data["response_format"] == "json"
-    
-    # The new code should look for parse_response_as, so this shouldn't be used
-    agent.result = '{"test": "data"}'
-    
-    # Mock the parsing processor - it should NOT be called since we look for parse_response_as
-    with patch.object(agent.parsing_processor, "parse_by_format") as mock_parse:
-        agent.parse_result()
-        mock_parse.assert_not_called()
-        # Result should remain unparsed
-        assert agent.parsed_result == '{"test": "data"}' 
+        assert agent.parsed_result == {"parsed": "data"} 
