@@ -15,12 +15,17 @@ import pytest
 
 from agentforge.agent import Agent
 from agentforge.config import Config
+from agentforge.core.config_manager import ConfigManager
 
 
 @pytest.fixture()
-def dummy_agent_config(isolated_config: Config) -> dict[str, Any]:  # noqa: D103
-    # Minimal agent dict; ensure debug mode true
-    custom = {
+def dummy_agent_config(isolated_config: Config) -> 'ConfigManager.AgentConfig':  # noqa: D103
+    # Create a ConfigManager instance to build structured config
+    config_manager = ConfigManager()
+    
+    # Minimal agent data dict; ensure debug mode true
+    raw_agent_data = {
+        "name": "TestAgent",
         "params": {},
         "prompts": {
             "system": "Hello {name}",
@@ -30,12 +35,14 @@ def dummy_agent_config(isolated_config: Config) -> dict[str, Any]:  # noqa: D103
         "settings": isolated_config.data["settings"].copy(),
         "simulated_response": "SIMULATED",
     }
-    custom["settings"]["system"]["debug"]["mode"] = True
-    return custom
+    raw_agent_data["settings"]["system"]["debug"]["mode"] = True
+    
+    # Use ConfigManager to build structured config object
+    return config_manager.build_agent_config(raw_agent_data)
 
 
 def test_run_returns_simulated(dummy_agent_config):  # noqa: D103
-    with patch.object(Config, "load_agent_data", return_value=deepcopy(dummy_agent_config)):
+    with patch.object(Config, "load_agent_data", return_value=dummy_agent_config):
         agent = Agent("TestAgent")
         out = agent.run(name="Bob", message="ping")
         assert out == "SIMULATED" or out == "STUB"
@@ -47,7 +54,7 @@ def test_run_returns_simulated(dummy_agent_config):  # noqa: D103
 
 
 def test_idempotent_run(dummy_agent_config):  # noqa: D103
-    with patch.object(Config, "load_agent_data", return_value=deepcopy(dummy_agent_config)):
+    with patch.object(Config, "load_agent_data", return_value=dummy_agent_config):
         agent = Agent("TestAgent")
         first = agent.run(name="X", message="y")
         second = agent.run(name="X", message="y")

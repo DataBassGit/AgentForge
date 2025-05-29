@@ -15,6 +15,7 @@ import tempfile
 import yaml
 from agentforge.agent import Agent
 from agentforge.config import Config
+from agentforge.core.config_manager import ConfigManager
 
 
 @pytest.fixture
@@ -43,41 +44,38 @@ def test_persona_file():
 
 def test_persona_data_loading(isolated_config, test_persona_file):
     """Tests that persona data is properly loaded and added to template_data."""
+    # Create a ConfigManager instance to build structured config
+    config_manager = ConfigManager()
+    
     # Setup
     persona_name = os.path.basename(test_persona_file).replace('.yaml', '')
     
     # Add the test persona to the Config data
     isolated_config.data['personas'] = {persona_name: yaml.safe_load(open(test_persona_file))}
     
-    # Mock agent data
-    agent_data = {
+    # Create raw agent data with personas enabled
+    raw_agent_data = {
         'name': 'test_agent',
-        'settings': {
-            'system': {
-                'persona': {
-                    'enabled': True
-                }
-            }
-        },
+        'settings': isolated_config.data['settings'].copy(),
         'persona': isolated_config.data['personas'][persona_name],
         'prompts': {'system': 'Test prompt', 'user': 'Test user prompt'},
-        'params': {}
+        'params': {},
+        'model': object(),
+        'simulated_response': 'test'
     }
+    # Enable personas
+    raw_agent_data['settings']['system']['persona']['enabled'] = True
     
-    # Create agent and manually set properties rather than initializing
-    with patch.object(Agent, 'initialize_agent_config'):
-        agent = Agent()
-        agent.agent_data = agent_data
-        agent.persona = agent_data['persona']
-        agent.template_data = {}
-        agent.logger = MagicMock()
-        
-        # Call the method
-        agent.load_persona_data()
+    # Build structured config object
+    agent_config = config_manager.build_agent_config(raw_agent_data)
+    
+    # Mock load_agent_data to return our structured config
+    with patch.object(Config, 'load_agent_data', return_value=agent_config):
+        agent = Agent('test_agent')
         
         # Assert that persona data is added directly to template_data
         assert 'persona' in agent.template_data
-        assert agent.template_data['persona'] == agent_data['persona']
+        assert agent.template_data['persona'] == raw_agent_data['persona']
         assert 'static' in agent.template_data['persona']
         assert 'retrieval' in agent.template_data['persona']
         
@@ -88,37 +86,34 @@ def test_persona_data_loading(isolated_config, test_persona_file):
 
 def test_persona_disabled(isolated_config, test_persona_file):
     """Tests that persona data is not loaded when personas are disabled."""
+    # Create a ConfigManager instance to build structured config
+    config_manager = ConfigManager()
+    
     # Setup
     persona_name = os.path.basename(test_persona_file).replace('.yaml', '')
     
     # Add the test persona to the Config data
     isolated_config.data['personas'] = {persona_name: yaml.safe_load(open(test_persona_file))}
     
-    # Mock agent data with personas disabled
-    agent_data = {
+    # Create raw agent data with personas disabled
+    raw_agent_data = {
         'name': 'test_agent',
-        'settings': {
-            'system': {
-                'persona': {
-                    'enabled': False
-                }
-            }
-        },
+        'settings': isolated_config.data['settings'].copy(),
         'persona': isolated_config.data['personas'][persona_name],
         'prompts': {'system': 'Test prompt', 'user': 'Test user prompt'},
-        'params': {}
+        'params': {},
+        'model': object(),
+        'simulated_response': 'test'
     }
+    # Disable personas
+    raw_agent_data['settings']['system']['persona']['enabled'] = False
     
-    # Create agent and manually set properties rather than initializing
-    with patch.object(Agent, 'initialize_agent_config'):
-        agent = Agent()
-        agent.agent_data = agent_data
-        agent.persona = agent_data['persona']
-        agent.template_data = {}
-        agent.logger = MagicMock()
-        
-        # Call the method
-        agent.load_persona_data()
+    # Build structured config object
+    agent_config = config_manager.build_agent_config(raw_agent_data)
+    
+    # Mock load_agent_data to return our structured config
+    with patch.object(Config, 'load_agent_data', return_value=agent_config):
+        agent = Agent('test_agent')
         
         # Assert that no persona data is added when disabled
         assert 'persona' not in agent.template_data
@@ -126,58 +121,65 @@ def test_persona_disabled(isolated_config, test_persona_file):
 
 def test_prompt_rendering_with_persona_context(isolated_config, test_persona_file):
     """Tests that prompt rendering integrates persona context data correctly."""
+    # Create a ConfigManager instance to build structured config
+    config_manager = ConfigManager()
+    
     # Setup
     persona_name = os.path.basename(test_persona_file).replace('.yaml', '')
     
     # Add the test persona to the Config data
     isolated_config.data['personas'] = {persona_name: yaml.safe_load(open(test_persona_file))}
     
-    # Mock agent data
-    agent_data = {
+    # Create raw agent data with personas enabled
+    raw_agent_data = {
         'name': 'test_agent',
-        'settings': {
-            'system': {
-                'persona': {
-                    'enabled': True
-                }
-            }
-        },
+        'settings': isolated_config.data['settings'].copy(),
         'persona': isolated_config.data['personas'][persona_name],
-        'prompts': {'system': 'Test prompt', 'user': 'Test user prompt'},
-        'params': {}
+        'prompts': {'system': 'System prompt', 'user': 'User prompt'},
+        'params': {},
+        'model': object(),
+        'simulated_response': 'test'
     }
+    # Enable personas
+    raw_agent_data['settings']['system']['persona']['enabled'] = True
     
-    # Create agent and manually set properties rather than initializing
-    with patch.object(Agent, 'initialize_agent_config'):
-        agent = Agent()
-        agent.agent_data = agent_data
-        agent.persona = agent_data['persona']
-        agent.prompt_template = {'system': 'System prompt', 'user': 'User prompt'}
-        agent.template_data = {'persona': agent_data['persona']}
-        
+    # Build structured config object
+    agent_config = config_manager.build_agent_config(raw_agent_data)
+    
+    # Mock load_agent_data to return our structured config
+    with patch.object(Config, 'load_agent_data', return_value=agent_config):
         # Create and set the prompt processor mock
-        prompt_processor_mock = MagicMock()
-        
-        # Setup render_prompts to return a mock rendered prompt
-        rendered_prompts = {'system': 'Rendered system prompt', 'user': 'Rendered user prompt'}
-        prompt_processor_mock.render_prompts.return_value = rendered_prompts
-        
-        agent.prompt_processor = prompt_processor_mock
-        agent.logger = MagicMock()
-        
-        # Call the method
-        agent.render_prompt()
-        
-        # Assert
-        assert agent.prompt == rendered_prompts
-        
-        # Verify prompt processor is called with template data including persona
-        prompt_processor_mock.render_prompts.assert_called_once_with(agent.prompt_template, agent.template_data)
-        prompt_processor_mock.validate_rendered_prompts.assert_called_once_with(rendered_prompts)
+        with patch('agentforge.agent.PromptProcessor') as MockPromptProcessor:
+            prompt_processor_mock = MagicMock()
+            MockPromptProcessor.return_value = prompt_processor_mock
+            
+            # Setup render_prompts to return a mock rendered prompt
+            rendered_prompts = {'system': 'Rendered system prompt', 'user': 'Rendered user prompt'}
+            prompt_processor_mock.render_prompts.return_value = rendered_prompts
+            
+            agent = Agent('test_agent')
+            
+            # Set some template data that will include persona
+            agent.template_data['test_var'] = 'test_value'
+            
+            # Call the method
+            agent.render_prompt()
+            
+            # Assert
+            assert agent.prompt == rendered_prompts
+            
+            # Verify prompt processor is called with template data including persona
+            prompt_processor_mock.render_prompts.assert_called_once_with(agent.prompt_template, agent.template_data)
+            
+            # Verify persona is in template_data
+            assert 'persona' in agent.template_data
 
 
 def test_legacy_persona_format_preserved(isolated_config):
     """Tests that legacy persona format (flat structure) is preserved as-is."""
+    # Create a ConfigManager instance to build structured config
+    config_manager = ConfigManager()
+    
     # Create a legacy format persona
     legacy_persona = {
         'name': 'Test Agent',
@@ -185,31 +187,25 @@ def test_legacy_persona_format_preserved(isolated_config):
         'goal': 'Test legacy compatibility'
     }
     
-    # Mock agent data with legacy persona
-    agent_data = {
+    # Create raw agent data with legacy persona and personas enabled
+    raw_agent_data = {
         'name': 'test_agent',
-        'settings': {
-            'system': {
-                'persona': {
-                    'enabled': True
-                }
-            }
-        },
+        'settings': isolated_config.data['settings'].copy(),
         'persona': legacy_persona,
         'prompts': {'system': 'Test prompt', 'user': 'Test user prompt'},
-        'params': {}
+        'params': {},
+        'model': object(),
+        'simulated_response': 'test'
     }
+    # Enable personas
+    raw_agent_data['settings']['system']['persona']['enabled'] = True
     
-    # Create agent and manually set properties rather than initializing
-    with patch.object(Agent, 'initialize_agent_config'):
-        agent = Agent()
-        agent.agent_data = agent_data
-        agent.persona = agent_data['persona']
-        agent.template_data = {}
-        agent.logger = MagicMock()
-        
-        # Call the method
-        agent.load_persona_data()
+    # Build structured config object
+    agent_config = config_manager.build_agent_config(raw_agent_data)
+    
+    # Mock load_agent_data to return our structured config
+    with patch.object(Config, 'load_agent_data', return_value=agent_config):
+        agent = Agent('test_agent')
         
         # Assert that legacy persona data is preserved exactly as-is
         assert 'persona' in agent.template_data

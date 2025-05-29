@@ -1,5 +1,4 @@
 # agent.py
-
 from typing import Any, Dict, Optional, List
 
 from .config import Config
@@ -24,6 +23,7 @@ class Agent:
         # Initialize services
         self.config = Config()
         self.prompt_processor = PromptProcessor()
+        self.parsing_processor = ParsingProcessor()
         
         # Initialize data attributes
         self._initialize_data_attributes()
@@ -33,7 +33,7 @@ class Agent:
 
     def _initialize_data_attributes(self) -> None:
         """Initialize all agent data attributes to their default values."""
-        self.agent_data: Optional[Dict[str, Any]] = None
+        self.agent_config: Optional[Any] = None
         self.persona: Optional[Dict[str, Any]] = None
         self.model: Optional[BaseModel] = None
         self.prompt_template: Optional[Dict[str, Any]] = None
@@ -43,8 +43,7 @@ class Agent:
         self.parsed_result: Optional[Any] = None
         self.output: Optional[str] = None
         self.images: List[str] = []
-        self.parsing_processor = ParsingProcessor()
-
+        
     # ---------------------------------
     # Execution
     # ---------------------------------
@@ -61,9 +60,7 @@ class Agent:
         """
         try:
             self.logger.info(f"{self.agent_name} - Running...")
-            
             self._execute_workflow(**kwargs)
-            
             self.logger.info(f"{self.agent_name} - Done!")
             return self.output
         except Exception as e:
@@ -86,91 +83,19 @@ class Agent:
 
     def initialize_agent_config(self) -> None:
         """Load all agent configurations."""
-        self.load_agent_data()
-        self.load_prompt_template()
+        self.agent_config = self.config.load_agent_data(self.agent_name)
+        self.prompt_template = self.agent_config.prompts
+        self.model = self.agent_config.model
         self.load_persona_data()
-        self.load_model()
-
-    def load_agent_data(self) -> None:
-        """Load and validate the agent's configuration data."""
-        self.agent_data = self.config.load_agent_data(self.agent_name).copy()
-        self._validate_agent_data()
-
-    def load_prompt_template(self) -> None:
-        """Load and validate prompt templates for the agent."""
-        self.prompt_template = self.agent_data.get('prompts', {})
         
-        if not self.prompt_template:
-            self._raise_config_error(f"No prompts defined for agent '{self.agent_name}'.")
-
-        self.prompt_processor.check_prompt_format(self.prompt_template)
-        self.logger.debug(f"Prompts for '{self.agent_name}' validated.")
-
     def load_persona_data(self) -> None:
         """Load persona data if personas are enabled in system settings."""
-        if not self._is_persona_enabled():
+        if not self.agent_config.settings.system.persona.enabled or not self.agent_config.persona:
             return
-            
-        self._load_and_add_persona()
-
-    def _is_persona_enabled(self) -> bool:
-        """Check if personas are enabled in agent settings."""
-        return self.agent_data['settings']['system']['persona'].get('enabled', False)
-
-    def _load_and_add_persona(self) -> None:
-        """Load persona data and add it to template variables."""
-        self.persona = self.agent_data.get('persona', {})
-        self._validate_persona_data()
+        
+        self.persona = self.agent_config.persona.copy()
+        self.template_data['persona'] = self.persona
         self.logger.debug(f"Persona Data Loaded for '{self.agent_name}'.")
-        
-        if not self.persona:
-            return
-        
-        self.template_data['persona'] = self.persona.copy()
-
-    def load_model(self) -> None:
-        """Load and validate the model for the agent."""
-        self.model = self.agent_data.get('model')
-        
-        if not self.model:
-            self._raise_config_error(f"Model not specified for agent '{self.agent_name}'.")
-
-    # ---------------------------------
-    # Validation
-    # ---------------------------------
-
-    def _validate_agent_data(self) -> None:
-        """Ensure agent data has all required keys and structure."""
-        if not self.agent_data:
-            self._raise_config_error(f"Agent data for '{self.agent_name}' is not loaded.")
-
-        self._validate_required_keys()
-        self._validate_system_settings()
-
-    def _validate_required_keys(self) -> None:
-        """Validate that all required keys are present in agent data."""
-        required_keys = ['params', 'prompts', 'settings']
-        for key in required_keys:
-            if key not in self.agent_data:
-                self._raise_config_error(f"Agent data missing required key '{key}' for agent '{self.agent_name}'.")
-
-    def _validate_system_settings(self) -> None:
-        """Validate that system settings are properly configured."""
-        if 'system' not in self.agent_data['settings']:
-            self._raise_config_error(f"Agent data settings missing 'system' key for agent '{self.agent_name}'.")
-
-    def _validate_persona_data(self) -> None:
-        """Validate persona data if available."""
-        if not self.persona:
-            self.logger.warning(f"Personas are enabled but no persona data found for agent '{self.agent_name}'.")
-            return
-            
-        self.logger.debug(f"Persona for '{self.agent_name}' validated!")
-
-    def _raise_config_error(self, message: str) -> None:
-        """Log error and raise ValueError for configuration issues."""
-        self.logger.error(message)
-        raise ValueError(message)
 
     # ---------------------------------
     # Data Loading
@@ -183,25 +108,16 @@ class Agent:
         Args:
             **kwargs: Additional data to incorporate into template variables.
         """
-        if self._should_reload_config():
+        if self.agent_config.settings.system.misc.on_the_fly:
             self.initialize_agent_config()
 
         self.load_additional_data()
         self.template_data.update(kwargs)
 
-    def _should_reload_config(self) -> bool:
-        """Check if configuration should be reloaded on the fly."""
-        return self.agent_data['settings']['system']['misc'].get('on_the_fly', False)
-
     def load_additional_data(self) -> None:
         """
         Load custom additional data for the agent.
-        
         Override this method in subclasses to load custom data.
-        
-        Note: If your subclass needs to load data from memory or storage,
-        you should implement this method or add a new method for that purpose.
-        Memory is exclusively managed through cogs.
         """
         pass
 
@@ -212,7 +128,6 @@ class Agent:
     def process_data(self) -> None:
         """
         Process loaded data before generating prompts.
-        
         Override this method in subclasses to implement custom data processing.
         """
         pass
@@ -220,7 +135,6 @@ class Agent:
     def render_prompt(self) -> None:
         """Render prompt templates with the current template data."""
         self.prompt = self.prompt_processor.render_prompts(self.prompt_template, self.template_data)
-        self.prompt_processor.validate_rendered_prompts(self.prompt)
 
     # ---------------------------------
     # Model Execution
@@ -228,24 +142,22 @@ class Agent:
 
     def run_model(self) -> None:
         """Execute the model with the rendered prompt and configured parameters."""
-        if self._is_debug_mode():
-            self.result = self.agent_data['simulated_response']
+        if self.agent_config.settings.system.debug.mode:
+            self.result = self.agent_config.simulated_response
             return
 
         self._execute_model_generation()
-
-    def _is_debug_mode(self) -> bool:
-        """Check if agent is running in debug mode."""
-        return self.agent_data['settings']['system']['debug'].get('mode', False)
 
     def _execute_model_generation(self) -> None:
         """Execute the actual model generation with configured parameters."""
         params = self._build_model_params()
         self.result = self.model.generate(self.prompt, **params).strip()
+        if not self.result:
+            raise ValueError(f"Model generation failed for agent '{self.agent_name}'.")
 
     def _build_model_params(self) -> Dict[str, Any]:
         """Build parameters for model generation."""
-        params = self.agent_data.get("params", {}).copy()
+        params = self.agent_config.params.copy()
         params['agent_name'] = self.agent_name
         
         if self.images:
@@ -260,31 +172,25 @@ class Agent:
     def parse_result(self) -> None:
         """
         Parse the model output using the agent's parse_response_as, if specified.
-        If parsing fails or the format is unrecognized, a ParsingError (or relevant exception) is raised.
         The parsed result is stored in self.parsed_result.
         """
         self.parsed_result = self.result
-        if not self.result:
+        
+        parse_response_as = self.agent_config.parse_response_as
+        if not parse_response_as:
             return
-        parse_response_as = self.agent_data.get('parse_response_as', None)
-        if parse_response_as and isinstance(parse_response_as, str):
-            self.parsed_result = self.parsing_processor.parse_by_format(self.result, parse_response_as)
+
+        self.parsed_result = self.parsing_processor.parse_by_format(self.result, parse_response_as)
 
     def post_process_result(self) -> None:
         """
         Extension point for additional processing after parsing the model's response.
-        
-        This method is an extension point meant to be overridden in subclasses.
-        It's called after the model result has been parsed but before building
-        the final output, making it ideal for any additional data transformations,
-        side effects, or external system interactions.
         """
         pass
 
     def build_output(self) -> None:
         """
-        Build the final output from parsed model results.
-        Override this method in subclasses to implement custom output formatting.
-        By default, uses the parsed result as output.
+        Build the final output for the agent. By default, the output is set to the parsed result.
+        Override this method in subclasses to implement custom output building.
         """
         self.output = self.parsed_result

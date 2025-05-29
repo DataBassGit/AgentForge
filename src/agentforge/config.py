@@ -11,6 +11,9 @@ from typing import Dict, Any, Optional, Tuple
 from ruamel.yaml import YAML
 from types import ModuleType
 
+# Import ConfigManager for structured config objects
+from .core.config_manager import ConfigManager
+
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
     """
@@ -70,6 +73,9 @@ class Config:
 
             # Placeholder for configuration data loaded from YAML files
             self.data = {}
+
+            # Initialize ConfigManager for structured config objects
+            self.config_manager = ConfigManager()
 
             # Load the configuration data
             self.load_all_configurations()
@@ -173,27 +179,33 @@ class Config:
     # Agent and Flow Configuration
     # ------------------------------------------------------------------------
 
-    # TODO: Include cog overrides in the hierarchy API-level → class-level → model-level → agent-level → cog-level
-    def load_agent_data(self, agent_name: str) -> Dict[str, Any]:
+    def load_agent_data(self, agent_name: str) -> 'ConfigManager.AgentConfig':
         """
         Loads configuration data for a specified agent, applying any overrides in the agent's config.
-        Returns a dict containing everything needed to run that agent.
+        Returns a structured AgentConfig object containing everything needed to run that agent.
         """
-
+        # Load raw agent configuration from YAML
         agent = self.find_config('prompts', agent_name)
 
+        # Resolve model configuration
         api_name, class_name, model_name, final_params = self.resolve_model_overrides(agent)
         model = self.get_model(api_name, class_name, model_name)
 
+        # Load persona data
         persona_data = self.load_persona(agent)
+        
+        # Process prompts
         prompts = self.fix_prompt_placeholders(agent.get('prompts', {}))
+        
+        # Get settings
         settings = self.data.get('settings', {})
 
+        # Determine simulated response
         default_debug_text = settings['system']['debug'].get('simulated_response', 'Simulated Text Goes Here!!!')
         simulated_response = agent.get('simulated_response', default_debug_text).strip()
 
-        # Construct base agent data with explicit/derived fields
-        base_agent_data = {
+        # Construct raw agent data dict with all fields
+        raw_agent_data = {
             'name': agent_name,
             'settings': settings,
             'model': model,
@@ -211,14 +223,20 @@ class Config:
             'model_overrides'
         }
         for key, value in agent.items():
-            if key not in base_agent_data and key not in reserved_fields:
-                base_agent_data[key] = value
+            if key not in raw_agent_data and key not in reserved_fields:
+                raw_agent_data[key] = value
 
-        return base_agent_data
+        # Use ConfigManager to build and validate structured config object
+        return self.config_manager.build_agent_config(raw_agent_data)
 
-    def load_cog_data(self, cog_name):
-        cog = self.find_config('cogs', cog_name)
-        return cog
+    def load_cog_data(self, cog_name: str) -> Dict[str, Any]:
+        """
+        Loads configuration data for a specified cog.
+        Returns raw cog configuration dict. (Note: will be updated to return structured CogConfig object in Phase 3)
+        """
+        # Load raw cog configuration from YAML and return as-is for now
+        # This maintains backward compatibility with Cog class until Phase 3
+        return self.find_config('cogs', cog_name)
 
     # ------------------------------------------------------------------------
     # Model API and Overrides

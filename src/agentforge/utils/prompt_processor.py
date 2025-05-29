@@ -183,7 +183,7 @@ class PromptProcessor:
 
     def render_prompts(self, prompts, data):
         """
-        Renders the 'system' and 'user' prompts separately.
+        Renders the 'system' and 'user' prompts separately and validates that they are not empty.
 
         Parameters:
             prompts (dict): The dictionary containing 'system' and 'user' prompts.
@@ -194,6 +194,7 @@ class PromptProcessor:
 
         Raises:
             Exception: Logs an error message and raises an exception if an error occurs during prompt rendering.
+            ValueError: If any of the rendered prompts are empty strings.
         """
         try:
             rendered_prompts = {}
@@ -218,15 +219,19 @@ class PromptProcessor:
                 # Join the rendered sections into a single string for each prompt type
                 final_prompt = '\n'.join(rendered_sections)
                 rendered_prompts[prompt_type] = final_prompt
+            
+            # Validate rendered prompts before returning
+            self._validate_rendered_prompts(rendered_prompts)
+            
             return rendered_prompts
         except Exception as e:
             error_message = f"Error rendering prompts: {e}"
             self.logger.log(error_message, 'error')
             raise Exception(error_message)
 
-    def validate_rendered_prompts(self, rendered_prompts):
+    def _validate_rendered_prompts(self, rendered_prompts):
         """
-        Validates the rendered prompts to ensure none are empty.
+        Internal method to validate the rendered prompts to ensure none are empty.
 
         Parameters:
             rendered_prompts (dict): A dictionary containing the rendered prompts.
@@ -273,8 +278,6 @@ class PromptProcessor:
             persona_md = persona_md[:static_char_cap] + "..."
         
         return persona_md
-        
-
 
     @staticmethod
     def unescape_braces(template: str) -> str:
