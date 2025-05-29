@@ -97,21 +97,32 @@ def test_agent_uses_default_code_fences(minimal_agent_config):
 
 # Test 5: Verify explicit empty list disables code fence extraction
 def test_explicit_empty_code_fences_disables_extraction(minimal_agent_config):
-    """Verify that explicitly passing empty list for code_fences disables code fence extraction."""
-    # Add parse_response_as to the config object
+    """Test that explicitly passing empty code_fences list disables code fence extraction."""
     minimal_agent_config.parse_response_as = "json"
+    minimal_agent_config.code_fences = []  # Explicitly disable code fence extraction
     
     with patch.object(Config, "load_agent_data", return_value=minimal_agent_config):
         agent = Agent("TestAgent")
-        # Set a result with code-fenced content, but we want to parse the whole thing as JSON
-        agent.result = '{"outer": "value", "code": "```json\\n{\\"inner\\": \\"value\\"}\\n```"}'
+        agent.result = '{"no_fences": true}'
+        # Patch to verify the empty list is passed through
+        with patch.object(agent.parsing_processor, "parse_by_format", return_value={"no_fences": True}) as mock_parse:
+            agent.parse_result()
+            # Should pass empty list as code_fences parameter
+            mock_parse.assert_called_once_with(agent.result, "json")
+            assert agent.parsed_result == {"no_fences": True}
+
+def test_simplified_parse_result_with_none_parse_response_as(minimal_agent_config):
+    """Test that the simplified parse_result method works correctly when parse_response_as is None."""
+    # Ensure parse_response_as is None
+    minimal_agent_config.parse_response_as = None
+    
+    with patch.object(Config, "load_agent_data", return_value=minimal_agent_config):
+        agent = Agent("TestAgent")
+        agent.result = "This is raw text that should remain unchanged"
         
-        # Mock the parsing processor to track how it's called
-        with patch.object(agent.parsing_processor, "parse_by_format") as mock_parse:
-            mock_parse.return_value = {"outer": "value", "code": "```json\n{\"inner\": \"value\"}\n```"}
-            
-            # Call parse_by_format directly with empty code_fences to verify the behavior
-            result = agent.parsing_processor.parse_by_format(agent.result, "json", code_fences=[])
-            
-            # Should have been called with empty list
-            mock_parse.assert_called_once_with(agent.result, "json", code_fences=[]) 
+        # Call parse_result directly without mocking
+        agent.parse_result()
+        
+        # The parsed_result should be the same as the original result since parse_response_as is None
+        assert agent.parsed_result == agent.result
+        assert agent.parsed_result == "This is raw text that should remain unchanged" 

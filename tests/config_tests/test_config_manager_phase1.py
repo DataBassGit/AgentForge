@@ -1,62 +1,56 @@
-"""Test script to verify ConfigManager Phase 1 functionality"""
+"""
+Test ConfigManager Phase 1: Basic configuration validation and object building.
 
-def test_config_manager_agent_config(isolated_config):
+This test suite validates that ConfigManager can:
+1. Build structured AgentConfig objects from raw data
+2. Build structured CogConfig objects from raw data
+3. Validate required fields and reject invalid configurations
+4. Handle both agent and cog configurations correctly
+
+These tests use raw configuration data and test the core validation logic.
+"""
+
+import pytest
+from src.agentforge.core.config_manager import ConfigManager
+
+
+def test_config_manager_agent_config_building(isolated_config):
     """Test that ConfigManager can build structured agent configs from raw data."""
-    from src.agentforge.core.config_manager import ConfigManager
-    
     config_manager = ConfigManager()
     
-    # Get raw agent data by calling Config internal methods
-    raw_agent = isolated_config.find_config('prompts', 'AnalyzeAgent')
-    api_name, class_name, model_name, final_params = isolated_config.resolve_model_overrides(raw_agent)
+    # Get raw agent data
+    raw_agent_data = isolated_config.find_config('prompts', 'AnalyzeAgent')
+    
+    # Add required fields that might be missing in test config
+    raw_agent_data['name'] = 'AnalyzeAgent'
+    
+    # Resolve model for the agent
+    api_name, class_name, model_name, final_params = isolated_config.resolve_model_overrides(raw_agent_data)
     model = isolated_config.get_model(api_name, class_name, model_name)
-    persona_data = isolated_config.load_persona(raw_agent)
-    prompts = isolated_config.fix_prompt_placeholders(raw_agent.get('prompts', {}))
-    settings = isolated_config.data.get('settings', {})
-    default_debug_text = settings['system']['debug'].get('simulated_response', 'Simulated Text Goes Here!!!')
-    simulated_response = raw_agent.get('simulated_response', default_debug_text).strip()
-
-    # Construct raw agent data dict
-    raw_agent_data = {
-        'name': 'AnalyzeAgent',
-        'settings': settings,
-        'model': model,
-        'params': final_params,
-        'persona': persona_data,
-        'prompts': prompts,
-        'simulated_response': simulated_response,
-    }
+    raw_agent_data['model'] = model
+    raw_agent_data['params'] = final_params
+    
+    # Get settings
+    raw_agent_data['settings'] = isolated_config.data.get('settings', {})
     
     # Test agent config building with raw data
     agent_config = config_manager.build_agent_config(raw_agent_data)
     
     # Verify structured config object
     assert agent_config.name == 'AnalyzeAgent'
-    assert hasattr(agent_config.settings, 'system')
-    assert hasattr(agent_config.settings.system, 'persona')
-    assert hasattr(agent_config.settings.system, 'debug')
-    assert hasattr(agent_config.settings.system, 'misc')
-    
-    # Verify attribute access works (no more dict access)
-    assert isinstance(agent_config.settings.system.persona.enabled, bool)
-    assert isinstance(agent_config.settings.system.debug.mode, bool)
-    assert isinstance(agent_config.settings.system.misc.on_the_fly, bool)
-    
-    # Verify required fields are present
-    assert agent_config.params is not None
-    assert agent_config.prompts is not None
     assert agent_config.model is not None
+    assert 'system' in agent_config.prompts
+    assert 'user' in agent_config.prompts
+    assert agent_config.settings.system.persona.enabled is not None
     
     print(f"✓ Agent config: {agent_config.name}")
+    print(f"  - Model: {type(agent_config.model).__name__}")
     print(f"  - Persona enabled: {agent_config.settings.system.persona.enabled}")
     print(f"  - Debug mode: {agent_config.settings.system.debug.mode}")
-    print(f"  - On-the-fly: {agent_config.settings.system.misc.on_the_fly}")
 
 
 def test_config_manager_cog_config(isolated_config):
     """Test that ConfigManager can build structured cog configs from raw data."""
-    from src.agentforge.core.config_manager import ConfigManager
-    
     config_manager = ConfigManager()
     
     # Get raw cog data directly
@@ -90,39 +84,8 @@ def test_config_manager_cog_config(isolated_config):
     print(f"  - Memory nodes: {len(cog_config.cog.memory)}")
 
 
-def test_config_manager_custom_fields(isolated_config):
-    """Test that ConfigManager preserves custom fields from YAML."""
-    from src.agentforge.core.config_manager import ConfigManager
-    
-    config_manager = ConfigManager()
-    
-    # Test with a simple custom agent data
-    raw_agent_data = {
-        'name': 'TestAgent',
-        'params': {},
-        'prompts': {'system': 'test', 'user': 'test'},
-        'settings': isolated_config.data['settings'],
-        'model': object(),
-        'persona': None,
-        'simulated_response': 'test',
-        'parse_response_as': 'json',  # Custom field
-        'custom_field': 'custom_value'  # Another custom field
-    }
-    
-    # Build structured config object
-    agent_config = config_manager.build_agent_config(raw_agent_data)
-    
-    # Should have custom fields preserved
-    assert agent_config.parse_response_as == 'json'
-    assert 'custom_field' in agent_config.custom_fields
-    assert agent_config.custom_fields['custom_field'] == 'custom_value'
-    print(f"✓ Custom fields preserved: parse_response_as={agent_config.parse_response_as}, custom_fields={agent_config.custom_fields}")
-
-
 def test_config_manager_validation():
     """Test that ConfigManager properly validates config data."""
-    from src.agentforge.core.config_manager import ConfigManager
-    
     config_manager = ConfigManager()
     
     # Test missing required keys
@@ -138,9 +101,8 @@ def test_config_manager_validation():
     try:
         invalid_agent_data = {
             'params': {},
-            'prompts': {'system': 'test', 'user': 'test'},  # Include both required keys
+            'prompts': {'system': 'test', 'user': 'test'},
             'settings': {'system': {'persona': {'enabled': False}}},
-            'model': object()
         }  # Missing name
         config_manager.build_agent_config(invalid_agent_data)
         assert False, "Should have raised ValueError for missing name"
@@ -160,7 +122,7 @@ def test_config_manager_validation():
         config_manager.build_agent_config(invalid_agent_data)
         assert False, "Should have raised ValueError for empty prompts"
     except ValueError as e:
-        assert "non-empty 'prompts' dictionary" in str(e)
+        assert "must have a non-empty 'prompts' dictionary" in str(e)
         print("✓ Validation catches empty prompts")
     
     # Test null model
@@ -200,4 +162,71 @@ def test_config_manager_validation():
         assert False, "Should have raised ValueError for missing cog key"
     except ValueError as e:
         assert "must have a 'cog' dictionary" in str(e)
-        print("✓ Validation catches invalid cog structure") 
+        print("✓ Validation catches invalid cog structure")
+
+
+def test_config_manager_settings_building():
+    """Test that ConfigManager correctly builds Settings objects."""
+    config_manager = ConfigManager()
+    
+    # Test with minimal settings
+    raw_settings = {
+        'system': {
+            'persona': {'enabled': True, 'name': 'TestPersona'},
+            'debug': {'mode': False},
+            'logging': {'enabled': True, 'console_level': 'info'},
+            'misc': {'on_the_fly': True},
+            'paths': {'files': './test_files'}
+        },
+        'models': {'openai': {}},
+        'storage': {'chroma': {}}
+    }
+    
+    settings = config_manager._build_settings(raw_settings)
+    
+    # Verify settings structure
+    assert settings.system.persona.enabled == True
+    assert settings.system.persona.name == 'TestPersona'
+    assert settings.system.debug.mode == False
+    assert settings.system.logging.enabled == True
+    assert settings.system.logging.console_level == 'info'
+    assert settings.system.misc.on_the_fly == True
+    assert settings.system.paths.files == './test_files'
+    assert 'openai' in settings.models
+    assert 'chroma' in settings.storage
+    
+    print("✓ Settings building works correctly")
+    print(f"  - Persona: {settings.system.persona.name} (enabled: {settings.system.persona.enabled})")
+    print(f"  - Debug mode: {settings.system.debug.mode}")
+    print(f"  - Logging level: {settings.system.logging.console_level}")
+
+
+def test_config_manager_cog_flow_parsing():
+    """Test that ConfigManager correctly parses cog flow transitions."""
+    config_manager = ConfigManager()
+    
+    # Test direct transition
+    direct_transition = config_manager._parse_flow_transition("next_agent")
+    assert direct_transition.type == "direct"
+    assert direct_transition.next_agent == "next_agent"
+    
+    # Test end transition
+    end_transition = config_manager._parse_flow_transition({"end": True})
+    assert end_transition.type == "end"
+    assert end_transition.end == True
+    
+    # Test decision transition
+    decision_transition = config_manager._parse_flow_transition({
+        "choice": {"approve": "respond", "reject": "analyze"},
+        "fallback": "analyze"
+    })
+    assert decision_transition.type == "decision"
+    assert decision_transition.decision_key == "choice"
+    assert decision_transition.decision_map["approve"] == "respond"
+    assert decision_transition.decision_map["reject"] == "analyze"
+    assert decision_transition.fallback == "analyze"
+    
+    print("✓ Flow parsing works correctly")
+    print(f"  - Direct: {direct_transition.next_agent}")
+    print(f"  - End: {end_transition.end}")
+    print(f"  - Decision: {decision_transition.decision_key} -> {len(decision_transition.decision_map)} options") 

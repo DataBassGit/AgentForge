@@ -1,6 +1,5 @@
 # agent.py
 from typing import Any, Dict, Optional, List
-
 from .config import Config
 from agentforge.apis.base_api import BaseModel
 from agentforge.utils.logger import Logger
@@ -25,23 +24,28 @@ class Agent:
         self.prompt_processor = PromptProcessor()
         self.parsing_processor = ParsingProcessor()
         
-        # Initialize data attributes
+        # Initialize attributes and configurations
         self._initialize_data_attributes()
-        
-        # Load configuration
-        self.initialize_agent_config()
+        self._initialize_agent_config()
 
     def _initialize_data_attributes(self) -> None:
         """Initialize all agent data attributes to their default values."""
+        # Configuration
         self.agent_config: Optional[Any] = None
-        self.persona: Optional[Dict[str, Any]] = None
         self.model: Optional[BaseModel] = None
+        self.persona: Optional[Dict[str, Any]] = None
+        
+        # Prompt related
+        self.prompt: Optional[Dict[str]] = None
         self.prompt_template: Optional[Dict[str, Any]] = None
         self.template_data: Dict[str, Any] = {}
-        self.prompt: Optional[Dict[str]] = None
+        
+        # Results and output
         self.result: Optional[str] = None
         self.parsed_result: Optional[Any] = None
         self.output: Optional[str] = None
+
+        # Media
         self.images: List[str] = []
         
     # ---------------------------------
@@ -81,7 +85,7 @@ class Agent:
     # Configuration Loading
     # ---------------------------------
 
-    def initialize_agent_config(self) -> None:
+    def _initialize_agent_config(self) -> None:
         """Load all agent configurations."""
         self.agent_config = self.config.load_agent_data(self.agent_name)
         self.prompt_template = self.agent_config.prompts
@@ -109,7 +113,7 @@ class Agent:
             **kwargs: Additional data to incorporate into template variables.
         """
         if self.agent_config.settings.system.misc.on_the_fly:
-            self.initialize_agent_config()
+            self._initialize_agent_config()
 
         self.load_additional_data()
         self.template_data.update(kwargs)
@@ -152,8 +156,6 @@ class Agent:
         """Execute the actual model generation with configured parameters."""
         params = self._build_model_params()
         self.result = self.model.generate(self.prompt, **params).strip()
-        if not self.result:
-            raise ValueError(f"Model generation failed for agent '{self.agent_name}'.")
 
     def _build_model_params(self) -> Dict[str, Any]:
         """Build parameters for model generation."""
@@ -174,13 +176,7 @@ class Agent:
         Parse the model output using the agent's parse_response_as, if specified.
         The parsed result is stored in self.parsed_result.
         """
-        self.parsed_result = self.result
-        
-        parse_response_as = self.agent_config.parse_response_as
-        if not parse_response_as:
-            return
-
-        self.parsed_result = self.parsing_processor.parse_by_format(self.result, parse_response_as)
+        self.parsed_result = self.parsing_processor.parse_by_format(self.result, self.agent_config.parse_response_as)
 
     def post_process_result(self) -> None:
         """

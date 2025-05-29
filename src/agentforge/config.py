@@ -13,6 +13,7 @@ from types import ModuleType
 
 # Import ConfigManager for structured config objects
 from .core.config_manager import ConfigManager
+from .config_structs import AgentConfig
 
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
@@ -179,7 +180,7 @@ class Config:
     # Agent and Flow Configuration
     # ------------------------------------------------------------------------
 
-    def load_agent_data(self, agent_name: str) -> 'ConfigManager.AgentConfig':
+    def load_agent_data(self, agent_name: str) -> AgentConfig:
         """
         Loads configuration data for a specified agent, applying any overrides in the agent's config.
         Returns a structured AgentConfig object containing everything needed to run that agent.

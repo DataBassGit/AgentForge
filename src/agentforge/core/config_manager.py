@@ -1,6 +1,26 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, List, Union
 
+# Import dataclasses from config_structs modules
+from ..config_structs import (
+    # Agent config structs
+    PersonaSettings,
+    DebugSettings,
+    LoggingSettings,
+    MiscSettings,
+    PathSettings,
+    SystemSettings,
+    Settings,
+    AgentConfig,
+    # Cog config structs
+    CogAgentDef,
+    CogMemoryDef,
+    CogFlowTransition,
+    CogFlow,
+    CogDefinition,
+    CogConfig,
+)
+
 
 class ConfigManager:
     """
@@ -20,145 +40,10 @@ class ConfigManager:
         pass
 
     # ==============================================================================
-    # Agent Configuration Dataclasses
-    # ==============================================================================
-
-    @dataclass
-    class PersonaSettings:
-        """Persona configuration from system settings."""
-        enabled: bool = True
-        name: str = "DefaultAssistant"
-        static_char_cap: int = 8000
-
-    @dataclass
-    class DebugSettings:
-        """Debug configuration from system settings."""
-        mode: bool = False
-        save_memory: bool = False
-        simulated_response: str = "Text designed to simulate an LLM response for debugging purposes without invoking the model."
-
-    @dataclass
-    class LoggingSettings:
-        """Logging configuration from system settings."""
-        enabled: bool = True
-        console_level: str = "warning"
-        folder: str = "./logs"
-        files: Dict[str, str] = field(default_factory=dict)
-
-    @dataclass
-    class MiscSettings:
-        """Miscellaneous system settings."""
-        on_the_fly: bool = True
-
-    @dataclass
-    class PathSettings:
-        """System file path settings."""
-        files: str = "./files"
-
-    @dataclass
-    class SystemSettings:
-        """System settings structure from settings/system.yaml."""
-        persona: 'ConfigManager.PersonaSettings'
-        debug: 'ConfigManager.DebugSettings'
-        logging: 'ConfigManager.LoggingSettings'
-        misc: 'ConfigManager.MiscSettings'
-        paths: 'ConfigManager.PathSettings'
-
-    @dataclass
-    class Settings:
-        """Complete settings structure containing system, models, and storage."""
-        system: 'ConfigManager.SystemSettings'
-        models: Dict[str, Any] = field(default_factory=dict)
-        storage: Dict[str, Any] = field(default_factory=dict)
-
-    @dataclass
-    class AgentConfig:
-        """
-        Structured configuration object for agents.
-        
-        NOTE: This object should not be mutated in place. For hot-reload support,
-        replace the entire object with a new one from ConfigManager.build_agent_config().
-        """
-        name: str
-        settings: 'ConfigManager.Settings'
-        model: Any
-        params: Dict[str, Any]
-        prompts: Dict[str, Any]
-        persona: Optional[Dict[str, Any]] = None
-        simulated_response: Optional[str] = None
-        parse_response_as: Optional[str] = None
-        # Support for additional custom fields from YAML
-        custom_fields: Dict[str, Any] = field(default_factory=dict)
-
-    # ==============================================================================
-    # Cog Configuration Dataclasses
-    # ==============================================================================
-
-    @dataclass
-    class CogAgentDef:
-        """Definition of an agent within a cog."""
-        id: str
-        template_file: Optional[str] = None
-        type: Optional[str] = None  # Full class path for custom agent types
-        # Additional agent configuration can be added here
-
-    @dataclass
-    class CogMemoryDef:
-        """Definition of a memory node within a cog."""
-        id: str
-        type: Optional[str] = None  # Full class path for memory type
-        collection_id: Optional[str] = None
-        query_before: Union[str, List[str], None] = None
-        query_keys: List[str] = field(default_factory=list)
-        update_after: Union[str, List[str], None] = None
-        update_keys: List[str] = field(default_factory=list)
-
-    @dataclass
-    class CogFlowTransition:
-        """A single flow transition definition."""
-        # Can be a string (direct transition), dict (decision), or special end marker
-        type: str  # "direct", "decision", "end"
-        next_agent: Optional[str] = None  # For direct transitions
-        decision_key: Optional[str] = None  # For decision transitions
-        decision_map: Dict[str, str] = field(default_factory=dict)  # For decision transitions
-        fallback: Optional[str] = None
-        max_visits: Optional[int] = None
-        end: bool = False
-
-    @dataclass
-    class CogFlow:
-        """Flow definition for a cog."""
-        start: str
-        transitions: Dict[str, 'ConfigManager.CogFlowTransition']
-
-    @dataclass
-    class CogDefinition:
-        """The core cog definition structure."""
-        name: str
-        description: Optional[str] = None
-        persona: Optional[str] = None  # Persona override for the cog
-        trail_logging: bool = True
-        agents: List['ConfigManager.CogAgentDef'] = field(default_factory=list)
-        memory: List['ConfigManager.CogMemoryDef'] = field(default_factory=list)
-        flow: Optional['ConfigManager.CogFlow'] = None
-
-    @dataclass
-    class CogConfig:
-        """
-        Structured configuration object for cogs.
-        
-        NOTE: This object should not be mutated in place. For hot-reload support,
-        replace the entire object with a new one from ConfigManager.build_cog_config().
-        """
-        cog: 'ConfigManager.CogDefinition'
-        # Support for additional top-level fields
-        custom_fields: Dict[str, Any] = field(default_factory=dict)
-
-    # ==============================================================================
     # Builder Methods
     # ==============================================================================
 
-    def build_agent_config(self, raw_agent_data: Dict[str, Any]) -> 'ConfigManager.AgentConfig':
+    def build_agent_config(self, raw_agent_data: Dict[str, Any]) -> AgentConfig:
         """
         Validates and normalizes a raw agent config dict, returning a structured AgentConfig object.
         Raises ValueError if required fields are missing or invalid.
@@ -198,37 +83,30 @@ class ConfigManager:
         settings = self._build_settings(raw_agent_data['settings'])
 
         # Persona validation (warn, not error)
-        persona = raw_agent_data.get('persona', None)
-        if settings.system.persona.enabled and not persona:
-            # In the future, could log a warning here
-            pass
+        persona = raw_agent_data.get('persona')
+        if persona is not None and not isinstance(persona, dict):
+            print(f"Warning: Agent '{raw_agent_data['name']}' persona should be a dictionary, got {type(persona)}")
 
-        # Extract core fields
-        core_fields = {
-            'name', 'settings', 'model', 'params', 'persona', 
-            'prompts', 'simulated_response', 'parse_response_as'
-        }
-        
-        # Collect any additional custom fields from the YAML
+        # Gather any additional custom fields (not in the standard AgentConfig structure)
+        reserved_fields = {'name', 'settings', 'model', 'params', 'prompts', 'persona', 'simulated_response', 'parse_response_as'}
         custom_fields = {}
         for key, value in raw_agent_data.items():
-            if key not in core_fields:
+            if key not in reserved_fields:
                 custom_fields[key] = value
 
-        # Return structured config object
-        return self.AgentConfig(
+        return AgentConfig(
             name=raw_agent_data['name'],
             settings=settings,
             model=model,
             params=params,
-            persona=persona,
             prompts=prompts,
+            persona=persona,
             simulated_response=raw_agent_data.get('simulated_response'),
             parse_response_as=raw_agent_data.get('parse_response_as'),
             custom_fields=custom_fields
         )
 
-    def build_cog_config(self, raw_cog_data: Dict[str, Any]) -> 'ConfigManager.CogConfig':
+    def build_cog_config(self, raw_cog_data: Dict[str, Any]) -> CogConfig:
         """
         Validates and normalizes a raw cog config dict, returning a structured CogConfig object.
         Raises ValueError if required fields are missing or invalid.
@@ -251,7 +129,7 @@ class ConfigManager:
         flow = self._build_cog_flow(raw_cog.get('flow'))
 
         # Build cog definition
-        cog_def = self.CogDefinition(
+        cog_def = CogDefinition(
             name=raw_cog.get('name', ''),
             description=raw_cog.get('description'),
             persona=raw_cog.get('persona'),
@@ -267,53 +145,48 @@ class ConfigManager:
             if key != 'cog':
                 custom_fields[key] = value
 
-        return self.CogConfig(
+        return CogConfig(
             cog=cog_def,
             custom_fields=custom_fields
         )
 
     # ==============================================================================
-    # Private Builder Helper Methods
+    # Private Helper Methods
     # ==============================================================================
 
-    def _build_settings(self, raw_settings: Dict[str, Any]) -> 'ConfigManager.Settings':
+    def _build_settings(self, raw_settings: Dict[str, Any]) -> Settings:
         """Build structured Settings object from raw settings dict."""
-        # Validate system settings exist
-        if 'system' not in raw_settings:
-            raise ValueError("Settings missing required 'system' key.")
+        raw_system = raw_settings.get('system', {})
         
-        raw_system = raw_settings['system']
-        
-        # Build system settings components
-        persona_settings = self.PersonaSettings(
+        persona_settings = PersonaSettings(
             enabled=raw_system.get('persona', {}).get('enabled', True),
             name=raw_system.get('persona', {}).get('name', 'DefaultAssistant'),
             static_char_cap=raw_system.get('persona', {}).get('static_char_cap', 8000)
         )
         
-        debug_settings = self.DebugSettings(
+        debug_settings = DebugSettings(
             mode=raw_system.get('debug', {}).get('mode', False),
             save_memory=raw_system.get('debug', {}).get('save_memory', False),
             simulated_response=raw_system.get('debug', {}).get('simulated_response', 
                 "Text designed to simulate an LLM response for debugging purposes without invoking the model.")
         )
         
-        logging_settings = self.LoggingSettings(
+        logging_settings = LoggingSettings(
             enabled=raw_system.get('logging', {}).get('enabled', True),
             console_level=raw_system.get('logging', {}).get('console_level', 'warning'),
             folder=raw_system.get('logging', {}).get('folder', './logs'),
             files=raw_system.get('logging', {}).get('files', {})
         )
         
-        misc_settings = self.MiscSettings(
+        misc_settings = MiscSettings(
             on_the_fly=raw_system.get('misc', {}).get('on_the_fly', True)
         )
         
-        path_settings = self.PathSettings(
+        path_settings = PathSettings(
             files=raw_system.get('paths', {}).get('files', './files')
         )
         
-        system_settings = self.SystemSettings(
+        system_settings = SystemSettings(
             persona=persona_settings,
             debug=debug_settings,
             logging=logging_settings,
@@ -321,13 +194,13 @@ class ConfigManager:
             paths=path_settings
         )
         
-        return self.Settings(
+        return Settings(
             system=system_settings,
             models=raw_settings.get('models', {}),
             storage=raw_settings.get('storage', {})
         )
 
-    def _build_cog_agents(self, raw_agents: List[Dict[str, Any]]) -> List['ConfigManager.CogAgentDef']:
+    def _build_cog_agents(self, raw_agents: List[Dict[str, Any]]) -> List[CogAgentDef]:
         """Build list of CogAgentDef objects from raw agent definitions."""
         if not isinstance(raw_agents, list):
             raise ValueError("Cog agents must be a list.")
@@ -345,7 +218,7 @@ class ConfigManager:
             if 'type' not in agent_def and 'template_file' not in agent_def:
                 raise ValueError(f"Agent '{agent_id}' must have at least a 'type' or a 'template_file' defined.")
             
-            agents.append(self.CogAgentDef(
+            agents.append(CogAgentDef(
                 id=agent_id,
                 template_file=agent_def.get('template_file'),
                 type=agent_def.get('type')
@@ -353,7 +226,7 @@ class ConfigManager:
         
         return agents
 
-    def _build_cog_memory(self, raw_memory: List[Dict[str, Any]]) -> List['ConfigManager.CogMemoryDef']:
+    def _build_cog_memory(self, raw_memory: List[Dict[str, Any]]) -> List[CogMemoryDef]:
         """Build list of CogMemoryDef objects from raw memory definitions."""
         if not isinstance(raw_memory, list):
             return []  # Memory is optional
@@ -380,7 +253,7 @@ class ConfigManager:
             elif update_after is None:
                 update_after = []
             
-            memory_nodes.append(self.CogMemoryDef(
+            memory_nodes.append(CogMemoryDef(
                 id=mem_id,
                 type=mem_def.get('type'),
                 collection_id=mem_def.get('collection_id'),
@@ -392,7 +265,7 @@ class ConfigManager:
         
         return memory_nodes
 
-    def _build_cog_flow(self, raw_flow: Optional[Dict[str, Any]]) -> Optional['ConfigManager.CogFlow']:
+    def _build_cog_flow(self, raw_flow: Optional[Dict[str, Any]]) -> Optional[CogFlow]:
         """Build CogFlow object from raw flow definition."""
         if not raw_flow:
             raise ValueError("Flow must be defined.")
@@ -416,16 +289,16 @@ class ConfigManager:
         for agent_id, transition_def in raw_transitions.items():
             transitions[agent_id] = self._parse_flow_transition(transition_def)
         
-        return self.CogFlow(
+        return CogFlow(
             start=raw_flow['start'],
             transitions=transitions
         )
 
-    def _parse_flow_transition(self, transition_def: Any) -> 'ConfigManager.CogFlowTransition':
+    def _parse_flow_transition(self, transition_def: Any) -> CogFlowTransition:
         """Parse a single flow transition definition into a CogFlowTransition object."""
         if isinstance(transition_def, str):
             # Direct transition to another agent
-            return self.CogFlowTransition(
+            return CogFlowTransition(
                 type="direct",
                 next_agent=transition_def
             )
@@ -433,7 +306,7 @@ class ConfigManager:
         if isinstance(transition_def, dict):
             # Check if this is an end transition
             if transition_def.get('end', False):
-                return self.CogFlowTransition(
+                return CogFlowTransition(
                     type="end",
                     end=True
                 )
@@ -455,7 +328,7 @@ class ConfigManager:
                         decision_map = {str(value): value}
             
             if decision_key:
-                return self.CogFlowTransition(
+                return CogFlowTransition(
                     type="decision",
                     decision_key=decision_key,
                     decision_map=decision_map,

@@ -237,7 +237,7 @@ class ParsingProcessor:
             
             raise ParsingError(f"Failed to parse {expected_language}: {e}") from e
 
-    def parse_by_format(self, content_string: str, parser_type: str, code_fences: Optional[List[str]] = None) -> Any:
+    def parse_by_format(self, content_string: str, parser_type: Optional[str], code_fences: Optional[List[str]] = None) -> Any:
         """
         Parse content using the specified format with two-stage parsing approach.
         
@@ -247,16 +247,20 @@ class ParsingProcessor:
         
         Args:
             content_string: The input string to parse
-            parser_type: The format type to parse (json, yaml, xml, ini, csv, markdown)
+            parser_type: The format type to parse (json, yaml, xml, ini, csv, markdown), or None to return content unchanged
             code_fences: List of fence markers to look for. If None, uses DEFAULT_CODE_FENCES (['```']).
                         Pass an empty list [] to disable code fence extraction and parse full content.
             
         Returns:
-            Parsed content in the appropriate Python data structure
+            Parsed content in the appropriate Python data structure, or the original content_string if parser_type is None
             
         Raises:
             ParsingError: If the format is unsupported or parsing fails completely
         """
+        # If parser_type is None or empty, return the content unchanged
+        if not parser_type:
+            return content_string
+            
         # Explicitly set default code fences when None is provided
         if code_fences is None:
             code_fences = self.DEFAULT_CODE_FENCES

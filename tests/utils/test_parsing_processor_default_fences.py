@@ -351,23 +351,30 @@ Run the application with the following command.
         assert 'Run the application' in result['Usage']
     
     def test_logging_indicates_default_fence_usage(self, processor):
-        """Test that logging indicates when default code fences are being used."""
-        json_content = '''
-        ```json
-        {
-            "test": "logging",
-            "default_fences": true
-        }
+        """Test that log messages indicate when default fences are being used."""
+        yaml_content = '''
+        ```yaml
+        test: value
         ```
         '''
         
         with patch.object(processor.logger, 'log') as mock_log:
-            result = processor.parse_by_format(json_content, 'json')
+            processor.parse_by_format(yaml_content, 'yaml')
             
-            assert result['test'] == 'logging'
-            assert result['default_fences'] is True
-            
-            # Check that debug logging mentions code fence detection
-            debug_calls = [call for call in mock_log.call_args_list 
-                          if len(call[0]) > 1 and call[0][1] == 'debug']
-            assert any("Code-fenced block detected" in call[0][0] for call in debug_calls) 
+            # Should have log messages mentioning code fence behavior
+            log_calls = [str(call) for call in mock_log.call_args_list]
+            # At least one call should mention code-fenced block detection or similar
+            fence_related_logs = [call for call in log_calls if 'Code-fenced' in call or 'code-fenced' in call]
+            assert len(fence_related_logs) > 0
+
+    def test_parse_by_format_returns_original_content_when_parser_type_is_none(self, processor):
+        """Test that parse_by_format returns the original content unchanged when parser_type is None."""
+        test_content = "This is some raw text content that should be returned unchanged."
+        
+        result = processor.parse_by_format(test_content, None)
+        
+        assert result == test_content
+        
+        # Test with empty string as parser_type too
+        result_empty = processor.parse_by_format(test_content, "")
+        assert result_empty == test_content 

@@ -25,40 +25,6 @@ class PromptProcessor:
         self.logger = Logger(name=self.__class__.__name__)
 
     ##################################################
-    # Validation & Basic Checks
-    ##################################################
-
-    def check_prompt_format(self, prompts):
-        """
-        Checks if the prompts dictionary has the correct format.
-
-        Parameters:
-            prompts (dict): The dictionary containing the prompts.
-
-        Raises:
-            ValueError: If the prompts do not contain only 'system' and 'user' keys,
-                        or if the sub-prompts are not dictionaries.
-        """
-        # Check if 'system' and 'user' are the only keys present
-        if set(prompts.keys()) != {'system', 'user'}:
-            error_message = (
-                "Error: Prompts should contain only 'system' and 'user' keys. "
-                "Please check the prompt YAML file format."
-            )
-            self.logger.log(error_message, 'error')
-            raise ValueError(error_message)
-
-        # Allow 'system' and 'user' prompts to be either dicts or strings
-        for prompt_type in ['system', 'user']:
-            prompt_value = prompts.get(prompt_type, {})
-            if not isinstance(prompt_value, (dict, str)):
-                error_message = (
-                    f"Error: The '{prompt_type}' prompt should be either a string or a dictionary of sub-prompts."
-                )
-                self.logger.log(error_message, 'error')
-                raise ValueError(error_message)
-
-    ##################################################
     # Variable Extraction & Nested Lookups
     ##################################################
 
