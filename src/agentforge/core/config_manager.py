@@ -128,6 +128,12 @@ class ConfigManager:
         # Validate and build flow
         flow = self._build_cog_flow(raw_cog.get('flow'))
 
+        # Validate agent type modules exist
+        self._validate_agent_modules(agents)
+
+        # Validate flow references valid agents
+        self._validate_flow_references(flow, agents)
+
         # Build cog definition
         cog_def = CogDefinition(
             name=raw_cog.get('name', ''),
@@ -360,4 +366,64 @@ class ConfigManager:
             if not isinstance(prompt_value, (dict, str)):
                 raise ValueError(
                     f"The '{prompt_type}' prompt should be either a string or a dictionary of sub-prompts."
-                ) 
+                )
+
+    def _validate_agent_modules(self, agents: List[CogAgentDef]) -> None:
+        """Validate that agent modules exist and can be imported."""
+        for agent in agents:
+            if agent.type:
+                self._validate_module_exists(agent.type, agent.id)
+
+    def _validate_module_exists(self, full_class_path: str, agent_id: str) -> None:
+        """
+        Validate that the module exists and contains the specified class.
+        
+        Args:
+            full_class_path: The full module.ClassName path
+            agent_id: The agent ID for error messages
+            
+        Raises:
+            ValueError: If the module path format is invalid
+            ImportError: If the module or class cannot be found
+        """
+        from agentforge.config import Config
+        # Use Config.resolve_class to validate - we don't need the returned class
+        Config.resolve_class(full_class_path, context=f"agent '{agent_id}'")
+
+    def _validate_flow_references(self, flow: CogFlow, agents: List[CogAgentDef]) -> None:
+        """Validate that flow references valid agent IDs."""
+        if not flow:
+            return
+            
+        agent_ids = {agent.id for agent in agents}
+        
+        # Validate start agent exists
+        if flow.start not in agent_ids:
+            raise ValueError(f"Flow start agent '{flow.start}' not found in agents list.")
+        
+        # Validate all transition references
+        for agent_id, transition in flow.transitions.items():
+            if agent_id not in agent_ids:
+                raise ValueError(f"Transition defined for unknown agent '{agent_id}'.")
+            
+            # Check transition targets
+            if transition.type == "direct" and transition.next_agent:
+                if transition.next_agent not in agent_ids:
+                    raise ValueError(f"Transition from '{agent_id}' references unknown agent '{transition.next_agent}'.")
+            elif transition.type == "decision" and transition.decision_map:
+                for decision_value, target_agent in transition.decision_map.items():
+                    if target_agent not in agent_ids:
+                        raise ValueError(f"Decision transition from '{agent_id}' references unknown agent '{target_agent}'.")
+            
+            # Check fallback references
+            if transition.fallback and transition.fallback not in agent_ids:
+                raise ValueError(f"Fallback from '{agent_id}' references unknown agent '{transition.fallback}'.")
+
+        # Warn if no end transition is present
+        has_end_transition = any(
+            transition.type == "end" or transition.end
+            for transition in flow.transitions.values()
+        )
+        
+        if not has_end_transition:
+            print("Warning: Flow has no 'end:' transition; cog may loop forever.") 

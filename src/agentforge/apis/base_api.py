@@ -1,6 +1,8 @@
 import time
 from openai import APIError, RateLimitError, APIConnectionError
 from agentforge.utils.logger import Logger
+import os
+import base64
 
 
 class UnsupportedModalityError(Exception):
@@ -60,8 +62,10 @@ class BaseModel:
     # ─────────────────── retry/back‑off execution ───────────────────────
     def _run_with_retries(self, request_body, params):
         reply = None
+        
         for attempt in range(self.num_retries):
             backoff = self.base_backoff ** (attempt + 1)
+            
             try:
                 filtered = self._prepare_params(**params)
                 response = self._do_api_call(request_body, **filtered)

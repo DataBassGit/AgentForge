@@ -71,4 +71,33 @@ def test_find_config_utility(isolated_config: Config):  # noqa: D103
         assert person.get("name") or person.get("Name"), "Name not found in persona"
 
     with pytest.raises(FileNotFoundError):
-        isolated_config.find_config("prompts", "does-not-exist") 
+        isolated_config.find_config("prompts", "does-not-exist")
+
+
+def test_config_resolve_class(isolated_config: Config):
+    """Test the Config.resolve_class method for dynamic class resolution."""
+    from agentforge.agent import Agent
+    
+    # Test with default class when path is empty
+    cls = Config.resolve_class('', default_class=Agent, context='test default')
+    assert cls == Agent
+    
+    # Test with valid class path
+    cls = Config.resolve_class('agentforge.agent.Agent', context='test agent')
+    assert cls == Agent
+    
+    # Test error handling for invalid format
+    with pytest.raises(ValueError, match="Invalid type format"):
+        Config.resolve_class('InvalidFormat', context='test invalid')
+    
+    # Test error handling for non-existent module
+    with pytest.raises(ImportError, match="Module .* not found"):
+        Config.resolve_class('nonexistent.module.Class', context='test nonexistent')
+    
+    # Test error handling for missing class in valid module  
+    with pytest.raises(ImportError, match="Class .* not found"):
+        Config.resolve_class('agentforge.agent.NonExistentClass', context='test missing class')
+    
+    # Test error when no path and no default
+    with pytest.raises(ValueError, match="No class path provided"):
+        Config.resolve_class('', context='test no default') 

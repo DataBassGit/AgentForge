@@ -23,6 +23,7 @@ ruamel.yaml
 requests
 xmltodict
 setuptools>=70.0.0
+python-dotenv
 
 # Optional Dependencies
 matplotlib~=3.9.2

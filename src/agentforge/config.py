@@ -13,7 +13,7 @@ from types import ModuleType
 
 # Import ConfigManager for structured config objects
 from .core.config_manager import ConfigManager
-from .config_structs import AgentConfig
+from .config_structs import AgentConfig, CogConfig
 
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
@@ -230,14 +230,15 @@ class Config:
         # Use ConfigManager to build and validate structured config object
         return self.config_manager.build_agent_config(raw_agent_data)
 
-    def load_cog_data(self, cog_name: str) -> Dict[str, Any]:
+    def load_cog_data(self, cog_name: str) -> CogConfig:
         """
-        Loads configuration data for a specified cog.
-        Returns raw cog configuration dict. (Note: will be updated to return structured CogConfig object in Phase 3)
+        Loads configuration data for a specified cog, returning a validated structured CogConfig object.
         """
-        # Load raw cog configuration from YAML and return as-is for now
-        # This maintains backward compatibility with Cog class until Phase 3
-        return self.find_config('cogs', cog_name)
+        # Load raw cog configuration from YAML
+        raw_cog_data = self.find_config('cogs', cog_name)
+        
+        # Use ConfigManager to build and validate structured config object
+        return self.config_manager.build_cog_config(raw_cog_data)
 
     # ------------------------------------------------------------------------
     # Model API and Overrides
@@ -341,11 +342,56 @@ class Config:
     # ------------------------------------------------------------------------
 
     @staticmethod
+    def resolve_class(full_class_path: str, default_class: Optional[type] = None, context: str = "") -> type:
+        """
+        Dynamically resolve and return a class from a fully qualified path.
+        
+        Args:
+            full_class_path: The full module.ClassName path (e.g., "mymodule.MyClass")
+            default_class: Class to return if full_class_path is empty/None
+            context: Context for error messages (e.g., "agent 'my_agent'", "memory 'my_memory'")
+            
+        Returns:
+            The resolved class
+            
+        Raises:
+            ValueError: If the module path format is invalid
+            ImportError: If the module or class cannot be found
+        """
+        if not full_class_path:
+            if default_class is not None:
+                return default_class
+            raise ValueError(f"No class path provided for {context}")
+        
+        parts = full_class_path.split(".")
+        if len(parts) < 2:
+            raise ValueError(f"Invalid type format for {context}: '{full_class_path}'. Must be fully qualified (e.g., 'mymodule.MyClass').")
+        
+        module_path = ".".join(parts[:-1])
+        class_name = parts[-1]
+        
+        # Validate module exists before importing
+        # Note: find_spec can raise ModuleNotFoundError on some platforms instead of returning None
+        try:
+            spec = importlib.util.find_spec(module_path)
+            if spec is None:
+                raise ImportError(f"Module '{module_path}' not found for {context}.")
+        except (ModuleNotFoundError, ImportError):
+            raise ImportError(f"Module '{module_path}' not found for {context}.")
+        
+        module = importlib.import_module(module_path)
+        if not hasattr(module, class_name):
+            raise ImportError(f"Class '{class_name}' not found in module '{module_path}' for {context}.")
+        
+        return getattr(module, class_name)
+
+    @staticmethod
     def get_model(api_name: str, class_name: str, model_identifier: str) -> Any:
         """
         Dynamically imports and instantiates the Python class for the requested API/class/identifier.
         """
         module = Config._get_module(api_name)
+        # Use getattr directly on the module since we already have the module and class name
         model_class = getattr(module, class_name)
         return model_class(model_identifier)
 
