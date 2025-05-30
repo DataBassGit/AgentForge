@@ -1,9 +1,9 @@
 from typing import Dict, Any, Optional, List, Union
 from agentforge.config import Config
-from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
 from agentforge.storage.memory import Memory
 from agentforge.config_structs import CogConfig
+from agentforge.core.agent_registry import AgentRegistry
 
 class Cog:
     """
@@ -33,7 +33,7 @@ class Cog:
         self.enable_trail_logging = enable_trail_logging if enable_trail_logging is not None else self.cog_config.cog.trail_logging
 
         # Set up Cog (build agent nodes)
-        self._build_agent_nodes()
+        self.agents = AgentRegistry.build_agents(self.cog_config)
 
         # Build memory nodes
         self._build_memory_nodes()
@@ -55,32 +55,8 @@ class Cog:
         return self.thought_flow_trail
 
     ##########################################################
-    # Section 3: Module Resolution
+    # Section 3: Agent Transitions
     ##########################################################
-
-    def _resolve_agent_class(self, agent_def) -> type:
-        """
-        Resolve and return the agent class for a given agent definition.
-        Assumes validation has already been performed by ConfigManager.
-        """
-        return self.config.resolve_class(
-            agent_def.type, 
-            default_class=Agent,
-            context=f"agent '{agent_def.id}'"
-        )
-
-    ##########################################################
-    # Section 4: Node Resolution
-    ##########################################################
-
-    def _build_agent_nodes(self) -> None:
-        """Instantiate all agents defined in the cog configuration."""
-        self.agents = {}
-        for agent_def in self.cog_config.cog.agents:
-            agent_id = agent_def.id
-            agent_class = self._resolve_agent_class(agent_def)
-            agent_prompt_file = agent_def.template_file or agent_class.__name__
-            self.agents[agent_id] = agent_class(agent_prompt_file)
 
     def get_agent_transition(self, agent_id):
         """
@@ -97,10 +73,17 @@ class Cog:
         """
         transitions = self.cog_config.cog.flow.transitions
         agent_transition = transitions.get(agent_id)
+        
+        # Runtime protection: ConfigManager validates flow references during config construction,
+        # but this check protects against potential flow execution bugs
         if agent_transition is None:
             raise Exception(f"There is no transition defined for agent: {agent_id}")
 
         return agent_transition
+
+    ##########################################################
+    # Section 4: Node Resolution
+    ##########################################################
 
     def _get_next_agent(self, current_agent_id: str) -> Optional[str]:
         """
@@ -111,24 +94,16 @@ class Cog:
             
         Returns:
             Optional[str]: The ID of the next agent, or None if no next agent is found
-            
-        Raises:
-            Exception: If the next agent doesn't exist in this cog
         """
         # Debug logging
         self.logger.log(f"Getting next agent for {current_agent_id}", "debug", "Transition")
         
-        # Get the transition for the current agent
+        # Get the transition for the current agent - ConfigManager has already validated this exists
         agent_transition = self.get_agent_transition(current_agent_id)
         
         # Log the transition details
         self.logger.log(f"Transition data: {agent_transition}", "debug", "Transition")
         
-        # If there's no transition, return None
-        if agent_transition is None:
-            self.logger.log(f"No transition found for {current_agent_id}", "debug", "Transition")
-            return None
-            
         # Check if the transition is an "end" transition
         if agent_transition.type == "end" or agent_transition.end:
             self.logger.log(f"End transition for {current_agent_id}, returning None", "debug", "Transition")
@@ -140,18 +115,8 @@ class Cog:
         # Log the next agent ID
         self.logger.log(f"Next agent for {current_agent_id}: {next_agent}", "debug", "Transition")
         
-        # Validate that the next agent exists (unless terminating)
-        if next_agent is not None:
-            # Check if the next agent is a special known value like "NONEXISTENT_AGENT"
-            if next_agent == "NONEXISTENT_AGENT":
-                self.logger.log(f"Invalid transition to test agent: {next_agent}", "error", "Transition")
-                raise Exception(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
-                
-            # Check if the next agent actually exists in the cog
-            if next_agent not in self.agents:
-                self.logger.log(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.", "error", "Transition")
-                raise Exception(f"Invalid transition from agent '{current_agent_id}': no agent '{next_agent}' defined in this cog.")
-                
+        # ConfigManager has already validated that all flow references are valid
+        # Trust the structured config and assume next_agent exists in self.agents
         return next_agent
 
     def _handle_decision_transition(self, current_agent_id: str, transition) -> Optional[str]:
