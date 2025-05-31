@@ -1,9 +1,11 @@
 from typing import Dict, Any, Optional, List, Union
 from agentforge.config import Config
 from agentforge.utils.logger import Logger
-from agentforge.storage.memory import Memory
 from agentforge.config_structs import CogConfig
 from agentforge.core.agent_registry import AgentRegistry
+from agentforge.core.agent_runner import AgentRunner
+from agentforge.core.memory_manager import MemoryManager
+from agentforge.utils.parsing_processor import ParsingProcessor
 
 class Cog:
     """
@@ -19,30 +21,26 @@ class Cog:
         self.cog_file = cog_file
         self._reset_context_and_thoughts()
 
-        # Initialize visit counter
-        self.agent_visit_counts = {}
-
         # Set Config and Logger
         self.config = Config()
         self.logger: Logger = Logger(self.cog_file, log_file)
 
-        # Load and validate configuration - now returns structured CogConfig object
+        # Load and validate configuration - returns structured CogConfig object
         self.cog_config: CogConfig = self.config.load_cog_data(self.cog_file)
         
         # Set trail logging flag from structured config or constructor override
         self.enable_trail_logging = enable_trail_logging if enable_trail_logging is not None else self.cog_config.cog.trail_logging
 
-        # Set up Cog (build agent nodes)
+        # Set up Cog Agent Nodes, Memory Manager, and Agent Runner
         self.agents = AgentRegistry.build_agents(self.cog_config)
-
-        # Build memory nodes
-        self._build_memory_nodes()
+        self.mem_mgr = MemoryManager(self.cog_config, self.cog_file)
+        self.agent_runner = AgentRunner()
 
     def _reset_context_and_thoughts(self):
         self.context: dict = {}  # external context (runtime/user input)
         self.state: dict = {}    # internal state (agent-local/internal data)
+        self.agent_visit_counts: dict = {} # track visit counts for each agent
         self._reset_thought_flow_trail()
-        self.agent_visit_counts = {}
 
     def _reset_thought_flow_trail(self):
         self.thought_flow_trail: List[Dict] = []
@@ -218,257 +216,8 @@ class Cog:
         return next_agent
 
     ##########################################################
-    # Section 5: Memory
+    # Section 5: Execution
     ##########################################################
-
-    @staticmethod
-    def _resolve_memory_class(mem_def):
-        """
-        Resolve and return the memory class for a given memory definition.
-        """
-        return Config.resolve_class(
-            mem_def.type,
-            default_class=Memory,
-            context=f"memory '{mem_def.id}'"
-        )
-
-    def _resolve_persona(self) -> Optional[str]:
-        """
-        Resolve the persona to use for this cog using the deterministic hierarchy via Config.resolve_persona.
-        
-        Returns:
-            Optional[str]: The resolved persona name or None if personas are disabled
-        """
-        # Get the persona data using the Config's centralized resolution method
-        # Pass the raw dict for compatibility with existing resolve_persona method
-        persona_data = self.config.resolve_persona(cog_config={"cog": {"persona": self.cog_config.cog.persona}})
-        
-        # If personas are disabled or no persona was found, return None
-        if persona_data is None:
-            return None
-            
-        # Return the name from the persona data (needed for memory path naming)
-        # This assumes each persona has a 'name' field, which is a common convention
-        return persona_data.get('name', 'nameless')
-
-    def _build_memory_nodes(self) -> None:
-        # We expect a list of memory configs under cog_config.cog.memory
-        self.memories = {}
-        memory_list = self.cog_config.cog.memory
-        
-        # Resolve persona for the cog using the deterministic hierarchy
-        cog_persona = self._resolve_persona()
-        
-        for mem_def in memory_list:
-            mem_id = mem_def.id
-            mem_class = self._resolve_memory_class(mem_def)
-            
-            # Create a unique collection ID that's independent of the cog/persona namespacing
-            collection_id = mem_def.collection_id or mem_id
-
-            # Pass cog_name and resolved persona to the Memory constructor
-            mem_obj = mem_class(cog_name=self.cog_file, persona=cog_persona, collection_id=collection_id)
-            self.memories[mem_id] = {
-                "instance": mem_obj,
-                "config": mem_def,  # store the structured config for query/update triggers
-            }
-
-    def _build_mem(self) -> dict:
-        """
-        Build the memory structure for agent execution.
-        
-        Returns:
-            dict: Memory stores indexed by memory node ID
-        """
-        return {mem_id: mem_data["instance"].store for mem_id, mem_data in self.memories.items()}
-
-    def _query_memory_nodes(self, agent_id: str) -> None:
-        """
-        Query memory nodes configured to run before the specified agent.
-        
-        Args:
-            agent_id: The agent ID about to be executed
-        """
-        self.logger.log(f"Querying memory nodes before agent: {agent_id}", "debug", "Memory")
-        
-        for mem_id, mem_data in self.memories.items():
-            cfg = mem_data["config"]
-            mem_obj = mem_data["instance"]
-
-            # Check if this memory should be queried before this agent
-            query_agents = cfg.query_before
-            if isinstance(query_agents, str):
-                query_agents = [query_agents]
-                
-            if agent_id not in query_agents:
-                continue
-                
-            self.logger.log(f"Querying memory {mem_id} before agent {agent_id}", "debug", "Memory")
-            
-            # Handle query keys - if empty or missing, use both context and state
-            query_keys = cfg.query_keys
-            if not query_keys:
-                # Use merged context and state as query text
-                query_text = {**self.context, **self.state}
-                if query_text:
-                    self.logger.log(f"Using merged context/state for memory {mem_id} query", "debug", "Memory")
-                    result = mem_obj.query_memory(query_text=query_text)
-                    if result:
-                        self.logger.log(f"Found memories in {mem_id}", "debug", "Memory")
-                        mem_obj.store.update(result)
-                else:
-                    self.logger.log(f"No context or state available for memory {mem_id} query", "debug", "Memory")
-                continue
-                
-            try:
-                input_for_query = self._extract_keys(query_keys)
-                if not input_for_query:
-                    self.logger.log(f"No query data extracted for memory {mem_id}", "debug", "Memory")
-                    continue
-                
-                # Prepare query text from extracted values
-                if len(input_for_query) == 1:
-                    query_text = next(iter(input_for_query.values()))
-                else:
-                    query_text = list(input_for_query.values())
-
-                self.logger.log(f"Querying memory {mem_id} with: {query_text}", "debug", "Memory")
-                
-                # Execute query - empty result is normal
-                result = mem_obj.query_memory(query_text=query_text)
-                if result:
-                    self.logger.log(f"Found memories in {mem_id}", "debug", "Memory")
-                    mem_obj.store.update(result)
-                    
-            except Exception as e:
-                # Storage-level errors should be fatal
-                self.logger.log(f"Memory query failed for {mem_id}: {e}", "error", "Memory")
-                raise
-
-    def _update_memory_nodes(self, agent_id: str) -> None:
-        """
-        Update memory nodes configured to run after the specified agent.
-        
-        Args:
-            agent_id: The agent ID that just completed execution
-        """
-        self.logger.log(f"Updating memory nodes after agent: {agent_id}", "debug", "Memory")
-        
-        for mem_id, mem_data in self.memories.items():
-            cfg = mem_data["config"]
-            mem_obj = mem_data["instance"]
-            
-            # Check if this memory should be updated after this agent
-            update_agents = cfg.update_after
-            if isinstance(update_agents, str):
-                update_agents = [update_agents]
-                
-            if agent_id not in update_agents:
-                continue
-                
-            self.logger.log(f"Updating memory {mem_id} after agent {agent_id}", "debug", "Memory")
-            
-            # Handle update keys - if empty or missing, use both context and state
-            update_keys = cfg.update_keys
-            if not update_keys:
-                # Use merged context and state for update
-                update_data = {**self.context, **self.state}
-                if update_data:
-                    self.logger.log(f"Using merged context/state for memory {mem_id} update", "debug", "Memory")
-                    mem_obj.update_memory(data=update_data, context={**self.context, **self.state})
-                    self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
-                else:
-                    self.logger.log(f"No context or state available for memory {mem_id} update", "debug", "Memory")
-                continue
-                
-            try:
-                update_data = self._extract_keys(update_keys)
-                if not update_data:
-                    self.logger.log(f"No update data extracted for memory {mem_id}", "debug", "Memory")
-                    continue
-                
-                self.logger.log(f"Updating memory {mem_id} with: {list(update_data.keys())}", "debug", "Memory")
-                
-                # Update memory with extracted data and merged context/state for metadata
-                mem_obj.update_memory(data=update_data, context={**self.context, **self.state})
-                self.logger.log(f"Successfully updated memory {mem_id}", "debug", "Memory")
-                
-            except Exception as e:
-                # Storage-level errors should be fatal
-                self.logger.log(f"Memory update failed for {mem_id}: {e}", "error", "Memory")
-                raise
-
-    def _extract_keys(self, key_list):
-        """
-        Extract values for the given keys from self.context (external) first, then self.state (internal).
-        Supports dot-notated keys for nested dict access.
-        If key_list is empty or None, returns a merged dict of self.context and self.state.
-        """
-        if not key_list:
-            merged = {**self.state, **self.context}
-            return merged
-        result = {}
-        for key in key_list:
-            value = self._get_dot_notated(self.context, key)
-            if value is not None:
-                result[key] = value
-                continue
-            value = self._get_dot_notated(self.state, key)
-            if value is not None:
-                result[key] = value
-                continue
-            raise ValueError(f"Key '{key}' not found in context or state.")
-        return result
-
-    @staticmethod
-    def _get_dot_notated(source, key):
-        """
-        Helper to get a value from a dict using dot notation (e.g., 'foo.bar.baz').
-        Returns None if any part of the path is missing.
-        """
-        if not isinstance(source, dict):
-            return None
-        parts = key.split('.')
-        current = source
-        for part in parts:
-            if isinstance(current, dict) and part in current:
-                current = current[part]
-            else:
-                return None
-        return current
-
-    ##########################################################
-    # Section 7: Execution
-    ##########################################################
-
-    def _call_agent(self, current_agent_id: str):
-        """
-        Execute an agent with retry logic.
-        
-        Args:
-            current_agent_id: The agent to execute
-            
-        Returns:
-            Agent output on success
-            
-        Raises:
-            Exception: If agent fails after max attempts
-        """
-        attempts = 0
-        max_attempts = 3
-        agent = self.agents.get(current_agent_id)
-
-        while attempts < max_attempts:
-            attempts += 1
-            mem = self._build_mem()
-            agent_output = agent.run(_ctx=self.context, _state=self.state, _mem=mem)
-            if not agent_output:
-                self.logger.log(f"No output from agent '{current_agent_id}', retrying... (Attempt {attempts})", "warning")
-                continue
-            return agent_output
-
-        self.logger.log(f"Max attempts reached for agent '{current_agent_id}' with no valid output.", "error")
-        raise Exception(f"Failed to get valid response from {current_agent_id}. We recommend checking the agent's input/output logs.")
 
     def _execute_flow(self) -> None:
         """
@@ -486,10 +235,12 @@ class Cog:
                 self.logger.log(f"Processing agent: {current_agent_id}", "debug", "Flow")
                 
                 # Query memory nodes before agent execution
-                self._query_memory_nodes(current_agent_id)
+                self.mem_mgr.query_before(current_agent_id, self.context, self.state)
                 
                 # Execute the current agent
-                agent_output = self._call_agent(current_agent_id)
+                agent = self.agents.get(current_agent_id)
+                mem = self.mem_mgr.build_mem()
+                agent_output = self.agent_runner.run_agent(current_agent_id, agent, self.context, self.state, mem)
                 
                 # Store agent output in state
                 self.state[current_agent_id] = agent_output
@@ -499,7 +250,7 @@ class Cog:
                 self._track_agent_output(current_agent_id, agent_output)
                 
                 # Update memory nodes after agent execution
-                self._update_memory_nodes(current_agent_id)
+                self.mem_mgr.update_after(current_agent_id, self.context, self.state)
                 
                 # Determine next agent in flow
                 next_agent_id = self._get_next_agent(current_agent_id)
@@ -517,15 +268,6 @@ class Cog:
         if self.enable_trail_logging:
             self.thought_flow_trail.append({agent_id: output})
             self.logger.log(f"******\n{agent_id}\n******\n{output}\n******", "debug", "Trail")
-
-    def get_internal_context(self) -> Dict[str, Any]:
-        """
-        Returns the full internal state after execution.
-        
-        Returns:
-            Dict[str, Any]: The internal state containing all agent outputs
-        """
-        return self.state.copy()
 
     def run(self, **kwargs: Any) -> Any:
         """
@@ -561,6 +303,6 @@ class Cog:
                     if agent_transition.end in self.state:
                         return self.state[agent_transition.end]
                     # Otherwise treat as dot notation in state
-                    return self._get_dot_notated(self.state, agent_transition.end)
+                    return ParsingProcessor.get_dot_notated(self.state, agent_transition.end)
         # Default behavior: return the full internal state
         return self.state

@@ -309,6 +309,30 @@ class ParsingProcessor:
         return ['xml', 'json', 'yaml', 'ini', 'csv', 'markdown']
 
     @staticmethod
+    def get_dot_notated(source: dict, key: str):
+        """
+        Helper to get a value from a dict using dot notation (e.g., 'foo.bar.baz').
+        Returns None if any part of the path is missing.
+        
+        Args:
+            source: Source dictionary
+            key: Dot-notated key string
+            
+        Returns:
+            Value at the specified path, or None if not found
+        """
+        if not isinstance(source, dict):
+            return None
+        parts = key.split('.')
+        current = source
+        for part in parts:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
+            else:
+                return None
+        return current
+
+    @staticmethod
     def parse_markdown_to_dict(markdown_text: str, min_heading_level=2, max_heading_level=6) -> Optional[
         Dict[str, Any]]:
         parsed_dict = {}
