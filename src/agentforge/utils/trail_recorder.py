@@ -13,15 +13,14 @@ from agentforge.utils.logger import Logger
 class TrailRecorder:
     """Encapsulates thought trail tracking and related logging functionality."""
     
-    def __init__(self, logger: Logger, enabled: bool = True):
+    def __init__(self, enabled: bool = True):
         """
         Initialize the trail recorder.
         
         Args:
-            logger: Logger instance for trail logging
             enabled: Whether trail recording is enabled
         """
-        self.logger = logger
+        self.logger = Logger(name="TrailRecorder", default_logger="trail")
         self.enabled = enabled
         self.trail: List[ThoughtTrailEntry] = []
         self._execution_counter = 0

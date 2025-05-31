@@ -16,7 +16,6 @@ from datetime import datetime
 from agentforge.cog import Cog
 from agentforge.utils.trail_recorder import TrailRecorder
 from agentforge.config_structs.trail_structs import ThoughtTrailEntry
-from agentforge.utils.logger import Logger
 
 
 class TestTrailRecorderFunctionality:
@@ -61,8 +60,7 @@ class TestTrailRecorderFunctionality:
 
     def test_trail_recorder_basic_functionality(self):
         """Test basic TrailRecorder functionality."""
-        logger = Logger('test', 'test')
-        recorder = TrailRecorder(logger, enabled=True)
+        recorder = TrailRecorder(enabled=True)
         
         # Record some outputs
         recorder.record_agent_output("agent1", "output1")
@@ -94,8 +92,7 @@ class TestTrailRecorderFunctionality:
 
     def test_trail_recorder_disabled(self):
         """Test that disabled TrailRecorder doesn't record anything."""
-        logger = Logger('test', 'test')
-        recorder = TrailRecorder(logger, enabled=False)
+        recorder = TrailRecorder(enabled=False)
         
         recorder.record_agent_output("agent1", "output1")
         trail = recorder.get_trail()
@@ -104,8 +101,7 @@ class TestTrailRecorderFunctionality:
 
     def test_trail_recorder_reset(self):
         """Test TrailRecorder reset functionality."""
-        logger = Logger('test', 'test')
-        recorder = TrailRecorder(logger, enabled=True)
+        recorder = TrailRecorder(enabled=True)
         
         # Record some outputs
         recorder.record_agent_output("agent1", "output1")

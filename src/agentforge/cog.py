@@ -73,7 +73,7 @@ class Cog:
         """Initialize trail logging with appropriate configuration."""
         if enable_trail_logging is None:
             enable_trail_logging = self.cog_config.cog.trail_logging
-        self.trail_recorder = TrailRecorder(self.logger, enabled=enable_trail_logging)
+        self.trail_recorder = TrailRecorder(enabled=enable_trail_logging)
 
     # ---------------------------------
     # State Management
