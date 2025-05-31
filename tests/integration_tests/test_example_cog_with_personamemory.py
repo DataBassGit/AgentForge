@@ -145,18 +145,18 @@ class TestExampleCogWithPersonaMemoryIntegration:
         assert mock_agent_responses_with_real_data['update_agent'] >= 1, "Update agent should be called for memory updates"
         
         # Verify the flow trail shows proper execution order 
-        # Flow trail is a list of dicts: [{'understand': output}, {'respond': output}]
+        # Flow trail is a list of ThoughtTrailEntry objects: [ThoughtTrailEntry(agent_id='understand', output=...), ...]
         flow_trail = cog.get_track_flow_trail()
         assert len(flow_trail) == 2, f"Expected 2 agents in flow trail, got {len(flow_trail)}"
         
         # Extract agent names from flow trail
-        executed_agents = [list(entry.keys())[0] for entry in flow_trail]
+        executed_agents = [entry.agent_id for entry in flow_trail]
         expected_flow = ["understand", "respond"]
         assert executed_agents == expected_flow, f"Expected flow {expected_flow}, got {executed_agents}"
         
         # Verify the outputs in the flow trail match our expected responses
-        understand_output = flow_trail[0]['understand']
-        respond_output = flow_trail[1]['respond']
+        understand_output = flow_trail[0].output
+        respond_output = flow_trail[1].output
         
         assert understand_output == real_agent_responses['UnderstandAgent']
         assert respond_output == real_agent_responses['PersonaResponseAgent']

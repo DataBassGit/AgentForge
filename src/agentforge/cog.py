@@ -2,10 +2,12 @@ from typing import Dict, Any, Optional, List, Union
 from agentforge.config import Config
 from agentforge.utils.logger import Logger
 from agentforge.config_structs import CogConfig
+from agentforge.config_structs.trail_structs import ThoughtTrailEntry
 from agentforge.core.agent_registry import AgentRegistry
 from agentforge.core.agent_runner import AgentRunner
 from agentforge.core.memory_manager import MemoryManager
 from agentforge.utils.parsing_processor import ParsingProcessor
+from agentforge.utils.trail_recorder import TrailRecorder
 
 class Cog:
     """
@@ -29,7 +31,10 @@ class Cog:
         self.cog_config: CogConfig = self.config.load_cog_data(self.cog_file)
         
         # Set trail logging flag from structured config or constructor override
-        self.enable_trail_logging = enable_trail_logging if enable_trail_logging is not None else self.cog_config.cog.trail_logging
+        trail_enabled = enable_trail_logging if enable_trail_logging is not None else self.cog_config.cog.trail_logging
+
+        # Initialize trail recorder
+        self.trail_recorder = TrailRecorder(self.logger, enabled=trail_enabled)
 
         # Set up Cog Agent Nodes, Memory Manager, and Agent Runner
         self.agents = AgentRegistry.build_agents(self.cog_config)
@@ -43,14 +48,15 @@ class Cog:
         self._reset_thought_flow_trail()
 
     def _reset_thought_flow_trail(self):
-        self.thought_flow_trail: List[Dict] = []
+        if hasattr(self, 'trail_recorder'):
+            self.trail_recorder.reset_trail()
 
     ##########################################################
     # Section 2: Interface Methods
     ##########################################################
 
-    def get_track_flow_trail(self) -> List[Dict]:
-        return self.thought_flow_trail
+    def get_track_flow_trail(self) -> List[ThoughtTrailEntry]:
+        return self.trail_recorder.get_trail()
 
     ##########################################################
     # Section 3: Agent Transitions
@@ -265,9 +271,7 @@ class Cog:
 
     def _track_agent_output(self, agent_id: str, output: Any) -> None:
         """Track agent output in thought flow trail if logging is enabled."""
-        if self.enable_trail_logging:
-            self.thought_flow_trail.append({agent_id: output})
-            self.logger.log(f"******\n{agent_id}\n******\n{output}\n******", "debug", "Trail")
+        self.trail_recorder.record_agent_output(agent_id, output)
 
     def run(self, **kwargs: Any) -> Any:
         """

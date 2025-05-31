@@ -48,3 +48,5 @@ src/agentforge/persona/chatbot.json
 examples/episodic_memory_cog_example.yaml
 
 examples/journal_cog_example.yaml
+
+.cursor/rules/

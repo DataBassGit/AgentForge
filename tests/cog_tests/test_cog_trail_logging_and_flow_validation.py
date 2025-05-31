@@ -56,7 +56,7 @@ class TestCogTrailLoggingAndFlowValidation:
         
         # Test cog initialization
         cog = Cog("TestCog")
-        assert not cog.enable_trail_logging, "Trail logging should be False from YAML config"
+        assert not cog.trail_recorder.enabled, "Trail logging should be False from YAML config"
 
     def test_trail_logging_constructor_override(self, isolated_config):
         """Test that constructor parameter overrides YAML config for trail_logging."""
@@ -96,7 +96,7 @@ class TestCogTrailLoggingAndFlowValidation:
         
         # Test constructor override
         cog = Cog("TestCog", enable_trail_logging=False)
-        assert not cog.enable_trail_logging, "Constructor override should set trail_logging to False"
+        assert not cog.trail_recorder.enabled, "Constructor override should set trail_logging to False"
 
     def test_trail_logging_default_true(self, isolated_config):
         """Test that trail_logging defaults to True when not specified in YAML."""
@@ -134,7 +134,7 @@ class TestCogTrailLoggingAndFlowValidation:
         
         # Test that trail_logging defaults to True
         cog = Cog("DefaultCog")
-        assert cog.enable_trail_logging, "Trail logging should default to True when not specified"
+        assert cog.trail_recorder.enabled, "Trail logging should default to True when not specified"
 
     def test_flow_validation_warns_on_missing_end_state(self, isolated_config):
         """Test that flows without end states are correctly identified."""
