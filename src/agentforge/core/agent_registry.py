@@ -34,8 +34,8 @@ class AgentRegistry:
         for agent_def in cog_config.cog.agents:
             agent_id = agent_def.id
             agent_class = AgentRegistry._resolve_agent_class(agent_def, config)
-            agent_prompt_file = agent_def.template_file or agent_class.__name__
-            agents[agent_id] = agent_class(agent_prompt_file)
+            agent_name = agent_def.template_file or agent_def.id
+            agents[agent_id] = agent_class(agent_name=agent_name)
             
         return agents
 
