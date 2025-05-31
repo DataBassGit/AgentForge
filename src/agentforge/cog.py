@@ -1,50 +1,64 @@
-from typing import Dict, Any, Optional, List, Union
+"""
+Cog workflow orchestration module for AgentForge.
+
+The Cog class provides a workflow framework for executing a series of
+chained agents based on configurable flow definitions and transitions.
+"""
+
+from typing import Any, Dict, List, Optional
 from agentforge.config import Config
-from agentforge.utils.logger import Logger
-from agentforge.config_structs import CogConfig
 from agentforge.config_structs.trail_structs import ThoughtTrailEntry
-from agentforge.core.agent_registry import AgentRegistry
 from agentforge.core.agent_runner import AgentRunner
+from agentforge.core.config_manager import ConfigManager
 from agentforge.core.memory_manager import MemoryManager
+from agentforge.core.transition_resolver import TransitionResolver
+from agentforge.utils.logger import Logger
 from agentforge.utils.parsing_processor import ParsingProcessor
 from agentforge.utils.trail_recorder import TrailRecorder
 
+
 class Cog:
     """
-    A cognitive architecture engine that orchestrates agents as defined in a YAML configuration.
+    Orchestrates a workflow of agents based on flow configuration.
+    
+    Cog reads agent definitions, flow transitions, and memory configurations
+    from a YAML file and executes agents in the specified order, handling
+    decision-based routing and memory management.
+    
+    The transition logic has been extracted into a dedicated TransitionResolver
+    class to improve testability and separation of concerns.
     """
-
-    ##########################################################
-    # Section 1: Initialization & Configuration Loading
-    ##########################################################
 
     def __init__(self, cog_file: str, enable_trail_logging: Optional[bool] = None, log_file: Optional[str] = 'cog'):
         # Set instance variables
-        self.cog_file = cog_file
-        self._reset_context_and_thoughts()
-
-        # Set Config and Logger
+        self.cog_file = cog_file  # Store the cog file name for tests and reference
         self.config = Config()
-        self.logger: Logger = Logger(self.cog_file, log_file)
-
-        # Load and validate configuration - returns structured CogConfig object
-        self.cog_config: CogConfig = self.config.load_cog_data(self.cog_file)
+        self.logger = Logger(name='Cog', default_logger=log_file)
         
-        # Set trail logging flag from structured config or constructor override
-        trail_enabled = enable_trail_logging if enable_trail_logging is not None else self.cog_config.cog.trail_logging
-
-        # Initialize trail recorder
-        self.trail_recorder = TrailRecorder(self.logger, enabled=trail_enabled)
-
-        # Set up Cog Agent Nodes, Memory Manager, and Agent Runner
-        self.agents = AgentRegistry.build_agents(self.cog_config)
-        self.mem_mgr = MemoryManager(self.cog_config, self.cog_file)
+        # Initialize the config manager and build the configuration
+        config_manager = ConfigManager()
+        self.cog_config = config_manager.build_cog_config(self.config.data['cogs'][cog_file])
+        
+        # Create agents dictionary
+        self.agents = self._create_agents()
+        
+        # Initialize core components - pass cog_file string, not logger
+        self.mem_mgr = MemoryManager(self.cog_config, cog_file)
         self.agent_runner = AgentRunner()
+        self.transition_resolver = TransitionResolver(self.cog_config.cog.flow)
+        
+        # Initialize trail logging
+        if enable_trail_logging is None:
+            enable_trail_logging = self.cog_config.cog.trail_logging
+        self.trail_recorder = TrailRecorder(self.logger, enabled=enable_trail_logging)
+        
+        # Initialize state variables
+        self.last_executed_agent: Optional[str] = None
+        self._reset_context_and_thoughts()
 
     def _reset_context_and_thoughts(self):
         self.context: dict = {}  # external context (runtime/user input)
         self.state: dict = {}    # internal state (agent-local/internal data)
-        self.agent_visit_counts: dict = {} # track visit counts for each agent
         self._reset_thought_flow_trail()
 
     def _reset_thought_flow_trail(self):
@@ -59,170 +73,31 @@ class Cog:
         return self.trail_recorder.get_trail()
 
     ##########################################################
-    # Section 3: Agent Transitions
+    # Section 3: Agent Creation
     ##########################################################
 
-    def get_agent_transition(self, agent_id):
-        """
-        Get the transition definition for the specified agent.
-        
-        Args:
-            agent_id: The ID of the agent to get the transition for
+    def _create_agents(self) -> Dict[str, Any]:
+        """Create agent instances from the configuration."""
+        agents = {}
+        for agent_def in self.cog_config.cog.agents:
+            # Create the agent - ConfigManager has already validated the class path
+            if agent_def.type:
+                agent_class = self.config.resolve_class(agent_def.type, context=f"agent '{agent_def.id}'")
+                # For custom agent types, pass the template_file as agent_name if specified, otherwise use the agent id
+                agent_name = agent_def.template_file or agent_def.id
+                agent = agent_class(agent_name=agent_name)
+            else:
+                # Use default Agent class with template_file as agent_name if specified, otherwise use the agent id
+                from agentforge.agent import Agent
+                agent_name = agent_def.template_file or agent_def.id
+                agent = Agent(agent_name=agent_name)
             
-        Returns:
-            - CogFlowTransition: The structured transition object
-            
-        Raises:
-            Exception: If no transition is defined for the agent
-        """
-        transitions = self.cog_config.cog.flow.transitions
-        agent_transition = transitions.get(agent_id)
+            agents[agent_def.id] = agent
         
-        # Runtime protection: ConfigManager validates flow references during config construction,
-        # but this check protects against potential flow execution bugs
-        if agent_transition is None:
-            raise Exception(f"There is no transition defined for agent: {agent_id}")
-
-        return agent_transition
+        return agents
 
     ##########################################################
-    # Section 4: Node Resolution
-    ##########################################################
-
-    def _get_next_agent(self, current_agent_id: str) -> Optional[str]:
-        """
-        Gets the next agent ID based on the flow transitions.
-        
-        Args:
-            current_agent_id (str): The ID of the current agent
-            
-        Returns:
-            Optional[str]: The ID of the next agent, or None if no next agent is found
-        """
-        # Debug logging
-        self.logger.log(f"Getting next agent for {current_agent_id}", "debug", "Transition")
-        
-        # Get the transition for the current agent - ConfigManager has already validated this exists
-        agent_transition = self.get_agent_transition(current_agent_id)
-        
-        # Log the transition details
-        self.logger.log(f"Transition data: {agent_transition}", "debug", "Transition")
-        
-        # Check if the transition is an "end" transition
-        if agent_transition.type == "end" or agent_transition.end:
-            self.logger.log(f"End transition for {current_agent_id}, returning None", "debug", "Transition")
-            return None
-                
-        # Process and handle the transition
-        next_agent = self._handle_decision_transition(current_agent_id, agent_transition)
-        
-        # Log the next agent ID
-        self.logger.log(f"Next agent for {current_agent_id}: {next_agent}", "debug", "Transition")
-        
-        # ConfigManager has already validated that all flow references are valid
-        # Trust the structured config and assume next_agent exists in self.agents
-        return next_agent
-
-    def _handle_decision_transition(self, current_agent_id: str, transition) -> Optional[str]:
-        """
-        Handle decision-based transitions:
-          - Check if the max_visits limit for this agent is exceeded.
-          - Otherwise, use the decision variable to select the next agent.
-          
-        Args:
-            current_agent_id: The ID of the current agent
-            transition: CogFlowTransition object
-            
-        Returns:
-            Optional[str]: The ID of the next agent, or None if the flow should terminate
-        """
-        # Handle direct transitions
-        if transition.type == 'direct':
-            return transition.next_agent
-            
-        # Handle end transitions
-        if transition.type == 'end':
-            return None
-            
-        # Check if max_visits is exceeded (only for decision transitions)
-        if transition.max_visits:
-            # Increment the visit count for the current agent.
-            self.agent_visit_counts[current_agent_id] = self.agent_visit_counts.get(current_agent_id, 0) + 1
-
-            # If the visit count exceeds the max_visits, return the 'fallback' branch specified in the transition.
-            if self.agent_visit_counts[current_agent_id] > transition.max_visits:
-                return transition.fallback
-
-        # Handle decision-based transition
-        return self._handle_decision(current_agent_id, transition)
-
-    def _handle_decision(self, current_agent_id: str, transition) -> Optional[str]:
-        """
-        Handles decision-based transitions by determining the decision key
-        and selecting the appropriate branch based on the agent's output.
-        
-        Args:
-            current_agent_id: The ID of the current agent
-            transition: CogFlowTransition object (must be decision type)
-            
-        Returns:
-            Optional[str]: The ID of the next agent, or None if no matching branch is found
-        """
-        self.logger.log(f"Handling transition for {current_agent_id}: {transition}", "debug", "Decision")
-        
-        decision_key = transition.decision_key
-        fallback_branch = transition.fallback
-        decision_map = transition.decision_map
-        
-        self.logger.log(f"Decision key={decision_key}, fallback={fallback_branch}", "debug", "Decision")
-
-        if not decision_key:
-            # If no decision key, return the fallback branch directly
-            self.logger.log(f"No decision key, returning fallback: {fallback_branch}", "debug", "Decision")
-            return fallback_branch
-            
-        self.logger.log(f"Decision map={decision_map}", "debug", "Decision")
-        
-        # Get the decision value from the agent's output
-        if current_agent_id not in self.state:
-            self.logger.log(f"No output found for agent '{current_agent_id}' in internal state", "warning", "Decision")
-            self.logger.log(f"No agent output, returning fallback", "debug", "Decision")
-            return fallback_branch
-            
-        decision_value = self.state[current_agent_id].get(decision_key)
-        self.logger.log(f"Decision value={decision_value}", "debug", "Decision")
-        
-        # If the decision value is not found in the output, use the fallback branch
-        if decision_value is None:
-            self.logger.log(f"Decision value for key '{decision_key}' not found in output of agent '{current_agent_id}'", "warning", "Decision")
-            self.logger.log(f"Null decision value, returning fallback", "debug", "Decision")
-            return fallback_branch
-            
-        # Get the next agent ID based on the decision value, using the fallback if no match
-        # Convert decision map keys and decision_value to lowercase strings for comparison
-        str_decision_value = str(decision_value).lower()
-        self.logger.log(f"Normalized decision value='{str_decision_value}'", "debug", "Decision")
-        
-        # Convert all keys to lowercase strings for consistent lookup
-        string_key_map = {str(k).lower(): v for k, v in decision_map.items()}
-        self.logger.log(f"String key map={string_key_map}", "debug", "Decision")
-        
-        # Use the normalized map and value for lookup
-        next_agent = string_key_map.get(str_decision_value, fallback_branch)
-        self.logger.log(f"Next agent='{next_agent}'", "debug", "Decision")
-        
-        # Log the decision process for debugging
-        self.logger.log(f"Decision summary: key='{decision_key}', value='{decision_value}', normalized='{str_decision_value}', result='{next_agent}'", 'debug', 'Decision')
-        
-        if next_agent is None:
-            self.logger.log(f"No matching branch found for decision value '{decision_value}' and no fallback branch defined", "warning", "Decision")
-            self.logger.log(f"No match and no fallback", "debug", "Decision")
-            
-        self.logger.log(f"Returning next agent='{next_agent}'", "debug", "Decision")
-        return next_agent
-
-    ##########################################################
-    # Section 5: Execution
+    # Section 4: Execution
     ##########################################################
 
     def _execute_flow(self) -> None:
@@ -234,7 +109,7 @@ class Cog:
         
         current_agent_id = self.cog_config.cog.flow.start
         self.last_executed_agent = None
-        self.agent_visit_counts = {}
+        self.transition_resolver.reset_visit_counts()
         
         while current_agent_id:
             try:
@@ -258,8 +133,8 @@ class Cog:
                 # Update memory nodes after agent execution
                 self.mem_mgr.update_after(current_agent_id, self.context, self.state)
                 
-                # Determine next agent in flow
-                next_agent_id = self._get_next_agent(current_agent_id)
+                # Determine next agent in flow using the transition resolver
+                next_agent_id = self.transition_resolver.get_next_agent(current_agent_id, self.state)
                 self.logger.log(f"Next agent: {next_agent_id}", "debug", "Flow")
                 
                 current_agent_id = next_agent_id
@@ -293,7 +168,7 @@ class Cog:
         
         # Get the transition for the last executed agent
         if self.last_executed_agent:
-            agent_transition = self.get_agent_transition(self.last_executed_agent)
+            agent_transition = self.transition_resolver._get_agent_transition(self.last_executed_agent)
             
             # Handle the 'end' keyword - check for end transition
             if agent_transition.type == "end" or agent_transition.end:
