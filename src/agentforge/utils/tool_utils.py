@@ -1,5 +1,5 @@
 # =================== DEPRECATION WARNING ===================
-# This module is part of the Tools/Actions system, which is DEPRECATED and contains CRITICAL SECURITY VULNERABILITIES.
+# This module is part of the Tools/Actions system, which is DEPRECATED.
 # Do NOT use in production or with untrusted input.
 # See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
 # This functionality will be replaced in a future version with a secure implementation.

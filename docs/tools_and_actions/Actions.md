@@ -1,6 +1,6 @@
 # ⚠️ DEPRECATION WARNING
 
-**The Actions system is DEPRECATED and contains CRITICAL SECURITY VULNERABILITIES.**
+**The Actions system is DEPRECATED.**
 
 Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
 
