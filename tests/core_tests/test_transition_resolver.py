@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import Mock, patch
 
 from agentforge.config_structs.cog_config_structs import CogFlow, CogFlowTransition
-from agentforge.core.transition_resolver import TransitionResolver
+from agentforge.core.transition_resolver import TransitionResolver, TransitionResolverError
 
 
 class TestTransitionResolver:
@@ -283,7 +283,7 @@ class TestTransitionResolver:
         resolver = TransitionResolver(flow)
         
         # Test
-        with pytest.raises(Exception, match="There is no transition defined for agent: nonexistent"):
+        with pytest.raises(TransitionResolverError, match="No transition defined for agent: nonexistent"):
             resolver.get_next_agent("nonexistent", {})
 
     @patch('agentforge.core.transition_resolver.Logger')
@@ -306,7 +306,7 @@ class TestTransitionResolver:
         resolver.get_next_agent("agent1", {})
         
         # Verify logging calls
-        assert mock_logger.log.call_count >= 3  # At least getting, transition data, and result logs
+        assert mock_logger.info.call_count >= 2  # Getting and result logs
 
     def test_decision_transition_with_no_fallback_returns_none(self):
         """Test decision transitions with no fallback return None for unmatched values."""
