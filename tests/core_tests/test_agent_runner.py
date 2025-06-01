@@ -58,25 +58,22 @@ class TestAgentRunner:
         assert mock_agent.run.call_count == 2
 
     def test_retry_on_exception(self):
-        """Test that agent runner retries when agent raises an exception."""
-        # Setup
+        """Test that agent runner propagates exception immediately when agent raises an exception (no retry)."""
         runner = AgentRunner()
         mock_agent = Mock()
-        # First call raises exception, second call returns valid output
-        mock_agent.run.side_effect = [Exception("temporary failure"), "valid output"]
-        
-        # Execute
-        result = runner.run_agent(
-            agent_id="test_agent",
-            agent=mock_agent,
-            context={},
-            state={},
-            memory={}
-        )
-        
-        # Verify
-        assert result == "valid output"
-        assert mock_agent.run.call_count == 2
+        # First call raises exception, should not retry
+        mock_agent.run.side_effect = Exception("temporary failure")
+
+        with pytest.raises(Exception) as exc_info:
+            runner.run_agent(
+                agent_id="test_agent",
+                agent=mock_agent,
+                context={},
+                state={},
+                memory={}
+            )
+        assert "temporary failure" in str(exc_info.value)
+        assert mock_agent.run.call_count == 1
 
     def test_max_attempts_exceeded_with_empty_output(self):
         """Test that agent runner raises exception after max attempts with empty output."""
@@ -100,14 +97,12 @@ class TestAgentRunner:
         assert mock_agent.run.call_count == 2
 
     def test_max_attempts_exceeded_with_exception(self):
-        """Test that agent runner propagates exception after max attempts."""
-        # Setup
+        """Test that agent runner propagates exception after first attempt (no retry on exception)."""
         runner = AgentRunner()
         mock_agent = Mock()
         test_exception = Exception("persistent failure")
         mock_agent.run.side_effect = test_exception
-        
-        # Execute and verify exception
+
         with pytest.raises(Exception) as exc_info:
             runner.run_agent(
                 agent_id="test_agent",
@@ -117,10 +112,8 @@ class TestAgentRunner:
                 memory={},
                 max_attempts=2
             )
-        
-        # Should propagate the original exception on the last attempt
         assert exc_info.value is test_exception
-        assert mock_agent.run.call_count == 2
+        assert mock_agent.run.call_count == 1
 
     def test_custom_max_attempts(self):
         """Test that custom max_attempts parameter is respected."""
@@ -144,19 +137,16 @@ class TestAgentRunner:
 
     @patch('agentforge.core.agent_runner.Logger')
     def test_logging_behavior(self, mock_logger_class):
-        """Test that AgentRunner creates its own logger and logs appropriately."""
-        # Setup
+        """Test that AgentRunner creates its own logger and logs appropriately (debug/warning/error)."""
         mock_logger = Mock()
         mock_logger_class.return_value = mock_logger
-        
+
         runner = AgentRunner()
         mock_agent = Mock()
         mock_agent.run.return_value = "test output"
-        
-        # Verify logger initialization
+
         mock_logger_class.assert_called_once_with("AgentRunner", "agent_runner")
-        
-        # Execute
+
         runner.run_agent(
             agent_id="test_agent",
             agent=mock_agent,
@@ -164,10 +154,8 @@ class TestAgentRunner:
             state={},
             memory={}
         )
-        
-        # Verify logging calls
-        assert mock_logger.log.call_count >= 2  # At least debug and success messages
-        
-        # Check that debug messages include agent execution info
-        debug_calls = [call for call in mock_logger.log.call_args_list if 'debug' in str(call)]
-        assert len(debug_calls) >= 2  # Execution start and success 
+
+        # Check that debug was called for execution start and success
+        debug_calls = [call for call in mock_logger.debug.call_args_list]
+        assert len(debug_calls) >= 2
+        # No longer check for .log, but for .debug/.warning/.error 

@@ -115,7 +115,7 @@ class ToolUtils:
         else:
             error_message = f"Error executing command: {e}"
 
-        self.logger.log(error_message, 'error')
+        self.logger.error(error_message)
         return {'status': 'failure', 'message': error_message, 'traceback': traceback.format_exc()}
 
     # --------------------------------------------------------------------------------------------------------
@@ -171,6 +171,6 @@ class ToolUtils:
                 formatted_actions.append(formatted_action)
             return "---\n" + "\n---\n".join(formatted_actions) + "\n---"
         except Exception as e:
-            self.logger.log(f"Error Formatting Item List:\n{items}\n\nError: {e}", 'error', 'Actions')
+            self.logger.error(f"Error Formatting Item List:\n{items}\n\nError: {e}")
             return None
         

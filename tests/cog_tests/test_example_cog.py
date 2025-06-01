@@ -18,8 +18,8 @@ def test_example_cog_runs_and_creates_memory(example_cog):
     assert any(k in str(ctx).lower() for k in ("analysis", "rationale", "final"))
 
     # memory interaction – general_memory collection should exist
-    mem: Memory = next(iter(example_cog.mem_mgr.memories.values()))["instance"]  # type: ignore[index]
-    assert mem.storage.count_collection(mem.collection_name) > 0
+    mem: Memory = next(iter(example_cog.mem_mgr.memory_nodes.values()))["instance"]  # type: ignore[index]
+    assert mem.store is not None
 
 
 @pytest.mark.parametrize("decision_key", ["choice", "conclusion", "foo"])

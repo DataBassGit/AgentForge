@@ -123,10 +123,10 @@ class TestExampleCogWithPersonaMemoryIntegration:
         
         # Verify the cog was properly initialized
         assert cog.cog_file == 'ExampleCogWithPersonaMemory'
-        assert 'persona_memory' in cog.mem_mgr.memories
+        assert 'persona_memory' in cog.mem_mgr.memory_nodes
         
         # Verify PersonaMemory was configured correctly
-        persona_memory = cog.mem_mgr.memories['persona_memory']['instance']
+        persona_memory = cog.mem_mgr.memory_nodes['persona_memory']['instance']
         assert persona_memory.collection_name.startswith('user_persona_facts_')
         
         # Execute the cog with realistic user input (same as in model_io.log)
@@ -176,7 +176,7 @@ class TestExampleCogWithPersonaMemoryIntegration:
         cog = Cog('ExampleCogWithPersonaMemory')
         
         # Access the memory instance to verify its state
-        persona_memory = cog.mem_mgr.memories['persona_memory']['instance']
+        persona_memory = cog.mem_mgr.memory_nodes['persona_memory']['instance']
         
         # Run the cog and verify memory operations occur
         result = cog.run(user_input="Tell me about yourself")
@@ -206,7 +206,7 @@ class TestExampleCogWithPersonaMemoryIntegration:
         fake_chroma.clear_registry()
         
         cog = Cog('ExampleCogWithPersonaMemory')
-        persona_memory = cog.mem_mgr.memories['persona_memory']['instance']
+        persona_memory = cog.mem_mgr.memory_nodes['persona_memory']['instance']
         
         # Track storage operations by checking the fake storage
         storage_instance = persona_memory.storage
@@ -242,7 +242,7 @@ class TestExampleCogWithPersonaMemoryIntegration:
         cog = Cog('ExampleCogWithPersonaMemory')
         
         # Verify initial state - no memory should exist
-        persona_memory = cog.mem_mgr.memories['persona_memory']['instance']
+        persona_memory = cog.mem_mgr.memory_nodes['persona_memory']['instance']
         assert persona_memory.narrative is None, "Initial narrative should be None"
         
         # Run with completely new user input

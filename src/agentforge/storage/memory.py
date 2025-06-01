@@ -211,6 +211,8 @@ class Memory:
         Returns:
             dict: Merged context and state.
         """
+        _ctx = _ctx or {}
+        _state = _state or {}
         return {**_state, **_ctx}
 
     def _extract_keys(self, key_list: Optional[List[str]], _ctx: dict, _state: dict) -> dict:

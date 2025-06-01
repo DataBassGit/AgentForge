@@ -215,7 +215,7 @@ features:
   - "agents"
 ```'''
         
-        with patch.object(processor.logger, 'log') as mock_log:
+        with patch.object(processor.logger, 'warning') as mock_warning:
             # Should still parse as YAML despite json language specifier
             result = processor.parse_by_format(yaml_with_wrong_language, 'yaml')
             
@@ -224,10 +224,8 @@ features:
             assert 'parsing' in result['features']
             
             # Should have logged a warning about language mismatch
-            warning_calls = [call for call in mock_log.call_args_list 
-                           if len(call[0]) > 1 and call[0][1] == 'warning']
-            assert len(warning_calls) > 0
-            assert "Expected YAML" in warning_calls[0][0][0]
+            assert mock_warning.call_count > 0
+            assert any("Expected YAML" in str(call.args[0]) for call in mock_warning.call_args_list)
     
     def test_no_language_specifier_with_default_fences(self, processor):
         """Test that default fences work with code blocks that have no language specifier."""
@@ -358,13 +356,13 @@ Run the application with the following command.
         ```
         '''
         
-        with patch.object(processor.logger, 'log') as mock_log:
+        with patch.object(processor.logger, 'debug') as mock_debug:
             processor.parse_by_format(yaml_content, 'yaml')
             
             # Should have log messages mentioning code fence behavior
-            log_calls = [str(call) for call in mock_log.call_args_list]
+            debug_calls = [str(call) for call in mock_debug.call_args_list]
             # At least one call should mention code-fenced block detection or similar
-            fence_related_logs = [call for call in log_calls if 'Code-fenced' in call or 'code-fenced' in call]
+            fence_related_logs = [call for call in debug_calls if 'Code-fenced' in call or 'code-fenced' in call]
             assert len(fence_related_logs) > 0
 
     def test_parse_by_format_returns_original_content_when_parser_type_is_none(self, processor):

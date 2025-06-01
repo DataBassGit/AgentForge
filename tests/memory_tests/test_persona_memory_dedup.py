@@ -38,7 +38,7 @@ class TestPersonaMemoryDeduplication:
             mock_agent_class.side_effect = agent_side_effect
             
             # Create the PersonaMemory instance
-            memory = PersonaMemory("test_cog", collection_id="test_facts")
+            memory = PersonaMemory("test_cog", collection_id="test_facts", persona=None)
             
             # Store references to mocks for test access
             memory._test_agents = {
@@ -60,7 +60,7 @@ class TestPersonaMemoryDeduplication:
             metadata=[{}, {}]
         )
         
-        result = persona_memory._exact_duplicate_exists('User prefers Python programming')
+        result = persona_memory.is_duplicate_fact('User prefers Python programming')
         assert result is True
     
     def test_exact_duplicate_exists_false(self, persona_memory):
@@ -73,7 +73,7 @@ class TestPersonaMemoryDeduplication:
             metadata=[{}, {}]
         )
         
-        result = persona_memory._exact_duplicate_exists('User prefers Python programming')
+        result = persona_memory.is_duplicate_fact('User prefers Python programming')
         assert result is False
     
     def test_exact_duplicate_exists_text_match(self, persona_memory):
@@ -86,14 +86,14 @@ class TestPersonaMemoryDeduplication:
             metadata=[{}, {}]
         )
         
-        result = persona_memory._exact_duplicate_exists('User prefers Python programming')
+        result = persona_memory.is_duplicate_fact('User prefers Python programming')
         assert result is True
     
     def test_exact_duplicate_exists_error_handling(self, persona_memory):
         """Test that _exact_duplicate_exists handles errors gracefully."""
         # Mock the query_storage method to raise an exception
         with patch.object(persona_memory._test_storage, 'query_storage', side_effect=Exception("Storage error")):
-            result = persona_memory._exact_duplicate_exists('Any fact')
+            result = persona_memory.is_duplicate_fact('Any fact')
             assert result is False  # Should return False on error to allow addition
     
     def test_update_memory_skips_duplicate_add(self, persona_memory):
@@ -121,7 +121,7 @@ class TestPersonaMemoryDeduplication:
         
         # Execute update
         test_data = {'user_preference': 'classical music'}
-        persona_memory.update_memory(test_data)
+        persona_memory.update_memory(["user_preference"], _ctx=test_data, _state={})
         
         # Verify storage count hasn't increased (duplicate was skipped)
         final_count = persona_memory._test_storage.count_collection(persona_memory.collection_name)
@@ -152,7 +152,7 @@ class TestPersonaMemoryDeduplication:
         
         # Execute update
         test_data = {'user_preference': 'classical music'}
-        persona_memory.update_memory(test_data)
+        persona_memory.update_memory(["user_preference"], _ctx=test_data, _state={})
         
         # Verify storage count increased (new fact was added)
         final_count = persona_memory._test_storage.count_collection(persona_memory.collection_name)
@@ -192,7 +192,7 @@ class TestPersonaMemoryDeduplication:
         
         # Execute update (deduplication should not apply to update actions)
         test_data = {'user_preference': 'jazz music'}
-        persona_memory.update_memory(test_data)
+        persona_memory.update_memory(["user_preference"], _ctx=test_data, _state={})
         
         # Verify storage count increased (update actions always add new facts)
         final_count = persona_memory._test_storage.count_collection(persona_memory.collection_name)

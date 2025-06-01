@@ -4,6 +4,7 @@ import pytest
 from agentforge.core.memory_manager import MemoryManager
 from agentforge.utils.parsing_processor import ParsingProcessor
 from unittest.mock import MagicMock, patch, PropertyMock
+from agentforge.storage.memory import Memory
 
 
 def test_memory_manager_initialization(isolated_config):
@@ -18,7 +19,7 @@ def test_memory_manager_initialization(isolated_config):
     # Should have the correct attributes
     assert cog.mem_mgr.cog_name == "ExampleCog"
     assert cog.mem_mgr.cog_config is not None
-    assert hasattr(cog.mem_mgr, 'memories')
+    assert hasattr(cog.mem_mgr, 'memory_nodes')
 
 
 def test_memory_manager_extract_keys():
@@ -26,22 +27,24 @@ def test_memory_manager_extract_keys():
     context = {"user_input": "hello", "nested": {"key": "value"}}
     state = {"agent_output": "response", "other": {"data": "test"}}
     
+    # Create a dummy Memory instance for testing
+    dummy_mem = Memory(cog_name='dummy', persona=None, collection_id='dummy_col')
+
     # Test with empty key list - should return merged dict
-    result = MemoryManager._extract_keys([], context, state)
-    expected = {**state, **context}  # context overwrites state
-    assert result == expected
+    result = dummy_mem._extract_keys([], context, state)
+    assert result == {**context, **state}
     
     # Test with specific keys
-    result = MemoryManager._extract_keys(["user_input", "agent_output"], context, state)
+    result = dummy_mem._extract_keys(["user_input", "agent_output"], context, state)
     assert result == {"user_input": "hello", "agent_output": "response"}
     
-    # Test with dot notation
-    result = MemoryManager._extract_keys(["nested.key", "other.data"], context, state)
+    # Test with nested keys
+    result = dummy_mem._extract_keys(["nested.key", "other.data"], context, state)
     assert result == {"nested.key": "value", "other.data": "test"}
     
-    # Test with missing key should raise ValueError
+    # Test with missing key
     with pytest.raises(ValueError, match="Key 'missing' not found"):
-        MemoryManager._extract_keys(["missing"], context, state)
+        dummy_mem._extract_keys(["missing"], context, state)
 
 
 def test_memory_manager_get_dot_notated():

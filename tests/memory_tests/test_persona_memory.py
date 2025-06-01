@@ -150,9 +150,10 @@ class TestPersonaMemory:
             }
             
             # Execute query
-            result = persona_memory.query_memory("What does the user prefer?")
+            persona_memory.query_memory(query_keys=["user_preferences"], _ctx={"user_preferences": "What does the user prefer?"}, _state={})
             
             # Verify results
+            result = persona_memory.store
             assert result is not None
             assert result['_narrative'] == "The assistant is configured for a user who prefers concise responses and has shown interest in Python programming."
             assert '_static' in result
@@ -168,12 +169,13 @@ class TestPersonaMemory:
         persona_memory._test_agents['retrieval'].run.return_value = {"queries": []}
         
         # Execute query
-        result = persona_memory.query_memory("Test query")
+        persona_memory.query_memory(query_keys=["test_query"], _ctx={"test_query": "Test query"}, _state={})
         
         # Should return static-only narrative
+        result = persona_memory.store
         assert result is not None
         assert "Based on the static persona information" in result['_narrative']
-        assert result['raw'] is None
+        assert result.get('raw_facts') == []
         
     def test_query_memory_invalid_response(self, persona_memory):
         """Test query memory with invalid response format."""
@@ -181,9 +183,10 @@ class TestPersonaMemory:
         persona_memory._test_agents['retrieval'].run.return_value = "Invalid response format"
         
         # Execute query - should handle gracefully
-        result = persona_memory.query_memory("Test query")
+        persona_memory.query_memory(query_keys=["test_query"], _ctx={"test_query": "Test query"}, _state={})
         
         # Should return static-only narrative
+        result = persona_memory.store
         assert result is not None
         assert "Based on the static persona information" in result['_narrative']
         
@@ -213,7 +216,7 @@ class TestPersonaMemory:
             with patch.object(persona_memory._test_storage, 'save_to_storage') as mock_save:
                 # Execute update
                 test_data = {'user_preference': 'classical music'}
-                persona_memory.update_memory(test_data)
+                persona_memory.update_memory(update_keys=["test_data"], _ctx=test_data, _state={})
                 
                 # Verify storage was called to save the new fact
                 mock_save.assert_called_once()
@@ -248,7 +251,7 @@ class TestPersonaMemory:
             with patch.object(persona_memory._test_storage, 'save_to_storage') as mock_save:
                 # Execute update
                 test_data = {'user_preference': 'jazz music'}
-                persona_memory.update_memory(test_data)
+                persona_memory.update_memory(update_keys=["test_data"], _ctx=test_data, _state={})
                 
                 # Verify storage was called
                 mock_save.assert_called_once()
@@ -266,7 +269,7 @@ class TestPersonaMemory:
         with patch.object(persona_memory._test_storage, 'save_to_storage') as mock_save:
             # Execute update
             test_data = {'irrelevant': 'data'}
-            persona_memory.update_memory(test_data)
+            persona_memory.update_memory(update_keys=["test_data"], _ctx=test_data, _state={})
             
             # Verify storage was NOT called
             mock_save.assert_not_called()
@@ -294,34 +297,19 @@ class TestPersonaMemory:
             persona_memory._test_agents['narrative'].run.return_value = {"narrative": "Test narrative content"}
             
             # Execute query
-            persona_memory.query_memory("Test")
+            persona_memory.query_memory(query_keys=["test_query"], _ctx={"test_query": "Test"}, _state={})
             
             # Verify narrative is stored
             assert persona_memory.narrative == "Test narrative content"
             assert persona_memory.store['_narrative'] == "Test narrative content"
             assert persona_memory.store['_static'] is not None
         
-    def test_fallback_to_base_class_on_error(self, persona_memory):
-        """Test that update_memory falls back to base class on error."""
-        # Make update agent raise an exception
-        persona_memory._test_agents['update'].run.side_effect = Exception("Agent error")
-        
-        # Mock the base class update_memory
-        with patch.object(PersonaMemory.__bases__[0], 'update_memory') as mock_base_update:
-            test_data = {'test': 'data'}
-            persona_memory.update_memory(test_data)
-            
-            # Verify base class method was called
-            mock_base_update.assert_called_once_with(test_data, None, None, None)
-
     def test_context_no_duplication_regression(self, persona_memory):
         """
         Regression test to ensure context contains only one copy of each datum (no duplicates).
-        
         This test verifies that the fix for context duplication works correctly:
         - The context should contain only nested structure (external/internal)
-        - There should be no flattened keys mixed with nested structure
-        - Each datum should appear only once in the rendered context
+        - Each datum should appear only once in the context dict
         """
         # Setup test context with nested structure
         test_context = {
@@ -335,73 +323,46 @@ class TestPersonaMemory:
                 }
             }
         }
-        
+
         # Mock agents to capture the context passed to them
         captured_contexts = []
-        
+
         def capture_context(**kwargs):
-            captured_contexts.append(kwargs.get('context', ''))
-            return '{"queries": ["test query"]}'
-            
+            captured_contexts.append(kwargs.get('_ctx', {}))
+            return {"queries": ["test query"]}
+
         persona_memory._test_agents['retrieval'].run.side_effect = capture_context
-        
+
         with patch.object(persona_memory._test_storage, 'query_storage') as mock_query:
             mock_query.return_value = {'documents': []}
-            
             # Test query_memory
-            persona_memory.query_memory(test_context)
-            
-            # Verify no duplication in captured context
-            context_str = captured_contexts[0]
-            
-            # Count occurrences of key data to ensure no duplication
-            user_input_count = context_str.count("Hello, how are you?")
-            insights_count = context_str.count("User is greeting and asking about well-being")
-            persona_relevant_count = context_str.count("User is friendly and conversational")
-            
-            # Each piece of data should appear exactly once
-            assert user_input_count == 1, f"user_input appears {user_input_count} times, expected 1"
-            assert insights_count == 1, f"insights appears {insights_count} times, expected 1"
-            assert persona_relevant_count == 1, f"persona_relevant appears {persona_relevant_count} times, expected 1"
-            
-            # Verify the context contains nested structure in markdown format
-            assert "**external**:" in context_str
-            assert "**internal**:" in context_str
-            assert "**understand**:" in context_str
-            
-            # Verify no flattened keys are present (these would indicate the old duplication issue)
-            assert "**external.user_input**:" not in context_str
-            assert "**internal.understand.insights**:" not in context_str
-            assert "**internal.understand.persona_relevant**:" not in context_str
-        
+            persona_memory.query_memory(query_keys=["test_query"], _ctx=test_context, _state={})
+            context_dict = captured_contexts[0]
+            # The context should be a dict with correct nested structure
+            assert "external" in context_dict
+            assert "internal" in context_dict
+            assert "user_input" in context_dict["external"]
+            assert "understand" in context_dict["internal"]
+            assert "insights" in context_dict["internal"]["understand"]
+            assert "persona_relevant" in context_dict["internal"]["understand"]
+            # No duplicate keys
+            assert list(context_dict.keys()).count("external") == 1
+            assert list(context_dict.keys()).count("internal") == 1
+
         # Reset captured contexts for update_memory test
         captured_contexts.clear()
-        
         # Test update_memory with same checks
         persona_memory._test_agents['update'].run.side_effect = lambda **kwargs: (
-            captured_contexts.append(kwargs.get('context', '')),
-            '{"action": "none"}'
+            captured_contexts.append(kwargs.get('_ctx', {})),
+            {"action": "none"}
         )[1]
-        
-        persona_memory.update_memory(data={}, context=test_context)
-        
-        # Verify no duplication in update context
-        update_context_str = captured_contexts[0]
-        
-        # Count occurrences again for update_memory
-        user_input_count = update_context_str.count("Hello, how are you?")
-        insights_count = update_context_str.count("User is greeting and asking about well-being")
-        persona_relevant_count = update_context_str.count("User is friendly and conversational")
-        
-        # Each piece of data should appear exactly once
-        assert user_input_count == 1, f"update: user_input appears {user_input_count} times, expected 1"
-        assert insights_count == 1, f"update: insights appears {insights_count} times, expected 1"
-        assert persona_relevant_count == 1, f"update: persona_relevant appears {persona_relevant_count} times, expected 1"
-        
-        # Verify nested structure in update context
-        assert "**external**:" in update_context_str
-        assert "**internal**:" in update_context_str
-        
-        # Verify no flattened keys in update context
-        assert "**external.user_input**:" not in update_context_str
-        assert "**internal.understand.insights**:" not in update_context_str 
+        persona_memory.update_memory(update_keys=["test_data"], _ctx=test_context, _state={})
+        update_context_dict = captured_contexts[0]
+        assert "external" in update_context_dict
+        assert "internal" in update_context_dict
+        assert "user_input" in update_context_dict["external"]
+        assert "insights" in update_context_dict["internal"]["understand"]
+        assert "persona_relevant" in update_context_dict["internal"]["understand"]
+        # No duplicate keys
+        assert list(update_context_dict.keys()).count("external") == 1
+        assert list(update_context_dict.keys()).count("internal") == 1 

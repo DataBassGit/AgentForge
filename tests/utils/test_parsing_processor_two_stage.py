@@ -190,7 +190,7 @@ name: AgentForge
 version: 2.0
 ```'''
         
-        with patch.object(processor.logger, 'log') as mock_log:
+        with patch.object(processor.logger, 'warning') as mock_warning:
             result = processor.parse_by_format(yaml_with_wrong_language, 'yaml')
             
             # Should still parse successfully
@@ -198,10 +198,8 @@ version: 2.0
             assert result['version'] == 2.0
             
             # Should have logged a warning about language mismatch
-            warning_calls = [call for call in mock_log.call_args_list 
-                           if len(call[0]) > 1 and call[0][1] == 'warning']
-            assert len(warning_calls) > 0
-            assert "Expected YAML" in warning_calls[0][0][0]
+            assert mock_warning.call_count > 0
+            assert any("Expected YAML" in str(call.args[0]) for call in mock_warning.call_args_list)
     
     def test_no_code_fences_provided(self, processor):
         """Test behavior when no code fences are provided (should proceed with full content)."""
@@ -212,16 +210,14 @@ version: 2.0
         }
         '''
         
-        with patch.object(processor.logger, 'log') as mock_log:
+        with patch.object(processor.logger, 'debug') as mock_debug:
             result = processor.parse_by_format(json_content, 'json', code_fences=[])
             
             assert result['direct'] == 'parsing'
             assert result['no_fences'] is True
             
             # Should log that no code fences were specified
-            debug_calls = [call for call in mock_log.call_args_list 
-                          if len(call[0]) > 1 and call[0][1] == 'debug']
-            assert any("No code fences specified" in call[0][0] for call in debug_calls)
+            assert any("No code fences specified" in str(call.args[0]) for call in mock_debug.call_args_list)
     
     def test_enhanced_logging_for_bare_parsing_fallback(self, processor):
         """Test that enhanced logging is present when falling back to bare parsing."""
@@ -232,7 +228,7 @@ version: 2.0
             "result": "success"
         }'''
         
-        with patch.object(processor.logger, 'log') as mock_log:
+        with patch.object(processor.logger, 'debug') as mock_debug:
             result = processor.parse_by_format(bare_json_content, 'json', code_fences=['```'])
             
             assert result['valid'] == 'json'
@@ -240,7 +236,7 @@ version: 2.0
             assert result['logging_test'] is True
             
             # Check for specific log messages indicating parsing behavior
-            log_messages = [call[0][0] for call in mock_log.call_args_list]
+            log_messages = [call.args[0] for call in mock_debug.call_args_list]
             
             # Should have debug message about no code fence found
             assert any("No code-fenced block found" in msg for msg in log_messages)
