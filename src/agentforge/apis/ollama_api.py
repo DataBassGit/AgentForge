@@ -28,4 +28,15 @@ class Ollama(BaseModel):
         return response.json()
 
     def _process_response(self, raw_response):
-        return raw_response['choices'][0]['message']['content']
+        # Handle different Ollama endpoint responses
+        if raw_response is None:
+            return None
+        if 'response' in raw_response:  # /api/generate
+            return raw_response['response']
+        elif 'message' in raw_response:  # /api/chat
+            return raw_response['message']['content']
+        elif 'choices' in raw_response:
+            return raw_response['choices'][0]['message']['content']
+        else:
+            self.logger.error(f"Unexpected Ollama response format: {raw_response}")
+            return None

@@ -14,7 +14,7 @@ from agentforge.core.memory_manager import MemoryManager
 from agentforge.core.transition_resolver import TransitionResolver
 from agentforge.utils.logger import Logger
 from agentforge.utils.parsing_processor import ParsingProcessor
-from agentforge.utils.trail_recorder import TrailRecorder
+from agentforge.core.trail_recorder import TrailRecorder
 
 
 class Cog:

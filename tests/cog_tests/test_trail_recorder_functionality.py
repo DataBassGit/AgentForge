@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import datetime
 
 from agentforge.cog import Cog
-from agentforge.utils.trail_recorder import TrailRecorder
+from agentforge.core.trail_recorder import TrailRecorder
 from agentforge.config_structs.trail_structs import ThoughtTrailEntry
 
 

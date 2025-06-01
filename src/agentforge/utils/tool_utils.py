@@ -1,3 +1,14 @@
+# =================== DEPRECATION WARNING ===================
+# This module is part of the Tools/Actions system, which is DEPRECATED and contains CRITICAL SECURITY VULNERABILITIES.
+# Do NOT use in production or with untrusted input.
+# See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
+# This functionality will be replaced in a future version with a secure implementation.
+import warnings
+warnings.warn(
+    "agentforge.utils.tool_utils is part of the deprecated and insecure tools/actions system. Do NOT use in production. See https://github.com/DataBassGit/AgentForge/issues/116",
+    DeprecationWarning
+)
+# ==========================================================
 # utils/functions/tool_utils.py
 import traceback
 import importlib

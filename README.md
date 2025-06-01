@@ -4,7 +4,7 @@
 [![Python Version](https://img.shields.io/badge/Python-3.11-blue?style=plastic&logo=python)](https://www.python.org/)
 [![Homepage](https://img.shields.io/badge/Homepage-agentforge.net-green?style=plastic&logo=google-chrome)](https://agentforge.net/)
 
-![AgentForge Logo](./docs/Images/AF-Banner.jpg)
+![AgentForge Logo](./docs/images/AF-Banner.jpg)
 
 # AgentForge
 
@@ -48,22 +48,22 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 
 ### **Getting Started**
 
-- **[Installation Guide](docs/Guides/InstallationGuide.md)**: Step-by-step instructions to install **AgentForge**.
-- **[Using AgentForge](docs/Guides/UsingAgentForge.md)**: Learn how to run agents, create custom agents, and build cognitive architectures with examples.
-- **[Prerequisites Guide](docs/Guides/PrerequisitesGuide.md)**: Details all pre-installation requirements and dependencies.
-- **[Troubleshooting Guide](docs/Guides/TroubleshootingGuide.md)**: Find solutions to common issues and platform-specific problems.
+- **[Installation Guide](docs/guides/InstallationGuide.md)**: Step-by-step instructions to install **AgentForge**.
+- **[Using AgentForge](docs/guides/UsingAgentForge.md)**: Learn how to run agents, create custom agents, and build cognitive architectures with examples.
+- **[Prerequisites Guide](docs/guides/PrerequisitesGuide.md)**: Details all pre-installation requirements and dependencies.
+- **[Troubleshooting Guide](docs/guides/TroubleshootingGuide.md)**: Find solutions to common issues and platform-specific problems.
 
 ### **Core Concepts**
 
-- **[Agents](docs/Agents/Agents.md)**: Learn how to create and customize individual AI agents for various tasks.
-- **[Cogs](docs/Cogs/Cogs.md)**: Design multi-agent workflows with branching logic using simple YAML configurations.
-- **[Memory](docs/Storage/Memory.md)**: Add contextual memory to your agents and cogs for more coherent interactions.
-- **[API Integration](docs/APIs/APIs.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
-- **[Personas](docs/Personas/Personas.md)**: Utilize personas to encapsulate information accessible to the agents, acting as a resource of knowledge.
-- **[Settings](docs/Settings/Settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
-- **[Storage](docs/Storage/ChromaStorage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
-- **[Tools & Actions](docs/ToolsAndActions/Overview.md)**: Discover the system's toolbox and learn how to choreograph tools into actionable sequences.
-- **[Utilities](docs/Utils/UtilsOverview.md)**: Explore utility functions and tools that enhance the system's capabilities.
+- **[Agents](docs/agents/Agents.md)**: Learn how to create and customize individual AI agents for various tasks.
+- **[Cogs](docs/cogs/cogs.md)**: Design multi-agent workflows with branching logic using simple YAML configurations.
+- **[Memory](docs/storage/memory.md)**: Add contextual memory to your agents and cogs for more coherent interactions.
+- **[API Integration](docs/apis/APIs.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
+- **[Personas](docs/personas/Personas.md)**: Utilize personas to encapsulate information accessible to the agents, acting as a resource of knowledge.
+- **[Settings](docs/settings/settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
+- **[Storage](docs/storage/Chromastorage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
+- **[Tools & Actions](docs/tools_and_actions/Overview.md)**: Discover the system's toolbox and learn how to choreograph tools into actionable sequences.
+- **[Utilities](docs/utils/UtilsOverview.md)**: Explore utility functions and tools that enhance the system's capabilities.
 
 
 ---
