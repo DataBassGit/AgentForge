@@ -109,14 +109,14 @@ def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[d
     return ids, metadata
 
 def apply_iso_timestamps(metadata: list[dict], config):
-    do_time_stamp = config['settings']['storage']['options'].get('iso_timestamp', False)
+    do_time_stamp = config['options'].get('iso_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for m in metadata:
             m['iso_timestamp'] = timestamp
 
 def apply_unix_timestamps(metadata: list[dict], config):
-    do_time_stamp = config['settings']['storage']['options'].get('unix_timestamp', False)
+    do_time_stamp = config['options'].get('unix_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().timestamp()
         for m in metadata:
