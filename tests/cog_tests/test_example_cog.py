@@ -32,7 +32,7 @@ def test_decision_key_flexibility(monkeypatch, tmp_path, isolated_config, decisi
     original_run = Agent.run
 
     def fake_run(self: Agent, **_):
-        # Only override for the DecideAgent
+        # Only override for the decide_agent
         if "decide" in self.agent_name.lower():
             return {decision_key: "approve"}
         # Delegate to original stub for other agents
@@ -41,7 +41,7 @@ def test_decision_key_flexibility(monkeypatch, tmp_path, isolated_config, decisi
     monkeypatch.setattr(Agent, "run", fake_run, raising=True)
 
     # modify YAML transition key inside tmp .agentforge
-    yaml_path = Path(isolated_config.project_root) / ".agentforge" / "cogs" / "ExampleCog.yaml"
+    yaml_path = Path(isolated_config.project_root) / ".agentforge" / "cogs" / "example_cog.yaml"
     text = yaml_path.read_text()
     # Replace the entire decision structure, not just the key name
     old_structure = """
@@ -59,7 +59,7 @@ def test_decision_key_flexibility(monkeypatch, tmp_path, isolated_config, decisi
 
     from agentforge.cog import Cog
 
-    cog = Cog("ExampleCog")
+    cog = Cog("example_cog")
     out = cog.run(user_input="hi")
     assert "FINAL" in str(out)
 
@@ -82,7 +82,7 @@ def test_max_visits_protection_prevents_infinite_loops(monkeypatch, example_cog)
 ])
 def test_cog_fallback_mechanisms(monkeypatch, tmp_path, isolated_config, failure_type, setup_function):
     """Test that cogs gracefully handle various failure conditions using fallback mechanisms."""
-    yaml_path = Path(isolated_config.project_root) / ".agentforge" / "cogs" / "ExampleCog.yaml"
+    yaml_path = Path(isolated_config.project_root) / ".agentforge" / "cogs" / "example_cog.yaml"
     
     # Setup the failure condition
     if setup_function:
@@ -106,7 +106,7 @@ def test_cog_fallback_mechanisms(monkeypatch, tmp_path, isolated_config, failure
 
     # Create and run the cog - it should handle failures gracefully
     from agentforge.cog import Cog
-    cog = Cog("ExampleCog")
+    cog = Cog("example_cog")
     result = cog.run(user_input="test")
     
     # Verify that execution completed without hanging or crashing
@@ -118,7 +118,7 @@ def test_concurrent_cog_execution_isolation(fake_chroma, isolated_config):
     from agentforge.cog import Cog
     
     def run_one(idx: int):
-        c = Cog("ExampleCog")
+        c = Cog("example_cog")
         return c.run(user_input=str(idx))
 
     with ThreadPoolExecutor(2) as pool:

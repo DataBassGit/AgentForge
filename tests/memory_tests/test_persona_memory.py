@@ -70,7 +70,7 @@ class TestPersonaMemory:
         }
         
         # Override the default persona
-        isolated_config.data['personas']['DefaultAssistant'] = test_persona_data
+        isolated_config.data['personas']['default_assistant'] = test_persona_data
         
         # Mock persona resolution in the isolated config
         with patch.object(isolated_config, 'resolve_persona') as mock_resolve_persona:

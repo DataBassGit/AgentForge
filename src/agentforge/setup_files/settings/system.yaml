@@ -1,7 +1,7 @@
 # Persona settings
 persona:
   enabled: true
-  name: DefaultAssistant
+  name: default_assistant
   static_char_cap: 8000  # Max character length for persona markdown (used by PersonaMemory, set to 0 to disable truncation)
 
 # Debug settings

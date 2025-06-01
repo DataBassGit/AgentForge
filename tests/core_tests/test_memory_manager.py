@@ -10,14 +10,14 @@ from agentforge.storage.memory import Memory
 def test_memory_manager_initialization(isolated_config):
     """Test that MemoryManager initializes correctly with a cog config."""
     from agentforge.cog import Cog
-    cog = Cog("ExampleCog")
+    cog = Cog("example_cog")
     
     # MemoryManager should be initialized
     assert hasattr(cog, 'mem_mgr')
     assert isinstance(cog.mem_mgr, MemoryManager)
     
     # Should have the correct attributes
-    assert cog.mem_mgr.cog_name == "ExampleCog"
+    assert cog.mem_mgr.cog_name == "example_cog"
     assert cog.mem_mgr.cog_config is not None
     assert hasattr(cog.mem_mgr, 'memory_nodes')
 

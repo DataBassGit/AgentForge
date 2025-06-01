@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 class PersonaSettings:
     """Persona configuration from system settings."""
     enabled: bool = True
-    name: str = "DefaultAssistant"
+    name: str = "default_assistant"
     static_char_cap: int = 8000
 
 

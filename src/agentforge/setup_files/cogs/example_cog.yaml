@@ -4,13 +4,13 @@ cog:
 
   agents:
     - id: analyze
-      template_file: AnalyzeAgent
+      template_file: analyze_agent
 
     - id: decide
-      template_file: DecideAgent
+      template_file: decide_agent
 
     - id: respond
-      template_file: ResponseAgent
+      template_file: response_agent
 
   memory:
     - id: general_memory

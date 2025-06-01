@@ -60,7 +60,7 @@ def test_environment_override_and_reset(monkeypatch, isolated_config: Config):  
 
 
 def test_find_config_utility(isolated_config: Config):  # noqa: D103
-    person = isolated_config.find_config("personas", "DefaultAssistant")
+    person = isolated_config.find_config("personas", "default_assistant")
     # With persona v2, Name can be in static or retrieval sections
     if 'static' in person:
         assert person['static'].get('name') or person['static'].get('Name'), "Name not found in static section"

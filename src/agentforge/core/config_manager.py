@@ -209,7 +209,7 @@ class ConfigManager:
         
         persona_settings = PersonaSettings(
             enabled=raw_system.get('persona', {}).get('enabled', True),
-            name=raw_system.get('persona', {}).get('name', 'DefaultAssistant'),
+            name=raw_system.get('persona', {}).get('name', 'default_assistant'),
             static_char_cap=raw_system.get('persona', {}).get('static_char_cap', 8000)
         )
         

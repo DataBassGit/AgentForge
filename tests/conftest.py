@@ -63,7 +63,7 @@ def isolated_config(tmp_path) -> Config:
     shutil.copytree(setup_src, tmp_path / ".agentforge")
 
     # Store the original YAML content for ExampleCog
-    example_cog_path = tmp_path / ".agentforge" / "cogs" / "ExampleCog.yaml"
+    example_cog_path = tmp_path / ".agentforge" / "cogs" / "example_cog.yaml"
     original_yaml = example_cog_path.read_text()
 
     # Create the Config instance
@@ -85,7 +85,7 @@ def clean_yaml_after_test():
     """Fixture to ensure that ExampleCog.yaml is restored to its original state after each test."""
     # Get the path to the repo's .agentforge directory
     agentforge_dir = REPO_ROOT / ".agentforge"
-    example_cog_path = agentforge_dir / "cogs" / "ExampleCog.yaml"
+    example_cog_path = agentforge_dir / "cogs" / "example_cog.yaml"
     
     # Save the original content
     original_content = None
@@ -169,7 +169,7 @@ def stubbed_agents(monkeypatch):
 @pytest.fixture()
 def example_cog(isolated_config):
     from agentforge.cog import Cog
-    return Cog("ExampleCog")
+    return Cog("example_cog")
 
 
 @pytest.fixture(autouse=True, scope="session")

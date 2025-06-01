@@ -19,10 +19,10 @@ def test_config_manager_agent_config_building(isolated_config):
     config_manager = ConfigManager()
     
     # Get raw agent data
-    raw_agent_data = isolated_config.find_config('prompts', 'AnalyzeAgent')
+    raw_agent_data = isolated_config.find_config('prompts', 'analyze_agent')
     
     # Add required fields that might be missing in test config
-    raw_agent_data['name'] = 'AnalyzeAgent'
+    raw_agent_data['name'] = 'analyze_agent'
     
     # Resolve model for the agent
     api_name, class_name, model_name, final_params = isolated_config.resolve_model_overrides(raw_agent_data)
@@ -37,7 +37,7 @@ def test_config_manager_agent_config_building(isolated_config):
     agent_config = config_manager.build_agent_config(raw_agent_data)
     
     # Verify structured config object
-    assert agent_config.name == 'AnalyzeAgent'
+    assert agent_config.name == 'analyze_agent'
     assert agent_config.model is not None
     assert 'system' in agent_config.prompts
     assert 'user' in agent_config.prompts
@@ -54,7 +54,7 @@ def test_config_manager_cog_config(isolated_config):
     config_manager = ConfigManager()
     
     # Get raw cog data directly
-    raw_cog_data = isolated_config.find_config('cogs', 'ExampleCog')
+    raw_cog_data = isolated_config.find_config('cogs', 'example_cog')
     
     # Test cog config building with raw data
     cog_config = config_manager.build_cog_config(raw_cog_data)
@@ -68,7 +68,7 @@ def test_config_manager_cog_config(isolated_config):
     # Verify agent definitions
     first_agent = cog_config.cog.agents[0]
     assert first_agent.id == 'analyze'
-    assert first_agent.template_file == 'AnalyzeAgent'
+    assert first_agent.template_file == 'analyze_agent'
     
     # Verify flow transitions
     assert 'decide' in cog_config.cog.flow.transitions

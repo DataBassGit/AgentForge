@@ -27,10 +27,10 @@ class TestPersonaMemoryIntegration:
             'cog': {
                 'name': 'PersonaMemoryExample',
                 'description': 'Test workflow with PersonaMemory',
-                'persona': 'DefaultAssistant',
+                'persona': 'default_assistant',
                 'agents': [
                     {'id': 'understand', 'template_file': 'UnderstandAgent'},
-                    {'id': 'respond', 'template_file': 'PersonaResponseAgent'}
+                    {'id': 'respond', 'template_file': 'persona_response_agent'}
                 ],
                 'memory': [
                     {
@@ -103,13 +103,13 @@ class TestPersonaMemoryIntegration:
         # Update isolated config with our test configuration
         isolated_config.data.setdefault('cogs', {})['ExampleCogWithPersonaMemory'] = persona_memory_cog
         isolated_config.data.setdefault('prompts', {})['UnderstandAgent'] = understand_prompts
-        isolated_config.data.setdefault('prompts', {})['PersonaResponseAgent'] = persona_response_prompts
+        isolated_config.data.setdefault('prompts', {})['persona_response_agent'] = persona_response_prompts
         isolated_config.data.setdefault('prompts', {})['retrieval_agent'] = retrieval_agent_prompts
         isolated_config.data.setdefault('prompts', {})['narrative_agent'] = narrative_agent_prompts
         isolated_config.data.setdefault('prompts', {})['update_agent'] = update_agent_prompts
         
         # Ensure personas are configured
-        isolated_config.data.setdefault('personas', {})['DefaultAssistant'] = {
+        isolated_config.data.setdefault('personas', {})['default_assistant'] = {
             'static': {
                 'name': 'Test Assistant',
                 'description': 'A helpful test assistant',
@@ -134,14 +134,14 @@ class TestPersonaMemoryIntegration:
                     'settings': isolated_config.data.get('settings', {}),
                     'model': Mock(),
                     'params': {},
-                    'persona': isolated_config.data['personas']['DefaultAssistant'],
+                    'persona': isolated_config.data['personas']['default_assistant'],
                     'prompts': isolated_config.data['prompts'].get(agent_name, {}).get('prompts', {}),
                     'simulated_response': f'Simulated response from {agent_name}'
                 }
                 return base_data
                 
             mock_load_agent.side_effect = load_agent_side_effect
-            mock_resolve_persona.return_value = isolated_config.data['personas']['DefaultAssistant']
+            mock_resolve_persona.return_value = isolated_config.data['personas']['default_assistant']
             
             yield isolated_config
 

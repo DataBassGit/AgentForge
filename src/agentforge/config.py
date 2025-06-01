@@ -580,7 +580,7 @@ class Config:
             
         # 3. System default persona (lowest priority)
         else:
-            persona_name = settings['system']['persona'].get('name', 'DefaultAssistant')
+            persona_name = settings['system']['persona'].get('name', 'default_assistant')
             
         # Load the persona data
         if persona_name and persona_name not in self.data.get('personas', {}):

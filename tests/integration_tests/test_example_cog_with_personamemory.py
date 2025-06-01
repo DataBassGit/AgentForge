@@ -48,13 +48,13 @@ class TestExampleCogWithPersonaMemoryIntegration:
             'narrative_agent': {
                 "narrative": "I am the Default Assistant, a helpful and friendly entity existing within a virtual environment. My purpose is to assist users by providing clear, concise, and accurate information, always striving to be knowledgeable and as helpful as possible in responding to their questions and needs."
             },
-            'UnderstandAgent': {
+            'understand_agent': {
                 "insights": "The user is initiating a casual conversation with a friendly greeting. They are likely testing the assistant's conversational abilities and responsiveness.",
                 "user_intent": "Initiate a friendly greeting and check on the assistant's well-being.",
                 "relevant_topics": ["Greetings", "Conversation Starters"],
                 "persona_relevant": "The user is friendly and uses casual language."
             },
-            'PersonaResponseAgent': "Heyo! I'm doing well, thanks for asking. Just here and ready to help. How can I assist you today?",
+            'persona_response_agent': "Heyo! I'm doing well, thanks for asking. Just here and ready to help. How can I assist you today?",
             'update_agent': {
                 "action": "none",
                 "new_facts": []
@@ -88,6 +88,7 @@ class TestExampleCogWithPersonaMemoryIntegration:
         
         def tracking_agent_run(self: Agent, **context):
             agent_name = getattr(self, 'agent_name', 'unknown')
+            agent_name = agent_name.lower()
             if agent_name in call_tracking:
                 call_tracking[agent_name] += 1
             return original_enhanced(self, **context)
@@ -119,10 +120,10 @@ class TestExampleCogWithPersonaMemoryIntegration:
         fake_chroma.clear_registry()
         
         # Instantiate the cog (this tests configuration loading and memory setup)
-        cog = Cog('ExampleCogWithPersonaMemory')
+        cog = Cog('example_cog_with_persona_memory')
         
         # Verify the cog was properly initialized
-        assert cog.cog_file == 'ExampleCogWithPersonaMemory'
+        assert cog.cog_file == 'example_cog_with_persona_memory'
         assert 'persona_memory' in cog.mem_mgr.memory_nodes
         
         # Verify PersonaMemory was configured correctly
@@ -140,8 +141,8 @@ class TestExampleCogWithPersonaMemoryIntegration:
         # Verify all expected agents were called
         assert mock_agent_responses_with_real_data['retrieval_agent'] >= 1, "Retrieval agent should be called for persona memory"
         assert mock_agent_responses_with_real_data['narrative_agent'] >= 1, "Narrative agent should be called for persona context"
-        assert mock_agent_responses_with_real_data['UnderstandAgent'] == 1, "Understand agent should be called once"
-        assert mock_agent_responses_with_real_data['PersonaResponseAgent'] == 1, "Response agent should be called once"
+        assert mock_agent_responses_with_real_data['understand_agent'] == 1, "Understand agent should be called once"
+        assert mock_agent_responses_with_real_data['persona_response_agent'] == 1, "Response agent should be called once"
         assert mock_agent_responses_with_real_data['update_agent'] >= 1, "Update agent should be called for memory updates"
         
         # Verify the flow trail shows proper execution order 
@@ -158,8 +159,8 @@ class TestExampleCogWithPersonaMemoryIntegration:
         understand_output = flow_trail[0].output
         respond_output = flow_trail[1].output
         
-        assert understand_output == real_agent_responses['UnderstandAgent']
-        assert respond_output == real_agent_responses['PersonaResponseAgent']
+        assert understand_output == real_agent_responses['understand_agent']
+        assert respond_output == real_agent_responses['persona_response_agent']
         
     def test_persona_memory_integration_with_context_resolution(
         self,
@@ -173,7 +174,7 @@ class TestExampleCogWithPersonaMemoryIntegration:
         """
         fake_chroma.clear_registry()
         
-        cog = Cog('ExampleCogWithPersonaMemory')
+        cog = Cog('example_cog_with_persona_memory')
         
         # Access the memory instance to verify its state
         persona_memory = cog.mem_mgr.memory_nodes['persona_memory']['instance']
@@ -205,7 +206,7 @@ class TestExampleCogWithPersonaMemoryIntegration:
         """
         fake_chroma.clear_registry()
         
-        cog = Cog('ExampleCogWithPersonaMemory')
+        cog = Cog('example_cog_with_persona_memory')
         persona_memory = cog.mem_mgr.memory_nodes['persona_memory']['instance']
         
         # Track storage operations by checking the fake storage
@@ -239,7 +240,7 @@ class TestExampleCogWithPersonaMemoryIntegration:
         """
         fake_chroma.clear_registry()
         
-        cog = Cog('ExampleCogWithPersonaMemory')
+        cog = Cog('example_cog_with_persona_memory')
         
         # Verify initial state - no memory should exist
         persona_memory = cog.mem_mgr.memory_nodes['persona_memory']['instance']
@@ -270,12 +271,12 @@ class TestExampleCogWithPersonaMemoryIntegration:
         fake_chroma.clear_registry()
         
         # Run the same input multiple times
-        cog1 = Cog('ExampleCogWithPersonaMemory')
+        cog1 = Cog('example_cog_with_persona_memory')
         result1 = cog1.run(user_input="Hello there!")
         
         fake_chroma.clear_registry()  # Reset storage state
         
-        cog2 = Cog('ExampleCogWithPersonaMemory')
+        cog2 = Cog('example_cog_with_persona_memory')
         result2 = cog2.run(user_input="Hello there!")
         
         # Results should be identical with mocked responses

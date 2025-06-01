@@ -1,4 +1,4 @@
-# DecideAgent.yaml
+# decide_agent.yaml
 prompts:
   system:
     DecisionRole: |+
