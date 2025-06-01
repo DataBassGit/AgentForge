@@ -126,15 +126,10 @@ class Cog:
         self.transition_resolver.reset_visit_counts()
         
         while current_agent_id:
-            try:
                 self.logger.log(f"Processing agent: {current_agent_id}", "debug", "Flow")
                 
                 # Execute single agent cycle
                 current_agent_id = self._execute_single_agent_cycle(current_agent_id)
-                
-            except Exception as e:
-                self._handle_execution_error(current_agent_id, e)
-                raise
                 
         self.logger.log("Cog execution completed", "debug", "Flow")
 
@@ -234,8 +229,8 @@ class Cog:
 
     def _handle_execution_error(self, agent_id: Optional[str], error: Exception) -> None:
         """
-        Handle execution errors with appropriate logging.
         Extension point for custom error handling.
+        This method is not called automatically - subclasses can call it when needed.
         
         Args:
             agent_id: The ID of the agent that failed, if available

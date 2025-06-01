@@ -10,9 +10,9 @@ prompts:
       ---
 
     dynamic_persona: |
-      - Previously Retrieved Dynamic Persona Facts:
+      - Retrieved Dynamic Persona Facts:
       ---
-      {_mem.persona_memory}
+      {retrieved_facts}
       ---
 
     context: |

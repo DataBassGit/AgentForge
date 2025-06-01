@@ -1,111 +1,173 @@
 # src/agentforge/storage/Memory.py
 import json
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Union, List
 from .chroma_storage import ChromaStorage
-
-
-def flatten_dict(d: dict, parent_key: str = '', sep: str = '.') -> dict:
-    """Recursively flattens a nested dictionary using a given separator."""
-    items = {}
-    for k, v in d.items():
-        new_key = f"{parent_key}{sep}{k}" if parent_key else k
-        if isinstance(v, dict):
-            items.update(flatten_dict(v, new_key, sep=sep))
-        else:
-            items[new_key] = v
-    return items
+from agentforge.utils.parsing_processor import ParsingProcessor
+from agentforge.utils.logger import Logger
 
 
 class Memory:
     """
     Base Memory class for managing memory operations and storage contexts.
-
-    Memory uses a storage_id derived from persona or cog_name to partition storage.
-    It delegates CRUD operations to a ChromaStorage instance identified by storage_id.
+    Handles CRUD operations for memory storage, partitioned by persona or cog_name.
+    Designed for extensibility and clarity.
     """
 
-    def __init__(self, cog_name: str, persona: Optional[str] = None, collection_id: Optional[str] = None):
+    def __init__(self, cog_name: str, persona: Optional[str] = None, collection_id: Optional[str] = None, logger_name: Optional[str] = None):
         """
-        Initializes a Memory instance for a specific cog and persona.
+        Initialize a Memory instance for a specific cog and persona.
 
         Args:
             cog_name (str): Name of the cog to which this memory belongs.
             persona (Optional[str]): Optional persona name for further partitioning.
             collection_id (Optional[str]): Optional identifier for the collection. 
-                                          If not provided, uses a derived name.
+            logger_name (Optional[str]): Optional name for the logger.
         """
-        self.store = {}
+        self._initialize_attributes(cog_name, persona, collection_id, logger_name)
+        self._resolve_storage()
+        self._resolve_collection_name()
+        self.logger.debug(f"Initialized Memory for cog='{self.cog_name}', persona='{self.persona}', collection='{self.collection_name}'")
+
+    # -----------------------------------------------------------------
+    # Initialization Helpers
+    # -----------------------------------------------------------------
+    def _initialize_attributes(self, cog_name: str, persona: Optional[str], collection_id: Optional[str], logger_name: Optional[str]) -> None:
+        logger_name = logger_name or f"Memory[{cog_name}]"
+        self.logger = Logger(logger_name, "memory")
+        self.store: Dict[str, Any] = {}
         self.cog_name = cog_name
         self.persona = persona
         self.collection_id = collection_id
+        self.storage = None
+        self.collection_name = None
 
-        # Resolve and normalize storage identifier
+    def _resolve_storage(self) -> None:
+        """Resolve and assign the ChromaStorage instance."""
         resolved_storage_id = self._resolve_storage_id()
-
-        # Retrieve a shared ChromaStorage instance for the resolved storage_id
         self.storage = ChromaStorage.get_or_create(storage_id=resolved_storage_id)
+        self.logger.debug(f"Resolved storage with id='{resolved_storage_id}'")
 
-        # Build or use provided collection name
+    def _resolve_collection_name(self) -> None:
+        """Resolve and assign the collection name."""
         self.collection_name = self._build_collection_name()
+        self.logger.debug(f"Resolved collection name='{self.collection_name}'")
 
+    # -----------------------------------------------------------------
+    # Public Interface Methods
+    # -----------------------------------------------------------------
+    def query_memory(self, query_keys: Optional[List[str]], _ctx: dict, _state: dict, num_results: int = 5) -> None:
+        """
+        Query memory storage for relevant entries based on provided context and state.
+
+        Args:
+            query_keys (Optional[List[str]]): Keys to construct the query from context/state.
+            _ctx (dict): External context data.
+            _state (dict): Internal state data.
+            num_results (int): Number of results to retrieve.
+        """
+        self.store = {}
+        query_text = self._build_query_text(query_keys, _ctx, _state)
+        if not query_text:
+            self.logger.debug("No query text constructed; skipping query.")
+            return
+        
+            raw = self.storage.query_storage(
+                collection_name=self.collection_name,
+                query=query_text,
+                num_results=num_results
+            )
+            if raw:
+                self.store.update({"raw": raw, "readable": self.format_memory_results(raw)})
+                self.logger.debug(f"Query returned {len(raw.get('ids', []))} results.")
+
+    def update_memory(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict, 
+                     ids: Optional[Union[str, list[str]]] = None,
+                     metadata: Optional[list[dict]] = None) -> None:
+        """
+        Update memory with new data using update_keys to extract from context/state.
+
+        Args:
+            update_keys (Optional[List[str]]): Keys to extract for update, or None to use all data.
+            _ctx (dict): External context data.
+            _state (dict): Internal state data.
+            ids (Union[str, list[str]], optional): The IDs for the documents.
+            metadata (list[dict], optional): Custom metadata for the documents (overrides generated metadata).
+        """
+        processed_data, metadata_list = self._prepare_update_data(update_keys, _ctx, _state, custom_metadata=metadata)
+        if not processed_data:
+            self.logger.debug("No data to update; skipping storage update.")
+            return
+        
+            self.storage.save_to_storage(
+                collection_name=self.collection_name, 
+                data=processed_data, 
+                ids=ids, 
+                metadata=metadata_list
+            )
+            self.logger.debug(f"Updated memory with {len(processed_data)} entries.")
+
+    def delete(self, ids: Union[str, list[str]]) -> None:
+        """
+        Delete the memory entry or entries with the given key(s).
+
+        Args:
+            ids (Union[str, list[str]]): The unique identifier(s) for the memory entries to delete.
+        """
+        try:
+            self.storage.delete_from_storage(collection_name=self.collection_name, ids=ids)
+            self.logger.debug(f"Deleted memory entries with ids={ids}.")
+        except Exception as e:
+            self.logger.error(f"Memory delete failed: {e}")
+            raise
+
+    def wipe_memory(self) -> None:
+        """
+        Wipe all memory, removing all collections and their data.
+        Use with caution: this will permanently delete all data within the storage.
+        """
+        try:
+            self.storage.reset_storage()
+            self.logger.debug("Wiped all memory from storage.")
+        except Exception as e:
+            self.logger.error(f"Memory wipe failed: {e}")
+            raise
+
+    # -----------------------------------------------------------------
+    # Extension Points (for subclassing)
+    # -----------------------------------------------------------------
     def _build_collection_name(self) -> str:
         """
-        Builds a collection name. By default, uses "general_memory" as the collection name.
-        This method can be overridden by subclasses to provide custom collection naming.
-        
+        Build a collection name. By default, uses the provided collection_id.
+        Subclasses can override this method to provide custom collection naming.
         Returns:
-            str: The collection name to use for storage
+            str: The collection name to use for storage.
         """
         return self.collection_id
 
-    def _resolve_storage_id(self) -> str:
-        """
-        Determine the storage_id based on persona or cog_name context.
-
-        Returns:
-            str: A normalized storage_id for ChromaStorage.
-        """
-        fallback_storage_id = "fallback_storage"
-
-        if self.persona: # self.persona is None if personas are disabled
-            storage_id = self.persona
-        elif self.cog_name:
-            storage_id = self.cog_name
-        else:
-            # Fallback storage identifier when no context is available
-            storage_id = fallback_storage_id
-        # Normalize and return
-        return str(storage_id).strip() or fallback_storage_id
-
+    # TODO: Review method and consider making it optional, defaulting to PromptProcessor for automatic formatting.
+    # This is a method was made to turn raw results into a readable string.
+    # While this is meant for extensibility, the current format isarbitray and may not be ideal as a default.
     def format_memory_results(self, raw_results: dict) -> str:
         """
-        Formats raw Chroma query results into a human-readable string.
-
-        Each memory entry is presented as a block headed by '--- Memory <n>: <id>',
-        followed by the document content and an indented YAML-style metadata dump.
-        Only metadata keys present for each record are included. Subclasses can override
-        this method to customize formatting.
+        Format raw query results into a human-readable string.
+        Subclasses can override this method to customize formatting.
 
         Args:
-            raw_results (dict): The raw result from Chroma query_storage.
-
+            raw_results (dict): The raw result from storage query.
         Returns:
             str: Human-readable formatted string of memory results.
         """
         ids = raw_results.get("ids", [])
         documents = raw_results.get("documents", [])
         metadatas = raw_results.get("metadatas", [])
-        # Attempt to order by unix_timestamp or iso_timestamp if present
         entries = []
         for idx, (id_, doc, meta) in enumerate(zip(ids, documents, metadatas)):
-            # Try to get a sortable timestamp
             ts = None
             if isinstance(meta, dict):
                 ts = meta.get("unix_timestamp")
                 if ts is None and "iso_timestamp" in meta:
                     ts = meta["iso_timestamp"]
             entries.append((idx, id_, doc, meta, ts))
-        # Sort by timestamp if available, else by original order
         def sort_key(entry):
             ts = entry[4]
             if ts is None:
@@ -125,100 +187,126 @@ class Memory:
             blocks.append(block.rstrip())
         return "\n\n".join(blocks)
 
-    def query_memory(self, query_text: Union[str, list[str]], num_results: int = 5) -> Optional[dict]:
+    # -----------------------------------------------------------------
+    # Internal Helper Methods
+    # -----------------------------------------------------------------
+    def _resolve_storage_id(self) -> str:
         """
-        Queries memory for items similar to query_text and returns both raw and formatted results.
-
-        Args:
-            query_text (Union[str, list[str]]): The text or texts to search for.
-            num_results (int): The number of results to return.
-
+        Determine the storage_id based on persona or cog_name context.
         Returns:
-            Optional[dict]: Dict with 'raw' (original chroma result) and 'readable' (formatted string), or None if not found.
+            str: A normalized storage_id for ChromaStorage.
         """
-        raw = self.storage.query_storage(
-            collection_name=self.collection_name,
-            query=query_text, 
-            num_results=num_results
-        )
+        fallback_storage_id = "fallback_storage"
+        if self.persona:
+            storage_id = self.persona
+        elif self.cog_name:
+            storage_id = self.cog_name
+        else:
+            storage_id = fallback_storage_id
+        return str(storage_id).strip() or fallback_storage_id
 
-        if raw:
-            self.store.update({"raw": raw, "readable": self.format_memory_results(raw)})
-            return {"raw": raw, "readable": self.format_memory_results(raw)}
-        return None
-
-    @staticmethod
-    def _prepare_memory_data(data: dict, context: Optional[dict] = None) -> tuple:
+    def _build_merged_context(self, _ctx: dict, _state: dict) -> dict:
         """
-        Prepares data for storage by processing and creating appropriate metadata.
-        
+        Build a merged context from context and state.
+        Returns:
+            dict: Merged context and state.
+        """
+        return {**_state, **_ctx}
+
+    def _extract_keys(self, key_list: Optional[List[str]], _ctx: dict, _state: dict) -> dict:
+        """
+        Extract values for the given keys from context (external) first, then state (internal).
+        Supports dot-notated keys for nested dict access.
+        If key_list is empty or None, returns a merged dict of context and state.
         Args:
-            data (dict): The primary data to store
-            context (dict, optional): Additional context to include in metadata
-            
+            key_list: List of keys to extract
+            _ctx: External context data
+            _state: Internal state data
+        Returns:
+            Dict of extracted key-value pairs
+        Raises:
+            ValueError: If a key is not found in either context or state
+        """
+        if not key_list:
+            return self._build_merged_context(_ctx, _state)
+        result = {}
+        for key in key_list:
+            value = ParsingProcessor.get_dot_notated(_ctx, key)
+            if value is not None:
+                result[key] = value
+                continue
+            value = ParsingProcessor.get_dot_notated(_state, key)
+            if value is not None:
+                result[key] = value
+                continue
+            self.logger.error(f"Key '{key}' not found in context or state.")
+            raise ValueError(f"Key '{key}' not found in context or state.")
+        return result
+
+    def _build_query_text(self, query_keys: Optional[List[str]], _ctx: dict, _state: dict) -> Union[str, List[str]]:
+        """
+        Build query text from query_keys and context/state.
+        Args:
+            query_keys: List of keys to extract, or None to use all values
+            _ctx: External context data
+            _state: Internal state data
+        Returns:
+            Query text as string or list of strings for query_storage
+        """
+        if query_keys:
+            if isinstance(query_keys, str) or isinstance(query_keys, list):
+                return query_keys
+        query_values = []
+        if _ctx:
+            query_values.extend([str(v) for v in _ctx.values() if v is not None])
+        if _state:
+            query_values.extend([str(v) for v in _state.values() if v is not None])
+        return query_values
+
+    def _extract_data_for_update(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict) -> dict:
+        """
+        Extract data from context/state based on provided update_keys.
+        Returns:
+            dict: Data to update.
+        """
+        if update_keys:
+            return self._extract_keys(update_keys, _ctx, _state)
+        return self._build_merged_context(_ctx, _state)
+
+    def _generate_metadata(self, flattened_data: dict, _ctx: dict, _state: dict) -> dict:
+        """
+        Generate metadata from flattened data and merged context/state.
+        Returns:
+            dict: Metadata dictionary.
+        """
+        metadata_dict = flattened_data.copy() if isinstance(flattened_data, dict) else {}
+        merged_context = self._build_merged_context(_ctx, _state)
+        if merged_context:
+            context_metadata = {
+                f"context_{k}": v for k, v in ParsingProcessor.flatten_dict(merged_context).items()
+            }
+            metadata_dict.update(context_metadata)
+        return metadata_dict
+
+    def _prepare_update_data(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict, custom_metadata: Optional[list[dict]] = None) -> tuple:
+        """
+        Prepare data and metadata for storage from update_keys and context/state.
+        If custom_metadata is provided, use it for all items.
+        Args:
+            update_keys: List of keys to extract for update, or None to use all data
+            _ctx: External context data
+            _state: Internal state data
+            custom_metadata: Optional custom metadata to use for all items
         Returns:
             tuple: (processed_data, metadata_list)
         """
-        # If the data is a dictionary, flatten it for storage
-        flattened_data = flatten_dict(data) if isinstance(data, dict) else data
-        
-        # Convert values to strings for storage
+        data = self._extract_data_for_update(update_keys, _ctx, _state)
+        if not data:
+            return [], []
+        flattened_data = ParsingProcessor.flatten_dict(data)
         processed_data = [str(value) for value in flattened_data.values()]
-        
-        # Create metadata from the flattened data and additional context
-        metadata_dict = flattened_data.copy()
-        if context:
-            # Add context as additional metadata with a prefix to avoid collisions
-            context_metadata = {"context_" + k: v for k, v in flatten_dict(context).items()}
-            metadata_dict.update(context_metadata)
-        
-        # Create a list of the same metadata for each data item
+        if custom_metadata is not None:
+            return processed_data, custom_metadata
+        metadata_dict = self._generate_metadata(flattened_data, _ctx, _state)
         metadata_list = [metadata_dict.copy() for _ in processed_data]
-        
         return processed_data, metadata_list
-
-    def update_memory(self, data: dict, 
-                     context: Optional[dict] = None,
-                     ids: Optional[Union[str, list[str]]] = None,
-                     metadata: Optional[list[dict]] = None) -> None:
-        """
-        Updates memory with new data, using contexts for metadata if provided.
-
-        Args:
-            data (dict): Dictionary containing the data to be stored.
-            context (dict, optional): Dictionary containing the cog's external and internal context.
-            ids (Union[str, list[str]], optional): The IDs for the documents.
-            metadata (list[dict], optional): Custom metadata for the documents (overrides generated metadata).
-        """
-        # If custom metadata is not provided, generate it from data and context
-        if metadata is None:
-            processed_data, generated_metadata = self._prepare_memory_data(data, context)
-            metadata = generated_metadata
-        else:
-            # If metadata is provided but data is a dictionary, flatten it
-            processed_data = [str(value) for value in flatten_dict(data).values()] if isinstance(data, dict) else data
-            
-        # Save to storage with the prepared data
-        self.storage.save_to_storage(
-            collection_name=self.collection_name, 
-            data=processed_data, 
-            ids=ids, 
-            metadata=metadata
-        )
-
-    def delete(self, ids: Union[str, list[str]]) -> None:
-        """
-        Deletes the memory entry with the given key(s).
-
-        Args:
-            ids (Union[str, list[str]]): The unique identifier(s) for the memory entries to delete.
-        """
-        self.storage.delete_from_storage(collection_name=self.collection_name, ids=ids)
-
-    def wipe_memory(self):
-        """
-        Wipes all memory, removing all collections and their data.
-
-        This method should be used with caution as it will permanently delete all data within the storage.
-        """
-        self.storage.reset_storage()

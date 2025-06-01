@@ -74,28 +74,28 @@ class BaseModel:
                 self.logger.log_response(reply)
                 break
             except RateLimitError as e:
-                self.logger.log(f"Rate limit exceeded: {e}. Retrying in {backoff} seconds...", level="warning")
+                self.logger.warning(f"Rate limit exceeded: {e}. Retrying in {backoff} seconds...")
                 time.sleep(backoff)
             except APIConnectionError as e:
-                self.logger.log(f"Connection error: {e}. Retrying in {backoff} seconds...", level="warning")
+                self.logger.warning(f"Connection error: {e}. Retrying in {backoff} seconds...")
                 time.sleep(backoff)
             except APIError as e:
                 if getattr(e, "status_code", None) == 502:
-                    self.logger.log(f"502 Bad Gateway. Retrying in {backoff} seconds...", level="warning")
+                    self.logger.warning(f"502 Bad Gateway. Retrying in {backoff} seconds...")
                     time.sleep(backoff)
                 else:
                     raise
             except Exception as e:
-                self.logger.log(f"Error: {e}. Retrying in {backoff} seconds...", level="warning")
+                self.logger.warning(f"Error: {e}. Retrying in {backoff} seconds...")
                 time.sleep(backoff)
 
         if reply is None:
-            self.logger.log("Error: All retries exhausted. No response received.", level="critical")
+            self.logger.critical("Error: All retries exhausted. No response received.")
             raise ValueError("Model generation failed: All retries exhausted. No response received.")
         
         # Validate that we received a non-empty response
         if not reply or (isinstance(reply, str) and not reply.strip()):
-            self.logger.log("Error: Model returned empty response.", level="critical")
+            self.logger.critical("Error: Model returned empty response.")
             raise ValueError("Model generation failed: Received empty response.")
             
         return reply

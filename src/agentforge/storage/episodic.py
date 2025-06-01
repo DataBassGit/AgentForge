@@ -75,7 +75,7 @@ class EpisodicMemory(Memory):
         else:
             query = query_text
             
-        self.logger.log(f"Querying episodic memory: {query}", 'debug', 'Memory')
+        self.logger.debug(f"Querying episodic memory: {query}")
         
         # Adjust num_results if needed
         if num_results > self.max_episodes_per_query:
@@ -90,7 +90,7 @@ class EpisodicMemory(Memory):
         
         # If no chunks found, return empty result
         if not chunks or 'ids' not in chunks:
-            self.logger.log("No relevant memory chunks found", 'debug', 'Memory')
+            self.logger.debug("No relevant memory chunks found")
             self.store = {'episodes': [], 'formatted': "No relevant memories found."}
             return self.store
             
@@ -169,7 +169,7 @@ class EpisodicMemory(Memory):
                 break
                 
         if not content:
-            self.logger.log("No memory content provided", 'warning', 'Memory')
+            self.logger.warning("No memory content provided")
             return
             
         # Generate default metadata
@@ -217,7 +217,7 @@ class EpisodicMemory(Memory):
             metadata=[metadata]
         )
         
-        self.logger.log(f"Saved episode {episode_id}: {content[:50]}...", 'debug', 'Memory')
+        self.logger.debug(f"Saved episode {episode_id}: {content[:50]}...")
         
         # Create semantic chunks for better retrieval
         chunks = chunker.semantic_chunk(content)
@@ -438,7 +438,7 @@ class EpisodicMemory(Memory):
             # Delete all episodes
             self.storage.delete_collection(self.episodes_collection)
             self.storage.delete_collection(self.chunks_collection)
-            self.logger.log("Deleted all episodic memory collections", 'info', 'Memory')
+            self.logger.info("Deleted all episodic memory collections")
         else:
             # Convert to list if a single ID
             if not isinstance(ids, list):
@@ -459,7 +459,7 @@ class EpisodicMemory(Memory):
                 if chunks and chunks.get('ids'):
                     self.storage.delete_from_storage(collection_name=self.chunks_collection, ids=chunks['ids'])
                     
-            self.logger.log(f"Deleted episodes with IDs: {ids}", 'info', 'Memory')
+            self.logger.info(f"Deleted episodes with IDs: {ids}")
             
     def consolidate_memories(self, threshold: float = 0.8) -> None:
         """
@@ -475,5 +475,5 @@ class EpisodicMemory(Memory):
         # 2. Use an LLM to create a consolidated memory that captures the essence of the related memories
         # 3. Save the consolidated memory as a new episode with higher importance
         
-        self.logger.log("Memory consolidation not yet implemented", 'warning', 'Memory')
+        self.logger.warning("Memory consolidation not yet implemented")
         pass 

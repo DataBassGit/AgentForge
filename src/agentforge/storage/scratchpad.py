@@ -47,7 +47,7 @@ class ScratchPad(Memory):
         """
         # For scratchpads, we don't use semantic search but instead just retrieve the content
         result = self.storage.load_collection(collection_name=self.collection_name)
-        self.logger.log(f"Retrieved scratchpad: {result}", 'debug', 'Memory')
+        self.logger.debug(f"Retrieved scratchpad: {result}")
         
         if result and result.get('documents') and len(result['documents']) > 0:
             # Store the result in the Memory's store attribute
@@ -84,7 +84,7 @@ class ScratchPad(Memory):
                     break
         
         if not content:
-            self.logger.log("No content provided for scratchpad update", 'warning', 'Memory')
+            self.logger.warning("No content provided for scratchpad update")
             return
             
         # Save to the log collection
@@ -103,9 +103,8 @@ class ScratchPad(Memory):
         collection_size = self.storage.count_collection(self.log_collection_name)
         memory_id = [str(collection_size + 1)]
         
-        self.logger.log(
+        self.logger.debug(
             f"Saving to Scratchpad Log: {self.log_collection_name}\nContent: {content}\nID: {memory_id}", 
-            'debug', 'Memory'
         )
         
         self.storage.save_to_storage(
@@ -122,9 +121,8 @@ class ScratchPad(Memory):
         Args:
             content (str): The content to save in the scratchpad.
         """
-        self.logger.log(
+        self.logger.debug(
             f"Updating main scratchpad: {self.collection_name}\nContent: {content[:100]}...", 
-            'debug', 'Memory'
         )
         
         self.storage.save_to_storage(
@@ -142,7 +140,7 @@ class ScratchPad(Memory):
             list: The scratchpad log entries as a list or an empty list if not found.
         """
         result = self.storage.load_collection(collection_name=self.log_collection_name)
-        self.logger.log(f"Scratchpad Log: {result}", 'debug', 'Memory')
+        self.logger.debug(f"Scratchpad Log: {result}")
         
         if result and result.get('documents'):
             return result['documents']
@@ -159,11 +157,11 @@ class ScratchPad(Memory):
         scratchpad_log = self._get_scratchpad_log()
         log_count = len(scratchpad_log)
         
-        self.logger.log(f"Checking scratchpad log. Number of entries: {log_count}", 'debug', 'Memory')
+        self.logger.debug(f"Checking scratchpad log. Number of entries: {log_count}")
         
         # If we have enough log entries, consolidate them
         if log_count >= 10:
-            self.logger.log(f"Scratchpad log count >= 10, updating scratchpad", 'debug', 'Memory')
+            self.logger.debug(f"Scratchpad log count >= 10, updating scratchpad")
             
             # Create an agent to summarize the log
             scratchpad_agent = Agent(agent_name="ScratchpadAgent")
@@ -189,7 +187,7 @@ class ScratchPad(Memory):
             
             # Clear the log after processing
             self.storage.delete_collection(self.log_collection_name)
-            self.logger.log(f"Cleared scratchpad log", 'debug', 'Memory')
+            self.logger.debug(f"Cleared scratchpad log")
             
             return updated_scratchpad
             
@@ -211,7 +209,7 @@ class ScratchPad(Memory):
         if match:
             return match.group(1).strip()
         else:
-            self.logger.log("No updated scratchpad content found in the result.", 'warning', 'Memory')
+            self.logger.warning("No updated scratchpad content found in the result.")
             return "No updated scratchpad content could be extracted."
 
     def delete(self, ids: Union[str, list[str]] = None) -> None:
@@ -224,4 +222,4 @@ class ScratchPad(Memory):
         # Delete both the main scratchpad and the log
         self.storage.delete_collection(self.collection_name)
         self.storage.delete_collection(self.log_collection_name)
-        self.logger.log(f"Deleted scratchpad and log collections", 'debug', 'Memory') 
+        self.logger.debug(f"Deleted scratchpad and log collections") 

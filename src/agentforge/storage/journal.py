@@ -81,7 +81,7 @@ class Journal(Memory):
         if categories:
             journal_query = f"{message}\n\n Related Categories: {categories}"
         
-        self.logger.log(f"Querying journal with: {journal_query}", 'debug', 'Memory')
+        self.logger.debug(f"Querying journal with: {journal_query}")
         
         # Query the chunk collection
         journal_chunks = self.storage.query_storage(
@@ -98,7 +98,7 @@ class Journal(Memory):
         }
         
         if journal_chunks:
-            self.logger.log(f"Found journal chunks: {journal_chunks}", 'debug', 'Memory')
+            self.logger.debug(f"Found journal chunks: {journal_chunks}")
             
             if 'ids' in journal_chunks:
                 # Handle single result (non-list response)
@@ -204,9 +204,8 @@ class Journal(Memory):
             chat_message = entry
             response_message = metadata_extra.get('Response', '')
             
-            self.logger.log(
+            self.logger.debug(
                 f"Saving to Journal Log: {collection_name}\nMessage: {chat_message}\nResponse: {response_message}",
-                'debug', 'Memory'
             )
             
             self._save_to_journal(collection_name, chat_message, response_message, metadata_extra)
@@ -256,7 +255,7 @@ class Journal(Memory):
             Optional[str]: The generated journal entry if created, None otherwise.
         """
         count = self.storage.count_collection(self.log_collection_name)
-        self.logger.log(f"Journal log count: {count}", 'debug', 'Memory')
+        self.logger.debug(f"Journal log count: {count}")
         
         # Generate a journal entry if there are enough logs (default: 100)
         if count >= 100:
@@ -271,7 +270,7 @@ class Journal(Memory):
         Returns:
             str: The generated journal entry.
         """
-        self.logger.log("Generating journal entry", 'info', 'Memory')
+        self.logger.info("Generating journal entry")
         
         # Write the journal entry
         self.write_entry()
@@ -282,10 +281,10 @@ class Journal(Memory):
         # Save the journal to a file
         try:
             path = self.save_journal()
-            self.logger.log(f"Journal file created: {path}", 'info', 'Memory')
+            self.logger.info(f"Journal file created: {path}")
             self.filepath = path
         except Exception as e:
-            self.logger.log(f"Error saving journal file: {e}", 'error', 'Memory')
+            self.logger.error(f"Error saving journal file: {e}")
         
         # Store in database
         self.journal_to_db()
@@ -374,7 +373,7 @@ class Journal(Memory):
             metadata=[metadata]
         )
         
-        self.logger.log(f"Saved journal entry with metadata: {metadata}", 'debug', 'Memory')
+        self.logger.debug(f"Saved journal entry with metadata: {metadata}")
         
         # Create and save semantic chunks for better retrieval
         chunks = chunker.semantic_chunk(self.results)
@@ -396,7 +395,7 @@ class Journal(Memory):
                 metadata=[chunk_metadata]
             )
             
-            self.logger.log(f"Saved journal chunk: {chunk.content[:50]}...", 'debug', 'Memory')
+            self.logger.debug(f"Saved journal chunk: {chunk.content[:50]}...")
             
     def load_journals_from_backup(self, folder_path: str) -> None:
         """
@@ -415,7 +414,7 @@ class Journal(Memory):
                 with open(self.filepath, "r", encoding="utf-8") as file:
                     file_contents = file.read()
                     
-                self.logger.log(f"Loading journal from file: {filename}", 'info', 'Memory')
+                self.logger.info(f"Loading journal from file: {filename}")
                 
                 self.results = file_contents
                 self.journal_reflect()
@@ -434,12 +433,12 @@ class Journal(Memory):
             self.storage.delete_collection(self.log_collection_name)
             self.storage.delete_collection(self.whole_entries_collection)
             self.storage.delete_collection(self.chunks_collection)
-            self.logger.log("Deleted all journal collections", 'info', 'Memory')
+            self.logger.info("Deleted all journal collections")
         else:
             # Delete specific entries by ID
             self.storage.delete_from_storage(collection_name=self.whole_entries_collection, ids=ids)
             # Note: We can't easily delete the associated chunks, as the mapping is one-to-many
-            self.logger.log(f"Deleted journal entries with IDs: {ids}", 'info', 'Memory')
+            self.logger.info(f"Deleted journal entries with IDs: {ids}")
             
     @staticmethod
     def _format_journal_entries(history):

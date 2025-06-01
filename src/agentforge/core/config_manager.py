@@ -21,6 +21,8 @@ from ..config_structs import (
     CogConfig,
 )
 
+# from agentforge.utils.logger import Logger
+
 
 class ConfigManager:
     """
@@ -37,7 +39,20 @@ class ConfigManager:
 
     def __init__(self):
         """Initialize ConfigManager with required processors."""
+        self._initialize_processors()
+
+    def _initialize_processors(self):
+        """Initialize any required processors or internal state."""
         pass
+
+    def debug_print(self, msg: str, settings: dict):
+        """Print debug messages if debug mode is enabled in settings dict."""
+        debug_mode = False
+        # Try to get debug flag from settings dict
+        if isinstance(settings, dict):
+            debug_mode = settings.get('system', {}).get('debug', {}).get('mode', False)
+        if debug_mode:
+            print(msg)
 
     # ==============================================================================
     # Builder Methods
@@ -48,93 +63,127 @@ class ConfigManager:
         Validates and normalizes a raw agent config dict, returning a structured AgentConfig object.
         Raises ValueError if required fields are missing or invalid.
         """
-        # Validate required keys
+        try:
+            self._validate_agent_config(raw_agent_data)
+            agent_config = self._normalize_agent_config(raw_agent_data)
+            self.debug_print(f"Agent config for '{raw_agent_data.get('name', '<unknown>')}' built successfully.", raw_agent_data.get('settings', {}))
+            return agent_config
+        except Exception as e:
+            self.debug_print(f"Failed to build agent config: {e}", raw_agent_data.get('settings', {}))
+            raise
+
+    def _validate_agent_config(self, raw_agent_data: Dict[str, Any]) -> None:
+        """Validate required fields and structure for agent config."""
         required_keys = ['params', 'prompts', 'settings']
         for key in required_keys:
             if key not in raw_agent_data:
                 raise ValueError(f"Agent config missing required key '{key}' for agent '{raw_agent_data.get('name', '<unknown>')}'.")
 
-        # Validate name is present
         if not raw_agent_data.get('name'):
             raise ValueError("Agent config missing required 'name' field.")
 
-        # Validate prompts are not empty
         prompts = raw_agent_data.get('prompts', {})
         if not prompts or not isinstance(prompts, dict):
-            raise ValueError(f"Agent '{raw_agent_data['name']}' must have a non-empty 'prompts' dictionary.")
+            raise ValueError(f"Agent '{raw_agent_data.get('name', '<unknown>')}' must have a non-empty 'prompts' dictionary.")
 
-        # Validate prompt format (structure and template syntax)
         try:
-            self.check_prompt_format(prompts)
+            self._validate_prompt_format(prompts)
         except ValueError as e:
-            raise ValueError(f"Agent '{raw_agent_data['name']}' has invalid prompt format: {e}")
+            raise ValueError(f"Agent '{raw_agent_data.get('name', '<unknown>')}' has invalid prompt format: {e}")
 
-        # Validate model is not None
         model = raw_agent_data.get('model')
         if model is None:
-            raise ValueError(f"Agent '{raw_agent_data['name']}' must have a 'model' specified.")
+            raise ValueError(f"Agent '{raw_agent_data.get('name', '<unknown>')}' must have a 'model' specified.")
 
-        # Validate params is a dict
         params = raw_agent_data.get('params', {})
         if not isinstance(params, dict):
-            raise ValueError(f"Agent '{raw_agent_data['name']}' params must be a dictionary.")
+            raise ValueError(f"Agent '{raw_agent_data.get('name', '<unknown>')}' params must be a dictionary.")
 
-        # Parse and validate settings structure
-        settings = self._build_settings(raw_agent_data['settings'])
-
-        # Persona validation (warn, not error)
         persona = raw_agent_data.get('persona')
         if persona is not None and not isinstance(persona, dict):
-            print(f"Warning: Agent '{raw_agent_data['name']}' persona should be a dictionary, got {type(persona)}")
+            self.debug_print(f"Agent '{raw_agent_data.get('name', '<unknown>')}' persona should be a dictionary, got {type(persona)}", raw_agent_data.get('settings', {}))
 
-        # Gather any additional custom fields (not in the standard AgentConfig structure)
+    def _normalize_agent_config(self, raw_agent_data: Dict[str, Any]) -> AgentConfig:
+        """Normalize and construct AgentConfig object from validated raw data."""
+        settings = self._build_settings(raw_agent_data['settings'])
         reserved_fields = {'name', 'settings', 'model', 'params', 'prompts', 'persona', 'simulated_response', 'parse_response_as'}
-        custom_fields = {}
-        for key, value in raw_agent_data.items():
-            if key not in reserved_fields:
-                custom_fields[key] = value
-
+        custom_fields = {key: value for key, value in raw_agent_data.items() if key not in reserved_fields}
         return AgentConfig(
             name=raw_agent_data['name'],
             settings=settings,
-            model=model,
-            params=params,
-            prompts=prompts,
-            persona=persona,
+            model=raw_agent_data['model'],
+            params=raw_agent_data['params'],
+            prompts=raw_agent_data['prompts'],
+            persona=raw_agent_data.get('persona'),
             simulated_response=raw_agent_data.get('simulated_response'),
             parse_response_as=raw_agent_data.get('parse_response_as'),
             custom_fields=custom_fields
         )
+
+    def _validate_prompt_format(self, prompts: Dict[str, Any]) -> None:
+        """
+        Validates that the prompts dictionary has the correct format.
+        Raises ValueError if the prompts do not contain only 'system' and 'user' keys,
+        or if the sub-prompts are not dictionaries or strings.
+        """
+        if set(prompts.keys()) != {'system', 'user'}:
+            raise ValueError(
+                "Prompts should contain only 'system' and 'user' keys. "
+                "Please check the prompt YAML file format."
+            )
+        for prompt_type in ['system', 'user']:
+            prompt_value = prompts.get(prompt_type, {})
+            if not isinstance(prompt_value, (dict, str)):
+                raise ValueError(
+                    f"The '{prompt_type}' prompt should be either a string or a dictionary of sub-prompts."
+                )
 
     def build_cog_config(self, raw_cog_data: Dict[str, Any]) -> CogConfig:
         """
         Validates and normalizes a raw cog config dict, returning a structured CogConfig object.
         Raises ValueError if required fields are missing or invalid.
         """
-        # Validate that 'cog' key exists
+        try:
+            self._validate_cog_config(raw_cog_data)
+            cog_config = self._normalize_cog_config(raw_cog_data)
+            # Try to get debug flag from cog settings if present, else from agent/global settings if available
+            settings = None
+            if 'settings' in raw_cog_data:
+                settings = raw_cog_data['settings']
+            elif 'cog' in raw_cog_data and 'settings' in raw_cog_data['cog']:
+                settings = raw_cog_data['cog']['settings']
+            self.debug_print("Cog config built successfully.", settings or {})
+            return cog_config
+        except Exception as e:
+            settings = None
+            if 'settings' in raw_cog_data:
+                settings = raw_cog_data['settings']
+            elif 'cog' in raw_cog_data and 'settings' in raw_cog_data['cog']:
+                settings = raw_cog_data['cog']['settings']
+            self.debug_print(f"Failed to build cog config: {e}", settings or {})
+            raise
+
+    def _validate_cog_config(self, raw_cog_data: Dict[str, Any]) -> None:
+        """Validate required fields and structure for cog config."""
         if 'cog' not in raw_cog_data:
             raise ValueError("Cog config must have a 'cog' dictionary defined.")
-        
         raw_cog = raw_cog_data['cog']
         if not isinstance(raw_cog, dict):
             raise ValueError("Cog 'cog' value must be a dictionary.")
+        if 'flow' not in raw_cog or raw_cog.get('flow') is None:
+            raise ValueError("Cog 'flow' must be defined.")
+        if 'agents' not in raw_cog or not isinstance(raw_cog.get('agents'), list):
+            raise ValueError("Cog 'agents' must be a list.")
+        # Additional validation can be added here as needed
 
-        # Validate and build agents list
+    def _normalize_cog_config(self, raw_cog_data: Dict[str, Any]) -> CogConfig:
+        """Normalize and construct CogConfig object from validated raw data."""
+        raw_cog = raw_cog_data['cog']
         agents = self._build_cog_agents(raw_cog.get('agents', []))
-        
-        # Validate and build memory list
         memory = self._build_cog_memory(raw_cog.get('memory', []))
-        
-        # Validate and build flow
         flow = self._build_cog_flow(raw_cog.get('flow'))
-
-        # Validate agent type modules exist
         self._validate_agent_modules(agents)
-
-        # Validate flow references valid agents
         self._validate_flow_references(flow, agents)
-
-        # Build cog definition
         cog_def = CogDefinition(
             name=raw_cog.get('name', ''),
             description=raw_cog.get('description'),
@@ -144,13 +193,7 @@ class ConfigManager:
             memory=memory,
             flow=flow
         )
-
-        # Extract any additional top-level custom fields
-        custom_fields = {}
-        for key, value in raw_cog_data.items():
-            if key != 'cog':
-                custom_fields[key] = value
-
+        custom_fields = {key: value for key, value in raw_cog_data.items() if key != 'cog'}
         return CogConfig(
             cog=cog_def,
             custom_fields=custom_fields
@@ -347,27 +390,6 @@ class ConfigManager:
         
         raise ValueError(f"Transition must be string or dict, got: {type(transition_def)}")
 
-    def check_prompt_format(self, prompts: Dict[str, Any]) -> None:
-        """
-        Validates that the prompts dictionary has the correct format.
-        Raises ValueError if the prompts do not contain only 'system' and 'user' keys,
-        or if the sub-prompts are not dictionaries or strings.
-        """
-        # Check if 'system' and 'user' are the only keys present
-        if set(prompts.keys()) != {'system', 'user'}:
-            raise ValueError(
-                "Prompts should contain only 'system' and 'user' keys. "
-                "Please check the prompt YAML file format."
-            )
-
-        # Allow 'system' and 'user' prompts to be either dicts or strings
-        for prompt_type in ['system', 'user']:
-            prompt_value = prompts.get(prompt_type, {})
-            if not isinstance(prompt_value, (dict, str)):
-                raise ValueError(
-                    f"The '{prompt_type}' prompt should be either a string or a dictionary of sub-prompts."
-                )
-
     def _validate_agent_modules(self, agents: List[CogAgentDef]) -> None:
         """Validate that agent modules exist and can be imported."""
         for agent in agents:
@@ -426,4 +448,4 @@ class ConfigManager:
         )
         
         if not has_end_transition:
-            print("Warning: Flow has no 'end:' transition; cog may loop forever.") 
+            print("Flow has no 'end:' transition; cog may loop forever.") 

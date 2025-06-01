@@ -41,22 +41,16 @@ class AgentRunner:
 
         while attempts < max_attempts:
             attempts += 1
-            self.logger.log(f"Executing agent '{agent_id}' (attempt {attempts}/{max_attempts})", "debug")
+            self.logger.debug(f"Executing agent '{agent_id}' (attempt {attempts}/{max_attempts})")
             
-            try:
-                agent_output = agent.run(_ctx=context, _state=state, _mem=memory)
+            agent_output = agent.run(_ctx=context, _state=state, _mem=memory)
+            
+            if not agent_output:
+                self.logger.warning(f"No output from agent '{agent_id}', retrying... (Attempt {attempts})")
+                continue
                 
-                if not agent_output:
-                    self.logger.log(f"No output from agent '{agent_id}', retrying... (Attempt {attempts})", "warning")
-                    continue
-                    
-                self.logger.log(f"Agent '{agent_id}' executed successfully on attempt {attempts}", "debug")
-                return agent_output
-                
-            except Exception as e:
-                self.logger.log(f"Agent '{agent_id}' failed on attempt {attempts}: {e}", "warning")
-                if attempts >= max_attempts:
-                    raise
+            self.logger.debug(f"Agent '{agent_id}' executed successfully on attempt {attempts}")
+            return agent_output
 
-        self.logger.log(f"Max attempts reached for agent '{agent_id}' with no valid output.", "error")
+        self.logger.error(f"Max attempts reached for agent '{agent_id}' with no valid output.")
         raise Exception(f"Failed to get valid response from {agent_id}. We recommend checking the agent's input/output logs.") 

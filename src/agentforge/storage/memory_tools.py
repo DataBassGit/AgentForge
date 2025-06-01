@@ -43,7 +43,7 @@ class ScratchPad:
 
         collection_size = self.memory.count_collection(collection_name)
         memory_id = [str(collection_size + 1)]
-        self.logger.log(f"Saving Scratchpad Log to: {collection_name}\nMessage:\n{content}\nID: {memory_id}", 'debug', 'Memory')
+        self.logger.debug(f"Saving Scratchpad Log to: {collection_name}\nMessage:\n{content}\nID: {memory_id}")
         self.memory.save_memory(collection_name=collection_name, data=[content], ids=memory_id)
 
     def save_scratchpad(self, pad_name, content):
@@ -71,7 +71,7 @@ class ScratchPad:
         collection_name = pad_log_name
         collection_name = self.parser.format_string(collection_name)
         result = self.memory.load_collection(collection_name=collection_name)
-        self.logger.log(f"Scratchpad Log: {result}", 'debug', 'Memory')
+        self.logger.debug(f"Scratchpad Log: {result}")
         if result and result['documents']:
             return result['documents']
         return []
@@ -103,49 +103,49 @@ class ScratchPad:
         Returns:
             str or None: Updated scratchpad content if updated, None otherwise.
         """
-        self.logger.log(f"Checking scratchpad for user: {pad_name}", 'debug', 'Memory')
+        self.logger.debug(f"Checking scratchpad for user: {pad_name}")
 
         scratchpad_log = self.get_scratchpad_log(pad_name)
-        self.logger.log(f"Scratchpad log entries: {len(scratchpad_log)}", 'debug', 'Memory')
+        self.logger.debug(f"Scratchpad log entries: {len(scratchpad_log)}")
         for entry in scratchpad_log:
-            self.logger.log(f"Scratchpad log entry: {entry}", 'debug', 'Memory')
+            self.logger.debug(f"Scratchpad log entry: {entry}")
         count = len(scratchpad_log)
 
-        self.logger.log(f"Number of entries in scratchpad log: {count}", 'debug', 'Memory')
+        self.logger.debug(f"Number of entries in scratchpad log: {count}")
 
         if count >= 10:
-            self.logger.log(f"Scratchpad log count >= 10, updating scratchpad", 'debug', 'Memory')
+            self.logger.debug(f"Scratchpad log count >= 10, updating scratchpad")
 
             scratchpad_agent = Agent(agent_name="ScratchpadAgent")
 
             current_scratchpad = self.get_scratchpad(pad_name)
-            self.logger.log(f"Current scratchpad content: {current_scratchpad[:100]}...", 'debug', 'Memory')
+            self.logger.debug(f"Current scratchpad content: {current_scratchpad[:100]}...")
 
             scratchpad_log_content = "\n".join(scratchpad_log)
-            self.logger.log(f"Scratchpad log content: {scratchpad_log_content[:100]}...", 'debug', 'Memory')
+            self.logger.debug(f"Scratchpad log content: {scratchpad_log_content[:100]}...")
 
             agent_vars = {
                 "scratchpad_log": scratchpad_log_content,
                 "scratchpad": current_scratchpad
             }
             scratchpad_result = scratchpad_agent.run(**agent_vars)
-            self.logger.log(f"Scratchpad agent result: {scratchpad_result[:100]}...\nVars: {agent_vars}", 'debug', 'Memory')
+            self.logger.debug(f"Scratchpad agent result: {scratchpad_result[:100]}...\nVars: {agent_vars}")
 
             updated_scratchpad = self.extract_updated_scratchpad(scratchpad_result)
-            self.logger.log(f"Updated scratchpad content: {updated_scratchpad[:100]}...", 'debug', 'Memory')
+            self.logger.debug(f"Updated scratchpad content: {updated_scratchpad[:100]}...")
 
             self.save_scratchpad(pad_name, updated_scratchpad)
-            self.logger.log(f"Saved updated scratchpad for user: {pad_name}", 'debug', 'Memory')
+            self.logger.debug(f"Saved updated scratchpad for user: {pad_name}")
 
             # Clear the scratchpad log after processing
             collection_name = f"scratchpad_log_{pad_name}"
             collection_name = self.parser.format_string(collection_name)
             self.memory.delete_collection(collection_name)
-            self.logger.log(f"Cleared scratchpad log for user: {pad_name}", 'debug', 'Memory')
+            self.logger.debug(f"Cleared scratchpad log for user: {pad_name}")
 
             return updated_scratchpad
 
-        self.logger.log(f"Scratchpad log count < 10, no update needed", 'debug', 'Memory')
+        self.logger.debug(f"Scratchpad log count < 10, no update needed")
         return None
 
     def extract_updated_scratchpad(self, scratchpad_result: str) -> str:
@@ -164,7 +164,7 @@ class ScratchPad:
         if match:
             return match.group(1).strip()
         else:
-            self.logger.log("No updated scratchpad content found in the result.", 'warning', 'Formatting')
+            self.logger.warning("No updated scratchpad content found in the result.")
             return ""
 
 
@@ -183,8 +183,7 @@ class Journal:
         for query, response in enumerate(interaction):
             if metadata:
                 metadata_extra = metadata
-            self.logger.log(f"Saving Channel to: {collection_name}\nMessage:\n{query}",
-                            'debug', 'Memory')
+            self.logger.debug(f"Saving Channel to: {collection_name}\nMessage:\n{query}")
             self.save_to_journal(collection_name, query, response, metadata_extra)
 
     def recall_journal_entry(self, message, categories, num_entries: int = 2):
@@ -199,7 +198,7 @@ class Journal:
         Returns:
             str: Formatted string of recalled journal entries.
         """
-        self.logger.log(f"Recalling {num_entries} entries from the journal", 'debug', 'Memory')
+        self.logger.debug(f"Recalling {num_entries} entries from the journal")
         journal_query = f"{message}\n\n Related Categories: {categories}"
         collection_name = 'journal_chunks_table'
         journal_chunks = self.memory.query_memory(
@@ -217,7 +216,7 @@ class Journal:
         }
 
         if journal_chunks:
-            self.logger.log(f"Recalled Memories:\n{journal_chunks}", 'debug', 'Memory')
+            self.logger.debug(f"Recalled Memories:\n{journal_chunks}")
 
             # Set the relevance threshold
             relevance_threshold = 0.65  # Adjust this value as needed

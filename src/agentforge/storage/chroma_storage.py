@@ -248,7 +248,7 @@ class ChromaStorage:
             if self.config.data['settings']['storage'].get('fresh_start'):
                 self.reset_storage()
         except Exception as e:
-            logger.log(f"[init_storage] Error initializing storage: {e}", 'error')
+            logger.error(f"[init_storage] Error initializing storage: {e}")
             raise
 
     def init_embeddings(self):
@@ -282,10 +282,10 @@ class ChromaStorage:
 
             raise ValueError(f"Unsupported embedding backend: {self.db_embed}")
         except KeyError as e:
-            logger.log(f"[init_embeddings] Missing environment variable or setting: {e}", 'error')
+            logger.error(f"[init_embeddings] Missing environment variable or setting: {e}")
             raise
         except Exception as e:
-            logger.log(f"[init_embeddings] Error initializing embeddings: {e}", 'error')
+            logger.error(f"[init_embeddings] Error initializing embeddings: {e}")
             raise
 
     ##########################################################
@@ -341,12 +341,12 @@ class ChromaStorage:
 
     def _prepare_query_params(self, query, filter_condition, include, embeddings, num_results, collection_name):
         if not query and not embeddings:
-            logger.log(f"Error: No query nor embeddings were provided!  ", 'error')
+            logger.error(f"Error: No query nor embeddings were provided!  ")
             return {}
 
         query_params = {"n_results": self._calculate_num_results(num_results, collection_name)}
         if query_params["n_results"] <= 0:
-            logger.log(f"No Results Found in '{collection_name}' collection!", 'info')
+            logger.info(f"No Results Found in '{collection_name}' collection!")
             return {}
 
         query_params["include"] = include if include else ["documents", "metadatas", "distances"]
@@ -441,7 +441,7 @@ class ChromaStorage:
 
             return result
         except Exception as e:
-            logger.log(f"Error peeking collection: {e}", 'error')
+            logger.error(f"Error peeking collection: {e}")
             return None
 
     def load_collection(self, collection_name: str, include: dict = None, where: dict = None, where_doc: dict = None):
@@ -472,10 +472,9 @@ class ChromaStorage:
         try:
             self.select_collection(collection_name)
             data = self.collection.get(**params)
-            logger.log(
+            logger.debug(
                 f"\nCollection: {collection_name}"
                 f"\nData: {data}",
-                'debug'
             )
         except Exception as e:
             print(f"\n\nError loading data: {e}")
@@ -562,7 +561,7 @@ class ChromaStorage:
             return result
 
         except Exception as e:
-            logger.log(f"[query_memory] Error querying storage: {e}", 'error')
+            logger.error(f"[query_memory] Error querying storage: {e}")
             return None
 
     def delete_from_storage(self, collection_name, ids):
@@ -614,14 +613,14 @@ class ChromaStorage:
                 if filtered_data['documents']:
                     return filtered_data
 
-                logger.log('[search_storage_by_threshold] No documents found that meet the threshold.', 'info')
+                logger.info('[search_storage_by_threshold] No documents found that meet the threshold.')
                 return {}
 
-            logger.log('Search by Threshold: No documents found.', 'info')
+            logger.info('Search by Threshold: No documents found.')
             return {}
 
         except Exception as e:
-            logger.log(f"[search_storage_by_threshold] Error searching storage by threshold: {e}", 'error')
+            logger.error(f"[search_storage_by_threshold] Error searching storage by threshold: {e}")
             return {'failed': f"Error searching storage by threshold: {e}"}
 
     def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
@@ -649,7 +648,7 @@ class ChromaStorage:
 
             # Check if all metadata values are numeric (int or float)
             if not all(isinstance(value, (int, float)) for value in metadata_values):
-                logger.log(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' contains non-numeric values.", 'error')
+                logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' contains non-numeric values.")
                 return None
 
             if metadata_values:
@@ -659,7 +658,7 @@ class ChromaStorage:
                     try:
                         target_index = metadata_values.index(max(metadata_values))
                     except:
-                        logger.log(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.", 'error')
+                        logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.")
                         target_index = 0
             else:
                 target_index = 0
@@ -675,17 +674,16 @@ class ChromaStorage:
                     "document": target_entry["documents"][0],
                 }
 
-                logger.log(
+                logger.debug(
                     f"[search_metadata_min_max] Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
-                    'debug'
                 )
                 return max_metadata
             except Exception as e:
-                logger.log(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')
+                logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
                 return None
 
         except (KeyError, ValueError, IndexError) as e:
-            logger.log(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')
+            logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
             return None
 
     def rerank_results(self, query_results: dict, query: str, temp_collection_name: str, num_results: int = None):
@@ -711,7 +709,7 @@ class ChromaStorage:
 
             # Check if documents is empty
             if not query_results['documents']:
-                logger.log("[rerank_results] No documents found in query_results. Skipping reranking.", 'warning')
+                logger.warning("[rerank_results] No documents found in query_results. Skipping reranking.")
                 return query_results
 
             # Save the query results to a temporary collection
@@ -740,10 +738,10 @@ class ChromaStorage:
 
             return reranked_results
         except KeyError as e:
-            logger.log(f"[rerank_results] KeyError occurred while reranking results: {e}", 'error')
+            logger.error(f"[rerank_results] KeyError occurred while reranking results: {e}")
             return None
         except Exception as e:
-            logger.log(f"[rerank_results] Unexpected error occurred while reranking results: {e}", 'error')
+            logger.error(f"[rerank_results] Unexpected error occurred while reranking results: {e}")
             return None
 
     @staticmethod

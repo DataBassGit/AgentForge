@@ -121,7 +121,7 @@ class ParsingProcessor:
         if content.strip().startswith('```'):
             content = re.sub(r'^```.*?\n', '', content, flags=re.DOTALL)
             content = re.sub(r'```\s*$', '', content)
-            self.logger.log("Removed outer code blocks in YAML content", 'warning')
+            self.logger.warning("Removed outer code blocks in YAML content")
         
         return content.strip()
 
@@ -149,15 +149,15 @@ class ParsingProcessor:
         
         # Log the code-fenced extraction attempt
         if language is not None:
-            self.logger.log(f"Code-fenced block detected with language '{language}' for {expected_language.upper()} parsing", 'debug')
+            self.logger.debug(f"Code-fenced block detected with language '{language}' for {expected_language.upper()} parsing")
         elif code_fences:
-            self.logger.log(f"No code-fenced block found using fences {code_fences}, extracted content length: {len(extracted_content)}", 'debug')
+            self.logger.debug(f"No code-fenced block found using fences {code_fences}, extracted content length: {len(extracted_content)}")
         else:
-            self.logger.log(f"No code fences specified, proceeding with full content for {expected_language.upper()} parsing", 'debug')
+            self.logger.debug(f"No code fences specified, proceeding with full content for {expected_language.upper()} parsing")
         
         # Check language match and warn if different
         if language and language.lower() != expected_language.lower():
-            self.logger.log(f"Expected {expected_language.upper()} code block, but found '{language}'", 'warning')
+            self.logger.warning(f"Expected {expected_language.upper()} code block, but found '{language}'")
         
         # Attempt to parse the extracted (code-fenced) content
         if extracted_content:
@@ -167,16 +167,16 @@ class ParsingProcessor:
                 if expected_language.lower() == 'yaml':
                     processed_content = self.sanitize_yaml_content(extracted_content)
                 
-                self.logger.log(f"Attempting code-fenced {expected_language.upper()} parsing on content of length {len(processed_content)}", 'debug')
+                self.logger.debug(f"Attempting code-fenced {expected_language.upper()} parsing on content of length {len(processed_content)}")
                 result = parser_func(processed_content)
-                self.logger.log(f"Code-fenced {expected_language.upper()} parsing succeeded", 'debug')
+                self.logger.debug(f"Code-fenced {expected_language.upper()} parsing succeeded")
                 return result
                 
             except Exception as e:
                 # Log the code-fenced parsing failure
                 preview = processed_content[:100] + ('...' if len(processed_content) > 100 else '')
-                self.logger.log(f"Code-fenced {expected_language.upper()} parsing failed: {str(e)}", 'warning')
-                self.logger.log(f"Failed content preview: {preview}", 'debug')
+                self.logger.warning(f"Code-fenced {expected_language.upper()} parsing failed: {str(e)}")
+                self.logger.debug(f"Failed content preview: {preview}")
                 
                 # Stage 2: Fallback to bare parsing if code-fenced parsing failed
                 # Only attempt if we had extracted a code block and it failed
@@ -204,7 +204,7 @@ class ParsingProcessor:
         """
         
         stripped_content = content_string.strip()
-        self.logger.log(f"Attempting bare {expected_language.upper()} parsing fallback on full content (length: {len(stripped_content)})", 'info')
+        self.logger.info(f"Attempting bare {expected_language.upper()} parsing fallback on full content (length: {len(stripped_content)})")
         
         try:
             # Apply format-specific preprocessing for bare content too
@@ -213,27 +213,27 @@ class ParsingProcessor:
                 processed_content = self.sanitize_yaml_content(stripped_content)
             
             result = parser_func(processed_content)
-            self.logger.log(f"Bare {expected_language.upper()} parsing fallback succeeded", 'info')
+            self.logger.info(f"Bare {expected_language.upper()} parsing fallback succeeded")
             return result
             
         except Exception as e:
             # Log the bare parsing failure
             preview = processed_content[:100] + ('...' if len(processed_content) > 100 else '')
-            self.logger.log(f"Bare {expected_language.upper()} parsing fallback failed: {str(e)}", 'error')
-            self.logger.log(f"Failed content preview: {preview}", 'debug')
-            self.logger.log(f"Content type: {expected_language}, Content length: {len(processed_content)}", 'error')
+            self.logger.error(f"Bare {expected_language.upper()} parsing fallback failed: {str(e)}")
+            self.logger.debug(f"Failed content preview: {preview}")
+            self.logger.error(f"Content type: {expected_language}, Content length: {len(processed_content)}")
             
             # Special handling for YAML auto-cleanup (keeping existing behavior as requested)
             if expected_language.lower() == 'yaml':
                 try:
                     # More aggressive YAML cleanup as a last resort
                     cleaned_content = re.sub(r'[`~]', '', processed_content)  # Remove any remaining backticks
-                    self.logger.log("Attempting alternative YAML parsing after aggressive cleanup", 'info')
+                    self.logger.info("Attempting alternative YAML parsing after aggressive cleanup")
                     result = parser_func(cleaned_content)
-                    self.logger.log("Alternative YAML parsing succeeded", 'info')
+                    self.logger.info("Alternative YAML parsing succeeded")
                     return result
                 except Exception as e2:
-                    self.logger.log(f"Alternative YAML parsing also failed: {e2}", 'error')
+                    self.logger.error(f"Alternative YAML parsing also failed: {e2}")
             
             raise ParsingError(f"Failed to parse {expected_language}: {e}") from e
 
@@ -268,7 +268,7 @@ class ParsingProcessor:
         parser = self.parsers.get(parser_type.lower())
         if parser:
             return parser(content_string, code_fences)
-        self.logger.log(f"No parser method found for type '{parser_type}'", 'error')
+        self.logger.error(f"No parser method found for type '{parser_type}'")
         raise ParsingError(f"No parser method found for type '{parser_type}'")
 
     def auto_parse_content(self, text: str, code_fences: Optional[List[str]] = None) -> Any:
@@ -290,7 +290,7 @@ class ParsingProcessor:
         language, content = self.extract_code_block(text, code_fences)
         if language and language.lower() in self.list_supported_formats():
             return self.parse_by_format(content, language, code_fences=code_fences)
-        self.logger.log("No valid language detected for automatic parsing, returning raw text instead.", "debug")
+        self.logger.debug("No valid language detected for automatic parsing, returning raw text instead.")
         return text
 
     @staticmethod
@@ -331,6 +331,28 @@ class ParsingProcessor:
             else:
                 return None
         return current
+
+    @staticmethod
+    def flatten_dict(d: dict, parent_key: str = '', sep: str = '.') -> dict:
+        """
+        Flattens a nested dictionary.
+
+        Args:
+            d (dict): The dictionary to flatten.
+            parent_key (str): The parent key (used for recursion).
+            sep (str): The separator to use between keys.
+
+        Returns:
+            dict: The flattened dictionary.
+        """
+        items = []
+        for k, v in d.items():
+            new_key = f"{parent_key}{sep}{k}" if parent_key else k
+            if isinstance(v, dict):
+                items.extend(ParsingProcessor.flatten_dict(v, new_key, sep=sep).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
 
     @staticmethod
     def parse_markdown_to_dict(markdown_text: str, min_heading_level=2, max_heading_level=6) -> Optional[
@@ -374,42 +396,42 @@ class ParsingProcessor:
         - str: The formatted string.
         """
 
-        self.logger.log(f"Formatting string:\n{input_str}", 'debug', 'Formatting')
+        self.logger.debug(f"Formatting string:\n{input_str}")
         # Remove leading and trailing whitespace
         input_str = input_str.strip()
-        self.logger.log(f"Remove leading and trailing whitespace:\n{input_str}", 'debug', 'Formatting')
+        self.logger.debug(f"Remove leading and trailing whitespace:\n{input_str}")
 
         # Replace non-alphanumeric, non-underscore, non-hyphen characters with underscores
         input_str = re.sub("[^a-zA-Z0-9_-]", "_", input_str)
-        self.logger.log(f"Replacing non-alphanumeric:\n{input_str}", 'debug', 'Formatting')
+        self.logger.debug(f"Replacing non-alphanumeric:\n{input_str}")
 
         # Replace consecutive periods with a single period
         while ".." in input_str:
             input_str = input_str.replace("..", ".")
-            self.logger.log(f"Replacing consecutive periods:\n{input_str}", 'debug', 'Formatting')
+            self.logger.debug(f"Replacing consecutive periods:\n{input_str}")
 
         # Ensure it's not a valid IPv4 address
         if re.match(r'^\d+\.\d+\.\d+\.\d+$', input_str):
             input_str = "a" + input_str
-            self.logger.log(f"Ensuring not a valid IPv4:\n{input_str}", 'debug', 'Formatting')
+            self.logger.debug(f"Ensuring not a valid IPv4:\n{input_str}")
 
         # Ensure it starts and ends with an alphanumeric character
         if not input_str[0].isalnum():
             input_str = "a" + input_str[1:]
-            self.logger.log(f"Ensure it starts with an alphanumeric character:\n{input_str}", 'debug', 'Formatting')
+            self.logger.debug(f"Ensure it starts with an alphanumeric character:\n{input_str}")
         if not input_str[-1].isalnum():
             input_str = input_str[:-1] + "a"
-            self.logger.log(f"Ensure it ends with an alphanumeric character:\n{input_str}", 'debug', 'Formatting')
+            self.logger.debug(f"Ensure it ends with an alphanumeric character:\n{input_str}")
 
         # Ensure length is between 3 and 64 characters
         while len(input_str) < 3:
             input_str += input_str
-            self.logger.log(f"Ensure length is at least 3 characters:\n{input_str}", 'debug', 'Formatting')
+            self.logger.debug(f"Ensure length is at least 3 characters:\n{input_str}")
         if len(input_str) > 63:
             input_str = input_str[:63]
-            self.logger.log(f"Ensure length is not more than 64 characters:\n{input_str}", 'debug', 'Formatting')
+            self.logger.debug(f"Ensure length is not more than 64 characters:\n{input_str}")
 
         input_str = input_str.lower()
-        self.logger.log(f"Lower casing string:\n{input_str}", 'debug', 'Formatting')
+        self.logger.debug(f"Lower casing string:\n{input_str}")
 
         return input_str

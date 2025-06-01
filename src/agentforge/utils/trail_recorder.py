@@ -81,4 +81,4 @@ class TrailRecorder:
         if entry.error:
             log_message += f"\nERROR: {entry.error}"
         
-        self.logger.log(log_message, "debug", "Trail") 
+        self.logger.debug(log_message) 

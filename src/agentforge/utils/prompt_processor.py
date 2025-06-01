@@ -22,7 +22,7 @@ class PromptProcessor:
         """
         Initializes the PromptHandling class with a Logger instance.
         """
-        self.logger = Logger(name=self.__class__.__name__)
+        self.logger = Logger(name=self.__class__.__name__, default_logger=self.__class__.__name__.lower())
 
     ##################################################
     # Variable Extraction & Nested Lookups
@@ -45,7 +45,7 @@ class PromptProcessor:
             return re.findall(self.pattern, template)
         except Exception as e:
             error_message = f"Error extracting prompt variables: {e}"
-            self.logger.log(error_message, 'error')
+            self.logger.error(error_message)
             raise Exception(error_message)
 
     @staticmethod
@@ -100,7 +100,7 @@ class PromptProcessor:
             return prompt_template
         except Exception as e:
             error_message = f"Error handling prompt template: {e}"
-            self.logger.log(error_message, 'error')
+            self.logger.error(error_message)
             raise Exception(error_message)
 
     ##################################################
@@ -144,7 +144,7 @@ class PromptProcessor:
             return prompt
         except Exception as e:
             error_message = f"Error rendering prompt template: {e}"
-            self.logger.log(error_message, 'error')
+            self.logger.error(error_message)
             raise Exception(error_message)
 
     def render_prompts(self, prompts, data):
@@ -178,9 +178,8 @@ class PromptProcessor:
                         rendered_prompt = self.render_prompt_template(template, data)
                         rendered_sections.append(rendered_prompt)
                     else:
-                        self.logger.log(
-                            f"Skipping '{prompt_name}' in '{prompt_type}' prompt due to missing variables.",
-                            'info'
+                        self.logger.info(
+                            f"Skipping '{prompt_name}' in '{prompt_type}' prompt due to missing variables."
                         )
                 # Join the rendered sections into a single string for each prompt type
                 final_prompt = '\n'.join(rendered_sections)
@@ -192,7 +191,7 @@ class PromptProcessor:
             return rendered_prompts
         except Exception as e:
             error_message = f"Error rendering prompts: {e}"
-            self.logger.log(error_message, 'error')
+            self.logger.error(error_message)
             raise Exception(error_message)
 
     def _validate_rendered_prompts(self, rendered_prompts):
@@ -211,7 +210,7 @@ class PromptProcessor:
                     f"Error: The '{prompt_type}' prompt is empty after rendering. "
                     f"Please check your prompt templates and data."
                 )
-                self.logger.log(error_message, 'error')
+                self.logger.error(error_message)
                 raise ValueError(error_message)
 
     def build_persona_markdown(self, static_content, persona_settings):
