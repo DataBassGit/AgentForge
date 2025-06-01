@@ -625,7 +625,19 @@ class Config:
         """
         Reloads configurations if on-the-fly reloading is enabled.
         """
-        if self.data['settings']['system']['misc'].get('on_the_fly', False):
+        if self.settings.system.misc.on_the_fly:
             self.load_all_configurations()
+
+    @property
+    def settings(self):
+        """
+        Returns the loaded settings as a Settings dataclass for dot notation access.
+        Example:
+            config = Config()
+            settings = config.settings
+            print(settings.system.debug.mode)
+        """
+        settings_dict = self.data.get('settings', {})
+        return self.config_manager._build_settings(settings_dict)
 
 

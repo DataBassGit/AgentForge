@@ -232,7 +232,12 @@ class PromptProcessor:
         persona_md = self._dict_to_markdown(static_content)
         
         # Get character cap from settings - treat 0 as no cap
-        static_char_cap = persona_settings.get('static_char_cap', 8000)
+        if hasattr(persona_settings, 'static_char_cap'):
+            static_char_cap = getattr(persona_settings, 'static_char_cap', 8000)
+        elif isinstance(persona_settings, dict):
+            static_char_cap = persona_settings.get('static_char_cap', 8000)
+        else:
+            static_char_cap = 8000
         
         # Only truncate if cap is greater than 0 and persona_md exceeds the cap
         if static_char_cap > 0 and len(persona_md) > static_char_cap:

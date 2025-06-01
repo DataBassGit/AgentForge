@@ -66,7 +66,7 @@ Tools:
 The **Actions** class consists of several methods that work together to manage and execute complex workflows. Below is a brief overview of the key methods provided by the class:
 
 - **Initialization**
-  - **[`__init__`](#init-method)**: Sets up the **Actions** class, initializing essential components such as logging, storage, and agents used for action processing.
+  - **[`__init__`](#__init__-method)**: Sets up the **Actions** class, initializing essential components such as logging, storage, and agents used for action processing.
 
 - **Collection Management**
   - **[`initialize_collection`](#initialize_collection-method)**: Loads and initializes a specified collection (e.g., **Actions** or **Tools**) into the vector database, enabling efficient search and retrieval.

@@ -78,6 +78,8 @@ class FakeChromaStorage:
 
     # Collection management ----------------------------------------------
     def select_collection(self, collection_name: str):
+        if not collection_name or not isinstance(collection_name, str) or collection_name.strip() == "":
+            raise Exception("Invalid collection name")
         self._current = self._collections.setdefault(collection_name, _FakeCollection())
         return self._current
 
@@ -89,14 +91,27 @@ class FakeChromaStorage:
     def count_collection(self, collection_name: str):
         return self.select_collection(collection_name).count()
 
+    def peek(self, collection_name: str):
+        col = self.select_collection(collection_name)
+        ids = list(col._docs.keys())[:10]
+        if not ids:
+            return {"documents": "No Results!"}
+        return {
+            "documents": [col._docs[i] for i in ids],
+            "ids": ids,
+            "metadatas": [col._metas.get(i, {}) for i in ids],
+        }
+
     # High-level API (subset) --------------------------------------------
-    def save_to_storage(self, *, collection_name: str, data: List[str] | str, ids: Optional[List[str]] = None, metadata: Optional[List[dict]] = None):
+    def save_to_storage(self, *, collection_name: str, data: list[str] | str, ids: Optional[list[str]] = None, metadata: Optional[list[dict]] = None):
         data = [data] if isinstance(data, str) else list(data)
         if ids is None:
             # Generate incremental ids based on current collection size
             existing = self.select_collection(collection_name).count()
             ids = [str(existing + i + 1) for i in range(len(data))]
         metadata = metadata or [{} for _ in data]
+        if not (len(data) == len(ids) == len(metadata)):
+            raise ValueError("data, ids, and metadata must have the same length")
         self.select_collection(collection_name).upsert(data, metadata, ids)
 
     def query_storage(self, *, collection_name: str, query: Optional[str | List[str]] = None, num_results: int = 1, **_):

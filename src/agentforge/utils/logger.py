@@ -58,16 +58,16 @@ class BaseLogger:
         """
         self.config = Config()
         self.logger = logging.getLogger(name)
-        self.log_folder = self.config.data['settings']['system']['logging']['folder']
+        self.log_folder = self.config.settings.system.logging.folder
         self.log_file = log_file
 
-        if not self.config.data['settings']['system']['logging']['enabled']:
+        if not self.config.settings.system.logging.enabled:
             self.logger.setLevel(logging.CRITICAL + 1)  # Disable logging
             return
 
         file_level = self._get_level_code(log_level)
         console_level = self._get_level_code(
-            self.config.data['settings']['system']['logging'].get('console_level', 'warning')
+            self.config.settings.system.logging.console_level
         )
         self.logger.setLevel(min(file_level, console_level))
 
@@ -238,7 +238,7 @@ class Logger:
         self._initialized = True
 
     def load_logging_config(self):
-        self.logging_config = self.config.data['settings']['system']['logging']['files']
+        self.logging_config = self.config.settings.system.logging.files
 
     def update_logger_config(self, logger_file: str):
         """

@@ -262,7 +262,7 @@ class Actions:
 
         try:
             # Load the paths into a dictionary
-            paths_dict = self.storage.config.data['settings']['system']['paths']
+            paths_dict = self.storage.config.settings.system.paths
 
             # Construct the work_paths string by iterating over the dictionary
             work_paths = None

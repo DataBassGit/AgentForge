@@ -123,4 +123,4 @@ emb_lib = models_cfg['embedding_library']
 - [Settings Overview](settings.md)
 - [System Settings Guide](system.md)
 - [Storage Settings Guide](storage.md)
-- [APIs Guide](../apis/APIs.md)
+- [APIs Guide](../apis/apis.md)

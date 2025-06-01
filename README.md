@@ -58,10 +58,10 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 - **[Agents](docs/agents/Agents.md)**: Learn how to create and customize individual AI agents for various tasks.
 - **[Cogs](docs/cogs/cogs.md)**: Design multi-agent workflows with branching logic using simple YAML configurations.
 - **[Memory](docs/storage/memory.md)**: Add contextual memory to your agents and cogs for more coherent interactions.
-- **[API Integration](docs/apis/APIs.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
+- **[API Integration](docs/apis/apis.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
 - **[Personas](docs/personas/Personas.md)**: Utilize personas to encapsulate information accessible to the agents, acting as a resource of knowledge.
 - **[Settings](docs/settings/settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
-- **[Storage](docs/storage/Chromastorage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
+- **[Storage](docs/storage/chroma_storage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
 - **[Tools & Actions](docs/tools_and_actions/Overview.md)**: Discover the system's toolbox and learn how to choreograph tools into actionable sequences.
 - **[Utilities](docs/utils/UtilsOverview.md)**: Explore utility functions and tools that enhance the system's capabilities.
 

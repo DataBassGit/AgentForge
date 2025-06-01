@@ -40,7 +40,7 @@ Memory instances derive `storage_id` to partition data:
 2. Else if `cog_name` is given, uses that.  
 3. Fallback to `"fallback_storage"` if neither.
 
-This normalized `storage_id` is passed to `ChromaStorage.get_or_create(...)`. See [ChromaStorage Guide](Chromastorage.md).
+This normalized `storage_id` is passed to `ChromaStorage.get_or_create(...)`. See [ChromaStorage Guide](chroma_storage.md).
 
 ---
 
@@ -204,13 +204,13 @@ Example usage mirrors `Journal` but writes to `whole_journal_entries` and `journ
 - Monitor collection size with `count_collection()`  
 - Leverage `mem.store` after queries for in‑memory access
 - When using memory in Cogs, specify appropriate `query_before` and `update_after` agents
-- For advanced control, interact directly with `mem.storage` (see [ChromaStorage Guide](Chromastorage.md))
+- For advanced control, interact directly with `mem.storage` (see [ChromaStorage Guide](chroma_storage.md))
 - Create custom Memory subclasses when you need specialized formatting or behavior
 
 ---
 
 ## 8. Related Documentation
 - [Cogs Guide](../cogs/cogs.md)  
-- [ChromaStorage Guide](Chromastorage.md)  
+- [ChromaStorage Guide](chroma_storage.md)  
 - [Storage Settings](../settings/storage.md)  
 - [Agent Class API](../agents/AgentClass.md) 

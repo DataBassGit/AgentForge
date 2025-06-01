@@ -245,7 +245,7 @@ class ChromaStorage:
                 else:
                     self.client = chromadb.EphemeralClient()
 
-            if self.config.data['settings']['storage'].get('fresh_start'):
+            if getattr(self.config.settings.storage, 'fresh_start', False):
                 self.reset_storage()
         except Exception as e:
             logger.error(f"[init_storage] Error initializing storage: {e}")
@@ -300,7 +300,7 @@ class ChromaStorage:
         Returns:
             tuple: (db_path, db_embed)
         """
-        storage_settings = self.config.data['settings']['storage']
+        storage_settings = self.config.settings.storage
         db_path_setting = storage_settings['options'].get('persist_directory', None)
         selected_embed = storage_settings['embedding'].get('selected', None)
         db_embed = storage_settings['embedding_library'].get(selected_embed, None)
@@ -506,7 +506,7 @@ class ChromaStorage:
             data = [data] if isinstance(data, str) else data
             ids, metadata = generate_defaults(data, ids, metadata)
             validate_inputs(data, ids, metadata)
-            apply_timestamps(metadata, self.config.data)
+            apply_timestamps(metadata, self.config.settings.storage)
 
             self.select_collection(collection_name)
             self.collection.upsert(

@@ -365,4 +365,26 @@ class TestPersonaMemory:
         assert "persona_relevant" in update_context_dict["internal"]["understand"]
         # No duplicate keys
         assert list(update_context_dict.keys()).count("external") == 1
-        assert list(update_context_dict.keys()).count("internal") == 1 
+        assert list(update_context_dict.keys()).count("internal") == 1
+
+    def test_update_memory_with_agent_error(self, persona_memory):
+        # Mock agent to raise
+        persona_memory._test_agents['retrieval'].run.side_effect = Exception("Agent error")
+        try:
+            persona_memory.update_memory(["k"], _ctx={}, _state={})
+        except Exception:
+            pytest.fail("update_memory should handle agent errors gracefully")
+
+    def test_update_memory_with_malformed_context(self, persona_memory):
+        # Provide malformed context/state
+        try:
+            persona_memory.update_memory(["k"], _ctx=None, _state=None)
+        except Exception:
+            pytest.fail("update_memory should handle malformed context/state gracefully")
+
+    def test_query_memory_with_malformed_context(self, persona_memory):
+        # Provide malformed context/state
+        try:
+            persona_memory.query_memory(query_keys=None, _ctx=None, _state=None)
+        except Exception:
+            pytest.fail("query_memory should handle malformed context/state gracefully") 

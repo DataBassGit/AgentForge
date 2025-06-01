@@ -140,7 +140,7 @@ class CustomAgent(Agent):
         pass
 
     def build_output(self):
-        # Adjust or filter the LLM’s response
+        # Adjust or filter the LLM's response
         return super().build_output()
 
 # Instantiate and use it just like any other agent
@@ -155,7 +155,7 @@ This approach gives you a straightforward way to inject logic before or after th
 
 ## Additional Resources
 
-You can explore more complex agent features, define defaults in `.agentforge/settings/` for your model settings, or integrate with different LLM APIs by checking out the [Settings](../settings/settings.md) and [LLMs](../apis/APIs) guides. To learn more about advanced customization or how to manage large-scale agent projects, visit the [Agents Documentation](../agents/Agents.md).
+You can explore more complex agent features, define defaults in `.agentforge/settings/` for your model settings, or integrate with different LLM APIs by checking out the [Settings](../settings/settings.md) and [LLMs](../apis/apis.md) guides. To learn more about advanced customization or how to manage large-scale agent projects, visit the [Agents Documentation](../agents/Agents.md).
 
 If you run into any issues, refer to the [Troubleshooting Guide](../guides/TroubleshootingGuide.md) for common fixes and workarounds.
 

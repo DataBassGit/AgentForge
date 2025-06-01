@@ -210,7 +210,7 @@ class PersonaMemory(Memory):
         if not persona_data or 'static' not in persona_data:
             return "No static persona information available."
         static_content = persona_data.get('static', {})
-        persona_settings = config.data['settings']['system']['persona']
+        persona_settings = config.settings.system.persona
         persona_md = self.prompt_processor.build_persona_markdown(static_content, persona_settings)
         return persona_md or "No static persona information available."
 
@@ -528,7 +528,7 @@ class PersonaMemory(Memory):
         if not persona_data or 'static' not in persona_data:
             return "No static persona information available."
         static_content = persona_data.get('static', {})
-        persona_settings = config.data['settings']['system']['persona']
+        persona_settings = config.settings.system.persona
         persona_md = self.prompt_processor.build_persona_markdown(static_content, persona_settings)
         return persona_md or "No static persona information available."
 
