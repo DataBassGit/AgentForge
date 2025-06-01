@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Any, List, Type
+from typing import Dict, Any, List, Type
 from agentforge.utils.logger import Logger
 from agentforge.config import Config
 from agentforge.config_structs import CogConfig

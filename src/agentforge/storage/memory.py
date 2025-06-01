@@ -71,14 +71,14 @@ class Memory:
             self.logger.debug("No query text constructed; skipping query.")
             return
         
-            raw = self.storage.query_storage(
-                collection_name=self.collection_name,
-                query=query_text,
-                num_results=num_results
-            )
-            if raw:
-                self.store.update({"raw": raw, "readable": self.format_memory_results(raw)})
-                self.logger.debug(f"Query returned {len(raw.get('ids', []))} results.")
+        raw = self.storage.query_storage(
+            collection_name=self.collection_name,
+            query=query_text,
+            num_results=num_results
+        )
+        if raw:
+            self.store.update({"raw": raw, "readable": self.format_memory_results(raw)})
+            self.logger.debug(f"Query returned {len(raw.get('ids', []))} results.")
 
     def update_memory(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict, 
                      ids: Optional[Union[str, list[str]]] = None,
@@ -98,13 +98,13 @@ class Memory:
             self.logger.debug("No data to update; skipping storage update.")
             return
         
-            self.storage.save_to_storage(
-                collection_name=self.collection_name, 
-                data=processed_data, 
-                ids=ids, 
-                metadata=metadata_list
-            )
-            self.logger.debug(f"Updated memory with {len(processed_data)} entries.")
+        self.storage.save_to_storage(
+            collection_name=self.collection_name,
+            data=processed_data,
+            ids=ids,
+            metadata=metadata_list
+        )
+        self.logger.debug(f"Updated memory with {len(processed_data)} entries.")
 
     def delete(self, ids: Union[str, list[str]]) -> None:
         """
@@ -146,8 +146,10 @@ class Memory:
 
     # TODO: Review method and consider making it optional, defaulting to PromptProcessor for automatic formatting.
     # This is a method was made to turn raw results into a readable string.
-    # While this is meant for extensibility, the current format isarbitray and may not be ideal as a default.
-    def format_memory_results(self, raw_results: dict) -> str:
+    # While this is meant for extensibility, the current format is arbitrary and may not be ideal as a default.
+
+    @staticmethod
+    def format_memory_results(raw_results: dict) -> str:
         """
         Format raw query results into a human-readable string.
         Subclasses can override this method to customize formatting.
@@ -168,6 +170,7 @@ class Memory:
                 if ts is None and "iso_timestamp" in meta:
                     ts = meta["iso_timestamp"]
             entries.append((idx, id_, doc, meta, ts))
+
         def sort_key(entry):
             ts = entry[4]
             if ts is None:

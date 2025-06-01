@@ -5,7 +5,7 @@ The Cog class provides a workflow framework for executing a series of
 chained agents based on configurable flow definitions and transitions.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 from agentforge.config import Config
 from agentforge.config_structs.trail_structs import ThoughtTrailEntry
 from agentforge.core.agent_registry import AgentRegistry
