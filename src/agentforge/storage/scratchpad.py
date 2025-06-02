@@ -1,5 +1,5 @@
 import re
-from typing import Optional, Union, Dict, Any
+from typing import Optional, Union, List, Any
 
 from agentforge.utils.logger import Logger
 from agentforge.utils.parsing_processor import ParsingProcessor
@@ -34,53 +34,56 @@ class ScratchPad(Memory):
         self.log_collection_name = f"scratchpad_log_{self.collection_name}"
         self.log_collection_name = self.parser.format_string(self.log_collection_name)
 
-    def query_memory(self, query_text: Union[str, list[str]], num_results: int = 1) -> Optional[Dict[str, Any]]:
+    def query_memory(self, query_keys: Optional[List[str]], _ctx: dict, _state: dict, num_results: int = 5) -> dict[str, Any]:
         """
-        Query the scratchpad memory. For scratchpads, we typically want the most recent/only entry.
-        
+        Query memory storage for relevant entries based on provided context and state.
+
         Args:
-            query_text (Union[str, list[str]]): The text to search for (not used in default implementation).
-            num_results (int): Number of results to return (defaults to 1 for scratchpads).
-            
-        Returns:
-            Optional[Dict[str, Any]]: The scratchpad content or a default message if not found.
+            query_keys (Optional[List[str]]): Keys to construct the query from context/state.
+            _ctx (dict): External context data.
+            _state (dict): Internal state data.
+            num_results (int): Number of results to retrieve.
         """
         # For scratchpads, we don't use semantic search but instead just retrieve the content
         result = self.storage.load_collection(collection_name=self.collection_name)
         self.logger.debug(f"Retrieved scratchpad: {result}")
         
         if result and result.get('documents') and len(result['documents']) > 0:
+            # Old
             # Store the result in the Memory's store attribute
-            self.store = {
-                'content': result['documents'][0]
-            }
+            # self.store = {
+            #     'content': result['documents'][0]
+            # }
+            # return self.store
+            self.store.update({"scratchpad": result.get('documents')})
+            self.logger.debug(f"Query returned {len(result.get('ids', []))} results.")
             return self.store
         
         # Return default message if no scratchpad exists
         default_msg = "No information available yet. This scratchpad will be updated as we learn more about the user."
-        self.store = {'content': default_msg}
+        self.store.update({"scratchpad": default_msg})
         return self.store
 
-    def update_memory(self, data: dict, context: Optional[dict] = None, 
+    def update_memory(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict,
                       ids: Optional[Union[str, list[str]]] = None,
                       metadata: Optional[list[dict]] = None) -> None:
         """
-        Update the scratchpad memory by adding to the log. If the log has enough entries,
-        it will trigger a consolidation.
-        
+        Update memory with new data using update_keys to extract from context/state.
+
         Args:
-            data (dict): Dictionary containing the data to be stored.
-            context (dict, optional): Dictionary containing the cog's external and internal context.
-            ids (Union[str, list[str]], optional): The IDs for the documents (not used).
-            metadata (list[dict], optional): Custom metadata for the documents (not used).
+            update_keys (Optional[List[str]]): Keys to extract for update, or None to use all data.
+            _ctx (dict): External context data.
+            _state (dict): Internal state data.
+            ids (Union[str, list[str]], optional): The IDs for the documents.
+            metadata (list[dict], optional): Custom metadata for the documents (overrides generated metadata).
         """
         # Extract content from the data
         content = None
-        if data:
+        if _state:
             # Try to get content from different possible keys
-            for key in ['latest_raw_output', 'content', 'message', 'text']:
-                if key in data:
-                    content = data[key]
+            for key in update_keys:
+                if key in _state:
+                    content = _state[key]
                     break
         
         if not content:
@@ -88,6 +91,8 @@ class ScratchPad(Memory):
             return
             
         # Save to the log collection
+        user_msg = _ctx.get('user_input')
+        self._save_scratchpad_log(user_msg)
         self._save_scratchpad_log(content)
         
         # Check if it's time to consolidate the log
@@ -160,14 +165,14 @@ class ScratchPad(Memory):
         self.logger.debug(f"Checking scratchpad log. Number of entries: {log_count}")
         
         # If we have enough log entries, consolidate them
-        if log_count >= 10:
+        if log_count >= 1:
             self.logger.debug(f"Scratchpad log count >= 10, updating scratchpad")
             
             # Create an agent to summarize the log
             scratchpad_agent = Agent(agent_name="ScratchpadAgent")
             
             # Get the current scratchpad content
-            current_scratchpad = self.query_memory(None).get('content', '')
+            current_scratchpad = self.store.get('scratchpad', '')
             
             # Join all log entries
             scratchpad_log_content = "\n".join(scratchpad_log)
