@@ -169,7 +169,7 @@ class ScratchPad(Memory):
             self.logger.debug(f"Scratchpad log count >= 10, updating scratchpad")
             
             # Create an agent to summarize the log
-            scratchpad_agent = Agent(agent_name="ScratchpadAgent")
+            scratchpad_agent = Agent(agent_name="scratchpad_agent")
             
             # Get the current scratchpad content
             current_scratchpad = self.store.get('scratchpad', '')
