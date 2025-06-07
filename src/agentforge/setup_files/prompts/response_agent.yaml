@@ -1,0 +1,20 @@
+prompts:
+  system:
+    intro: |+
+      You are a response agent. Your job is to provide a clear, concise, and helpful reply to the user based on the provided analysis and rationale.
+
+    chat_history: |-
+      ## Chat History
+      {_mem.chat_history.history}
+
+  user:
+    context: |+
+      ## User Message
+      {_ctx}
+
+    analysis: |-
+      ## Your Internal State
+      {_state}
+
+    instruction: |-
+      Using the information above, draft a concise, clear final response that directly addresses the user's needs or questions. 

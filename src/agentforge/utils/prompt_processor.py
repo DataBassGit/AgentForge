@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Mapping, Sequence, Iterable, Tuple, Callable
 from agentforge.utils.logger import Logger
 
 class PromptProcessor:
@@ -128,11 +128,20 @@ class PromptProcessor:
                 val = self._nested_lookup(data, variable_name)
                 # If val is None, we preserve the original placeholder.
                 if val is not None:
-                    # Use markdown formatting for dict/list values
                     formatted_val = self.value_to_markdown(val)
-                    return formatted_val.strip()
+                    # Detect indentation before the placeholder
+                    start = match.start()
+                    # Find the start of the line
+                    line_start = template.rfind('\n', 0, start) + 1
+                    indent = template[line_start:start]
+                    # Apply indentation to all lines except the first
+                    lines = formatted_val.split('\n')
+                    if len(lines) > 1:
+                        lines = [lines[0]] + [indent + line if line.strip() else line for line in lines[1:]]
+                    return '\n'.join(lines).strip()
                 else:
                     return match.group(0)
+
 
             variable_pattern = re.compile(self.pattern)
             # Perform variable substitution
@@ -266,72 +275,27 @@ class PromptProcessor:
     # Value Formatting
     ##################################################
 
-    @staticmethod
-    def value_to_markdown(val: Any) -> str:
-        """
-        Convert a value to markdown-formatted string for prompt insertion.
-        
-        - If val is a dict → return bold keys with bullet list formatting
-        - If val is a list → join items with '- ' bullet prefix
-        - Else → return str(val)
-        
-        Args:
-            val: The value to convert to markdown format
-            
-        Returns:
-            str: Markdown-formatted string representation of the value
-        """
-        if isinstance(val, dict):
-            return PromptProcessor._dict_to_markdown(val)
-        elif isinstance(val, list):
-            return PromptProcessor._list_to_markdown(val)
-        else:
-            return str(val)
-    
-    @staticmethod
-    def _dict_to_markdown(data: dict) -> str:
-        """
-        Convert dictionary to markdown format with bold keys and bullet lists.
-        
-        Args:
-            data: Dictionary to convert
-            
-        Returns:
-            str: Markdown formatted string
-        """
-        if not data:
-            return ""
-            
-        md_lines = []
-        for key, value in data.items():
-            if isinstance(value, str):
-                md_lines.append(f"**{key}**: {value}")
-            elif isinstance(value, list):
-                md_lines.append(f"**{key}**:")
-                for item in value:
-                    md_lines.append(f"- {item}")
-            elif isinstance(value, dict):
-                md_lines.append(f"**{key}**:")
-                for k, v in value.items():
-                    md_lines.append(f"- {k}: {v}")
-            else:
-                md_lines.append(f"**{key}**: {value}")
-        
-        return "\n".join(md_lines)
-    
-    @staticmethod
-    def _list_to_markdown(data: list) -> str:
-        """
-        Convert list to markdown format with bullet points.
-        
-        Args:
-            data: List to convert
-            
-        Returns:
-            str: Markdown formatted string
-        """
-        if not data:
-            return ""
-            
-        return "\n".join(f"- {item}" for item in data)
+    def value_to_markdown(self, val: Any, indent: int = 0) -> str:
+        """Render a dict, list, or scalar into minimalist Markdown."""
+        pad = "  " * indent     # two-space indent per level
 
+        if isinstance(val, Mapping):
+            segments = []
+            for k, v in val.items():
+                if isinstance(v, (Mapping, Sequence)) and not isinstance(v, str):
+                    segments.append(f"{pad}{k}:")
+                    segments.append(self.value_to_markdown(v, indent + 1))
+                else:
+                    segments.append(f"{pad}{k}: {v}")
+            return "\n".join(segments)
+
+        if isinstance(val, Sequence) and not isinstance(val, str):
+            segments = []
+            for item in val:
+                if isinstance(item, (Mapping, Sequence)) and not isinstance(item, str):
+                    segments.append(f"{pad}- {self.value_to_markdown(item, indent + 1)}")
+                else:
+                    segments.append(f"{pad}- {item}")
+            return "\n".join(segments)
+
+        return f"{pad}{val}"

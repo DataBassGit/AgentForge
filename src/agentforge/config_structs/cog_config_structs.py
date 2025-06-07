@@ -60,6 +60,8 @@ class CogDefinition:
     agents: List[CogAgentDef] = field(default_factory=list)
     memory: List[CogMemoryDef] = field(default_factory=list)
     flow: Optional[CogFlow] = None
+    chat_memory_enabled: Optional[bool] = None
+    chat_history_max_results: Optional[int] = None
 
 
 @dataclass

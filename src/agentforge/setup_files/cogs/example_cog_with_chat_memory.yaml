@@ -1,0 +1,22 @@
+cog:
+  name: "ChatHistoryMemoryExample"
+  description: "Example workflow demonstrating ChatHistoryMemory functionality"
+  persona: "default_assistant"  # Optional: Override system default persona
+  # chat_memory_enabled: false  # Optional: Disable chat history memory. Default is True.
+  # chat_history_max_results: 10  # Optional: Set the max results for the chat history memory. Default is 10. 0 means no limit.
+
+  agents:
+    - id: understanding
+      template_file: understand_agent
+
+    - id: response
+      template_file: response_agent
+
+  # No explicit memory section needed for chat history if enabled
+
+  flow:
+    start: understanding
+    transitions:
+      understanding: response
+      response:
+        end: true 

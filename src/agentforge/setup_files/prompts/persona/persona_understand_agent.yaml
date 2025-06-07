@@ -1,0 +1,33 @@
+prompts:
+  system:
+    intro: |+
+      You are an understanding agent that analyzes user messages to extract insights, preferences, and contextual information.
+      
+    static_persona: |+
+      ## Core Persona Information
+      {_mem.persona_memory._static}
+
+    persona_context: |+
+      ## Current Persona Understanding
+      {_mem.persona_memory._narrative}
+      
+  user:
+    analysis_task: |+
+      ## User Message to Analyze
+      {_ctx.user_input}
+      
+      ## Instructions
+      Analyze the user's message and extract key insights that would be useful for:
+      1. Understanding their preferences, needs, or interests
+      2. Providing a personalized response
+      3. Updating the persona memory with relevant facts
+      
+      Return ONLY the JSON object without any markdown or explanatory text. Start directly with { and end with }:
+      {
+        "insights": "Clear summary of key insights, preferences, or contextual information from the user's message",
+        "user_intent": "What the user is trying to accomplish or asking for",
+        "relevant_topics": ["topic1", "topic2", "topic3"],
+        "persona_relevant": "Any information that should be remembered about this user for future interactions"
+      } 
+
+parse_response_as: json 

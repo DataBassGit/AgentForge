@@ -76,6 +76,45 @@ class Cog:
         self.trail_recorder = TrailRecorder(enabled=enable_trail_logging)
 
     # ---------------------------------
+    # Public Interface
+    # ---------------------------------
+
+    def run(self, **kwargs: Any) -> Any:
+        """
+        Execute the cog by iteratively running agents as defined in the flow.
+        
+        Args:
+            **kwargs: Initial context values to provide to the agents
+            
+        Returns:
+            Any: Based on the 'end' keyword in the final transition:
+                - If 'end: true', returns the output of the last agent executed
+                - If 'end: <agent_id>', returns the output of that specific agent
+                - If 'end: <agent_id>.field.subfield', returns that nested value
+                - Otherwise, returns the full internal state
+        """
+        try:
+            self.logger.info(f"Running cog '{self.cog_file}'...")
+            self.mem_mgr.load_chat()
+            self._execute_workflow(**kwargs)
+            result = self._process_execution_result()
+            self.logger.info(f"Cog '{self.cog_file}' completed successfully!")
+            self.mem_mgr.record_chat(self.context, result)
+            return result
+        except Exception as e:
+            self.logger.error(f"Cog execution failed: {e}")
+            raise
+
+    def get_track_flow_trail(self) -> List[ThoughtTrailEntry]:
+        """
+        Get the trail of agent executions for this cog run.
+        
+        Returns:
+            List of ThoughtTrailEntry objects representing the execution trail
+        """
+        return self.trail_recorder.get_trail()
+
+    # ---------------------------------
     # State Management
     # ---------------------------------
 
@@ -318,43 +357,6 @@ class Cog:
             The value at the specified path
         """
         return ParsingProcessor.get_dot_notated(self.state, path)
-
-    # ---------------------------------
-    # Public Interface
-    # ---------------------------------
-
-    def run(self, **kwargs: Any) -> Any:
-        """
-        Execute the cog by iteratively running agents as defined in the flow.
-        
-        Args:
-            **kwargs: Initial context values to provide to the agents
-            
-        Returns:
-            Any: Based on the 'end' keyword in the final transition:
-                - If 'end: true', returns the output of the last agent executed
-                - If 'end: <agent_id>', returns the output of that specific agent
-                - If 'end: <agent_id>.field.subfield', returns that nested value
-                - Otherwise, returns the full internal state
-        """
-        try:
-            self.logger.info(f"Running cog '{self.cog_file}'...")
-            self._execute_workflow(**kwargs)
-            result = self._process_execution_result()
-            self.logger.info(f"Cog '{self.cog_file}' completed successfully!")
-            return result
-        except Exception as e:
-            self.logger.error(f"Cog execution failed: {e}")
-            raise
-
-    def get_track_flow_trail(self) -> List[ThoughtTrailEntry]:
-        """
-        Get the trail of agent executions for this cog run.
-        
-        Returns:
-            List of ThoughtTrailEntry objects representing the execution trail
-        """
-        return self.trail_recorder.get_trail()
 
     # ---------------------------------
     # Extension Points

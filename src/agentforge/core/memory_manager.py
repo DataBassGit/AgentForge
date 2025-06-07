@@ -3,6 +3,7 @@ from agentforge.utils.logger import Logger
 from agentforge.config import Config
 from agentforge.config_structs import CogConfig
 from agentforge.storage.memory import Memory
+from agentforge.storage.chat_history_memory import ChatHistoryMemory
 
 
 class MemoryManager:
@@ -18,24 +19,13 @@ class MemoryManager:
         """
         self.cog_config = cog_config
         self.cog_name = cog_name
-        self._initialize_logger()
-        self._initialize_config()
+        self.logger = Logger(self.cog_name, "mem_mgr")
+        self.config = Config() 
         self._resolve_persona()
         self._initialize_memory_nodes()
         self._initialize_agent_memory_maps()
+        
         self.logger.debug(f"Initialized MemoryManager for cog='{self.cog_name}', persona='{self.persona}' with {len(self.memory_nodes)} memory nodes.")
-
-    def _initialize_logger(self) -> None:
-        """
-        Set up the logger for this memory manager instance.
-        """
-        self.logger = Logger(self.cog_name, "mem_mgr")
-
-    def _initialize_config(self) -> None:
-        """
-        Set up the config singleton for class and persona resolution.
-        """
-        self.config = Config()  # singleton for resolve_class / persona helpers
 
     def _resolve_persona(self) -> None:
         """
@@ -48,9 +38,29 @@ class MemoryManager:
 
     def _initialize_memory_nodes(self) -> None:
         """
-        Build memory nodes from the cog configuration.
+        Build memory nodes from the cog configuration and add chat history node if enabled.
         """
         self.memory_nodes = self._build_memory_nodes()
+        self._initialize_chat_memory()
+        
+    def _initialize_chat_memory(self) -> None:
+        """
+        Initialize the chat history memory node if enabled.
+        """
+        # Use the dataclass field for chat_memory_enabled (default True if None)
+        chat_enabled = self.cog_config.cog.chat_memory_enabled
+        self._chat_memory_enabled = chat_enabled if chat_enabled is not None else True
+
+        if not self._chat_memory_enabled:
+            return
+        
+        max_results = self.cog_config.cog.chat_history_max_results
+        self._chat_history_max_results = max_results if max_results is not None and max_results >= 0 else 10
+
+        self.memory_nodes["chat_history"] = {
+            "instance": ChatHistoryMemory(self.cog_name, self.persona),
+            "config": None,
+        }
 
     def _initialize_agent_memory_maps(self) -> None:
         """
@@ -200,3 +210,27 @@ class MemoryManager:
         mem_obj = mem_data["instance"]
         self.logger.debug(f"Updating memory '{mem_id}' after agent '{agent_id}'")
         mem_obj.update_memory(cfg.update_keys, _ctx, _state) 
+
+    # -----------------------------------------------------------------
+    # Chat History Methods
+    # -----------------------------------------------------------------
+
+    def record_chat(self, _ctx, output):
+        """
+        Record a chat turn in the chat history memory node, if enabled.
+        """
+        if not self._chat_memory_enabled:
+            return
+        
+        chat_node = self.memory_nodes.get("chat_history").get("instance")
+        chat_node.update_memory(_ctx, output)
+
+    def load_chat(self):
+        """
+        Query the chat history node and load the most recent N messages into its store.
+        N is determined by chat_history_max_results in the cog config (default 10, 0 means no limit).
+        """
+        if not self._chat_memory_enabled or "chat_history" not in self.memory_nodes:
+            return
+      
+        self.memory_nodes["chat_history"]["instance"].query_memory(num_results=self._chat_history_max_results)

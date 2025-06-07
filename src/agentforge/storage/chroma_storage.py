@@ -108,6 +108,12 @@ def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[d
 
     return ids, metadata
 
+def apply_uuids(metadata: list[dict], config: dict):
+    do_uuid = config['options'].get('add_uuid', False)
+    if do_uuid:
+        for m in metadata:
+            m['uuid'] = str(uuid.uuid4())
+
 def apply_iso_timestamps(metadata: list[dict], config):
     do_time_stamp = config['options'].get('iso_timestamp', False)
     if do_time_stamp:
@@ -121,17 +127,6 @@ def apply_unix_timestamps(metadata: list[dict], config):
         timestamp = datetime.now().timestamp()
         for m in metadata:
             m['unix_timestamp'] = timestamp
-
-def apply_timestamps(metadata: list[dict], config):
-    """
-    Applies timestamps to the metadata if required by the configuration.
-
-    Parameters:
-        metadata (list[dict]): The metadata for the documents.
-        config (dict): The configuration dictionary.
-    """
-    apply_iso_timestamps(metadata, config)
-    apply_unix_timestamps(metadata, config)
 
 def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
     """
@@ -215,7 +210,6 @@ class ChromaStorage:
             'db_path': db_path,
             'db_embed': db_embed,
         }
-
 
     ##########################################################
     # Section 4: Initialization
@@ -485,8 +479,24 @@ class ChromaStorage:
     # Section 7: Storage for Memory
     ##########################################################
 
-    def save_to_storage(self, collection_name: str, data: list, ids: Optional[list],
-                        metadata: Optional[list[dict]]):
+    def get_next_sequential_id(self, collection_name: str) -> int:
+        max_id_entry = self.search_metadata_min_max(collection_name, 'id', 'max')
+        if max_id_entry is None or "target" not in max_id_entry:
+            return 1
+        else:
+            return max_id_entry["target"] + 1 if max_id_entry["target"] is not None else 1
+
+    def apply_sequential_ids(self, collection_name: str, data: list, metadata: list[dict]) -> tuple[list, list[dict]]:
+        # Get the current max ID once
+        current_max = self.get_next_sequential_id(collection_name) - 1
+        new_ids = []
+        for i, _ in enumerate(data):
+            next_id = current_max + i + 1
+            new_ids.append(str(next_id))
+            metadata[i]['id'] = next_id
+        return new_ids, metadata
+
+    def save_to_storage(self, collection_name: str, data: list, ids: Optional[list] = None, metadata: Optional[list[dict]] = None):
         """
         Saves data to memory, creating or updating documents in a specified collection.
 
@@ -504,9 +514,15 @@ class ChromaStorage:
         """
         try:
             data = [data] if isinstance(data, str) else data
-            ids, metadata = generate_defaults(data, ids, metadata)
+            metadata = [{} for _ in data] if metadata is None else metadata
+
+            if ids is None:
+                ids, metadata = self.apply_sequential_ids(collection_name,data, metadata)
+            
             validate_inputs(data, ids, metadata)
-            apply_timestamps(metadata, self.config.settings.storage)
+            apply_uuids(metadata, self.config.settings.storage)
+            apply_unix_timestamps(metadata, self.config.settings.storage)
+            apply_iso_timestamps(metadata, self.config.settings.storage)
 
             self.select_collection(collection_name)
             self.collection.upsert(
@@ -624,67 +640,113 @@ class ChromaStorage:
             return {'failed': f"Error searching storage by threshold: {e}"}
 
     def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
-        """
-        Retrieves the collection entry with the minimum or maximum value for the specified metadata tag.
-
-        Args:
-            collection_name: The ChromaDB collection object.
-            metadata_tag: The name of the metadata tag to consider for finding the minimum or maximum value.
-            min_max: The type of value to retrieve. Can be either "min" for minimum or "max" for maximum.
-                     Default is "max".
-
-        Returns:
-            The collection entry with the minimum or maximum value for the specified metadata tag,
-            or None if no entries are found or if the metadata tag contains non-numeric values.
-        """
         try:
-            # Retrieve only the document IDs and the specified metadata tag
             self.select_collection(collection_name)
             results = self.collection.get()
 
-            # Extract the metadata values and document IDs
-            metadata_values = [entry[metadata_tag] for entry in results["metadatas"]]
-            document_ids = results["ids"]
+            # Gracefully handle empty or missing lists
+            metadatas = results.get("metadatas", [])
+            ids = results.get("ids", [])
+            if not metadatas or not ids:
+                # No data in collection
+                return None
 
-            # Check if all metadata values are numeric (int or float)
+            metadata_values = [entry.get(metadata_tag) for entry in metadatas if metadata_tag in entry]
+            if not metadata_values:
+                # No metadata values to search
+                return None
+
+            # Ensure all are numeric
             if not all(isinstance(value, (int, float)) for value in metadata_values):
-                logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' contains non-numeric values.")
+                logger.error(f"[search_metadata_min_max] Metadata tag '{metadata_tag}' contains non-numeric values.")
                 return None
 
-            if metadata_values:
-                if min_max == "min":
-                    target_index = metadata_values.index(min(metadata_values))
-                else:
-                    try:
-                        target_index = metadata_values.index(max(metadata_values))
-                    except:
-                        logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.")
-                        target_index = 0
+            # Find the min or max as before
+            if min_max == "min":
+                target_index = metadata_values.index(min(metadata_values))
             else:
-                target_index = 0
+                target_index = metadata_values.index(max(metadata_values))
 
-            try:
-                # Retrieve the full entry with the highest metadata value
-                target_entry = self.collection.get(ids=[document_ids[target_index]])
-
-                max_metadata = {
-                    "ids": target_entry["ids"][0],
-                    "target": target_entry["metadatas"][0][metadata_tag],
-                    "metadata": target_entry["metadatas"][0],
-                    "document": target_entry["documents"][0],
-                }
-
-                logger.debug(
-                    f"[search_metadata_min_max] Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
-                )
-                return max_metadata
-            except Exception as e:
-                logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+            # Defensive: still check index range
+            if target_index >= len(ids):
                 return None
 
-        except (KeyError, ValueError, IndexError) as e:
-            logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+            target_entry = self.collection.get(ids=[ids[target_index]])
+            return {
+                "ids": target_entry["ids"][0],
+                "target": target_entry["metadatas"][0][metadata_tag],
+                "metadata": target_entry["metadatas"][0],
+                "document": target_entry["documents"][0],
+            }
+
+        except Exception as e:
+            # Only log errors if it's a truly unexpected error
+            logger.error(f"[search_metadata_min_max] Unexpected error: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
             return None
+
+
+    # def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
+    #     """
+    #     Retrieves the collection entry with the minimum or maximum value for the specified metadata tag.
+
+    #     Args:
+    #         collection_name: The ChromaDB collection object.
+    #         metadata_tag: The name of the metadata tag to consider for finding the minimum or maximum value.
+    #         min_max: The type of value to retrieve. Can be either "min" for minimum or "max" for maximum.
+    #                  Default is "max".
+
+    #     Returns:
+    #         The collection entry with the minimum or maximum value for the specified metadata tag,
+    #         or None if no entries are found or if the metadata tag contains non-numeric values.
+    #     """
+    #     try:
+    #         # Retrieve only the document IDs and the specified metadata tag
+    #         self.select_collection(collection_name)
+    #         results = self.collection.get()
+
+    #         # Extract the metadata values and document IDs
+    #         metadata_values = [entry[metadata_tag] for entry in results["metadatas"]]
+    #         document_ids = results["ids"]
+
+    #         # Check if all metadata values are numeric (int or float)
+    #         if not all(isinstance(value, (int, float)) for value in metadata_values):
+    #             logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' contains non-numeric values.")
+    #             return None
+
+    #         if metadata_values:
+    #             if min_max == "min":
+    #                 target_index = metadata_values.index(min(metadata_values))
+    #             else:
+    #                 try:
+    #                     target_index = metadata_values.index(max(metadata_values))
+    #                 except:
+    #                     logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.")
+    #                     target_index = 0
+    #         else:
+    #             target_index = 0
+
+    #         try:
+    #             # Retrieve the full entry with the highest metadata value
+    #             target_entry = self.collection.get(ids=[document_ids[target_index]])
+
+    #             max_metadata = {
+    #                 "ids": target_entry["ids"][0],
+    #                 "target": target_entry["metadatas"][0][metadata_tag],
+    #                 "metadata": target_entry["metadatas"][0],
+    #                 "document": target_entry["documents"][0],
+    #             }
+
+    #             logger.debug(
+    #                 f"[search_metadata_min_max] Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
+    #             )
+    #             return max_metadata
+    #         except Exception as e:
+    #             logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+    #             return None
+
+    #     except (KeyError, ValueError, IndexError) as e:
+    #         logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+    #         return None
 
     def rerank_results(self, query_results: dict, query: str, temp_collection_name: str, num_results: int = None):
         """
@@ -823,5 +885,45 @@ class ChromaStorage:
         )
 
         return reranked_results
+
+    def get_last_x_entries(self, collection_name: str, x: int, include: list = None):
+        """
+        Retrieve the last X entries from a collection, ordered by sequential id.
+
+        Args:
+            collection_name (str): The name of the collection.
+            x (int): Number of most recent entries to retrieve.
+            include (list, optional): Which fields to include in the result.
+                Defaults to ['documents', 'metadatas', 'ids'].
+
+        Returns:
+            dict: The collection entries, sorted by id ascending, with only the requested fields.
+        """
+        if not include:
+            include = ['documents', 'metadatas', 'ids']
+
+        # 1. Find the current max id
+        max_id_entry = self.search_metadata_min_max(collection_name, 'id', 'max')
+        if max_id_entry is None or "target" not in max_id_entry or max_id_entry["target"] is None:
+            return {key: [] for key in include}
+
+        max_id = max_id_entry["target"]
+        start_id = max(1, max_id - x + 1)
+
+        # 2. Query for entries with id >= start_id
+        filters = {"id": {"$gte": start_id}}
+        results = self.load_collection(collection_name, include=include, where=filters)
+
+        # 3. Sort results by id ascending
+        if results and "ids" in results and results["ids"]:
+            sorted_indices = sorted(range(len(results["ids"])), key=lambda i: int(results["ids"][i]))
+            # Only include requested fields
+            sorted_results = {}
+            for key in include:
+                if key in results:
+                    sorted_results[key] = [results[key][i] for i in sorted_indices]
+            return sorted_results
+        else:
+            return {key: [] for key in include}
 
     

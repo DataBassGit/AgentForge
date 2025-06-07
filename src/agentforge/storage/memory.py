@@ -55,6 +55,10 @@ class Memory:
     # -----------------------------------------------------------------
     # Public Interface Methods
     # -----------------------------------------------------------------
+
+    # -----------------------------------------------------------------
+    # Query Methods
+    # -----------------------------------------------------------------
     def query_memory(self, query_keys: Optional[List[str]], _ctx: dict, _state: dict, num_results: int = 5) -> None:
         """
         Query memory storage for relevant entries based on provided context and state.
@@ -113,16 +117,10 @@ class Memory:
             num_results=num_results
         )
 
-    def _process_query_results(self, raw):
-        """
-        Process and format the raw query results. Override for custom result handling.
-        """
-        store = {}
-        if raw:
-            store.update({"raw": raw, "readable": self.format_memory_results(raw)})
-            self.logger.debug(f"Query returned {len(raw.get('ids', []))} results.")
-        return store
-
+    # -----------------------------------------------------------------
+    # Update Methods
+    # -----------------------------------------------------------------
+    
     def update_memory(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict, 
                      ids: Optional[Union[str, list[str]]] = None,
                      metadata: Optional[list[dict]] = None) -> None:
@@ -156,6 +154,16 @@ class Memory:
         """
         return self._prepare_update_data(update_keys, _ctx, _state, custom_metadata=metadata)
 
+    def _process_query_results(self, raw):
+        """
+        Process and format the raw query results. Override for custom result handling.
+        """
+        store = {}
+        if raw:
+            store.update({"raw": raw, "readable": self.format_memory_results(raw)})
+            self.logger.debug(f"Query returned {len(raw.get('ids', []))} results.")
+        return store
+
     def _save_update(self, processed_data, ids, metadata_list):
         """
         Save the processed data and metadata to storage. Override for custom storage logic.
@@ -168,6 +176,9 @@ class Memory:
         )
         self.logger.debug(f"Updated memory with {len(processed_data)} entries.")
 
+    # -----------------------------------------------------------------
+    # Delete Methods
+    # -----------------------------------------------------------------
     def delete(self, ids: Union[str, list[str]]) -> None:
         """
         Delete the memory entry or entries with the given key(s).
@@ -208,6 +219,10 @@ class Memory:
         self.logger.error(f"Memory delete failed: {error}")
         raise
 
+    # -----------------------------------------------------------------
+    # Wipe Methods
+    # -----------------------------------------------------------------
+    
     def wipe_memory(self) -> None:
         """
         Wipe all memory, removing all collections and their data.

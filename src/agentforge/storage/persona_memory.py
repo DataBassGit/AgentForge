@@ -249,7 +249,6 @@ class PersonaMemory(Memory):
                 self.storage.save_to_storage(
                     collection_name=self.collection_name,
                     data=[new_fact],
-                    ids=None,
                     metadata=fact_metadata_list
                 )
             elif action == 'update':
@@ -263,7 +262,6 @@ class PersonaMemory(Memory):
                 self.storage.save_to_storage(
                     collection_name=self.collection_name,
                     data=[new_fact],
-                    ids=None,
                     metadata=fact_metadata_list
                 )
                 self.logger.debug(f"Marked facts as superseded: {supersedes}")
