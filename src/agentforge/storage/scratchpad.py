@@ -57,12 +57,11 @@ class ScratchPad(Memory):
             # return self.store
             self.store.update({"scratchpad": result.get('documents')})
             self.logger.debug(f"Query returned {len(result.get('ids', []))} results.")
-            return self.store
+            return
         
         # Return default message if no scratchpad exists
         default_msg = "No information available yet. This scratchpad will be updated as we learn more about the user."
         self.store.update({"scratchpad": default_msg})
-        return self.store
 
     def update_memory(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict,
                       ids: Optional[Union[str, list[str]]] = None,
