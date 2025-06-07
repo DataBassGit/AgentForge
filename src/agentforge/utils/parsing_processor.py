@@ -435,3 +435,27 @@ class ParsingProcessor:
         self.logger.debug(f"Lower casing string:\n{input_str}")
 
         return input_str
+
+    @staticmethod
+    def flatten_to_string_list(data):
+        """
+        Recursively flattens any dict or list into a list of 'key: value' strings, where keys are dot/bracket notated paths.
+        This is used to serialize memory updates for ChromaDB, ensuring all data is stored as flat strings.
+        Example: {'a': {'b': [1, 2]}} -> ['a.b[0]: 1', 'a.b[1]: 2']
+        """
+        def _flatten(obj, parent_key=''):
+            items = []
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    new_key = f"{parent_key}.{k}" if parent_key else k
+                    items.extend(_flatten(v, new_key))
+            elif isinstance(obj, list):
+                for i, v in enumerate(obj):
+                    new_key = f"{parent_key}[{i}]"
+                    items.extend(_flatten(v, new_key))
+            else:
+                items.append((parent_key, obj))
+            return items
+
+        flat = _flatten(data)
+        return [f"{k}: {v}" for k, v in flat]

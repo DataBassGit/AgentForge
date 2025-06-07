@@ -4,24 +4,24 @@ cog:
   persona: "default_assistant"  # Optional: Override system default persona
 
   agents:
-    - id: understand
+    - id: understanding
       template_file: understand_agent
 
-    - id: respond
+    - id: response
       template_file: persona_response_agent
 
   memory:
     - id: persona_memory
       type: agentforge.storage.persona_memory.PersonaMemory
       collection_id: user_persona_facts
-      query_before: understand  # Query before understanding for context
+      query_before: understanding  # Query before understanding for context
       query_keys: [user_input]  # Use user input as context for queries
-      update_after: respond  # Update after response is generated
-      update_keys: [understand.insights, understand.persona_relevant, user_input]  # What to potentially store
+      update_after: response  # Update after response is generated
+      update_keys: [understanding.insights, understanding.persona_relevant, user_input]  # What to potentially store
 
   flow:
-    start: understand
+    start: understanding
     transitions:
-      understand: respond
-      respond:
+      understanding: response
+      response:
         end: true 

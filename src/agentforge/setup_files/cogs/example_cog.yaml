@@ -1,7 +1,7 @@
 cog:
   name: "ExampleFlow"
   description: "A sample decision workflow."
-
+  chat_memory_enabled: false # disable chat memory
   agents:
     - id: analyze
       template_file: analyze_agent
@@ -12,12 +12,7 @@ cog:
     - id: respond
       template_file: response_agent
 
-  memory:
-    - id: general_memory
-      query_before: analyze
-      update_after: respond
-      query_keys: [user_input]
-      update_keys: [user_input, respond]
+  # Memory less Cog
 
   flow:
     start: analyze

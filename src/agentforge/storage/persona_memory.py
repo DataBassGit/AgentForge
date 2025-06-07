@@ -38,9 +38,9 @@ class PersonaMemory(Memory):
         Initialize the specialized agents used by PersonaMemory.
         """
         try:
-            self.retrieval_agent = Agent(agent_name="retrieval_agent")
-            self.narrative_agent = Agent(agent_name="narrative_agent")
-            self.update_agent = Agent(agent_name="update_agent")
+            self.retrieval_agent = Agent(agent_name="persona_retrieval_agent")
+            self.narrative_agent = Agent(agent_name="persona_narrative_agent")
+            self.update_agent = Agent(agent_name="persona_update_agent")
             self.logger.debug("Initialized persona memory agents")
         except Exception as e:
             self.logger.error(f"Failed to initialize persona agents: {e}")
