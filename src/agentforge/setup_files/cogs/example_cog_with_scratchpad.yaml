@@ -4,24 +4,24 @@ cog:
   persona: "DefaultAssistant"  # Optional: Override system default persona
 
   agents:
-    - id: understand
-      template_file: UnderstandAgent
+    - id: understanding
+      template_file: understand_agent
 
-    - id: respond
-      template_file: PersonaResponseAgent
+    - id: response
+      template_file: response_agent
 
   memory:
     - id: scratchpad
       type: agentforge.storage.scratchpad.ScratchPad
       collection_id: scratchpad
-      query_before: understand  # Query before understanding for context
+      query_before: understanding  # Query before understanding for context
       query_keys: [user_input]  # Use user input as context for queries
-      update_after: respond  # Update after response is generated
-      update_keys: [understand.insights, understand.persona_relevant, user_input, respond]  # What to potentially store
+      update_after: response  # Update after response is generated
+      update_keys: [understanding.insights, user_input, response]  # What to potentially store
 
   flow:
-    start: understand
+    start: understanding
     transitions:
-      understand: respond
-      respond:
+      understanding: response
+      response:
         end: true

@@ -1,28 +1,29 @@
 cog:
-  name: "ExampleFlow"
+  name: "ExampleCog"
   description: "A sample decision workflow."
-  chat_memory_enabled: false # disable chat memory
+  chat_memory_enabled: false # disable chat memory for this cog
+
   agents:
-    - id: analyze
-      template_file: analyze_agent
+    - id: analysis
+      template_file: cog_analyze_agent
 
-    - id: decide
-      template_file: decide_agent
+    - id: decision
+      template_file: cog_decide_agent
 
-    - id: respond
-      template_file: response_agent
+    - id: response
+      template_file: cog_response_agent
 
-  # Memory less Cog
+  # memory section is not used in this cog
 
   flow:
-    start: analyze
+    start: analysis
     transitions:
-      analyze: decide
-      decide:
+      analysis: decision
+      decision:
         choice:
-          "approve": respond
-          "reject": analyze
-        fallback: respond
+          "approve": response
+          "reject": analysis
+        fallback: response
         max_visits: 3
-      respond:
+      response:
         end: true 

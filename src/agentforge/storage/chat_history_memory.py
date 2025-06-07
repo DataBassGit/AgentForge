@@ -28,7 +28,7 @@ class ChatHistoryMemory(Memory):
                                     data=docs,
                                     metadata=metas)
 
-    def query_memory(self, num_results=10, **kwargs):
+    def query_memory(self, num_results=20, **kwargs):
         raw = self.storage.get_last_x_entries(
             self.collection_name,
             num_results,

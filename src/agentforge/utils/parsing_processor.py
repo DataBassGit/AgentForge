@@ -437,7 +437,7 @@ class ParsingProcessor:
         return input_str
 
     @staticmethod
-    def flatten_to_string_list(data):
+    def flatten_to_string_list(data) -> list[str]:
         """
         Recursively flattens any dict or list into a list of 'key: value' strings, where keys are dot/bracket notated paths.
         This is used to serialize memory updates for ChromaDB, ensuring all data is stored as flat strings.

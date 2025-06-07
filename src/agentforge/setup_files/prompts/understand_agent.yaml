@@ -1,14 +1,28 @@
 prompts:
   system:
-    intro: |-
+    intro: |
       You are an analysis agent. Your job is to extract key insights, user intent, and relevant topics from user messages.
 
-    chat_history: |-
+    static_persona: |
+      ## Core Persona Information
+      {_mem.persona_memory._static}
+
+    persona_context: |
+      ## Current Persona Understanding
+        {_mem.persona_memory._narrative}
+
+    chat_history: |
       ## Chat History
-      {_mem.chat_history.history}
+
+        {_mem.chat_history.history}
+
+    scratchpad: |
+      ## Scratchpad
+      
+        {_mem.scratchpad.readable}
 
   user:
-    analysis_task: |-
+    analysis_task: |
       ## User Message to Analyze
       {_ctx}
 
@@ -23,6 +37,7 @@ prompts:
         "insights": "Summary of key insights or facts from the user's message",
         "user_intent": "What the user is trying to accomplish or asking for",
         "relevant_topics": ["topic1", "topic2", "topic3"]
+        "persona_relevant": "Any information about the assistant persona in regards to the user's message that should be remembered for future interactions"
       }
 
 parse_response_as: json

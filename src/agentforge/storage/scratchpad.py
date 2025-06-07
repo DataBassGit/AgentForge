@@ -3,6 +3,7 @@ from typing import Optional, Union, List, Any
 
 from agentforge.utils.logger import Logger
 from agentforge.utils.parsing_processor import ParsingProcessor
+from agentforge.utils.prompt_processor import PromptProcessor
 from agentforge.agent import Agent
 from agentforge.storage.memory import Memory
 
@@ -29,6 +30,7 @@ class ScratchPad(Memory):
         super().__init__(cog_name, persona, collection_id)
         self.logger = Logger('Memory')
         self.parser = ParsingProcessor()
+        self.prompt_processor = PromptProcessor()
         
         # Define the log collection name based on the main collection
         self.log_collection_name = f"scratchpad_log_{self.collection_name}"
@@ -49,19 +51,14 @@ class ScratchPad(Memory):
         self.logger.debug(f"Retrieved scratchpad: {result}")
         
         if result and result.get('documents') and len(result['documents']) > 0:
-            # Old
-            # Store the result in the Memory's store attribute
-            # self.store = {
-            #     'content': result['documents'][0]
-            # }
-            # return self.store
-            self.store.update({"scratchpad": result.get('documents')})
+            self.store.update({"readable": result.get('documents')})
             self.logger.debug(f"Query returned {len(result.get('ids', []))} results.")
             return
         
         # Return default message if no scratchpad exists
         default_msg = "No information available yet. This scratchpad will be updated as we learn more about the user."
-        self.store.update({"scratchpad": default_msg})
+        self.store.update({"readable": default_msg})
+
 
     def update_memory(self, update_keys: Optional[List[str]], _ctx: dict, _state: dict,
                       ids: Optional[Union[str, list[str]]] = None,
@@ -76,23 +73,17 @@ class ScratchPad(Memory):
             ids (Union[str, list[str]], optional): The IDs for the documents.
             metadata (list[dict], optional): Custom metadata for the documents (overrides generated metadata).
         """
-        # Extract content from the data
-        content = None
-        if _state:
-            # Try to get content from different possible keys
-            for key in update_keys:
-                if key in _state:
-                    content = _state[key]
-                    break
+
+        content = self.prompt_processor.value_to_markdown(val=_ctx)
+        state = self.prompt_processor.value_to_markdown(val=_state)
         
         if not content:
             self.logger.warning("No content provided for scratchpad update")
             return
             
         # Save to the log collection
-        user_msg = _ctx.get('user_input')
-        self._save_scratchpad_log(user_msg)
         self._save_scratchpad_log(content)
+        self._save_scratchpad_log(state)
         
         # Check if it's time to consolidate the log
         self.check_scratchpad()
@@ -164,14 +155,14 @@ class ScratchPad(Memory):
         self.logger.debug(f"Checking scratchpad log. Number of entries: {log_count}")
         
         # If we have enough log entries, consolidate them
-        if log_count >= 1:
-            self.logger.debug(f"Scratchpad log count >= 10, updating scratchpad")
+        if log_count >= 20:
+            self.logger.debug(f"Scratchpad log count >= 20, updating scratchpad")
             
             # Create an agent to summarize the log
             scratchpad_agent = Agent(agent_name="scratchpad_agent")
             
             # Get the current scratchpad content
-            current_scratchpad = self.store.get('scratchpad', '')
+            current_scratchpad = self.store.get('readable', '')
             
             # Join all log entries
             scratchpad_log_content = "\n".join(scratchpad_log)

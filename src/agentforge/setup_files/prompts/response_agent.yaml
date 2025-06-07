@@ -1,20 +1,30 @@
 prompts:
   system:
-    intro: |+
+    intro: |
       You are a response agent. Your job is to provide a clear, concise, and helpful reply to the user based on the provided analysis and rationale.
 
-    chat_history: |-
+    persona_context: |
+      ## Current Persona Understanding
+        {_mem.persona_memory._narrative}
+
+    chat_history: |
       ## Chat History
-      {_mem.chat_history.history}
+
+        {_mem.chat_history.history}
+
+    scratchpad: |
+      ## Scratchpad
+      
+        {_mem.scratchpad.readable}
 
   user:
-    context: |+
+    context: |
       ## User Message
       {_ctx}
 
-    analysis: |-
+    analysis: |
       ## Your Internal State
       {_state}
 
-    instruction: |-
+    instruction: |
       Using the information above, draft a concise, clear final response that directly addresses the user's needs or questions. 

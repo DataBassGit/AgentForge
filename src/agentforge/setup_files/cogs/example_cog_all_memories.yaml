@@ -1,14 +1,14 @@
 cog:
-  name: "PersonaMemoryExample"
-  description: "Example workflow demonstrating PersonaMemory functionality"
-  persona: "default_assistant"  # Optional: Override system default persona
+  name: "ExampleCogAllMemories"
+  description: "A sample decision workflow with all memories."
+  chat_history_max_results: 25 # max results for chat history memory 
 
   agents:
     - id: understanding
-      template_file: persona_understand_agent
+      template_file: understand_agent
 
     - id: response
-      template_file: persona_response_agent
+      template_file: response_agent
 
   memory:
     - id: persona_memory
@@ -18,6 +18,14 @@ cog:
       query_keys: [user_input]  # Use user input as context for queries
       update_after: response  # Update after response is generated
       update_keys: [understanding.insights, understanding.persona_relevant, user_input]  # What to potentially store
+
+    - id: scratchpad
+      type: agentforge.storage.scratchpad.ScratchPad
+      collection_id: scratchpad
+      query_before: understanding  # Query before understanding for context
+      query_keys: [user_input]  # Use user input as context for queries
+      update_after: response  # Update after response is generated
+      update_keys: [user_input, response]  # What to potentially store
 
   flow:
     start: understanding
