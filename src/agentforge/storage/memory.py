@@ -135,24 +135,11 @@ class Memory:
             ids (Union[str, list[str]], optional): The IDs for the documents.
             metadata (list[dict], optional): Custom metadata for the documents (overrides generated metadata).
         """
-        self._prepare_update(update_keys, _ctx, _state, ids, metadata)
-        processed_data, metadata_list = self._extract_update_data(update_keys, _ctx, _state, metadata)
+        processed_data, metadata_list = self._prepare_update_data(update_keys, _ctx, _state, custom_metadata=metadata)
         if not processed_data:
             self.logger.debug("No data to update; skipping storage update.")
             return
         self._save_update(processed_data, ids, metadata_list)
-
-    def _prepare_update(self, update_keys, _ctx, _state, ids, metadata):
-        """
-        Hook for pre-update logic, validation, or setup. Override in subclasses if needed.
-        """
-        pass
-
-    def _extract_update_data(self, update_keys, _ctx, _state, metadata):
-        """
-        Extract and process data and metadata for update. Override for custom extraction logic.
-        """
-        return self._prepare_update_data(update_keys, _ctx, _state, custom_metadata=metadata)
 
     def _process_query_results(self, raw):
         """
@@ -291,33 +278,38 @@ class Memory:
         ids = raw_results.get("ids", [])
         documents = raw_results.get("documents", [])
         metadatas = raw_results.get("metadatas", [])
-        entries = []
-        for idx, (id_, doc, meta) in enumerate(zip(ids, documents, metadatas)):
-            ts = None
-            if isinstance(meta, dict):
-                ts = meta.get("unix_timestamp")
-                if ts is None and "iso_timestamp" in meta:
-                    ts = meta["iso_timestamp"]
-            entries.append((idx, id_, doc, meta, ts))
 
-        def sort_key(entry):
-            ts = entry[4]
-            if ts is None:
-                return float('inf')
-            try:
-                return float(ts)
-            except Exception:
-                return float('inf')
-        entries.sort(key=sort_key)
-        blocks = []
-        for new_idx, (idx, id_, doc, meta, ts) in enumerate(entries):
-            block = f"--- Memory {new_idx}: {id_}\n"
-            block += f"content: {doc}\n"
-            block += "metadata:\n"
-            for k, v in meta.items():
-                block += f"  {k}: {v}\n"
-            blocks.append(block.rstrip())
-        return "\n\n".join(blocks)
+        records = [
+            {"id": id_, "content": d, "meta": m}
+            for id_, d, m in list(zip(ids, documents, metadatas))
+        ]
+
+        def sort_key(rec):
+            meta = rec["meta"]
+            # Prefer iso_timestamp if present, else fallback to id
+            # If both missing, fallback to 0
+            ts = meta.get("iso_timestamp")
+            if ts is not None:
+                return ts
+            return meta.get("id", 0)
+
+        records = sorted(records, key=sort_key)
+
+        history = []
+
+        for rec in records:
+            current_record = {}
+            rec_id = rec["id"]
+            
+            current_record[rec_id] = [
+                f"{rec['content']}\n",
+                rec["meta"]
+            ]
+
+            history.append(current_record)
+
+        return records
+    
 
     # -----------------------------------------------------------------
     # Internal Helper Methods

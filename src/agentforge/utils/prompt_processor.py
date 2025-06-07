@@ -238,7 +238,7 @@ class PromptProcessor:
             return None
             
         # Use the centralized markdown formatting helper
-        persona_md = self._dict_to_markdown(static_content)
+        persona_md = self.value_to_markdown(static_content)
         
         # Get character cap from settings - treat 0 as no cap
         if hasattr(persona_settings, 'static_char_cap'):
