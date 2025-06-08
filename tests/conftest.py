@@ -132,7 +132,9 @@ def stubbed_agents(monkeypatch):
         if hasattr(self, 'settings') and self.settings.get('system', {}).get('debug', {}).get('mode', False):
             # Let debug mode handle this agent normally
             return original_run(self, **context)
-        
+        # Increment branch_call_counts if self._cog is present
+        if hasattr(self, '_cog') and hasattr(self._cog, 'branch_call_counts'):
+            self._cog.branch_call_counts[self.agent_name] = self._cog.branch_call_counts.get(self.agent_name, 0) + 1
         name_l = self.agent_name.lower()
         
         # Handle specific agent types with their expected outputs

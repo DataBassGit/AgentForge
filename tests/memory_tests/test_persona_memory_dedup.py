@@ -21,33 +21,31 @@ class TestPersonaMemoryDeduplication:
         
         # Mock the agents using the same pattern as existing tests
         with patch('agentforge.storage.persona_memory.Agent') as mock_agent_class:
-            # Create mock instances for each agent
             retrieval_mock = Mock()
             narrative_mock = Mock()
             update_mock = Mock()
-            
-            # Configure the Agent class to return different mocks based on agent_name
-            def agent_side_effect(agent_name):
-                if agent_name == "retrieval_agent":
-                    return retrieval_mock
-                elif agent_name == "narrative_agent":
-                    return narrative_mock
-                elif agent_name == "update_agent":
-                    return update_mock
-                    
-            mock_agent_class.side_effect = agent_side_effect
-            
-            # Create the PersonaMemory instance
-            memory = PersonaMemory("test_cog", collection_id="test_facts", persona=None)
-            
-            # Store references to mocks for test access
-            memory._test_agents = {
-                'retrieval': retrieval_mock,
-                'narrative': narrative_mock,
-                'update': update_mock
+            # Map both new and old agent names to mocks
+            agent_map = {
+                "persona_retrieval_agent": retrieval_mock,
+                "retrieval_agent": retrieval_mock,
+                "persona_narrative_agent": narrative_mock,
+                "narrative_agent": narrative_mock,
+                "persona_update_agent": update_mock,
+                "update_agent": update_mock
             }
-            memory._test_storage = memory.storage  # Use the actual FakeChromaStorage instance
-            
+            mock_agent_class.side_effect = lambda agent_name: agent_map[agent_name]
+            memory = PersonaMemory("test_cog", collection_id="test_facts", persona=None)
+            # Patch both new and legacy agent attributes
+            retrieval_mock.run.return_value = {"queries": ["existing facts"]}
+            narrative_mock.run.return_value = {"narrative": "Test narrative"}
+            update_mock.run.return_value = {"action": "add", "new_facts": [{"fact": "Test fact"}]}
+            memory.persona_retrieval_agent = retrieval_mock
+            memory.retrieval_agent = retrieval_mock
+            memory.persona_narrative_agent = narrative_mock
+            memory.narrative_agent = narrative_mock
+            memory.persona_update_agent = update_mock
+            memory.update_agent = update_mock
+            memory._test_storage = memory.storage
             yield memory
     
     def test_exact_duplicate_exists_true(self, persona_memory):
@@ -60,7 +58,7 @@ class TestPersonaMemoryDeduplication:
             metadata=[{}, {}]
         )
         
-        result = persona_memory.is_duplicate_fact('User prefers Python programming')
+        result = persona_memory._is_duplicate_fact('User prefers Python programming')
         assert result is True
     
     def test_exact_duplicate_exists_false(self, persona_memory):
@@ -73,7 +71,7 @@ class TestPersonaMemoryDeduplication:
             metadata=[{}, {}]
         )
         
-        result = persona_memory.is_duplicate_fact('User prefers Python programming')
+        result = persona_memory._is_duplicate_fact('User prefers Python programming')
         assert result is False
     
     def test_exact_duplicate_exists_text_match(self, persona_memory):
@@ -86,21 +84,21 @@ class TestPersonaMemoryDeduplication:
             metadata=[{}, {}]
         )
         
-        result = persona_memory.is_duplicate_fact('User prefers Python programming')
+        result = persona_memory._is_duplicate_fact('User prefers Python programming')
         assert result is True
     
     def test_exact_duplicate_exists_error_handling(self, persona_memory):
         """Test that _exact_duplicate_exists handles errors gracefully."""
         # Mock the query_storage method to raise an exception
         with patch.object(persona_memory._test_storage, 'query_storage', side_effect=Exception("Storage error")):
-            result = persona_memory.is_duplicate_fact('Any fact')
+            result = persona_memory._is_duplicate_fact('Any fact')
             assert result is False  # Should return False on error to allow addition
     
     def test_update_memory_skips_duplicate_add(self, persona_memory):
         """Test that update_memory skips adding duplicate facts."""
         # Setup agent responses
-        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["existing facts"]}
-        persona_memory._test_agents['update'].run.return_value = {
+        persona_memory.persona_retrieval_agent.run.return_value = {"queries": ["existing facts"]}
+        persona_memory.persona_update_agent.run.return_value = {
             "action": "add",
             "new_facts": [
                 {
@@ -130,8 +128,8 @@ class TestPersonaMemoryDeduplication:
     def test_update_memory_adds_non_duplicate(self, persona_memory):
         """Test that update_memory adds facts that are not duplicates."""
         # Setup agent responses
-        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["existing facts"]}
-        persona_memory._test_agents['update'].run.return_value = {
+        persona_memory.persona_retrieval_agent.run.return_value = {"queries": ["existing facts"]}
+        persona_memory.persona_update_agent.run.return_value = {
             "action": "add",
             "new_facts": [
                 {
@@ -168,8 +166,8 @@ class TestPersonaMemoryDeduplication:
     def test_update_memory_update_action_not_affected(self, persona_memory):
         """Test that update action (not add) is not affected by deduplication."""
         # Setup agent responses
-        persona_memory._test_agents['retrieval'].run.return_value = {"queries": ["music preferences"]}
-        persona_memory._test_agents['update'].run.return_value = {
+        persona_memory.persona_retrieval_agent.run.return_value = {"queries": ["music preferences"]}
+        persona_memory.persona_update_agent.run.return_value = {
             "action": "update",
             "new_facts": [
                 {

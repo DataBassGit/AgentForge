@@ -49,6 +49,7 @@ class Cog:
         
         # Initialize execution state
         self.last_executed_agent: Optional[str] = None
+        self.branch_call_counts: dict = {}
         self._reset_execution_state()
 
     # ---------------------------------
@@ -122,6 +123,7 @@ class Cog:
         """Reset all execution state for a fresh run."""
         self.context: dict = {}  # external context (runtime/user input)
         self.state: dict = {}    # internal state (agent-local/internal data)
+        self.branch_call_counts: dict = {}
         self._reset_trail_logging()
 
     def _reset_trail_logging(self) -> None:
@@ -206,6 +208,8 @@ class Cog:
         """
         next_agent_id = self.transition_resolver.get_next_agent(current_agent_id, self.state)
         self.logger.log(f"Next agent: {next_agent_id}", "debug", "Flow")
+        if next_agent_id != current_agent_id:
+            self._reset_branch_counts()
         return next_agent_id
 
     # ---------------------------------
@@ -237,7 +241,9 @@ class Cog:
         """
         agent = self.agents.get(agent_id)
         mem = self.mem_mgr.build_mem()
-        return self.agent_runner.run_agent(agent_id, agent, self.context, self.state, mem)
+        output = self.agent_runner.run_agent(agent_id, agent, self.context, self.state, mem)
+        self.branch_call_counts[agent_id] = self.branch_call_counts.get(agent_id, 0) + 1
+        return output
 
     def _finalize_agent_execution(self, agent_id: str, output: Any) -> None:
         """
@@ -406,3 +412,6 @@ class Cog:
             output: The output from the agent execution
         """
         pass
+
+    def _reset_branch_counts(self):
+        self.branch_call_counts.clear()

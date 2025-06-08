@@ -103,7 +103,7 @@ class FakeChromaStorage:
         }
 
     # High-level API (subset) --------------------------------------------
-    def save_to_storage(self, *, collection_name: str, data: list[str] | str, ids: Optional[list[str]] = None, metadata: Optional[list[dict]] = None):
+    def save_to_storage(self, collection_name: str, data: list | str, ids: Optional[list] = None, metadata: Optional[list[dict]] = None):
         data = [data] if isinstance(data, str) else list(data)
         if ids is None:
             # Generate incremental ids based on current collection size
@@ -128,4 +128,34 @@ class FakeChromaStorage:
         self.select_collection(collection_name).delete(ids)
 
     def reset_storage(self):
-        self._collections.clear() 
+        self._collections.clear()
+
+    def get_last_x_entries(self, collection_name: str, x: int, include: list = None):
+        """
+        Retrieve the last X entries from a collection, ordered by insertion (id ascending).
+        Args:
+            collection_name (str): The name of the collection.
+            x (int): Number of most recent entries to retrieve.
+            include (list, optional): Which fields to include in the result.
+                Defaults to ['documents', 'metadatas', 'ids'].
+        Returns:
+            dict: The collection entries, sorted by id ascending, with only the requested fields.
+        """
+        if include is None:
+            include = ['documents', 'metadatas', 'ids']
+        col = self.select_collection(collection_name)
+        # Sort ids as integers if possible, else as strings
+        try:
+            sorted_ids = sorted(col._docs.keys(), key=lambda i: int(i))
+        except Exception:
+            sorted_ids = sorted(col._docs.keys())
+        last_ids = sorted_ids[-x:] if x > 0 else []
+        # Always return in ascending order
+        last_ids = sorted(last_ids, key=lambda i: int(i) if i.isdigit() else i)
+        result = {
+            'documents': [col._docs[i] for i in last_ids],
+            'metadatas': [col._metas.get(i, {}) for i in last_ids],
+            'ids': last_ids
+        }
+        # Only include requested fields
+        return {k: result[k] for k in include if k in result} 

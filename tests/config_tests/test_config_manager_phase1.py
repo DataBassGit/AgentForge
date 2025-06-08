@@ -19,10 +19,10 @@ def test_config_manager_agent_config_building(isolated_config):
     config_manager = ConfigManager()
     
     # Get raw agent data
-    raw_agent_data = isolated_config.find_config('prompts', 'analyze_agent')
+    raw_agent_data = isolated_config.find_config('prompts', 'cog_analyze_agent')
     
     # Add required fields that might be missing in test config
-    raw_agent_data['name'] = 'analyze_agent'
+    raw_agent_data['name'] = 'cog_analyze_agent'
     
     # Resolve model for the agent
     api_name, class_name, model_name, final_params = isolated_config.resolve_model_overrides(raw_agent_data)
@@ -37,7 +37,7 @@ def test_config_manager_agent_config_building(isolated_config):
     agent_config = config_manager.build_agent_config(raw_agent_data)
     
     # Verify structured config object
-    assert agent_config.name == 'analyze_agent'
+    assert agent_config.name == 'cog_analyze_agent'
     assert agent_config.model is not None
     assert 'system' in agent_config.prompts
     assert 'user' in agent_config.prompts
@@ -60,19 +60,19 @@ def test_config_manager_cog_config(isolated_config):
     cog_config = config_manager.build_cog_config(raw_cog_data)
     
     # Verify structured config object
-    assert cog_config.cog.name == 'ExampleFlow'
+    assert cog_config.cog.name == 'ExampleCog'
     assert cog_config.cog.flow is not None
-    assert cog_config.cog.flow.start == 'analyze'
+    assert cog_config.cog.flow.start == 'analysis'
     assert len(cog_config.cog.agents) > 0
     
     # Verify agent definitions
     first_agent = cog_config.cog.agents[0]
-    assert first_agent.id == 'analyze'
-    assert first_agent.template_file == 'analyze_agent'
+    assert first_agent.id == 'analysis'
+    assert first_agent.template_file == 'cog_analyze_agent'
     
     # Verify flow transitions
-    assert 'decide' in cog_config.cog.flow.transitions
-    decide_transition = cog_config.cog.flow.transitions['decide']
+    assert 'decision' in cog_config.cog.flow.transitions
+    decide_transition = cog_config.cog.flow.transitions['decision']
     assert decide_transition.type == 'decision'
     assert decide_transition.decision_key == 'choice'
     assert 'approve' in decide_transition.decision_map
