@@ -18,7 +18,14 @@ class Agent:
         """
         self.agent_name: str = agent_name if agent_name is not None else self.__class__.__name__
         self.logger: Logger = Logger(self.agent_name, log_file)
-        
+
+        self.prompt = None
+        self.result = None
+        self.output = None
+        self.parsed_result = None
+        self.persona = None
+        self.images = []
+
         # Initialize services
         self.config = Config()
         self.prompt_processor = PromptProcessor()

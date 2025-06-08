@@ -132,3 +132,54 @@ def test_concurrent_cog_execution_isolation(fake_chroma, isolated_config):
 # - test_max_visits_without_fallback: Redundant with test_max_visits_protection_prevents_infinite_loops
 # - test_invalid_transition_uses_fallback: Merged into test_cog_fallback_mechanisms
 # - test_no_decision_key_uses_fallback: Merged into test_cog_fallback_mechanisms 
+
+def test_dot_notated_end_returns_nested_value(tmp_path, isolated_config, monkeypatch):
+    """Test that a dot-notated end value returns the correct nested field from agent output."""
+    import yaml
+    from agentforge.cog import Cog
+    from agentforge.agent import Agent
+    from pathlib import Path
+
+    # Create a test cog config with dot-notated end
+    cog_config = {
+        "cog": {
+            "agents": [
+                {"id": "generate", "template_file": "test_template"}
+            ],
+            "flow": {
+                "start": "generate",
+                "transitions": {
+                    "generate": {"end": "generate.final_response"}
+                }
+            }
+        }
+    }
+    cog_path = Path(isolated_config.project_root) / ".agentforge" / "cogs" / "DotEndCog.yaml"
+    with open(cog_path, 'w') as f:
+        yaml.dump(cog_config, f)
+
+    # Create a minimal agent template
+    template_config = {
+        "prompts": {"system": "Test system prompt", "user": "Test user prompt"},
+        "settings": {"system": {"debug": {"mode": True}}},
+        "simulated_response": "Test simulated response"
+    }
+    template_path = Path(isolated_config.project_root) / ".agentforge" / "prompts" / "test_template.yaml"
+    with open(template_path, 'w') as f:
+        yaml.dump(template_config, f)
+
+    # Reload configuration after writing new files
+    isolated_config.load_all_configurations()
+
+    # Monkeypatch the agent to return a dict with a nested field
+    def fake_run(self, **_):
+        return {
+            "introspection": "not the value you want",
+            "final_response": "THIS IS THE NESTED VALUE"
+        }
+    monkeypatch.setattr(Agent, "run", fake_run, raising=True)
+
+    # Run the cog and check the result
+    cog = Cog("DotEndCog")
+    result = cog.run(user_input="test")
+    assert result == "THIS IS THE NESTED VALUE", f"Expected only the nested value, got: {result}" 

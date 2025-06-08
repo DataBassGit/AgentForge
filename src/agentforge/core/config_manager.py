@@ -354,10 +354,10 @@ class ConfigManager:
         
         if isinstance(transition_def, dict):
             # Check if this is an end transition
-            if transition_def.get('end', False):
+            if 'end' in transition_def:
                 return CogFlowTransition(
                     type="end",
-                    end=True
+                    end=transition_def['end']
                 )
             
             # Check for decision transition

@@ -125,6 +125,27 @@ class ParsingProcessor:
         
         return content.strip()
 
+    @staticmethod
+    def preprocess_json_string(s: str) -> str:
+        """
+        Preprocess a string to increase the chance of successful JSON parsing from LLM outputs.
+        - Trims whitespace
+        - Extracts the first JSON object if stray text is present
+        - Removes trailing commas in objects/arrays
+        - Double-escapes backslashes not already escaped (for LaTeX/math)
+        """
+        import re
+        s = s.strip()
+        # Extract the first JSON object (handles stray text)
+        match = re.search(r'(\{.*\})', s, re.DOTALL)
+        if match:
+            s = match.group(1)
+        # Remove trailing commas in objects/arrays
+        s = re.sub(r',([ \t\r\n]*[}\]])', r'\1', s)
+        # Double-escape backslashes that are not already double-escaped
+        s = re.sub(r'(?<!\\)\\(?![\\/\"bfnrtu])', r'\\\\', s)
+        return s
+
     def parse_content(self, content_string: str, parser_func: Callable[[str], Any],
                       expected_language: str, code_fences: Optional[List[str]] = None) -> Any:
         """
@@ -162,11 +183,12 @@ class ParsingProcessor:
         # Attempt to parse the extracted (code-fenced) content
         if extracted_content:
             try:
-                # Apply format-specific preprocessing
                 processed_content = extracted_content
                 if expected_language.lower() == 'yaml':
                     processed_content = self.sanitize_yaml_content(extracted_content)
-                
+                if expected_language.lower() == 'json':
+                    processed_content = self.preprocess_json_string(processed_content)
+                    self.logger.debug(f"Cleaned JSON string before parsing (first 500 chars): {processed_content[:500]}")
                 self.logger.debug(f"Attempting code-fenced {expected_language.upper()} parsing on content of length {len(processed_content)}")
                 result = parser_func(processed_content)
                 self.logger.debug(f"Code-fenced {expected_language.upper()} parsing succeeded")
@@ -177,6 +199,8 @@ class ParsingProcessor:
                 preview = processed_content[:100] + ('...' if len(processed_content) > 100 else '')
                 self.logger.warning(f"Code-fenced {expected_language.upper()} parsing failed: {str(e)}")
                 self.logger.debug(f"Failed content preview: {preview}")
+                if expected_language.lower() == 'json':
+                    self.logger.error(f"Cleaned JSON string on failure (first 500 chars): {processed_content[:500]}")
                 
                 # Stage 2: Fallback to bare parsing if code-fenced parsing failed
                 # Only attempt if we had extracted a code block and it failed
