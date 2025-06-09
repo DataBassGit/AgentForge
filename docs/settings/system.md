@@ -14,6 +14,7 @@
 persona:
   enabled: true       # Load persona files from .agentforge/personas/
   name: default       # Default persona filename (without .yaml)
+  static_char_cap: 8000  # Max character length for persona markdown (0 disables truncation)
 
 debug:
   mode: false         # If true, uses simulated_response instead of real LLM calls
@@ -38,7 +39,8 @@ paths:
 ### persona
 - **enabled** (bool): Toggle persona loading. Default `true`.
 - **name** (string): Persona filename (no `.yaml`). Default `default`.
-- Behavior: When enabled, `Config` loads `.agentforge/personas/<name>.yaml`. Agents can override via their own `personas` key.
+- **static_char_cap** (int): Maximum character length for persona markdown loaded from `.agentforge/personas/`. If set to 0, truncation is disabled. Default: 8000.
+- **Behavior:** When enabled, `Config` loads `.agentforge/personas/<name>.yaml`. Agents can override via their own `personas` key.
 
 ### debug
 - **mode** (bool): Enable debug mode to bypass real LLM calls.

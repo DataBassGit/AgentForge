@@ -1,3 +1,11 @@
+# ⚠️ DEPRECATION WARNING
+
+**The Tools system is DEPRECATED.**
+
+Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
+
+See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
+
 # ToolUtils Utility Guide
 
 In **AgentForge**, the `ToolUtils` class provides a mechanism for dynamically loading and executing tool modules, along with formatting these tools for logging or user display. This allows agents to expand or modify their capabilities at runtime by referencing tools in external or user-defined modules.

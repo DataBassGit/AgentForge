@@ -1,163 +1,127 @@
 # Agent Class Reference
 
-The `Agent` class is the core orchestrator in **AgentForge**, responsible for loading configuration, rendering prompts, invoking the LLM, and producing final outputs.
+The `Agent` class is the core orchestrator in AgentForge. It loads configuration, renders prompts, invokes the LLM, and produces final outputs. Agents can be subclassed for custom logic.
 
-## 1. Constructor
+## Constructor and Attributes
 ```python
 class Agent:
-    def __init__(
-        self,
-        agent_name: Optional[str] = None,
-        log_file: str = 'agentforge'
-    ):
-        self.agent_name = agent_name or self.__class__.__name__
-        self.logger = Logger(self.agent_name, log_file)
-        self.config = Config()
-        self.prompt_processor = PromptProcessor()
+    def __init__(self, agent_name: Optional[str] = None, log_file: Optional[str] = 'agentforge'):
+        self.agent_name: str
+        self.logger: Logger
+        self.config: Config
+        self.prompt_processor: PromptProcessor
+        self.parsing_processor: ParsingProcessor
+        self.agent_config: AgentConfig
+        self.prompt_template: dict
+        self.template_data: dict
+        self.prompt: dict
+        self.result: Optional[str]
+        self.parsed_result: Optional[Any]
+        self.output: Optional[str]
+        self.persona: Optional[dict]
+        self.images: list
+        self.model: Optional[BaseModel]
+        self._initialize_data_attributes()
+        self._initialize_agent_config()
+```
+- `agent_name` determines which prompt/config file to load.
+- `logger` handles logging.
+- `config` loads and manages all configuration.
+- `prompt_processor` and `parsing_processor` handle prompt rendering and result parsing.
+- `agent_config` holds all loaded config, including model, params, prompts, persona, and custom fields.
+- `prompt_template` and `template_data` are used for prompt rendering.
+- `images` can be attached to model calls if supported.
 
-        # Core data attributes
-        self.agent_data: Dict[str, Any] = {}
-        self.persona: Optional[Dict[str, Any]] = None
-        self.model: Optional[BaseModel] = None
-        self.prompt_template: Dict[str, Any] = {}
-        self.template_data: Dict[str, Any] = {}
-        self.prompt: Dict[str, str] = {}
-        self.result: Optional[str] = None
-        self.output: Optional[str] = None
-        self.images: List[str] = []
-
-        # Load and validate agent config
-        self.initialize_agent_config()
-```  
-- **agent_name**: Identifies the agent and prompt file.  
-- **logger**: Logs to console/file.  
-- **config**: Loads merged settings and YAML data.  
-- **prompt_processor**: Validates and renders prompts.  
-
-## 2. Lifecycle: `run()`
+## Lifecycle: `run()`
 ```python
 def run(self, **kwargs) -> Optional[str]:
-    self.logger.info(f"{self.agent_name} - Starting")
-    self.load_data(**kwargs)
-    self.process_data()
-    self.render_prompt()
-    self.run_model()
-    self.parse_result()
-    self.post_process_result()
-    self.build_output()
-    self.logger.info(f"{self.agent_name} - Completed")
+    self.logger.info(f"{self.agent_name} - Running...")
+    self._execute_workflow(**kwargs)
+    self.logger.info(f"{self.agent_name} - Done!")
     return self.output
-```  
-1. **load_data**: Reloads config if `on_the_fly`, loads additional data, merges `kwargs`.  
-2. **process_data**: Hook for preprocessing.  
-3. **render_prompt**: Applies `template_data` to `prompt_template`.  
-4. **run_model**: Calls `self.model.generate(...)`.  
-5. **parse_result**: Hook for postprocessing.  
-6. **post_process_result**: Hook for additional processing before output construction.
-7. **build_output**: Formats final output.
-
-> **Note:** Memory and storage functionality is managed exclusively by cogs. The Agent class has extension points for subclasses that need custom data handling.
-
-## 3. Configuration Loading
-
-Agent configuration is loaded from the `.agentforge/prompts/` folder and merged with system defaults. The initialization process includes:
-
-```python
-def initialize_agent_config(self):
-    self.load_agent_data()
-    self.load_prompt_template()
-    self.load_persona_data()
-    self.load_model()
 ```
+The workflow includes:
+- Loading and merging config and runtime data
+- Processing data (optional hook)
+- Rendering prompts
+- Running the model
+- Parsing and post-processing results
+- Building the final output
 
-- **load_agent_data**: Uses `Config().load_agent_data(agent_name)`.
-- **load_prompt_template**: Validates prompt structure.
-- **load_persona_data**: Loads persona context if enabled.
-- **load_model**: Configures the LLM interface.
+## Configuration Loading
+Configuration is loaded from the `.agentforge/prompts/` folder and merged with system defaults. The agent loads:
+- `prompts`: System and user prompt templates
+- `params`: Model parameters
+- `persona`: Persona data if enabled
+- `settings`: System and agent settings
+- `simulated_response`: Used if debug mode is enabled
+- `parse_response_as`: Format for parsing model output (e.g., `json`)
+- `custom_fields`: Any extra fields from the YAML config
 
-## 4. Prompt Rendering
+## Prompt Rendering
+Prompts are rendered by substituting variables from `template_data` into the `prompt_template` using `PromptProcessor`. If any required variable is missing or empty, the corresponding prompt section is skipped.
 
-The `render_prompt()` method combines the agent's prompt template with dynamic variables through these steps:
-
-1. **Prompt Template Access**:
-   ```python
-   prompts = agent_data.get('prompts', {})
-   self.prompt_template = {
-       'system': prompts.get('system', {}),
-       'user': prompts.get('user', {})
-   }
-   ```
-
-2. **Template Variables**:
-   ```python
-   self.template_data = {
-       'persona_fields': {...},       # From persona if enabled
-       'kwargs': {...},               # From run() arguments
-       'additional_data': {...}       # From load_additional_data()
-   }
-   ```
-
-3. **Rendering**:
-   ```python
-   # Replace {placeholders} with actual values
-   self.prompt = self.prompt_processor.render_prompts(
-       self.prompt_template, self.template_data
-   )
-   ```
-
-## 5. Extension Points
-
-The Agent class provides several virtual methods meant to be overridden by subclasses:
-
+## Extension Points
+The following methods are designed to be overridden in subclasses:
 ```python
-def load_additional_data(self): pass
-def process_data(self): pass  
-def parse_result(self): pass
-def post_process_result(self): pass
-def build_output(self): self.output = self.result
+def load_additional_data(self):
+    pass
+
+def process_data(self):
+    pass
+
+def parse_result(self):
+    self.parsed_result = self.parsing_processor.parse_by_format(self.result, self.agent_config.parse_response_as)
+
+def post_process_result(self):
+    pass
+
+def build_output(self):
+    self.output = self.parsed_result
 ```
+- `load_additional_data`: Add custom data to `template_data`.
+- `process_data`: Preprocess data before prompt rendering.
+- `parse_result`: Parse the LLM output after model execution.
+- `post_process_result`: Additional processing after parsing.
+- `build_output`: Format the final output returned by `run()`.
 
-- **load_additional_data**: Add custom data to `template_data`.
-- **process_data**: Process data before prompt rendering.
-- **parse_result**: Process the LLM output after model execution.
-- **post_process_result**: Perform additional processing or side effects after parsing.
-- **build_output**: Format the final output returned by `run()`.
-
-## 6. Usage Example
-
+## Usage Example
 ```python
 from agentforge.agent import Agent
+import json
 
 class MyCustomAgent(Agent):
     def load_additional_data(self):
         self.template_data["custom_var"] = "custom value"
-    
     def parse_result(self):
-        # Extract structured data from result
-        self.extracted_data = json.loads(self.result)
-    
-    def post_process_result(self):
-        # Perform side effects like logging metrics or external API calls
-        log_processing_metrics(self.extracted_data)
-    
+        try:
+            self.parsed_result = json.loads(self.result)
+        except Exception:
+            self.parsed_result = {"text": self.result}
     def build_output(self):
-        self.output = f"Processed: {self.extracted_data['key']}"
+        self.output = f"Processed: {self.parsed_result.get('key', self.result)}"
 
-agent = MyCustomAgent("TemplateFile")
+agent = MyCustomAgent("template_file")
 result = agent.run(dynamic_var="value")
 ```
-
-Where `.agentforge/prompts/TemplateFile.yaml` contains:
+Where `.agentforge/prompts/template_file.yaml` contains:
 ```yaml
 prompts:
   system: "You are a helpful assistant."
   user: "The user asks: {dynamic_var}"
 ```
 
-## 7. Related Documentation
-- [Agents Overview](Agents.md)  
-- [Prompt Templates](AgentPrompts.md)  
-- [Custom Agents](CustomAgents.md)  
-- [Model Overrides](../settings/models.md#specifying-model-overrides-in-agents)
+## Supported Config Keys
+- `prompts`: System and user prompt templates
+- `params`: Model parameters
+- `persona`: Persona data (optional)
+- `settings`: System and agent settings
+- `simulated_response`: Used for debug mode
+- `parse_response_as`: Format for parsing model output (e.g., `json`)
+- `custom_fields`: Any extra fields from the YAML config
 
 ---
+- [Agents Overview](Agents.md)
+- [Prompt Templates](AgentPrompts.md)
+- [Custom Agents](CustomAgents.md)
+- [Model Overrides](../settings/models.md#specifying-model-overrides-in-agents)

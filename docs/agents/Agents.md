@@ -1,33 +1,23 @@
 # Agents Overview
 
-**Agents** are the orchestrators in **AgentForge**, binding configuration, prompts, models and storage into end‑to‑end AI workflows. An agent:
+Agents are the orchestrators in AgentForge, binding configuration, prompts, models, and storage into end-to-end AI workflows. An agent:
 
-- Loads its YAML configuration (`prompts`, `params`, `personas`, `settings`).
-- Initializes context (persona data, storage) via `Config`.
-- Renders system/user prompts using `PromptProcessor`.
-- Resolves and invokes the LLM model via `Config.resolve_model_overrides`.
-- Parses and post‑processes model output (`parse_result`, `build_output`).
-- Saves results or context to storage if enabled.
-- Returns the final output (text, images, data) to the caller.
+- Loads its configuration (prompts, params, persona, settings) using the Config system.
+- Initializes context, including persona data and runtime variables.
+- Renders system and user prompts using PromptProcessor, substituting dynamic variables.
+- Resolves and invokes the LLM model as specified in its configuration.
+- Parses and post-processes model output, building the final output.
+- Returns the output (text, images, or data) to the caller.
 
-Agents adhere to a standard lifecycle (see [Agent Class](AgentClass.md)) but can be subclassed for specialized behaviors. Agents can be used standalone or as part of a [Cog](../cogs/cogs.md) in multi-agent workflows.
+Agents follow a standard lifecycle (see [Agent Class](AgentClass.md)) and can be subclassed for custom behaviors. Agents may be used standalone or as part of a multi-agent workflow (see Cogs).
 
 ---
 
 ## Key Resources
 
-### **[Agent Class](AgentClass.md)**
-- Dive into the foundational class from which all agents derive. You'll find a detailed breakdown of the `Agent` class, its attributes, initialization process, methods, and the essential logic that underpins every agent in the framework. This is your go-to reference for understanding the functionalities that are indispensable for creating custom agents.
-
-### **[Agent Prompts](AgentPrompts.md)**
-- Explore the realm of prompts that dictate an agent's behavior and interactions. Grasp how these guiding instructions ensure agents understand their objectives and relay information effectively.
-
-### **[Advance Custom Agents Examples](CustomAgents.md)**
-- Comfortable with the default agent class? Here, you'll find some examples of custom agents in more complex or specialized use cases.
-
-### **[Overriding LLM Settings](../settings/models.md#specifying-model-overrides-in-agents)**
-- Each agent holds the power to tailor the Large Language Model (LLM) settings it employs. This section delves into how agents can utilize default LLMs or opt for specific models fine-tuned for unique tasks, offering flexibility and precision.
-
-### **[Multi-Agent Orchestration (Cogs)](../cogs/cogs.md)**
-- Discover how to compose multiple agents into powerful cognitive architectures using **Cogs**. Cogs allow you to define complex, branching workflows in YAML without writing Python code, connecting agents through decision-based transitions and shared memory.
+- **[Agent Class](AgentClass.md)**: Reference for the base Agent class, its attributes, initialization, and extension points.
+- **[Agent Prompts](AgentPrompts.md)**: Details on prompt templates, dynamic variables, and rendering logic.
+- **[Custom Agents](CustomAgents.md)**: Examples and guidance for subclassing Agent for advanced use cases.
+- **[Model Overrides](../settings/models.md#specifying-model-overrides-in-agents)**: How to specify and override LLM settings per agent.
+- **[Multi-Agent Orchestration (Cogs)](../cogs/cogs.md)**: How to compose agents into complex workflows using Cogs.
 

@@ -1,26 +1,27 @@
 # Cog (Cognitive Architecture) Guide
 
-Cogs are declarative YAML-driven orchestrators in **AgentForge**. They define multi-agent workflows, memory nodes, and branching logic without writing Python, enabling complex, loopable, and branching AI pipelines.
+Cogs in **AgentForge** are declarative YAML-driven orchestrators that define multi-agent workflows, memory nodes, and branching logic—enabling complex, loopable, and branching AI pipelines without writing custom Python code.
 
 ---
 
 ## 1. What Is a Cog?
 A **Cog** is:
-- A single YAML file under `.agentforge/cogs/` that declares agents, memory nodes, and flow logic.
-- A fully declarative automation: no custom Python is required to configure how agents interact.
+- A YAML file under `.agentforge/cogs/` that declares agents, memory nodes, and flow logic.
+- A fully declarative automation: no custom Python is required to configure agent interactions.
 - An engine for chaining agents, injecting persona/memory context, and handling routing based on agent outputs.
 
 When you run a Cog, **AgentForge**:
-1. Loads the YAML config and validates schema.  
-2. Initializes shared memory and persona context.  
-3. Executes agents in the order defined by `flow.start` and `transitions`.  
-4. Merges each agent's output into a **global context**.  
-5. Routes to next agents via direct or decision-based transitions.  
+1. Loads and validates the YAML config.
+2. Initializes shared memory and persona context.
+3. Executes agents in the order defined by `flow.start` and `transitions`.
+4. Merges each agent's output into the **internal state**.
+5. Routes to next agents via direct or decision-based transitions.
 6. Terminates when an `end: true` node is reached.
 
 ---
 
-## 2. YAML Schema
+## 2. YAML Schema & Configuration
+
 ```yaml
 cog:
   name: "ExampleFlow"         # Identifier for this Cog
@@ -28,11 +29,9 @@ cog:
 
   agents:                       # Declare agent nodes
     - id: analyze
-      type: agentforge.agent.Agent  # Python class (defaults to base Agent)
-      template_file: analyze_agent
-
+      template_file: analyze_agent  # Required: at least one of template_file or type
+      
     - id: decide
-      # No type defined as it will default to base Agent
       template_file: decide_agent
 
     - id: respond
@@ -40,19 +39,23 @@ cog:
 
   memory:                       # (Optional) shared memory nodes
     - id: general_memory
-      type: agentforge.storage.memory.Memory # Python class (defaults to base Memory)
+      type: agentforge.storage.memory.Memory # Optional: defaults to base Memory
       collection_id: history
+      query_before: [analyze]
+      update_after: [respond]
+      query_keys: [user_input]
+      update_keys: [respond]
 
   flow:                         # Define execution order
     start: "analyze"
     transitions:
       analyze: decide
       decide:
-        choice:                   # This is the decision key from agent output
-          "yes": respond          # Note: quotes for yes/no recommended
-          "no": analyze
-        fallback: respond         # Used when no match or missing key
-        max_visits: 5             # Prevent infinite loops
+        choice:
+          "approve": respond
+          "reject": analyze
+        fallback: respond
+        max_visits: 5
       respond:
         end: true
 ```
@@ -60,13 +63,15 @@ cog:
 ### Top-Level Keys
 - **`cog.name`**, **`cog.description`**: Metadata.
 - **`agents`**: List of agent definitions:
-  - `id`: Unique node key.
-  - `type`: Full Python path to Agent subclass (default: base `Agent`).
-  - `template_file`: Prompt YAML name (defaults to class name).
-- **`memory`**: List of memory nodes:
-  - `id`: Key for memory instance.
-  - `type`: Memory class to instantiate (e.g., `Memory`, `ScratchPad`).
-  - `collection_id`: Optional override for storage partition.
+  - `id`: Unique node key (required).
+  - `template_file`: Prompt YAML name (required if `type` not set).
+  - `type`: Full Python path to Agent subclass (required if `template_file` not set).
+- **`memory`**: List of memory nodes (optional):
+  - `id`: Key for memory instance (required).
+  - `type`: Memory class to instantiate (optional; defaults to base Memory).
+  - `collection_id`: Optional override for storage partition (defaults to node's `id` for base Memory; subclasses may override).
+  - `query_before`/`update_after`: List or string of agent IDs (always treated as lists internally).
+  - `query_keys`/`update_keys`: Keys to extract from context/state for querying/updating memory.
 - **`flow`**:
   - `start`: `agents.id` to run first.
   - `transitions`: Mapping from each `id` to next steps:
@@ -75,13 +80,12 @@ cog:
       ```yaml
       agentA:
         choice:
-          "yes": agentX
-          "no": agentY
+          "approve": agentX
+          "reject": agentY
         fallback: agentZ
       ```
     - **Loop Guard**: `max_visits` prevents infinite cycling.
-    - **Terminate**: `agent_id:
-        end: true` marks a terminal node.
+    - **Terminate**: `agent_id: end: true` marks a terminal node.
 
 ---
 
@@ -89,176 +93,88 @@ cog:
 
 Decision-based transitions route flow based on values in the agent's output.
 
-### Key Concepts
-
-#### Decision Keys
-The decision key is the field name in the agent's output that determines the next branch:
-
-```yaml
-transitions:
-  decide:
-    verdict:         # 'verdict' is the decision key
-      approve: publish
-      reject: revise
-    fallback: error
-```
-
-The agent must output a dictionary containing the decision key:
-```
-{
-  "verdict": "approve",  # This value determines the next branch
-  "rationale": "..."
-}
-```
-
-#### Value Normalization
-**AgentForge** normalizes decision values for flexible matching:
-
-1. **Case-Insensitive Matching**: `"YES"`, `"Yes"`, and `"yes"` all match the same branch
-2. **Type Normalization**: Boolean values (`true`/`false`) and their string equivalents (`"true"`/`"false"`) are normalized
-3. **YAML Boolean Conversion**: YAML automatically converts unquoted `yes`, `no`, `true`, `false` to Boolean values
-
-**Important:** To ensure values are treated as strings in YAML, always quote your decision branch labels:
-
-```yaml
-choice:
-  "yes": approve    # Quoted to ensure it's a string
-  "no": reject      # Quoted to ensure it's a string
-```
-
-This ensures that both Boolean values and string representations will match correctly.
-
-#### Fallback Mechanism
-When a decision path can't be resolved, these fallback options are used in order:
-
-1. The matched transition branch isn't found: use `fallback` value
-2. The decision key isn't in agent output: use `fallback` value
-3. The `max_visits` limit is exceeded: use `fallback` value
-4. If no `fallback` is specified in any of these cases, the flow will terminate with an exception
-
-```yaml
-transitions:
-  decide:
-    choice:
-      "yes": branch_a
-      "no": branch_b
-    fallback: default_branch  # Used when choice doesn't match or is missing
-    max_visits: 3             # After 3 visits, use fallback
-```
+- **Decision Key**: The field name in the agent's output that determines the next branch.
+- **Value Normalization**: Matching is case-insensitive and normalizes booleans/strings. Always quote branch labels in YAML to avoid type conversion issues.
+- **Fallback**: If a decision value doesn't match, or the key is missing, or `max_visits` is exceeded, the `fallback` branch is used. If no fallback is defined, the flow terminates with an exception.
 
 ---
 
-## 4. Memory Nodes
-Memory nodes declared under `memory` are shared across all agents in a Cog:
-```yaml
-memory:
-  - id: general_memory
-    query_before: [agent1, agent2]  # Query this memory before these agents
-    update_after: [agent3]          # Update this memory after these agents
-    query_keys: [user_input]        # Keys to extract for querying
-    update_keys: [respond]          # Keys to extract for updates
-```
+## 4. Memory Nodes & Chat History
 
-### Memory Subclasses and Collection Names
-By default, memory nodes use the base Memory class. For specialized memory behavior, specify a subclass with `type`. 
+Memory nodes declared under `memory` are shared across all agents in a Cog. Each node can:
+- Specify when to query or update (before/after specific agents)
+- Use `query_keys` and `update_keys` to control what data is used
+- Use a custom `type` for specialized memory behavior
 
-Additionally, memory nodes can be instanciated with a specific vector store collection name `collection_id`, allowing flexibility for each memory node to define where it will store and retreives memories from.
+**Collection Naming:**
+- For base Memory, `collection_id` defaults to the node's `id` if not specified.
+- Some subclasses (e.g., PersonaMemory) may override this logic and append suffixes or use different naming.
 
-```yaml
-memory:
-  # Default memory using base Memory class
-  - id: general_memory
-    collection_id: conversation_history
-    ...
-    
-  # Journal memory for structured conversation history
-  - id: conversation_journal
-    type: agentforge.storage.journal.Journal
-    ...
-    
-  # Scratchpad for maintaining working notes
-  - id: agent_notes
-    collection_id: working_notes
-    type: agentforge.storage.scratchpad.ScratchPad
-    ...
-```
+**Automatic Chat History Memory:**
+- Unless `chat_memory_enabled: false` is set at the top level, a `chat_history` memory node is automatically added for you.
+- You can configure the number of results with `chat_history_max_results` (default: 10).
+- Access chat history in prompts as `{memory.chat_history.readable}`.
 
-### Core Configuration
-- **id**: Required. Unique identifier for the memory node, used to access it via `memory[id]` in the context.
-- **collection_id**: Optional. The storage collection to use. Defaults to the node's `id` if not specified.
-- **type**: Optional. Specifies a Memory subclass to use. Defaults to `agentforge.storage.memory.Memory` (base Memory class) when omitted.
+> **Note:** You do not need to define a `chat_history` memory node yourself—this is handled automatically when chat memory is enabled.
 
-### Query and Update Configuration
-Control when memory is used during Cog execution:
-- **query_before**: List of agent IDs - memory is queried before these agents run
-- **update_after**: List of agent IDs - memory is updated after these agents run
-- **query_keys**: Keys to extract from global context for querying memory
-- **update_keys**: Keys to extract from global context for updating memory
+---
 
-Each Memory instantiates with the cog's name and uses the collection_id (specified or default). All agents can access memory via their context's `memory` key.
+## 5. Agent Execution & Context
 
-### Accessing Memory in Prompt Templates
+- **Initialization**: Cog builds a `context` dict (external input) and a `state` dict (internal agent outputs).
+- **Agent Run**: For each node, the agent is called with the current context and state.
+- **Collect Output**: Agent result is stored in `state[node_id]`.
+- **Memory Query/Update**: Memory is queried before and updated after agents as configured.
+- **Routing**: Next node is selected via `flow.transitions[node_id]`.
+- **Loop Control**: If a node's `max_visits` is exceeded, the `fallback` branch is used.
+- **Completion**: When `end: true` is reached, `cog.run()` returns the final state or specified output.
 
-Memory is available in two formats in agent prompt templates:
+### How Agents Access Context, State, and Memory
 
-```
-# Human-readable formatted string (recommended for prompts)
-{memory.general_memory.readable}
+When an agent runs, the Cog engine provides three key variables in the prompt template context:
 
-# Access to raw Chroma result data
-{memory.general_memory.raw.documents[0]}
-{memory.general_memory.raw.metadatas[0].timestamp}
-```
+- **`_ctx`**: The current external context, such as user input and any runtime values passed to `cog.run()`.
+- **`_state`**: The internal state dictionary, containing outputs from all previously executed agents in the workflow.
+- **`_mem`**: The memory manager, where each memory node is accessible as an attribute. For example, if you have a memory node with `id: persona_memory`, you can access its properties in your prompt as `{_mem.persona_memory.<property>}`.
 
-Example template section using memory:
+This allows agents to reference both the latest user input/context and the outputs of other agents. For example, in a prompt template:
+
 ```yaml
 prompts:
   user:
-    Memory: |+
-      ### Relevant background
-      Review these previous interactions for context:
-      ---
-      {memory.general_memory.readable}
-      ---
+    context: |
+      ## User Input
+      {_ctx.user_input}
+
+    analysis: |
+      ## Previous Analysis
+      {_state.analysis}
+
+    persona_info: |
+      ## Persona Info
+      {_mem.persona_memory._narrative}
 ```
 
-The readable format presents each memory entry as:
-```
---- Memory 0: <document_id>
-content: <document_text>
-metadata:
-  timestamp: <timestamp>
-  user_input: <user message>
-  # Other metadata fields as available
-```
-
----
-
-## 5. Agent Execution & Global Context
-1. **Initialization**: Cog builds a `global_context` dict with initial kwargs.
-2. **Agent Run**: For each node, `agent.run(**global_context)` is called.
-3. **Collect Output**: Agent result stored as `global_context[node_id]`.
-4. **Memory Query/Update**: Memory is queried before and updated after agents based on configuration.
-5. **Routing**: Next node selected via `flow.transitions[node_id]`, using simple mapping or decision keys.
-6. **Loop Control**: If a node's `max_visits` exceeded, uses its `fallback` branch.
-7. **Completion**: When `end: true` is reached, `cog.run()` returns the final `global_context`.
+- `{_ctx.user_input}`: Accesses the current user input or context value.
+- `{_state.analysis}`: Accesses the output of the `analysis` agent node.
+- `{_mem.persona_memory._narrative}`: Accesses the contents of the persona narrative built by the `PersonaMemory` memory node.
 
 ---
 
 ## 6. Return Values
-The Cog's `run()` method returns different values based on the `end` keyword configuration:
 
-1. **Default Return**: Returns the full internal context dictionary with all agent outputs.
-2. **End: true**: Returns only the output of the last agent executed.
-3. **End: "dot.notation.key"**: Returns a specific value from the context using dot notation.
+The Cog's `run()` method returns values based on the `end` keyword configuration:
 
-Example:
+- **Default**: Returns the internal state dictionary with all agent outputs.
+- **`end: true`**: Returns only the output of the last agent executed.
+- **`end: "dot.notation.key"`**: Returns a specific value from the state using dot notation.
+
+**Example:**
 ```yaml
 transitions:
   final_agent:
     end: true  # Returns only final_agent's output
 ```
-
 Or using a specific key:
 ```yaml
 transitions:
@@ -270,20 +186,15 @@ transitions:
 
 ## 7. Error Handling
 
-The Cog engine handles several error conditions:
-
-1. **Invalid Transitions**: If a transition points to a non-existent agent, an exception is raised.
-2. **Missing Decision Keys**: If the decision key isn't in the agent's output, the `fallback` branch is used.
-3. **Loop Prevention**: When `max_visits` is exceeded, the `fallback` branch is used.
-4. **No Matching Branch**: If the decision value doesn't match any branch, the `fallback` branch is used.
-
-If `fallback` is not defined in these error cases, the behavior depends on the error:
-- Missing decision keys or no matching branch with no fallback: the flow will terminate
-- Invalid transitions always raise an exception
+The Cog engine handles errors as follows:
+- **Invalid Transitions**: If a transition points to a non-existent agent, an exception is raised.
+- **Missing Decision Keys/No Matching Branch**: If the decision key is missing or the value doesn't match, the `fallback` branch is used. If no fallback is defined, the flow terminates with an exception.
+- **Loop Prevention**: When `max_visits` is exceeded, the `fallback` branch is used. If no fallback, the flow terminates with an exception.
 
 ---
 
 ## 8. Minimal Example
+
 ```yaml
 cog:
   name: "SimpleAnalysis"
@@ -299,22 +210,11 @@ cog:
       analyze:
         end: true
 ```
-- **analyze_agent.yaml** under `.agentforge/prompts/` defines the prompt.
-- Running:
-  ```python
-  from agentforge.cog import Cog
-  cog = Cog("SimpleAnalysis")
-  out = cog.run(user_input="Analyze this text")
-  trail = cog.get_track_flow_trail()
-  
-  # Print agent execution order
-  print("Executed agents:", [entry.agent_id for entry in trail])
-  print("Final output:", out)
-  ```
 
 ---
 
 ## 9. Advanced Example with Branching
+
 ```yaml
 cog:
   name: "AnalysisDecisionFlow"
@@ -323,19 +223,17 @@ cog:
   agents:
     - id: analyze
       template_file: analyze_agent
-
     - id: decide
       template_file: decide_agent
-
     - id: respond
       template_file: response_agent
 
   memory:
     - id: general_memory
-      query_before: [analyze, respond]   # Query this memory before these agents
-      update_after: [respond]            # Update this memory after these agents
-      query_keys: [user_input]           # Query using user_input
-      update_keys: [user_input, respond] # Update with user input and response
+      query_before: [analyze, respond]
+      update_after: [respond]
+      query_keys: [user_input]
+      update_keys: [user_input, respond]
 
   flow:
     start: analyze
@@ -344,75 +242,25 @@ cog:
       decide:
         choice:
           "approve": respond
-          "reject": analyze  # Loop back to analyze
+          "reject": analyze
         fallback: respond
-        max_visits: 3        # Prevent infinite loops
+        max_visits: 3
       respond:
         end: true
-```
-
-In this workflow:
-1. The `analyze` agent examines user input
-2. The `decide` agent evaluates the analysis and makes a decision
-3. If approved, flow continues to `respond`
-4. If rejected, flow loops back to `analyze` for refinement
-5. If other, or After 3 loops, the flow proceeds to `respond` via fallback
-
-Example prompt template using memory (from analyze_agent.yaml):
-```yaml
-prompts:
-  user:
-    Memory: |+
-      ### Relevant background
-      Review these previous interactions for patterns or user history:
-      ---
-      {memory.general_memory.readable}
-      ---
 ```
 
 ---
 
 ## 10. Best Practices
 
-1. **Prompt Engineering**
-   - Structure prompts with clear sections
-   - Use memory in context sections
-   - Include relevant parts of previous agent outputs
-
-2. **Decision Branches**
-   - Always quote branch names in YAML (`"yes"`, not just yes)
-   - Set reasonable `max_visits` limits
-   - Always define `fallback` paths
-
-3. **Memory Management**
-   - Use appropriate `query_before` and `update_after` configurations
-   - Be explicit about `query_keys` and `update_keys`
-   - Ensure memory nodes have descriptive `id` values
-   - Use `{memory.node_id.readable}` in prompts for human-friendly formatting
-
-4. **Testing**
-   - Use `cog.get_track_flow_trail()` to inspect execution path - returns a list of `ThoughtTrailEntry` objects with `agent_id`, `output`, `timestamp`, and other metadata
-   - Review the global context to see how data flows between agents
-   - Test edge cases for decision branches
-
-Example of inspecting the flow trail:
-```python
-from agentforge.cog import Cog
-cog = Cog("SimpleAnalysis")
-result = cog.run(user_input="Analyze this text")
-trail = cog.get_track_flow_trail()
-
-# Access trail entries
-for entry in trail:
-    print(f"Agent: {entry.agent_id}")
-    print(f"Output: {entry.output}")
-    print(f"Timestamp: {entry.timestamp}")
-    print(f"Execution Order: {entry.execution_order}")
-```
+- **Prompt Engineering**: Structure prompts with clear sections and use memory in context sections.
+- **Decision Branches**: Always quote branch names in YAML, set reasonable `max_visits`, and define `fallback` paths.
+- **Memory Management**: Use `query_before` and `update_after` to control memory usage, and be explicit about `query_keys` and `update_keys`. Use `{memory.node_id.readable}` in prompts for human-friendly formatting.
+- **Chat History**: Leverage the automatic `chat_history` memory node for conversation context unless explicitly disabled.
+- **Testing**: Use `cog.get_track_flow_trail()` to inspect execution order and outputs.
 
 ---
 
 ## 11. Related Documentation
-- [Agent Class](../agents/AgentClass.md)  
-- [Memory Guide](../storage/memory.md)  
+- [Memory Guide](../memory/memory.md)
 - [Settings Overview](../settings/settings.md)

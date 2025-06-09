@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In **AgentForge**, various utility classes make building and extending agents easier. Each utility focuses on a specific aspect of agent functionality—handling everything from logging, prompt rendering, and parsing structured data, to dynamic tool execution, and Discord integration.
+In **AgentForge**, utility classes make building and extending agents easier. Each utility focuses on a specific aspect of agent functionality—handling everything from logging, prompt rendering, and parsing structured data and Discord integration.
 
 ---
 
@@ -13,19 +13,19 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 ### **1. Discord Client**
 
 - **Guide**: [Discord Guide](DiscordClient.md)
-- **Description**: A class for connecting agents to Discord. It can create Discord bots, allowing agents to receive and send messages in channels, post embeds, manage threads, and more.
+- **Description**: Connects agents to Discord, enabling bots to send/receive messages, post embeds, manage threads, and more.
 - **Use Cases**:
-  - Building real-time chat interfaces for your agents on Discord servers.
-  - Enabling interactive command-based bots or multi-agent discussions in a community.
+  - Building real-time chat interfaces for agents on Discord servers.
+  - Enabling interactive command-based bots or multi-agent discussions.
 
 ---
 
 ### **2. Logger**
 
 - **Guide**: [Logger Guide](Logger.md)
-- **Description**: A robust logging system to track agent actions, debug processes, and store audit trails. Logs can be split across multiple files with configurable levels, and dynamic creation of new log files.
+- **Description**: A robust logging system to track agent actions, debug processes, and store audit trails. Supports multiple log files and configurable levels.
 - **Use Cases**:
-  - Debugging behaviors in custom agents.
+  - Debugging agent behaviors.
   - Monitoring system health, errors, and warnings.
   - Maintaining detailed logs for compliance or review.
 
@@ -34,17 +34,17 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 ### **3. Parsing**
 
 - **Guide**: [ParsingUtils Guide](ParsingUtils.md)
-- **Description**: Provides methods for extracting code blocks and parsing common data formats, including YAML, JSON, XML, INI, CSV, and Markdown. Useful when agents embed structured information in their outputs or require configuration data from text.
+- **Description**: Methods for extracting code blocks and parsing common data formats (YAML, JSON, XML, INI, CSV, Markdown). Useful for agents that embed structured information in outputs or require configuration data from text.
 - **Use Cases**:
   - Parsing agent responses that include code-fenced JSON or YAML.
-  - Converting user-supplied text into Python data structures for further processing.
+  - Converting user-supplied text into Python data structures.
 
 ---
 
 ### **4. Prompt Handling**
 
 - **Guide**: [PromptHandling Guide](PromptHandling.md)
-- **Description**: Manages the rendering and validation of prompt templates that guide agent behaviors. Substitutes placeholders (`{var_name}`) with actual data, checks formatting, and ensures non-empty results.
+- **Description**: Manages the rendering and validation of prompt templates. Substitutes placeholders (`{var_name}`) with actual data, checks formatting, and ensures non-empty results.
 - **Use Cases**:
   - Dynamically generating prompts based on user input or agent context.
   - Maintaining multi-section prompts (like system vs. user) without manual string concatenation.
@@ -54,11 +54,19 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 
 ### **5. Tool Utils**
 
+# ⚠️ DEPRECATION WARNING
+
+**The Tools system is DEPRECATED.**
+
+Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
+
+See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
+
 - **Guide**: [ToolUtils Guide](ToolUtils.md)
-- **Description**: Facilitates on-the-fly importing and execution of tool modules or built-in functions, plus formatting those tools for display. Enables flexible, pluggable functionality so agents can call new or external code.
+- **Description**: Facilitates dynamic importing and execution of tool modules or built-in functions, plus formatting those tools for display. Enables flexible, pluggable functionality so agents can call new or external code.
 - **Use Cases**:
-  - Letting agents choose from multiple “actions” at runtime, referencing user-defined modules.
-  - Dynamically expanding an agent’s capabilities without redeploying the entire application.
+  - Letting agents choose from multiple "actions" at runtime, referencing user-defined modules.
+  - Dynamically expanding an agent's capabilities without redeploying the entire application.
 
 ---
 
@@ -69,7 +77,7 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 2. **Extendibility**  
    If you have specialized requirements (e.g., advanced prompt placeholders), you can override or subclass these utilities.  
 3. **Documentation**  
-   Each utility has its own dedicated guide detailing methods, usage examples, and common pitfalls.
+   Each utility is documented in its own guide. Refer to those guides for up-to-date usage and best practices.
 
 ---
 

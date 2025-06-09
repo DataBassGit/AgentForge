@@ -19,6 +19,8 @@ default_model:
 # Detailed library of APIs, classes, models, and parameters
 model_library:
   openai_api:         # Corresponds to agentforge/apis/openai_api.py
+    params:           # API-level params (applies to all classes under this API)
+      ...
     GPT:              # Python class exported by that module
       models:
         fast_model:
@@ -46,7 +48,7 @@ model_library:
         temperature: 0.8
         top_k: 40
 
-  # ...additional API entries (anthropic_api, lm_studio_api, etc.)...
+  # ...additional API entries (anthropic_api, lm_studio_api, ollama_api, openrouter_api, groq_api, etc.)...
 
 # Selective embedding library for specialized tasks
 embedding_library:
@@ -63,19 +65,20 @@ Any agent without a `model_overrides` block uses this selection.
 A mapping of **API keys** → **Class names** → settings:
 
 - **API key** (e.g., `openai_api`): Loads via `agentforge/apis/<api_key>.py` or custom APIs.
+- **params** (optional map): API-level parameters applied to all classes/models under this API.
 - **Class name** (e.g., `GPT`): Python class used to instantiate calls.
 - **models**: Map of **model names** →
   - **identifier** (string): The actual LLM identifier your code passes to the API.
   - **params** (optional map): Overrides for this specific model.
 - **params** (optional map): Default parameters applied to every model under this class.
 
-> **Note**: You can also define an API-level `params` key under `model_library.<api_key>` for parameters shared across all classes.
+> **Note**: Parameters are merged in this order: API-level → class-level → model-level → agent-level (`model_overrides.params`).
 
 ### embedding_library
 - **library** (string): Name of the embedding toolkit used for specialized embedding tasks.
 
 ### Parameter Merging
-**AgentForge** uses `Config.resolve_model_overrides(agent_config)` to merge parameters in this order:
+**AgentForge** merges model parameters in the following order:
 1. **API-level** (`model_library.<api_key>.params`)
 2. **Class-level** (`model_library.<api_key>.<class>.params`)
 3. **Model-level** (`model_library.<api_key>.<class>.models.<model_name>.params`)
@@ -99,14 +102,15 @@ model_overrides:
     max_new_tokens: 5000
 ```
 
-## Available Models
+## Available Models & APIs
 
-### OpenAI Models
-- **fast_model** (gpt-3.5-turbo): Economical model with good general capabilities
-- **omni_model** (gpt-4o): High-performance general purpose model
-- **smart_model** (gpt-4): High-quality but slower model
-- **smart_fast_model** (gpt-4-turbo): Balances speed and quality
-- **gpt41_model** (gpt-4.1): Latest model with 1M token context window
+AgentForge supports a wide range of APIs and models, including OpenAI, Anthropic, Gemini, LM Studio, Ollama, OpenRouter, Groq, and more. The full, up-to-date list of supported APIs, classes, and models can be found in the template at:
+
+```
+src/agentforge/setup_files/settings/models.yaml
+```
+
+Refer to this file for the latest options and identifiers.
 
 ## Accessing Model Settings in Code
 

@@ -1,14 +1,14 @@
 # Prompt Templates
 
-**AgentForge** uses YAML-based prompt templates to drive agent behaviors. All prompt files live under:
+AgentForge uses YAML-based prompt templates to drive agent behaviors. All prompt files live under:
 ```
 <project_root>/.agentforge/prompts/
 ```
-Each file must match the agent's name (case‑sensitive) and have a `.yaml` extension.
+Each file should match the agent's name (case-sensitive, snake_case recommended) and have a `.yaml` extension. You can override the prompt file by passing a different `agent_name` to the agent constructor.
 
 ---
 
-## 1. File Structure
+## File Structure
 ```yaml
 prompts:
   system:        # High-level context and instructions
@@ -17,33 +17,33 @@ prompts:
   user:          # User message template
     query: "Process: {user_input}"
 ```
-- **Top-level `prompts`** key (lowercase).
-- **`system`** and **`user`** keys (lowercase) define roles.
-- Nested sub-keys under `system`/`user` are concatenated with newline in definition order.
+- The top-level `prompts` key is required.
+- `system` and `user` keys define roles and are required.
+- Nested sub-keys under `system`/`user` are concatenated in definition order.
 
-## 2. Dynamic Variables
-- Placeholders in `{braces}` map to `template_data` passed via `agent.run(**kwargs)`.
-- Valid identifiers only (e.g. `{user_input}`, `{task}`).
-- Undefined placeholders cause their sub-section to be skipped.
-- Invalid placeholders will be considered plain text and be rendered as is.
+## Dynamic Variables
+- Placeholders in `{braces}` map to keys in `template_data` (populated from `agent.run(**kwargs)` and hooks).
+- Only valid Python identifiers are allowed (e.g., `{user_input}`, `{task}`).
+- If any required variable in a prompt section is missing or empty, the entire section is skipped.
+- Invalid placeholders are rendered as plain text.
 
-## 3. Rendering Logic
+## Rendering Logic
 ```python
 from agentforge.utils.prompt_processor import PromptProcessor
 rendered = PromptProcessor().render_prompts(
-    template=agent.prompt_template,
+    prompts=agent.prompt_template,
     data=agent.template_data
 )
 # Output: {'system': '...', 'user': '...'}
 ```
-- Sections with missing variables are dropped.  
+- Sections with missing variables are dropped.
 - Final prompts are validated for structure and non-empty content.
 
-## 4. Recursion & Subfolders
-- `.agentforge/prompts/` is searched recursively for YAML files.  
+## Recursion & Subfolders
+- `.agentforge/prompts/` is searched recursively for YAML files.
 - You can organize prompts in subdirectories for clarity.
 
-## 5. Examples
+## Examples
 ### Basic Echo
 ```yaml
 prompts:
@@ -64,16 +64,16 @@ prompts:
       {feedback}
   user: "Question: {question}"
 ```
-- If `feedback` not provided, the `feedback` block is omitted.
+- If `feedback` is not provided, the `feedback` block is omitted.
 
-## 6. Best Practices
-- Keep keys lowercase and descriptive.  
-- Order sub-keys for logical flow.  
-- Use optional blocks for conditional instructions.  
+## Best Practices
+- Use lowercase, descriptive keys.
+- Order sub-keys for logical flow.
+- Use optional blocks for conditional instructions.
 - Test with `debug.mode` and `simulated_response` for quick iterations.
+- Pass all dynamic variables via `template_data` (from `run()` or hooks).
 
 ---
-**Related:** 
-  - [Agents Overview](Agents.md)
-  - [Agent Class](AgentClass.md)
-  - [Custom Agents](CustomAgents.md)
+- [Agents Overview](Agents.md)
+- [Agent Class](AgentClass.md)
+- [Custom Agents](CustomAgents.md)

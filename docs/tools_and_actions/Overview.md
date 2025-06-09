@@ -1,3 +1,11 @@
+# ⚠️ DEPRECATION WARNING
+
+**The Tools and Actions system is DEPRECATED.**
+
+Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
+
+See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
+
 # **Tools and Actions**
 
 ## **Tools Overview**

@@ -1,6 +1,6 @@
 # Storage Settings Guide
 
-> **Important:** Storage in AgentForge is exclusively managed by cogs through their memory nodes. Individual agents do not directly interact with storage. This design simplifies the architecture and centralizes memory management.
+> **Important:** Storage in AgentForge is managed by cogs through their memory nodes. Individual agents do not directly interact with storage. This design simplifies the architecture and centralizes memory management.
 
 `storage.yaml` is loaded from the project's `.agentforge/settings/storage.yaml` and merged into `Config().data['settings']['storage']`.
 
@@ -27,6 +27,7 @@ embedding:
 embedding_library:
   distil_roberta: all-distilroberta-v1
   all_mini: all-MiniLM-L6-v2
+  openai_ada2: text-embedding-ada-002
 ```
 
 ### options
@@ -48,17 +49,21 @@ embedding_library:
 
 ## Dynamic `storage_id` Resolution
 
-**AgentForge** uses `storage_id` to partition storage contexts (e.g., per persona or cog). `Memory` modules used by cogs derive `storage_id` via:
+AgentForge uses a `storage_id` to partition storage contexts (e.g., per persona or cog). `Memory` modules used by cogs derive `storage_id` as follows:
+
+- If a persona is set, the persona name is used as the storage ID.
+- Otherwise, the cog name is used.
+- If neither is set, `'fallback_storage'` is used.
+
+Example usage:
 
 ```python
 from agentforge.storage.memory import Memory
 # Internally:
 resolved_id = Memory._resolve_storage_id()
+# Used to create or retrieve storage context:
 storage = ChromaStorage.get_or_create(storage_id=resolved_id)
 ```
-
-- If `persona.enabled` is `true`, the persona name is used.
-- Otherwise, the `cog_name` or a fallback (`"fallback_storage"`) is used.
 
 Custom storage instances can be created with:
 
