@@ -72,4 +72,4 @@ Cogs define agent composition, memory nodes, and flow. Cogs can specify a `perso
 - [Agents Guide](../agents/agents.md)
 - [Cogs Guide](../cogs/cogs.md)
 - [Personas Guide](../personas/personas.md)
-- [Memory Guide](../storage/memory.md)
+- [Memory Guide](../memory/memory.md)
