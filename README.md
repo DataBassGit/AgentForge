@@ -8,11 +8,11 @@
 
 # AgentForge
 
-**AgentForge** is a low-code framework designed for rapid development, testing, and iteration of AI-powered autonomous agents and cognitive architectures. Built around two core concepts—flexible Agents and declarative Cogs—AgentForge enables both simple agent implementations and sophisticated multi-agent orchestration with minimal code.
+**AgentForge** is a low-code framework for rapid development, testing, and iteration of AI-powered autonomous agents and cognitive architectures. Its core concepts—flexible **Agents**, declarative **Cogs**, and integrated **Memory**—enable both simple agent implementations and sophisticated multi-agent orchestration with minimal code.
 
-Compatible with a range of LLM models—including OpenAI, Google's Gemini, Anthropic's Claude, and local models via [Ollama](https://ollama.com) or [LMStudio](https://lmstudio.ai)—it offers the flexibility to run different models for different agents based on your specific needs.
+Compatible with a range of LLM models—including OpenAI, Google's Gemini, Anthropic's Claude, and local models via [Ollama](https://ollama.com) or [LMStudio](https://lmstudio.ai)—AgentForge lets you run different models for different agents as needed.
 
-Whether you're a newcomer seeking an easy entry point or a seasoned developer aiming to build complex cognitive architectures, **AgentForge** provides the tools you need to craft intelligent, model-agnostic, and database-flexible autonomous agents.
+Whether you're new to AI agents or building advanced cognitive systems, **AgentForge** provides the tools to craft intelligent, model-agnostic, and database-flexible autonomous agents.
 
 ---
 
@@ -28,23 +28,25 @@ Whether you're a newcomer seeking an easy entry point or a seasoned developer ai
 
 ## Features
 
-Easily build agents or cognitive architectures (multi-agent systems) with the following **AgentForge** functionality:
+Build agents and cognitive architectures (multi-agent systems) with:
 
-- **Customizable Agents**: Tailor agents to fit your specific use cases with ease.
-- **Declarative Cogs**: Orchestrate multi-agent workflows using simple YAML configurations without writing code.
-- **Vectorized Memory**: Add long and short-term memory to agents and cogs for context-aware conversations.
-- **Custom Tools & Actions**: Extend functionality by creating custom tools and actions.
-- **Dynamic Prompt Templates**: Utilize flexible prompt templates that adapt to various contexts.
-- **LLM Agnostic**: Run different agents with different LLMs as per your requirements.
+- **Declarative Cogs**: Orchestrate multi-agent workflows, branching logic, and memory using simple YAML files. Cogs are the primary way to compose agents into complex, reusable workflows.
+- **Customizable Agents**: Define agents using YAML prompt templates and configuration.
+- **Integrated Memory**: Add contextual memory to agents and cogs for coherent, context-aware interactions. Memory nodes are declared in Cogs and made available to agents automatically.
+- **Personas**: Configure agent identity, style, and context using persona YAML files.
+- **Dynamic Prompt Templates**: Use flexible prompt templates that adapt to various contexts and memory.
+- **LLM Agnostic**: Run different agents with different LLMs as needed.
 - **On-The-Fly Prompt Editing**: Modify prompts in real-time without restarting the system.
-- **OpenAI, Google & Anthropic API Support**: Seamlessly integrate with popular LLM APIs.
+- **OpenAI, Google & Anthropic API Support**: Integrate with popular LLM APIs.
 - **Open-Source Model Support**: Leverage local models through [Ollama](https://ollama.com) and [LMStudio](https://lmstudio.ai).
+
+> **Note:** Actions and tools are deprecated as of this release and will be replaced in a future version with a new system based on the MCP standard.
 
 ---
 
 ## Documentation
 
-Welcome to the **AgentForge** framework documentation. This comprehensive guide supports you whether you're just getting started or diving deep into custom configurations and advanced features.
+Comprehensive documentation is available to help you get started and go deeper:
 
 ### **Getting Started**
 
@@ -55,31 +57,28 @@ Welcome to the **AgentForge** framework documentation. This comprehensive guide 
 
 ### **Core Concepts**
 
-- **[Agents](docs/agents/Agents.md)**: Learn how to create and customize individual AI agents for various tasks.
-- **[Cogs](docs/cogs/cogs.md)**: Design multi-agent workflows with branching logic using simple YAML configurations.
-- **[Memory](docs/storage/memory.md)**: Add contextual memory to your agents and cogs for more coherent interactions.
+- **[Agents](docs/agents/Agents.md)**: Create and customize individual AI agents for various tasks.
+- **[Cogs](docs/cogs/cogs.md)**: Design multi-agent workflows with branching logic and memory using YAML configuration. Cogs are the main way to build and run multi-agent systems in AgentForge.
+- **[Memory](docs/memory/memory.md)**: Add contextual memory to your agents and cogs for more coherent, context-aware interactions. Memory is managed declaratively in Cogs and accessed in agent prompts.
 - **[API Integration](docs/apis/apis.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
-- **[Personas](docs/personas/Personas.md)**: Utilize personas to encapsulate information accessible to the agents, acting as a resource of knowledge.
-- **[Settings](docs/settings/settings.md)**: Delve into the model, storage, and system configurations to tweak the behavior of the system.
+- **[Personas](docs/personas/Personas.md)**: Use personas to encapsulate agent identity, style, and reusable knowledge.
+- **[Settings](docs/settings/settings.md)**: Configure models, storage, and system behavior.
 - **[Storage](docs/storage/chroma_storage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
-- **[Tools & Actions](docs/tools_and_actions/Overview.md)**: Discover the system's toolbox and learn how to choreograph tools into actionable sequences.
+- **[Tools & Actions](docs/tools_and_actions/Overview.md)**: *Deprecated*—will be replaced by an MCP-based system in a future release.
 - **[Utilities](docs/utils/UtilsOverview.md)**: Explore utility functions and tools that enhance the system's capabilities.
-
 
 ---
 
 ## Contributing
 
-Feel free to open issues or submit pull requests with improvements or bug fixes. Your contributions are welcome!
+We welcome issues and pull requests with improvements or bug fixes!
 
 ### Special Note
-We're on the lookout for a UI/UX collaborator who's passionate about open-source and wants to help develop a front-end for this framework. This isn't a job offer, but rather an invitation to be a part of something cool. Interested? We'd love to chat! (See the [Contact Us](#contact-us) section below for details.)
+We're looking for a UI/UX collaborator passionate about open-source to help develop a front-end for AgentForge. Interested? See [Contact Us](#contact-us) below.
 
 ---
 
 ## Contact Us
-
-If you're keen on contributing or just want to reach out, here's how to get in touch:
 
 - **Email**: contact@agentforge.net
 - **Discord**: Join our [Discord Server](https://discord.gg/ttpXHUtCW6)
