@@ -121,7 +121,7 @@ prompts:
 - `custom_fields`: Any extra fields from the YAML config
 
 ---
-- [Agents Overview](Agents.md)
-- [Prompt Templates](AgentPrompts.md)
-- [Custom Agents](CustomAgents.md)
+- [Agents Overview](agents.md)
+- [Prompt Templates](agent_prompts.md)
+- [Custom Agents](custom_agents.md)
 - [Model Overrides](../settings/models.md#specifying-model-overrides-in-agents)
