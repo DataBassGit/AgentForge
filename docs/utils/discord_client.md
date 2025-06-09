@@ -9,7 +9,7 @@
 
 Together, these classes provide:
 
-- A **separate thread** for the Discord bot so it doesn’t block the main application.  
+- A **separate thread** for the Discord bot so it doesn't block the main application.  
 - An **asynchronous** event loop for receiving messages, slash commands, and updates.  
 - **Utility methods** for chunking large messages, creating threads, sending embeds, and more.
 
@@ -24,7 +24,7 @@ Together, these classes provide:
 
 ## Quick Start
 
-Here’s a minimal snippet showing how you might integrate the Discord client into an **AgentForge**-based application:
+Here's a minimal snippet showing how you might integrate the Discord client into an **AgentForge**-based application:
 
 ```python
 from agentforge.utils.discord.discord_client import DiscordClient
@@ -122,7 +122,7 @@ class DiscordClient:
 - **`send_message(channel_id, content)`**: Sends a text message to the specified channel.  
 - **`send_dm(user_id, content)`**: Sends a direct message to a user by their ID.  
 - **`send_embed(channel_id, title, fields, color, image_url)`**: Sends an embed to a channel with optional fields and image.  
-- **`set_typing_indicator(channel_id, is_typing)`** *(Async)*: Toggles the “typing...” indicator in a channel.  
+- **`set_typing_indicator(channel_id, is_typing)`** *(Async)*: Toggles the "typing..." indicator in a channel.  
 
 ### Threads and Slash Commands
 
@@ -141,7 +141,7 @@ class DiscordClient:
 ## The `DiscordUtils` Class
 
 **File**: `agentforge/utils/discord/discord_utils.py`  
-This companion class handles lower-level tasks like chunking large messages, retrieving channels, or sending direct messages. It’s used internally by `DiscordClient`, but you can also use it directly if needed.
+This companion class handles lower-level tasks like chunking large messages, retrieving channels, or sending direct messages. It's used internally by `DiscordClient`, but you can also use it directly if needed.
 
 ### Notable Methods
 
@@ -155,7 +155,7 @@ This companion class handles lower-level tasks like chunking large messages, ret
   Creates and sends a `discord.Embed` object, adding multiple fields.
 
 - **`create_thread(channel_id, message_id, name, auto_archive_duration=1440, remove_author=True)`**  
-  Creates a thread off of a message. If `remove_author=True`, removes the original message’s author from the thread.
+  Creates a thread off of a message. If `remove_author=True`, removes the original message's author from the thread.
 
 - **`reply_to_thread(thread_id, content)`**  
   Splits the content into chunks and sends them as messages inside a thread.
@@ -171,11 +171,11 @@ The **message queue** is a pivotal part of how Discord messages flow into your a
 ### Thread Safety and Async Calls
 
 - The Discord bot runs in its own thread (started by `DiscordClient.run()`).  
-- When you call methods like `send_message`, they schedule asynchronous tasks in the Discord client’s loop using `asyncio.run_coroutine_threadsafe`. This approach ensures non-blocking, thread-safe interactions.
+- When you call methods like `send_message`, they schedule asynchronous tasks in the Discord client's loop using `asyncio.run_coroutine_threadsafe`. This approach ensures non-blocking, thread-safe interactions.
 
 ### Chunking Large Messages
 
-Both `send_message` and `send_dm` use a `semantic_chunk` function to break up content into ~1900-character pieces. This prevents errors from Discord’s 2000-character limit. If a chunk still ends up too big, it re-chunks it further.
+Both `send_message` and `send_dm` use a `semantic_chunk` function to break up content into ~1900-character pieces. This prevents errors from Discord's 2000-character limit. If a chunk still ends up too big, it re-chunks it further.
 
 ### Slash Commands
 
@@ -209,7 +209,7 @@ self.tree.add_command(command_callback)
 
 ## Conclusion
 
-**AgentForge**’s Discord integration provides a threaded client that can parse and queue incoming messages, respond, send DMs, embed messages, and manage threads. For developers building chat-oriented agents, it offers a straightforward path to real-time user interaction on Discord.
+**AgentForge**'s Discord integration provides a threaded client that can parse and queue incoming messages, respond, send DMs, embed messages, and manage threads. For developers building chat-oriented agents, it offers a straightforward path to real-time user interaction on Discord.
 
 If you need more complex slash commands or event handling, you can expand the provided structure. By leveraging `DiscordClient` and `DiscordUtils`, your agents can seamlessly fit into Discord communities, respond to user queries, or even gather context for advanced LLM-driven tasks.
 

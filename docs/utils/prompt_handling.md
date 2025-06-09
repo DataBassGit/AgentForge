@@ -2,7 +2,7 @@
 
 In **AgentForge**, the `PromptProcessor` class manages prompt templates: extracting variables, validating required data, and rendering prompts with dynamic content. This utility is essential for building agents that use flexible, data-driven prompts.
 
-> **Note:** In AgentForge, prompt template YAML files are loaded automatically by the framework. You should define your prompts in these YAML files rather than hardcoding them in your code unlike the examples below which do so solely for demostration purposed. For more details on prompt file structure and usage, see [AgentPrompts.md](../agents/AgentPrompts.md).
+> **Note:** In AgentForge, prompt template YAML files are loaded automatically by the framework. You should define your prompts in these YAML files rather than hardcoding them in your code unlike the examples below which do so solely for demostration purposed. For more details on prompt file structure and usage, see [AgentPrompts.md](../agents/agent_prompts.md).
 
 ---
 

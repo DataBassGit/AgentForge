@@ -14,7 +14,7 @@ See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
 
 Any python script can be added as a tool by completing a simple yaml template and storing it in the .agentforge/tools directory in your project. This yaml file is loaded into the database at runtime, and thus new tools require the agent be restarted before they are loaded into the database. The intent is that the database can be queried for the most relevant tool for a specified task.
 
-**Detailed Guide**: For a comprehensive guide on Tools, including their configurations and capabilities, please see [Tools Detailed Guide](Tools.md).
+**Detailed Guide**: For more details on tools and utilities, please see [Tools Detailed Guide](tools.md).
 
 **Example Tool: Brave Search**
 ```yaml
@@ -61,7 +61,7 @@ Class: BraveSearch
 
 **Actions** are structured sequences of one or more **Tools**, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via **YAML** files which describe the process flow and inter-tool dynamics.
 
-**Detailed Guide**: To understand Actions in depth, including how to create and manage them, refer to [Actions Detailed Guide](Actions.md).
+**Detailed Guide**: To understand Actions in depth, including how to create and manage them, refer to [Actions Detailed Guide](actions.md).
 
 **Example Action: Web Search**
 ```yaml

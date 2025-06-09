@@ -126,4 +126,4 @@ AgentForge currently ships with the following memory node types:
 ## 7. Related Documentation
 - [Cog Guide](../cogs/cogs.md)
 - [PersonaMemory](persona_memory.md)
-- [Prompt Template Examples](../setup_files/prompts/)
+- [Prompt Template Examples](../../src/agentforge/setup_files/prompts/)

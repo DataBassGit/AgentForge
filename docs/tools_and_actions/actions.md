@@ -201,8 +201,8 @@ Initializes a specified collection in the vector database with preloaded data.
 from agentforge.modules.actions import Actions
 
 actions = Actions()
-actions.initialize_collection('Actions')
-actions.initialize_collection('Tools')
+actions.initialize_collection('actions')
+actions.initialize_collection('tools')
 ```
 
 ---

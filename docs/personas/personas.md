@@ -107,7 +107,7 @@ AgentForge includes a `PersonaMemory` system for dynamic storage and retrieval o
 ---
 
 ## Related Documentation
-- [System Settings Guide](../settings/system.md)  
-- [Agent Prompts](../agents/AgentPrompts.md)  
-- [Cogs Guide](../cogs/cogs.md)  
-- [Memory Guide](../storage/memory.md)
+- [System Settings Guide](../settings/system.md)
+- [Agent Prompts](../agents/agent_prompts.md)
+- [Cogs Guide](../cogs/cogs.md)
+- [Memory Guide](../memory/memory.md)

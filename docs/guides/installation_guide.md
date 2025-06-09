@@ -126,12 +126,12 @@ your_project/
 
 ## Using AgentForge
 
-Now that your project is set up, you can proceed to the [Using AgentForge Guide](UsingAgentForge.md) to learn how to run agents and build your solutions. This guide provides examples and instructions on how to create and interact with agents using **AgentForge**.
+Now that your project is set up, you can proceed to the [Using AgentForge Guide](using_agentforge.md) to learn how to run agents and build your solutions. This guide provides examples and instructions on how to create and interact with agents using **AgentForge**.
 
 ---
 
 ## Next Steps
 
-- Review the [Prerequisites Guide](PrerequisitesGuide.md) if you haven't set up API keys or other necessary configurations.
+- Review the [Prerequisites Guide](prerequisites_guide.md) if you haven't set up API keys or other necessary configurations.
 
-- If you're having trouble with **AgentForge**, please head over to the [Troubleshooting Guide](TroubleshootingGuide.md) for solutions to common issues.
+- If you're having trouble with **AgentForge**, please head over to the [Troubleshooting Guide](troubleshooting_guide.md) for solutions to common issues.

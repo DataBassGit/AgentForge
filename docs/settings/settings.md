@@ -69,7 +69,7 @@ Cogs define agent composition, memory nodes, and flow. Cogs can specify a `perso
 - Leverage `system.misc.on_the_fly` for dynamic reloading during development.
 
 ## Related Documentation
-- [Agents Guide](../agents/Agents.md)
+- [Agents Guide](../agents/agents.md)
 - [Cogs Guide](../cogs/cogs.md)
-- [Personas Guide](../personas/Personas.md)
+- [Personas Guide](../personas/personas.md)
 - [Memory Guide](../storage/memory.md)

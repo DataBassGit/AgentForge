@@ -51,7 +51,7 @@ prompts:
 - `{_mem}`: Memory nodes (e.g., chat history, persona memory).
 - `{persona.static.name}`: Persona fields (see below).
 
-See the [Agent Prompts Guide](../agents/AgentPrompts.md) for details on prompt variables and template structure.
+See the [Agent Prompts Guide](../agents/agent_prompts.md) for details on prompt variables and template structure.
 
 ---
 
@@ -144,7 +144,7 @@ retrieval:
 - Reference persona fields in prompts: `{persona.static.name}`, `{persona.retrieval.tone}`
 - Specify persona in Cog or agent YAML: `persona: alice`
 
-See the [Personas Guide](../personas/Personas.md) for schema and usage.
+See the [Personas Guide](../personas/personas.md) for schema and usage.
 
 ---
 
@@ -180,18 +180,18 @@ my_custom_agent = CustomAgent('response_agent')
 reply = my_custom_agent.run(user_input="Hello!")
 print(reply)
 ```
-See the [Custom Agents Guide](../agents/CustomAgents.md) for more.
+See the [Custom Agents Guide](../agents/custom_agents.md) for more.
 
 ---
 
 ## 8. Additional Resources
 
-- [Agents Overview](../agents/Agents.md)
+- [Agents Overview](../agents/agents.md)
 - [Cogs Guide](../cogs/cogs.md)
 - [Memory Guide](../memory/memory.md)
-- [Personas Guide](../personas/Personas.md)
+- [Personas Guide](../personas/personas.md)
 - [Settings Guide](../settings/settings.md)
 - [Prompt Template Examples](../../src/agentforge/setup_files/prompts/)
 - [Cog Configuration Examples](../../src/agentforge/setup_files/cogs/)
 
-If you encounter issues, see the [Troubleshooting Guide](../guides/TroubleshootingGuide.md).
+If you encounter issues, see the [Troubleshooting Guide](../guides/troubleshooting_guide.md).

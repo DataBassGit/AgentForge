@@ -107,4 +107,4 @@ You can combine chat history with other memory nodes in your prompts for richer 
 ## Related Documentation
 - [Memory in Cogs](memory.md)
 - [Cog Guide](../cogs/cogs.md)
-- [Prompt Template Examples](../setup_files/prompts/) 
+- [Prompt Template Examples](../../src/agentforge/setup_files/prompts/) 

@@ -127,4 +127,4 @@ print(recent)
 ## 8. Related Documentation
 - [Storage Settings](../settings/storage.md)
 - [Cogs Guide](../cogs/cogs.md)
-- [Agent Class API](../agents/AgentClass.md)
+- [Agent Class API](../agents/agent_class.md)

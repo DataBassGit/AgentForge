@@ -5,7 +5,7 @@
 The **Logger** utility in **AgentForge** provides a flexible and comprehensive system for capturing log messages across different modules. It allows you to:
 
 1. Organize logs by categories or files (e.g., "agentforge", "model_io", "actions", etc.).  
-2. Dynamically create new log files on-the-fly if they aren’t defined in the system configuration.  
+2. Dynamically create new log files on-the-fly if they aren't defined in the system configuration.  
 3. Control verbosity with various log levels (debug, info, warning, error, critical).  
 4. Output logs to both console (with color-coded levels) and file (for auditing or later review).
 
@@ -15,7 +15,7 @@ The **Logger** utility in **AgentForge** provides a flexible and comprehensive s
 
 ### 1. `Logger` (High-Level Interface)
 
-When you instantiate `Logger(name='Something')`, it reads from your system’s logging settings and sets up a dictionary of underlying `BaseLogger` objects—one for each configured log file. If you attempt to log to a file that doesn’t exist in your configuration, it automatically creates an entry in `system.yaml`, sets that file’s level to `warning` by default, and saves the updated config.
+When you instantiate `Logger(name='Something')`, it reads from your system's logging settings and sets up a dictionary of underlying `BaseLogger` objects—one for each configured log file. If you attempt to log to a file that doesn't exist in your configuration, it automatically creates an entry in `system.yaml`, sets that file's level to `warning` by default, and saves the updated config.
 
 **Example**:
 
@@ -33,7 +33,7 @@ my_logger.log("Hello, world!", level='info')
 - **Console Handler**: Uses a `ColoredFormatter` to color-code log messages based on level.  
 - **File Handler**: Writes logs to `<log_folder>/<log_file>.log` using the configured level and format.
 
-**You typically don’t create `BaseLogger` objects directly**. Instead, the `Logger` class handles it for you when you call `Logger(...).log(...)`.
+**You typically don't create `BaseLogger` objects directly**. Instead, the `Logger` class handles it for you when you call `Logger(...).log(...)`.
 
 ---
 
@@ -41,7 +41,7 @@ my_logger.log("Hello, world!", level='info')
 
 ### 1. `system.yaml` Example
 
-Below is a snippet showing how logging might appear in your `system.yaml` under `settings.system.logging`. If a requested log file isn’t listed, **AgentForge** dynamically adds it at level `warning`.
+Below is a snippet showing how logging might appear in your `system.yaml` under `settings.system.logging`. If a requested log file isn't listed, **AgentForge** dynamically adds it at level `warning`.
 
 ```yaml
 logging:
@@ -56,11 +56,11 @@ logging:
 - **`enabled`**: Set to `false` to disable logging globally.  
 - **`console_level`**: Minimum severity level to show in console logs (one of `debug`, `info`, `warning`, `error`, `critical`).  
 - **`folder`**: The directory where log files will be created.  
-- **`files`**: A dictionary of log file “names” → default levels. For example, `agentforge: error` means that anything logged to the “agentforge” file will be written at `error` or above, unless updated at runtime.
+- **`files`**: A dictionary of log file "names" → default levels. For example, `agentforge: error` means that anything logged to the "agentforge" file will be written at `error` or above, unless updated at runtime.
 
 ### 2. Dynamic Creation of Log Files
 
-If your code references a log file that doesn’t exist in `files`, the system updates `system.yaml` and sets it to `warning` by default. This means you can do:
+If your code references a log file that doesn't exist in `files`, the system updates `system.yaml` and sets it to `warning` by default. This means you can do:
 
 ```python
 logger.log("Hello from a brand-new log file!", logger_file='my_new_log', level='info')
@@ -85,7 +85,7 @@ my_logger = Logger(name='DataProcessor', default_logger='dataprocess')
 ```
 
 - **`name`**: A string typically matching your module or class. Shows up in log messages as `[DataProcessor] My message`.  
-- **`default_logger`**: The default file you’ll log to if you don’t specify one. If it doesn’t exist in `system.yaml`, it’s created at `warning` level.
+- **`default_logger`**: The default file you'll log to if you don't specify one. If it doesn't exist in `system.yaml`, it's created at `warning` level.
 
 2. **Logging Messages**
 
@@ -144,7 +144,7 @@ It logs both the response content and the exception at `error` level.
 
 ## Usage Within Agents
 
-If you’re building a **custom agent** (subclassing `Agent`), you already have a logger via `self.logger`. For instance:
+If you're building a **custom agent** (subclassing `Agent`), you already have a logger via `self.logger`. For instance:
 
 ```python
 from agentforge.agent import Agent
@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
 What happens behind the scenes:
 
-- If `data_module` or `special_data` aren’t in `system.yaml`, the logger updates `system.yaml` to include them (under `logging.files`) at `warning` level.  
+- If `data_module` or `special_data` aren't in `system.yaml`, the logger updates `system.yaml` to include them (under `logging.files`) at `warning` level.  
 - The relevant log messages go to `./logs/data_module.log` or `./logs/special_data.log` in addition to any console output if the level meets or exceeds the console threshold.
 
 ---
@@ -213,7 +213,7 @@ What happens behind the scenes:
 
 ## Conclusion
 
-The updated Logger system in **AgentForge** lets you track and audit your agents’ behavior with minimal setup. Developers can effortlessly create new log files at runtime, maintain separate logs for different components, and control verbosity on a per-file basis. This flexibility ensures you can keep your logs clean, relevant, and fully aligned with your application’s needs.
+The updated Logger system in **AgentForge** lets you track and audit your agents' behavior with minimal setup. Developers can effortlessly create new log files at runtime, maintain separate logs for different components, and control verbosity on a per-file basis. This flexibility ensures you can keep your logs clean, relevant, and fully aligned with your application's needs.
 
 ---
 

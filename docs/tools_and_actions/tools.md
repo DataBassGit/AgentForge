@@ -122,7 +122,7 @@ result = tool_utils.dynamic_tool(tool, payload)
 # The result of the execution will be handled by the tool_utils object
 ```
 
->**Note on Tool Attributes**: Not all attributes defined in the tool's **YAML** file are used when executing the **tool** with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the **tool** for use. They inform the LLM about the **tool**'s purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the **tool**. The context becomes more relevant when we get into [Actions](Actions.md).
+>**Note on Tool Attributes**: Not all attributes defined in the tool's **YAML** file are used when executing the **tool** with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the **tool** for use. They inform the LLM about the **tool**'s purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the **tool**. The context becomes more relevant when we get into [Actions](actions.md).
 
 ## Implementing Custom Tools
 

@@ -67,5 +67,5 @@ If you encounter issues not covered in this guide:
 
 **Next Steps**:
 
-- Return to the [Using AgentForge Guide](UsingAgentForge.md) to continue building your agents.
-- Review the [Prerequisites Guide](PrerequisitesGuide.md) to ensure all requirements are met.
+- Return to the [Using AgentForge Guide](using_agentforge.md) to continue building your agents.
+- Review the [Prerequisites Guide](prerequisites_guide.md) to ensure all requirements are met.

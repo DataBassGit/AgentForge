@@ -29,7 +29,7 @@ In **AgentForge**, the `ToolUtils` class provides a mechanism for dynamically lo
    - Convert tool/action definitions into human-readable text.  
    - Format a dictionary of items (e.g., multiple tools) for easy display.
 
-Most developers won’t need to modify `ToolUtils` directly if they’re just defining new tools; references to the utility typically occur inside advanced agent code that decides which tool to execute on the fly.
+Most developers won't need to modify `ToolUtils` directly if they're just defining new tools; references to the utility typically occur inside advanced agent code that decides which tool to execute on the fly.
 
 ---
 
@@ -65,7 +65,7 @@ Dynamically loads a specified tool and executes a command within it, passing arg
 
 **Parameters**  
 - **`tool`** (`dict`): Typically includes keys like `Script` (a module path) and `Command` (the function or method to call), plus an optional `Class`.  
-- **`payload`** (`dict`): Contains `'args'` to be passed to the tool’s command.
+- **`payload`** (`dict`): Contains `'args'` to be passed to the tool's command.
 
 **Returns**  
 - A dictionary with either `{'status': 'success', 'data': <result>}` or `{'status': 'failure', 'message': <error>, 'traceback': <trace>}`.
@@ -105,7 +105,7 @@ Internally called by `dynamic_tool` to handle the actual import and call. It:
 2. Otherwise imports the module, optionally instantiates a class, and calls the specified `command`.
 
 **Note**  
-This method is not typically invoked directly. If you need to modify the import or instantiation logic, you’d override or alter this method.
+This method is not typically invoked directly. If you need to modify the import or instantiation logic, you'd override or alter this method.
 
 ---
 
@@ -124,7 +124,7 @@ Catches exceptions from `_execute_tool` or `dynamic_tool`, logs them, and return
 ### 4. `format_item(item: Dict[str, Union[str, List[str]]], order: Optional[List[str]] = None) -> str`
 
 **Purpose**  
-Creates a user-friendly string representation of a single tool or action dictionary. If the dictionary has lists, they’re converted to bullet points. If it has multi-line strings, they’re displayed with extra spacing.
+Creates a user-friendly string representation of a single tool or action dictionary. If the dictionary has lists, they're converted to bullet points. If it has multi-line strings, they're displayed with extra spacing.
 
 **Example**:
 ```python
@@ -172,7 +172,7 @@ print(formatted_tools)
 
 ## Practical Usage: Dynamic Execution in an Agent
 
-Here’s a more complete example of how an agent might dynamically call a tool:
+Here's a more complete example of how an agent might dynamically call a tool:
 
 ```python
 from agentforge.agent import Agent
@@ -194,7 +194,7 @@ class DynamicToolAgent(Agent):
 ```
 
 **Flow**  
-1. `execute_dynamic_action` defines the tool’s `Script` (a module path) and the `Command`.  
+1. `execute_dynamic_action` defines the tool's `Script` (a module path) and the `Command`.  
 2. `dynamic_tool` imports and executes the tool function/class with `args = {'key1': 'value1'}`.  
 3. Logs results or errors accordingly.
 
@@ -207,7 +207,7 @@ class DynamicToolAgent(Agent):
 2. **Security**  
    Be mindful of letting user input define module paths or commands. Only allow references to safe or sandboxed code.  
 3. **Error Checking**  
-   Always check the returned `status`. If it’s `"failure"`, investigate `message` and `traceback`.  
+   Always check the returned `status`. If it's `"failure"`, investigate `message` and `traceback`.  
 4. **Use Logging**  
    `tool_utils.logger` helps trace usage and debug issues.  
 5. **Formatting**  
@@ -217,7 +217,7 @@ class DynamicToolAgent(Agent):
 
 ## Conclusion
 
-**AgentForge**’s `ToolUtils` streamlines the process of dynamically importing modules, running their commands, and formatting tool definitions for display or logging. For agent developers seeking to create flexible, pluggable functionalities—such as custom domain tools or user-defined scripts—this utility is essential.
+**AgentForge**'s `ToolUtils` streamlines the process of dynamically importing modules, running their commands, and formatting tool definitions for display or logging. For agent developers seeking to create flexible, pluggable functionalities—such as custom domain tools or user-defined scripts—this utility is essential.
 
 **Need Help?**
 

@@ -50,22 +50,22 @@ Comprehensive documentation is available to help you get started and go deeper:
 
 ### **Getting Started**
 
-- **[Installation Guide](docs/guides/InstallationGuide.md)**: Step-by-step instructions to install **AgentForge**.
-- **[Using AgentForge](docs/guides/UsingAgentForge.md)**: Learn how to run agents, create custom agents, and build cognitive architectures with examples.
-- **[Prerequisites Guide](docs/guides/PrerequisitesGuide.md)**: Details all pre-installation requirements and dependencies.
-- **[Troubleshooting Guide](docs/guides/TroubleshootingGuide.md)**: Find solutions to common issues and platform-specific problems.
+- **[Installation Guide](docs/guides/installation_guide.md)**: Step-by-step instructions to install **AgentForge**.
+- **[Using AgentForge](docs/guides/using_agentforge.md)**: Learn how to run agents, create custom agents, and build cognitive architectures with examples.
+- **[Prerequisites Guide](docs/guides/prerequisites_guide.md)**: Details all pre-installation requirements and dependencies.
+- **[Troubleshooting Guide](docs/guides/troubleshooting_guide.md)**: Find solutions to common issues and platform-specific problems.
 
 ### **Core Concepts**
 
-- **[Agents](docs/agents/Agents.md)**: Create and customize individual AI agents for various tasks.
+- **[Agents](docs/agents/agents.md)**: Create and customize individual AI agents for various tasks.
 - **[Cogs](docs/cogs/cogs.md)**: Design multi-agent workflows with branching logic and memory using YAML configuration. Cogs are the main way to build and run multi-agent systems in AgentForge.
 - **[Memory](docs/memory/memory.md)**: Add contextual memory to your agents and cogs for more coherent, context-aware interactions. Memory is managed declaratively in Cogs and accessed in agent prompts.
 - **[API Integration](docs/apis/apis.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
-- **[Personas](docs/personas/Personas.md)**: Use personas to encapsulate agent identity, style, and reusable knowledge.
+- **[Personas](docs/personas/personas.md)**: Use personas to encapsulate agent identity, style, and reusable knowledge.
 - **[Settings](docs/settings/settings.md)**: Configure models, storage, and system behavior.
 - **[Storage](docs/storage/chroma_storage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
-- **[Tools & Actions](docs/tools_and_actions/Overview.md)**: *Deprecated*—will be replaced by an MCP-based system in a future release.
-- **[Utilities](docs/utils/UtilsOverview.md)**: Explore utility functions and tools that enhance the system's capabilities.
+- **[Tools & Actions](docs/tools_and_actions/overview.md)**: *Deprecated*—will be replaced by an MCP-based system in a future release.
+- **[Utilities](docs/utils/utils_overview.md)**: Explore utility functions and tools that enhance the system's capabilities.
 
 ---
 

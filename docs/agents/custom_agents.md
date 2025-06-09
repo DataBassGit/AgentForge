@@ -77,9 +77,9 @@ Ensure `.agentforge/prompts/detailed_prompt.yaml` exists with your desired promp
 ---
 
 ## Related Documentation
-- [Agent Class](AgentClass.md)  
-- [Prompt Templates](AgentPrompts.md)  
-- [Agents Overview](Agents.md)  
+- [Agent Class](agent_class.md)  
+- [Prompt Templates](agent_prompts.md)  
+- [Agents Overview](agents.md)  
 - [Model Overrides](../settings/models.md#specifying-model-overrides-in-agents)
 
 ---

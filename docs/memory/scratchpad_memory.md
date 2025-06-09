@@ -84,4 +84,4 @@ You can combine the scratchpad with other memory nodes (e.g., chat history, pers
 ## Related Documentation
 - [Memory in Cogs](memory.md)
 - [Cog Guide](../cogs/cogs.md)
-- [Prompt Template Examples](../setup_files/prompts/) 
+- [Prompt Template Examples](../../src/agentforge/setup_files/prompts/) 

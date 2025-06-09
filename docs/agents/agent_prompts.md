@@ -74,6 +74,6 @@ prompts:
 - Pass all dynamic variables via `template_data` (from `run()` or hooks).
 
 ---
-- [Agents Overview](Agents.md)
-- [Agent Class](AgentClass.md)
-- [Custom Agents](CustomAgents.md)
+- [Agents Overview](agents.md)
+- [Agent Class](agent_class.md)
+- [Custom Agents](custom_agents.md)
