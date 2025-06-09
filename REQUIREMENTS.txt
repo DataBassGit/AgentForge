@@ -1,5 +1,5 @@
 # Core Dependencies
-chromadb==0.6.2
+chromadb==1.0.0
 numpy<2.0.0; python_version<'3.12'
 numpy>=2.0.0; python_version>='3.12'
 sentence-transformers
@@ -23,6 +23,7 @@ ruamel.yaml
 requests
 xmltodict
 setuptools>=70.0.0
+python-dotenv
 
 # Optional Dependencies
 matplotlib~=3.9.2

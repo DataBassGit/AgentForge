@@ -1,0 +1,34 @@
+cog:
+  name: "ExampleCogWithMemory"
+  description: "A sample decision workflow with memory."
+  chat_memory_enabled: false # disable chat memory for this cog
+
+  agents:
+    - id: analysis
+      template_file: cog_analyze_agent
+
+    - id: decision
+      template_file: cog_decide_agent
+
+    - id: response
+      template_file: cog_response_agent
+
+  memory: # no agents are used in this memory node
+    - id: general_memory
+      query_before: analysis
+      update_after: response
+      query_keys: [user_input]
+      update_keys: [user_input, response]
+
+  flow:
+    start: analysis
+    transitions:
+      analysis: decision
+      decision:
+        choice:
+          "approve": response
+          "reject": analysis
+        fallback: response
+        max_visits: 3
+      response:
+        end: true 

@@ -20,7 +20,7 @@ class LMStudio(BaseModel):
 
         if response.status_code != 200:
             # return error content
-            self.logger.log(f"Request error: {response}", 'error')
+            self.logger.error(f"Request error: {response}")
             return None
 
         return response.json()

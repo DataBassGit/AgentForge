@@ -1,11 +1,14 @@
+import re
 import os
 import uuid
 from datetime import datetime
 from typing import Optional, Union
+import threading
 
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
+from scipy.ndimage import value_indices
 
 from agentforge.utils.logger import Logger
 from agentforge.config import Config
@@ -13,13 +16,65 @@ from agentforge.config import Config
 logger = Logger(name="Chroma Utils", default_logger='chroma_utils')
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+##########################################################
+# Section 1: Static Methods
+##########################################################
 
-def validate_inputs(collection_name: str, data: Union[list, str], ids: list, metadata: list[dict]):
+def validate_collection_name(collection_name: str):
+    # We expected a collection name that:
+    # (1) contains 3-63 characters
+    # (2) starts and ends with an alphanumeric character
+    # (3) otherwise contains only alphanumeric characters, underscores or hyphens (-)
+    # (4) contains no two consecutive periods (..) and
+    # (5) is not a valid IPv4 address.
+
+    if not collection_name:
+        raise ValueError("Collection name cannot be empty.")
+
+    # Replace any invalid characters with an underscore
+    collection_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', collection_name)
+
+    # Remove consecutive periods
+    while ".." in collection_name:
+        collection_name = collection_name.replace("..", ".")
+
+    # Check if the first character is not alphanumeric and remove it
+    while len(collection_name) > 0 and not collection_name[0].isalnum():
+        collection_name = collection_name[1:]
+
+    # Check if the last character is not alphanumeric and remove it
+    while len(collection_name) > 0 and not collection_name[-1].isalnum():
+        collection_name = collection_name[:-1]
+
+    # Ensure we don't proceed with an empty name
+    if len(collection_name) <= 0:
+        collection_name = "0"
+
+    # Ensure the name starts with an alphanumeric character
+    if not collection_name[0].isalnum():
+        collection_name = "0" + collection_name
+
+    # Ensure the name ends with an alphanumeric character
+    if not collection_name[-1].isalnum():
+        collection_name = collection_name + "0"
+
+    # Ensure the name is at least 3 characters long
+    while len(collection_name) < 3:
+        collection_name = collection_name + "0"
+
+    # Check if the name exceeds 63 characters
+    if len(collection_name) > 63:
+        raise ValueError(f"Collection name exceeds 63 characters. Ensure it starts/ends with alphanumeric, "
+                         f"contains only alphanumeric, underscores, hyphens, and no consecutive periods.\n"
+                         f"Got: '{collection_name}'")
+
+    return collection_name
+
+def validate_inputs(data: Union[list, str], ids: list, metadata: list[dict]):
     """
     Validates the inputs for the save_memory method.
 
     Parameters:
-        collection_name (str): The name of the collection.
         data (Union[list, str]): The documents to be saved.
         ids (list): The IDs for the documents.
         metadata (list[dict]): The metadata for the documents.
@@ -27,15 +82,11 @@ def validate_inputs(collection_name: str, data: Union[list, str], ids: list, met
     Raises:
         ValueError: If any of the inputs are invalid.
     """
-    if not collection_name:
-        raise ValueError("Collection name cannot be empty.")
-
     if not data:
         raise ValueError("Data cannot be empty.")
 
     if not (len(data) == len(ids) == len(metadata)):
         raise ValueError("The length of data, ids, and metadata lists must match.")
-
 
 def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[dict] = None):
     """
@@ -57,33 +108,25 @@ def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[d
 
     return ids, metadata
 
+def apply_uuids(metadata: list[dict], config: dict):
+    do_uuid = config['options'].get('add_uuid', False)
+    if do_uuid:
+        for m in metadata:
+            m['uuid'] = str(uuid.uuid4())
 
 def apply_iso_timestamps(metadata: list[dict], config):
-    do_time_stamp = config['settings']['storage']['options'].get('iso_timestamp', False)
+    do_time_stamp = config['options'].get('iso_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for m in metadata:
             m['iso_timestamp'] = timestamp
 
-
 def apply_unix_timestamps(metadata: list[dict], config):
-    do_time_stamp = config['settings']['storage']['options'].get('unix_timestamp', False)
+    do_time_stamp = config['options'].get('unix_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().timestamp()
         for m in metadata:
             m['unix_timestamp'] = timestamp
-
-
-def apply_timestamps(metadata: list[dict], config):
-    """
-    Applies timestamps to the metadata if required by the configuration.
-
-    Parameters:
-        metadata (list[dict]): The metadata for the documents.
-        config (dict): The configuration dictionary.
-    """
-    apply_iso_timestamps(metadata, config)
-    apply_unix_timestamps(metadata, config)
 
 def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
     """
@@ -101,15 +144,29 @@ def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
         ids=ids
     )
 
+##########################################################
+# Section 2: ChromaDB
+##########################################################
+
 
 class ChromaStorage:
     """
-    A utility class for managing interactions with ChromaDB, offering a range of functionalities including
-    initialization, data insertion, query, and collection management.
+    A utility class for managing interactions with ChromaDB,
+    using a storage_id to define each instance.
 
-    This class utilizes a singleton pattern to ensure a single instance manages storage interactions across
-    the application.
+    Provides a thread-safe registry of instances keyed by storage_id.
+
+    Usage:
+        storage = ChromaStorage.get_or_create(storage_id="my_storage_id")
+
+    To reset the registry (e.g., between tests):
+        ChromaStorage.clear_registry()
+
+    To debug instance resolution:
+        storage.describe_instance()
     """
+    _registry = {}
+    _registry_lock = threading.Lock()
 
     _instance = None
     client = None
@@ -118,9 +175,54 @@ class ChromaStorage:
     db_embed = None
     embedding = None
 
-    # ---------------------------------
-    # Completed
-    # ---------------------------------
+    ##########################################################
+    # Section 3: Class Methods
+    ##########################################################
+
+    @classmethod
+    def get_or_create(cls, storage_id: str):
+        """
+        Retrieve a shared ChromaStorage instance for the given storage_id.
+        """
+        if not storage_id:
+            raise ValueError("ChromaStorage.get_or_create requires a non-empty storage_id.")
+        with cls._registry_lock:
+            if storage_id not in cls._registry:
+                cls._registry[storage_id] = cls(storage_id=storage_id)
+            return cls._registry[storage_id]
+
+    @classmethod
+    def clear_registry(cls):
+        """
+        Clear the ChromaStorage registry. Useful for test isolation or resetting state.
+        """
+        with cls._registry_lock:
+            cls._registry.clear()
+
+    def describe_instance(self):
+        """
+        Returns a dictionary describing the storage_id and path for this instance.
+        Useful for debugging and testing.
+        """
+        db_path, db_embed = self.chromadb_settings()
+        return {
+            'storage_id': self.storage_id,
+            'db_path': db_path,
+            'db_embed': db_embed,
+        }
+
+    ##########################################################
+    # Section 4: Initialization
+    ##########################################################
+
+    def __init__(self, storage_id: str):
+        """
+        Initialize a ChromaStorage instance with a storage_id context.
+        """
+        self.config = Config()
+        self.storage_id = storage_id
+        self.init_embeddings()
+        self.init_storage()
 
     def init_storage(self):
         """
@@ -137,51 +239,11 @@ class ChromaStorage:
                 else:
                     self.client = chromadb.EphemeralClient()
 
-            if self.config.data['settings']['storage'].get('fresh_start'):
-                self.reset_memory()
+            if getattr(self.config.settings.storage, 'fresh_start', False):
+                self.reset_storage()
         except Exception as e:
-            logger.log(f"[init_storage] Error initializing storage: {e}", 'error')
+            logger.error(f"[init_storage] Error initializing storage: {e}")
             raise
-
-    def select_collection(self, collection_name: str):
-        """
-        Selects (or creates if not existent) a collection within the storage by name.
-
-        Parameters:
-            collection_name (str): The name of the collection to select or create.
-
-        Raises:
-            ValueError: If there's an error in getting or creating the collection.
-        """
-        try:
-            self.collection = self.client.get_or_create_collection(name=collection_name,
-                                                                   embedding_function=self.embedding,
-                                                                   metadata={"hnsw:space": "cosine"})
-        except Exception as e:
-            raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
-
-    def chromadb_settings(self):
-        """
-        Retrieves the ChromaDB settings from the configuration.
-
-        Returns:
-            tuple: A tuple containing the database path and embedding settings.
-        """
-        # Retrieve the ChromaDB settings
-        storage_settings = self.config.data['settings']['storage']
-
-        # Get the database path and embedding settings
-        db_path_setting = storage_settings['options'].get('persist_directory', None)
-        db_embed = storage_settings['embedding'].get('selected', None)
-
-        # Construct the absolute path of the database using the project root
-        if db_path_setting:
-            db_path = str(self.config.project_root / db_path_setting / self.persona_name)
-
-        else:
-            db_path = None
-
-        return db_path, db_embed
 
     def init_embeddings(self):
         """
@@ -194,40 +256,136 @@ class ChromaStorage:
         try:
             self.db_path, self.db_embed = self.chromadb_settings()
 
+
             # Initialize embedding based on the specified backend in the configuration
-            if self.db_embed == 'openai_ada2':
+            if not self.db_embed:
+                self.embedding = embedding_functions.DefaultEmbeddingFunction()
+                return
+            
+            if self.db_embed == 'text-embedding-ada-002':
                 openai_api_key = os.getenv('OPENAI_API_KEY')
                 self.embedding = embedding_functions.OpenAIEmbeddingFunction(
                     api_key=openai_api_key,
-                    model_name="text-embedding-ada-002"
+                    model_name=self.db_embed
                 )
-            elif self.db_embed == 'all-distilroberta-v1':
-                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(
-                    model_name="all-distilroberta-v1")
-            # Additional embeddings can be initialized here similarly
-            else:
-                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(
-                    model_name="all-MiniLM-L12-v2")
+                return
+            
+            if self.db_embed:
+                self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=self.db_embed)
+                return
+
+            raise ValueError(f"Unsupported embedding backend: {self.db_embed}")
         except KeyError as e:
-            logger.log(f"[init_embeddings] Missing environment variable or setting: {e}", 'error')
+            logger.error(f"[init_embeddings] Missing environment variable or setting: {e}")
             raise
         except Exception as e:
-            logger.log(f"[init_embeddings] Error initializing embeddings: {e}", 'error')
+            logger.error(f"[init_embeddings] Error initializing embeddings: {e}")
             raise
 
-    # ---------------------------------
-    # Pending
-    # ---------------------------------
+    ##########################################################
+    # Section 5: Configuration
+    ##########################################################
 
-    def __init__(self, persona_name="default"):
+    def chromadb_settings(self):
         """
-        Ensures an instance of ChromaUtils is created. Initializes embeddings and storage
-        upon creation.
+        Retrieves the ChromaDB settings from the configuration and resolves the database path
+        for a given storage_id.
+
+        Returns:
+            tuple: (db_path, db_embed)
         """
-        self.persona_name = persona_name
-        self.config = Config()
-        self.init_embeddings()
-        self.init_storage()
+        storage_settings = self.config.settings.storage
+        db_path_setting = storage_settings['options'].get('persist_directory', None)
+        selected_embed = storage_settings['embedding'].get('selected', None)
+        db_embed = storage_settings['embedding_library'].get(selected_embed, None)
+        if not db_path_setting:
+            raise ValueError("ChromaStorage: persist_directory must be set in the settings YAML.")
+        db_path = str(self.config.project_root / db_path_setting / self.storage_id)
+        return db_path, db_embed
+
+    def reset_storage(self):
+        """
+        Resets the entire storage, removing all collections and their data.
+
+        This method should be used with caution as it will permanently delete all data within the storage.
+        """
+
+        self.client.reset()
+
+    def return_embedding(self, text_to_embed: str):
+        """
+        Generates an embedding for the given text using the configured embedding function.
+
+        Parameters:
+            text_to_embed (str): The text to generate an embedding for.
+
+        Returns:
+            list: A list containing the generated embedding vector for the given text.
+        """
+        return self.embedding([text_to_embed])
+
+    ##########################################################
+    # Section 6: Inner Methods
+    ##########################################################
+
+    def _calculate_num_results(self, num_results, collection_name):
+        self.select_collection(collection_name)
+        max_result_count = self.collection.count()
+        return max_result_count if num_results == 0 else min(num_results, max_result_count)
+
+    def _prepare_query_params(self, query, filter_condition, include, embeddings, num_results, collection_name):
+        if not query and not embeddings:
+            logger.error(f"Error: No query nor embeddings were provided!  ")
+            return {}
+
+        query_params = {"n_results": self._calculate_num_results(num_results, collection_name)}
+        if query_params["n_results"] <= 0:
+            logger.info(f"No Results Found in '{collection_name}' collection!")
+            return {}
+
+        query_params["include"] = include if include else ["documents", "metadatas", "distances"]
+
+        if filter_condition:
+            query_params["where"] = filter_condition
+
+        if query:
+            query_params["query_texts"] = [query] if isinstance(query, str) else query
+
+        if embeddings:
+            query_params["query_embeddings"] = embeddings
+
+        return query_params
+
+    ##########################################################
+    # Section 7: DB Methods
+    ##########################################################
+
+    def collection_list(self):
+        """
+        Lists all collections currently in the storage.
+
+        Returns:
+            list: A list of collection names.
+        """
+        return self.client.list_collections()
+
+    def select_collection(self, collection_name: str):
+        """
+        Selects (or creates if not existent) a collection within the storage by name.
+
+        Parameters:
+            collection_name (str): The name of the collection to select or create.
+
+        Raises:
+            ValueError: If there's an error in getting or creating the collection.
+        """
+        try:
+            collection_name = validate_collection_name(collection_name)
+            self.collection = self.client.get_or_create_collection(name=collection_name,
+                                                                   embedding_function=self.embedding,
+                                                                   metadata={"hnsw:space": "cosine"})
+        except Exception as e:
+            raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
     def delete_collection(self, collection_name: str):
         """
@@ -241,14 +399,18 @@ class ChromaStorage:
         except Exception as e:
             print("\n\nError deleting collection: ", e)
 
-    def collection_list(self):
+    def count_collection(self, collection_name: str):
         """
-        Lists all collections currently in the storage.
+        Counts the number of documents in a specified collection.
+
+        Parameters:
+            collection_name (str): The name of the collection to count documents in.
 
         Returns:
-            list: A list of collection names.
+            int: The number of documents in the specified collection.
         """
-        return self.client.list_collections()
+        self.select_collection(collection_name)
+        return self.collection.count()
 
     def peek(self, collection_name: str):
         """
@@ -273,7 +435,7 @@ class ChromaStorage:
 
             return result
         except Exception as e:
-            logger.log(f"Error peeking collection: {e}", 'error')
+            logger.error(f"Error peeking collection: {e}")
             return None
 
     def load_collection(self, collection_name: str, include: dict = None, where: dict = None, where_doc: dict = None):
@@ -304,26 +466,45 @@ class ChromaStorage:
         try:
             self.select_collection(collection_name)
             data = self.collection.get(**params)
-            logger.log(
+            logger.debug(
                 f"\nCollection: {collection_name}"
                 f"\nData: {data}",
-                'debug'
             )
         except Exception as e:
             print(f"\n\nError loading data: {e}")
             data = []
         return data
 
-    def save_memory(self, collection_name: str, data: Union[list, str], ids: list = None, metadata: list[dict] = None):
+    ##########################################################
+    # Section 7: Storage for Memory
+    ##########################################################
+
+    def get_next_sequential_id(self, collection_name: str) -> int:
+        max_id_entry = self.search_metadata_min_max(collection_name, 'id', 'max')
+        if max_id_entry is None or "target" not in max_id_entry:
+            return 1
+        else:
+            return max_id_entry["target"] + 1 if max_id_entry["target"] is not None else 1
+
+    def apply_sequential_ids(self, collection_name: str, data: list, metadata: list[dict]) -> tuple[list, list[dict]]:
+        # Get the current max ID once
+        current_max = self.get_next_sequential_id(collection_name) - 1
+        new_ids = []
+        for i, _ in enumerate(data):
+            next_id = current_max + i + 1
+            new_ids.append(str(next_id))
+            metadata[i]['id'] = next_id
+        return new_ids, metadata
+
+    def save_to_storage(self, collection_name: str, data: list, ids: Optional[list] = None, metadata: Optional[list[dict]] = None):
         """
         Saves data to memory, creating or updating documents in a specified collection.
 
         Parameters:
             collection_name (str): The name of the collection to save to. Will be created if it doesn't exist.
-            data (Union[list, str]): The documents to be saved. Can be a single document as a string or a list
+            data (list): The documents to be saved. Can be a single document as a string or a list
              of documents. If a single string is provided, it is converted into a list with one element.
-            ids (list, optional): The IDs corresponding to the documents. If not provided,
-                IDs will be generated automatically.
+            ids (list): The IDs corresponding to the documents. If not provided, IDs will be generated automatically.
             metadata (list[dict], optional): A list of dictionaries, each representing associated metadata for
                 the corresponding document in `data`. If not provided, empty dictionaries are used for each document.
 
@@ -331,33 +512,32 @@ class ChromaStorage:
             ValueError: If the lengths of `data`, `ids`, and `metadata` do not match, or if other errors occur
             during the save operation.
         """
-
-        if self.config.data['settings']['storage']['options']['save_memory'] is False:
-            print("\nMemory Saving is Disabled. To Enable Memory Saving, set the 'save_memory' flag to 'true' in the "
-                  "system.yaml file.\n")
-            return
-
         try:
             data = [data] if isinstance(data, str) else data
+            metadata = [{} for _ in data] if metadata is None else metadata
 
-            ids, metadata = generate_defaults(data, ids, metadata)
-
-            validate_inputs(collection_name, data, ids, metadata)
-
-            apply_timestamps(metadata, self.config.data)
+            if ids is None:
+                ids, metadata = self.apply_sequential_ids(collection_name,data, metadata)
+            
+            validate_inputs(data, ids, metadata)
+            apply_uuids(metadata, self.config.settings.storage)
+            apply_unix_timestamps(metadata, self.config.settings.storage)
+            apply_iso_timestamps(metadata, self.config.settings.storage)
 
             self.select_collection(collection_name)
-
-            save_to_collection(self.collection, data, ids, metadata)
-
+            self.collection.upsert(
+                documents=data,
+                metadatas=metadata,
+                ids=ids
+            )
         except Exception as e:
-            raise ValueError(f"[Chroma Utils] [save_memory] Error saving results. Error: {e}\n\nData:\n{data}")
+            raise ValueError(f"[ChromaStorage][save_to_storage] Error saving to storage. Error: {e}\n\nData:\n{data}")
 
-    def query_memory(self, collection_name: str, query: Optional[Union[str, list]] = None,
-                     filter_condition: Optional[dict] = None, include: Optional[list] = None,
-                     embeddings: Optional[list] = None, num_results: int = 1):
+    def query_storage(self, collection_name: str, query: Optional[Union[str, list]] = None,
+                      filter_condition: Optional[dict] = None, include: Optional[list] = None,
+                      embeddings: Optional[list] = None, num_results: int = 1):
         """
-        Queries memory for documents matching a query within a specified collection.
+        Queries storage for documents matching a query within a specified collection.
 
         Parameters:
             collection_name (str): The name of the collection to query.
@@ -374,64 +554,42 @@ class ChromaStorage:
             dict or None: The query results, or None if an error occurs.
         """
         try:
-            if not collection_name:
-                raise ValueError("Collection name cannot be empty.")
-
-            self.select_collection(collection_name)
-            max_result_count = self.collection.count()
-
-            # Set num_results to max_result_count if it is 0, indicating no limit.
-            if num_results == 0:
-                num_results = max_result_count
-            else:
-                num_results = min(num_results, max_result_count)
-
-            if num_results <= 0:
-                logger.log(f"No Results Found in '{collection_name}' collection!", 'warning')
-                return {}
-
-            # Defaulting 'include' if None
-            if include is None:
-                include = ["documents", "metadatas", "distances"]
-
-            if query is not None:
-                unformatted_result = self.collection.query(
-                    query_texts=[query] if isinstance(query, str) else query,
-                    n_results=num_results,
-                    where=filter_condition,
-                    include=include
-                )
-
-            elif embeddings is not None:
-                unformatted_result = self.collection.query(
-                    query_embeddings=embeddings,
-                    n_results=num_results,
-                    where=filter_condition,
-                    include=include
-                )
-            else:
-                raise ValueError("Error: No query nor embeddings were provided! Try load_collection instead.")
+            params = {
+                'query': query,
+                'filter_condition': filter_condition,
+                'include': include,
+                'embeddings': embeddings,
+                'num_results': num_results,
+                'collection_name': collection_name
+            }
+            query_params = self._prepare_query_params(**params)
 
             result = {}
-            for key, value in unformatted_result.items():
-                if value:
-                    result[key] = value[0]
+            if query_params:
+                self.select_collection(collection_name)
+                unformatted_result = self.collection.query(**query_params)
+
+                if unformatted_result:
+                    for key, value in unformatted_result.items():
+                        if value:
+                            result[key] = value[0]
+
             return result
 
         except Exception as e:
-            logger.log(f"[query_memory] Error querying memory: {e}", 'error')
+            logger.error(f"[query_memory] Error querying storage: {e}")
             return None
 
-    # Done
+    def delete_from_storage(self, collection_name, ids):
+        if ids and not isinstance(ids, list):
+            ids = [ids]
 
-    def reset_memory(self):
-        """
-        Resets the entire storage, removing all collections and their data.
+        self.select_collection(collection_name)
+        self.collection.delete(ids=ids)
 
-        This method should be used with caution as it will permanently delete all data within the storage.
-        """
-
-        self.client.reset()
+    ##########################################################
+    # Section 7: Advanced
+    ##########################################################
 
     def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.8,
                                     num_results: int = 1):
@@ -454,7 +612,7 @@ class ChromaStorage:
         try:
             query_emb = self.return_embedding(query)
 
-            results = self.query_memory(collection_name=collection_name, embeddings=query_emb,
+            results = self.query_storage(collection_name=collection_name, embeddings=query_emb,
                                         include=["documents", "metadatas", "distances"],
                                         num_results=num_results)
 
@@ -468,114 +626,127 @@ class ChromaStorage:
                     key: [value for value, dist in zip(results[key], results['distances']) if float(dist) < threshold]
                     for key in results
                 }
-                # filtered_data = {
-                #     key: [value for value, dist in zip(results[key], results['distances']) if True]
-                #     for key in results
-                # }
                 if filtered_data['documents']:
                     return filtered_data
-                else:
-                    logger.log('[search_storage_by_threshold] No documents found that meet the threshold.', 'info')
-            else:
-                logger.log('Search by Threshold: No documents found.', 'info')
 
+                logger.info('[search_storage_by_threshold] No documents found that meet the threshold.')
+                return {}
+
+            logger.info('Search by Threshold: No documents found.')
             return {}
 
         except Exception as e:
-            logger.log(f"[search_storage_by_threshold] Error searching storage by threshold: {e}", 'error')
+            logger.error(f"[search_storage_by_threshold] Error searching storage by threshold: {e}")
             return {'failed': f"Error searching storage by threshold: {e}"}
 
-    def return_embedding(self, text_to_embed: str):
-        """
-        Generates an embedding for the given text using the configured embedding function.
-
-        Parameters:
-            text_to_embed (str): The text to generate an embedding for.
-
-        Returns:
-            list: A list containing the generated embedding vector for the given text.
-        """
-        return self.embedding([text_to_embed])
-
-    def count_collection(self, collection_name: str):
-        """
-        Counts the number of documents in a specified collection.
-
-        Parameters:
-            collection_name (str): The name of the collection to count documents in.
-
-        Returns:
-            int: The number of documents in the specified collection.
-        """
-        self.select_collection(collection_name)
-        return self.collection.count()
-
     def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
-        """
-        Retrieves the collection entry with the minimum or maximum value for the specified metadata tag.
-
-        Args:
-            collection_name: The ChromaDB collection object.
-            metadata_tag: The name of the metadata tag to consider for finding the minimum or maximum value.
-            min_max: The type of value to retrieve. Can be either "min" for minimum or "max" for maximum.
-                     Default is "max".
-
-        Returns:
-            The collection entry with the minimum or maximum value for the specified metadata tag,
-            or None if no entries are found or if the metadata tag contains non-numeric values.
-        """
         try:
-            # Retrieve only the document IDs and the specified metadata tag
             self.select_collection(collection_name)
-            results = self.collection.get(include=["metadatas"])
+            results = self.collection.get()
 
-            # Extract the metadata values and document IDs
-            metadata_values = [entry[metadata_tag] for entry in results["metadatas"]]
-            document_ids = results["ids"]
+            # Gracefully handle empty or missing lists
+            metadatas = results.get("metadatas", [])
+            ids = results.get("ids", [])
+            if not metadatas or not ids:
+                # No data in collection
+                return None
 
-            # Check if all metadata values are numeric (int or float)
+            metadata_values = [entry.get(metadata_tag) for entry in metadatas if metadata_tag in entry]
+            if not metadata_values:
+                # No metadata values to search
+                return None
+
+            # Ensure all are numeric
             if not all(isinstance(value, (int, float)) for value in metadata_values):
-                logger.log(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' contains non-numeric values.", 'error')
+                logger.error(f"[search_metadata_min_max] Metadata tag '{metadata_tag}' contains non-numeric values.")
                 return None
 
-            if metadata_values:
-                if min_max == "min":
-                    target_index = metadata_values.index(min(metadata_values))
-                else:
-                    try:
-                        target_index = metadata_values.index(max(metadata_values))
-                    except:
-                        logger.log(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.", 'error')
-                        target_index = 0
+            # Find the min or max as before
+            if min_max == "min":
+                target_index = metadata_values.index(min(metadata_values))
             else:
-                target_index = 0
+                target_index = metadata_values.index(max(metadata_values))
 
-            try:
-                # Retrieve the full entry with the highest metadata value
-                target_entry = self.collection.get(ids=[document_ids[target_index]], include=["documents", "metadatas"])
-
-                max_metadata = {
-                    "ids": target_entry["ids"][0],
-                    "target": target_entry["metadatas"][0][metadata_tag],
-                    "metadata": target_entry["metadatas"][0],
-                    "document": target_entry["documents"][0],
-                }
-
-                logger.log(
-                    f"[search_metadata_min_max] Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
-                    'debug'
-                )
-                return max_metadata
-            except:
+            # Defensive: still check index range
+            if target_index >= len(ids):
                 return None
 
-        except (KeyError, ValueError, IndexError) as e:
-            logger.log(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}", 'error')
+            target_entry = self.collection.get(ids=[ids[target_index]])
+            return {
+                "ids": target_entry["ids"][0],
+                "target": target_entry["metadatas"][0][metadata_tag],
+                "metadata": target_entry["metadatas"][0],
+                "document": target_entry["documents"][0],
+            }
+
+        except Exception as e:
+            # Only log errors if it's a truly unexpected error
+            logger.error(f"[search_metadata_min_max] Unexpected error: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
             return None
 
-    def delete_memory(self, collection_name, doc_id):
-        self.select_collection(collection_name)
-        self.collection.delete(ids=[doc_id])
+
+    # def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
+    #     """
+    #     Retrieves the collection entry with the minimum or maximum value for the specified metadata tag.
+
+    #     Args:
+    #         collection_name: The ChromaDB collection object.
+    #         metadata_tag: The name of the metadata tag to consider for finding the minimum or maximum value.
+    #         min_max: The type of value to retrieve. Can be either "min" for minimum or "max" for maximum.
+    #                  Default is "max".
+
+    #     Returns:
+    #         The collection entry with the minimum or maximum value for the specified metadata tag,
+    #         or None if no entries are found or if the metadata tag contains non-numeric values.
+    #     """
+    #     try:
+    #         # Retrieve only the document IDs and the specified metadata tag
+    #         self.select_collection(collection_name)
+    #         results = self.collection.get()
+
+    #         # Extract the metadata values and document IDs
+    #         metadata_values = [entry[metadata_tag] for entry in results["metadatas"]]
+    #         document_ids = results["ids"]
+
+    #         # Check if all metadata values are numeric (int or float)
+    #         if not all(isinstance(value, (int, float)) for value in metadata_values):
+    #             logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' contains non-numeric values.")
+    #             return None
+
+    #         if metadata_values:
+    #             if min_max == "min":
+    #                 target_index = metadata_values.index(min(metadata_values))
+    #             else:
+    #                 try:
+    #                     target_index = metadata_values.index(max(metadata_values))
+    #                 except:
+    #                     logger.error(f"[search_metadata_min_max] Error: The metadata tag '{metadata_tag}' is empty or does not exist. Returning 0.")
+    #                     target_index = 0
+    #         else:
+    #             target_index = 0
+
+    #         try:
+    #             # Retrieve the full entry with the highest metadata value
+    #             target_entry = self.collection.get(ids=[document_ids[target_index]])
+
+    #             max_metadata = {
+    #                 "ids": target_entry["ids"][0],
+    #                 "target": target_entry["metadatas"][0][metadata_tag],
+    #                 "metadata": target_entry["metadatas"][0],
+    #                 "document": target_entry["documents"][0],
+    #             }
+
+    #             logger.debug(
+    #                 f"[search_metadata_min_max] Found the following record by max value of {metadata_tag} metadata tag:\n{max_metadata}",
+    #             )
+    #             return max_metadata
+    #         except Exception as e:
+    #             logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+    #             return None
+
+    #     except (KeyError, ValueError, IndexError) as e:
+    #         logger.error(f"[search_metadata_min_max] Error finding max metadata: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+    #         return None
 
     def rerank_results(self, query_results: dict, query: str, temp_collection_name: str, num_results: int = None):
         """
@@ -600,11 +771,11 @@ class ChromaStorage:
 
             # Check if documents is empty
             if not query_results['documents']:
-                logger.log("[rerank_results] No documents found in query_results. Skipping reranking.", 'warning')
+                logger.warning("[rerank_results] No documents found in query_results. Skipping reranking.")
                 return query_results
 
             # Save the query results to a temporary collection
-            self.save_memory(
+            self.save_to_storage(
                 collection_name=temp_collection_name,
                 data=query_results['documents'],
                 ids=query_results['ids'],
@@ -616,7 +787,7 @@ class ChromaStorage:
                 num_results = len(query_results['documents'])
 
             # Perform reranking on the temporary collection
-            reranked_results = self.query_memory(
+            reranked_results = self.query_storage(
                 collection_name=temp_collection_name,
                 query=query,
                 num_results=num_results
@@ -629,10 +800,10 @@ class ChromaStorage:
 
             return reranked_results
         except KeyError as e:
-            logger.log(f"[rerank_results] KeyError occurred while reranking results: {e}", 'error')
+            logger.error(f"[rerank_results] KeyError occurred while reranking results: {e}")
             return None
         except Exception as e:
-            logger.log(f"[rerank_results] Unexpected error occurred while reranking results: {e}", 'error')
+            logger.error(f"[rerank_results] Unexpected error occurred while reranking results: {e}")
             return None
 
     @staticmethod
@@ -675,3 +846,84 @@ class ChromaStorage:
 
         return unique_results
 
+    def combine_and_rerank(self, query_results: list, rerank_query, num_results=5):
+        """
+        Combine multiple query results, rerank them based on a new query, and return the top results.
+
+        This function takes multiple query results, combines them, and then reranks the combined
+        results based on a new query. It's useful for refining search results across multiple
+        collections or queries.
+
+        Args:
+            query_results (list): A list of query result dictionaries, each containing 'ids',
+                                'embeddings', 'documents', and 'metadatas'.
+            rerank_query (str): The query string used for reranking the combined results.
+            num_results (int, optional): The number of top results to return after reranking.
+                                        Defaults to 5.
+
+        Returns:
+            dict: A dictionary containing the reranked results, including 'ids', 'embeddings',
+                'documents', and 'metadatas' for the top results.
+
+        Raises:
+            ValueError: If query_results is empty or if reranking fails.
+
+        Example:
+            query_results = [results1, results2, results3]
+            rerank_query = "specific query that can be the same or a new query"
+            reranked = query_and_rerank(query_results, rerank_query, num_results=3)
+        """
+
+        # Combine all query results
+        combined_query_results = self.combine_query_results(*query_results)
+
+        reranked_results = self.rerank_results(
+            query_results=combined_query_results,
+            query=rerank_query,
+            temp_collection_name="temp_reranking_collection",
+            num_results=num_results
+        )
+
+        return reranked_results
+
+    def get_last_x_entries(self, collection_name: str, x: int, include: list = None):
+        """
+        Retrieve the last X entries from a collection, ordered by sequential id.
+
+        Args:
+            collection_name (str): The name of the collection.
+            x (int): Number of most recent entries to retrieve.
+            include (list, optional): Which fields to include in the result.
+                Defaults to ['documents', 'metadatas', 'ids'].
+
+        Returns:
+            dict: The collection entries, sorted by id ascending, with only the requested fields.
+        """
+        if not include:
+            include = ['documents', 'metadatas', 'ids']
+
+        # 1. Find the current max id
+        max_id_entry = self.search_metadata_min_max(collection_name, 'id', 'max')
+        if max_id_entry is None or "target" not in max_id_entry or max_id_entry["target"] is None:
+            return {key: [] for key in include}
+
+        max_id = max_id_entry["target"]
+        start_id = max(1, max_id - x + 1)
+
+        # 2. Query for entries with id >= start_id
+        filters = {"id": {"$gte": start_id}}
+        results = self.load_collection(collection_name, include=include, where=filters)
+
+        # 3. Sort results by id ascending
+        if results and "ids" in results and results["ids"]:
+            sorted_indices = sorted(range(len(results["ids"])), key=lambda i: int(results["ids"][i]))
+            # Only include requested fields
+            sorted_results = {}
+            for key in include:
+                if key in results:
+                    sorted_results[key] = [results[key][i] for i in sorted_indices]
+            return sorted_results
+        else:
+            return {key: [] for key in include}
+
+    

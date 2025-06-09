@@ -1,5 +1,6 @@
 # Virtual environments
 /venv/
+/.venv/
 
 # Configuration files
 .env
@@ -41,3 +42,11 @@ sandbox/**/Tests/
 # Specific files
 AgentForge.log
 src/agentforge/persona/chatbot.json
+*.env
+/.cursorignore
+
+examples/episodic_memory_cog_example.yaml
+
+examples/journal_cog_example.yaml
+
+.cursor/rules/

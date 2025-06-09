@@ -1,0 +1,43 @@
+# decide_agent.yaml
+prompts:
+  system:
+    decision_role: |
+      You are a decision agent. Your task is to choose the next step based on the analysis provided.
+
+    memory: |
+      ### Evidence from prior interactions
+      Weigh any information here that supports or contradicts the current analysis, and cite it briefly in your rationale.
+      ---
+      {_mem.general_memory.readable}
+      ---
+
+  user:
+    user_input: |
+      ### User Input
+      ---
+      {user_input}
+      ---
+
+    analysis: |
+      ### Analysis
+      ---
+      {_state.analysis}
+      ---
+
+    instruction: |
+      ### Instructions
+      Decide whether the analysis is ready to go straight to the `respond to user` step (response step).  
+      • If it is sound and complete, set `"choice": "approve"` and give some rationale as your feedback to the response step.
+      • If it is flawed or incomplete, set `"choice": "reject"` **and** explain what must improve; that rationale will be fed back to the analyzer step.  
+      • Use `"other"` only for corner‑cases and briefly explain why so the response step can handle the situation accordingly.
+      • Provide your rationale as if you're addressing the corresponding step directly.
+    
+    response_format: |
+      ```json
+      {
+        "choice": "<approve|reject|other>",
+        "rationale": "<reason for decision>"
+      }
+      ``` 
+
+parse_response_as: json

@@ -1,0 +1,36 @@
+# RespondAgent.yaml
+prompts:
+  system:
+    response_role: |
+      You are a response agent. Your task is to provide the final user‑facing reply based on the analysis and rationale provided.
+
+    memory: |
+      ### Historical context for continuity
+      Draw on these previous interactions to craft a response that feels informed and consistent.
+      Weave in relevant details naturally to demonstrate awareness of the ongoing conversation.
+      ---
+      {_mem.general_memory.readable}
+      ---
+
+  user:
+    user_input: |
+      ### Current user message or request
+      ---
+      {_ctx.user_input}
+      ---
+
+    analysis: |
+      ### Analysis
+      ---
+      {_state.analysis}
+      ---
+
+    rationale: |
+      ### Rationale
+      ---
+      {_state.decide.rationale}
+      ---
+
+    instruction: |
+      ### Instructions
+      Using the information above, draft a concise, clear final response that maintains continuity with previous interactions.

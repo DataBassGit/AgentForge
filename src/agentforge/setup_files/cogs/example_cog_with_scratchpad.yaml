@@ -1,0 +1,27 @@
+cog:
+  name: "ScratchpadMemoryExample"
+  description: "Example workflow demonstrating ScratchpadMemory functionality"
+  persona: "DefaultAssistant"  # Optional: Override system default persona
+
+  agents:
+    - id: understanding
+      template_file: understand_agent
+
+    - id: response
+      template_file: response_agent
+
+  memory:
+    - id: scratchpad
+      type: agentforge.storage.scratchpad.ScratchPad
+      collection_id: scratchpad
+      query_before: understanding  # Query before understanding for context
+      query_keys: [user_input]  # Use user input as context for queries
+      update_after: response  # Update after response is generated
+      update_keys: [understanding.insights, user_input, response]  # What to potentially store
+
+  flow:
+    start: understanding
+    transitions:
+      understanding: response
+      response:
+        end: true

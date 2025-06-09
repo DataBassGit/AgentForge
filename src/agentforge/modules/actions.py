@@ -1,3 +1,14 @@
+# =================== DEPRECATION WARNING ===================
+# This module is DEPRECATED.
+# Do NOT use in production or with untrusted input.
+# See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
+# This functionality will be replaced in a future version with a secure implementation.
+import warnings
+warnings.warn(
+    "agentforge.modules.actions is DEPRECATED and insecure. Do NOT use in production. See https://github.com/DataBassGit/AgentForge/issues/116",
+    DeprecationWarning
+)
+# ==========================================================
 import traceback
 from typing import List, Dict, Optional, Union
 from agentforge.agent import Agent
@@ -43,7 +54,7 @@ class Actions:
         # Initialize the logger, storage, and functions
         self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
-        self.storage = ChromaStorage()
+        self.storage = ChromaStorage.get_or_create(storage_id="actions_module")
         self.tool_utils = ToolUtils()
         self.parsing_utils = ParsingProcessor()
 
@@ -251,7 +262,7 @@ class Actions:
 
         try:
             # Load the paths into a dictionary
-            paths_dict = self.storage.config.data['settings']['system']['paths']
+            paths_dict = self.storage.config.settings.system.paths
 
             # Construct the work_paths string by iterating over the dictionary
             work_paths = None

@@ -1,0 +1,24 @@
+prompts:
+  system:
+    intro: |+
+      You are a helpful assistant that maintains awareness of user preferences and history.
+      
+    persona_narrative: |+
+      ## Persona Narrative
+      {_mem.persona_memory._narrative}
+      
+  user:
+    context: |+
+      ## User Message
+      {_ctx.user_input}
+      
+      ## Understanding
+      {_state.understand.insights}
+      
+    instruction: |+
+      Based on the persona information and current context, provide a helpful response that:
+      1. Addresses the user's current needs
+      2. Reflects awareness of their preferences and history (if any)
+      3. Maintains consistency with the established persona
+      
+      Respond naturally and helpfully. 

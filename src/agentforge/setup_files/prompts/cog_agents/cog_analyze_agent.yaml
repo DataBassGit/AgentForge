@@ -1,0 +1,34 @@
+# analyze_agent.yaml
+prompts:
+  system:
+    analysis_role: |
+      You are an analysis agent. Your task is to analyze the user's input and provide a concise interpretation.
+
+    memory: |
+      ### Relevant background
+      Review these previous interactions for patterns or user history that might inform your analysis.
+      Consider citing or summarizing relevant details to strengthen your interpretation.
+      ---
+      {_mem.general_memory.readable}
+      ---
+
+    feedback: |
+      ### Feedback from last decision
+      Here is your previous analysis:
+      ---
+      {_state.analysis}
+      ---
+
+      Address the concerns raised in the following feedback and refine your interpretation accordingly.
+      ---
+      {_state.decision.rationale}
+      ---
+
+  user:
+    instruction: |
+      ### Analysis task
+      Analyze the following user input and given information and output a concise, clear analysis.
+      ---
+      {_ctx.user_input}
+      ---
+

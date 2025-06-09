@@ -1,0 +1,27 @@
+cog:
+  name: "PersonaMemoryExample"
+  description: "Example workflow demonstrating PersonaMemory functionality"
+  persona: "default_assistant"  # Optional: Override system default persona
+
+  agents:
+    - id: understanding
+      template_file: persona_understand_agent
+
+    - id: response
+      template_file: persona_response_agent
+
+  memory:
+    - id: persona_memory
+      type: agentforge.storage.persona_memory.PersonaMemory
+      collection_id: user_persona_facts
+      query_before: understanding  # Query before understanding for context
+      query_keys: [user_input]  # Use user input as context for queries
+      update_after: response  # Update after response is generated
+      update_keys: [understanding.insights, understanding.persona_relevant, user_input]  # What to potentially store
+
+  flow:
+    start: understanding
+    transitions:
+      understanding: response
+      response:
+        end: true 

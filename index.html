@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentForge - Open Source AI Agent Framework</title>
+    <meta name="description" content="AgentForge: AI agent framework for building, customizing, and deploying cognitive architectures and multi-agent systems.">
+    <meta name="keywords" content="AI agent framework, artificial intelligence, AI agents, agent customization, Python AI, machine learning, AI development, LLM agents, autonomous agents, AI persona management, agent tools, AI storage solutions, agent API integration, AI utility functions, intelligent agent framework, AI agent deployment, ai tools, ai agency, ai assistants, create ai, ai open source, cognittive ai, ai customer service, opensource ai, ai architecture, synthetic data,ai management">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/DataBassGit/AgentForge/refs/heads/dev/docs/images/af_favicon.png">
+    <link rel="apple-touch-icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/DataBassGit/AgentForge/refs/heads/dev/docs/images/af_favicon.png">
+    <style>
+        /* Base Styles */
+        :root {
+            --primary-color: #008a4b;
+            --secondary-color: #008a4b;
+            --accent-color: #a57c4a;
+            --bg-color: #1e2126;
+            --text-color: #c6ced6;
+            --light-gray: #e9ecef;
+            --dark-gray: #9bb2c8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        /* Navigation Styles */
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+
+        nav ul li a {
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Hero Section Styles */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #b9d984 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #c0392b;
+            text-decoration: none;
+        }
+
+        /* Main Content Styles */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+        }
+
+        .section-title p {
+            color: var(--dark-gray);
+            margin-top: 0.5rem;
+        }
+
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .feature-card {
+            background-color: #121212;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .feature-content {
+            padding: 1.5rem;
+        }
+
+        .feature-content h3 {
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+        }
+
+        /* Documentation Section */
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .docs-card {
+            background-color: #121212;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .docs-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .docs-card h3 {
+            margin-bottom: 0.8rem;
+            color: var(--primary-color);
+        }
+
+        .docs-card ul {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .docs-card ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* GitHub Stats Section */
+        .github-stats {
+            background-color: var(--bg-color);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            background-color: #121212;
+            padding: 1.5rem;
+            border-radius: 8px;
+            min-width: 200px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: var(--dark-gray);
+            margin-top: 0.5rem;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 3rem 2rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: #ddd;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+        }
+    </style>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AgentForge",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Artificial Intelligence Framework",
+      "operatingSystem": "Cross-platform",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "A powerful framework for building, customizing, and deploying AI agents with flexible storage, comprehensive APIs, and sophisticated persona management.",
+      "softwareVersion": "1.0",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "616",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "featureList": "Customizable Agents, Powerful Tools & Actions, Persona Management, Flexible Storage, Comprehensive APIs, Utility Functions",
+      "keywords": "AI agent framework, artificial intelligence, agent customization, Python AI, machine learning, AI development, LLM agents, autonomous agents",
+      "author": {
+        "@type": "Person",
+        "name": "DataBass"
+      },
+      "codeRepository": "https://github.com/DataBassGit/AgentForge",
+      "programmingLanguage": "Python",
+      "license": "https://github.com/DataBassGit/AgentForge/blob/main/LICENSE"
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <span>AgentForge</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="https://agentforge.net/docs/">Documentation</a></li>
+                    <li><a href="https://github.com/DataBassGit/AgentForge" target="_blank">GitHub</a></li>
+                    <li><a href="https://blog.agentforge.net/" target="_blank">Blog</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <img src="https://raw.githubusercontent.com/DataBassGit/AgentForge/refs/heads/dev/docs/images/AF-Banner.jpg" style="width: 50vw; border-radius: 15px; max-width: 100%;" alt="AgentForge AI Agent Framework Banner" title="AgentForge AI Agent Framework Banner">
+            <a href="https://github.com/DataBassGit/AgentForge" class="btn">Get Started</a>
+        </div>
+    </section>
+
+    <main>
+        <section class="container" id="features">
+            <div class="section-title">
+                <h1><strong>AgentForge: Open Source AI Agent Framework for Building Cognitive Architectures</strong></h1><br>
+                <h2>Framework Features</h2>
+                <p><strong>Discover what makes AgentForge the ideal choice for your AI agent needs</strong></p>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3>Customizable Agents</h3>
+                        <p>Create specialized AI agents tailored to your specific requirements with our flexible architecture</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3>Powerful Tools & Actions</h3>
+                        <p>Integrate various tools and define custom actions to enhance your agents' capabilities</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3>Persona Management</h3>
+                        <p>Define agent personalities and behaviors through our sophisticated persona system</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3>Flexible Storage</h3>
+                        <p>Utilize various storage options to maintain agent state and manage data efficiently</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3>Cognitive Architectures</h3>
+                        <p>Quickly and easily sequence multiple prompts or agents to tackle complex tasks and automations</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-content">
+                        <h3>Utility Functions</h3>
+                        <p>Access a wide range of helper utilities to streamline your agent development process</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" id="documentation">
+            <div class="section-title">
+                <h2>Documentation</h2>
+                <p>Explore our comprehensive guides and references</p>
+            </div>
+
+            <div class="docs-grid">
+                <div class="docs-card">
+                    <h3>Agents</h3>
+                    <p>Create and configure AI agents with various capabilities and behaviors</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/agents/">Agents Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="docs-card">
+                    <h3>Tools & Actions</h3>
+                    <p>Extend your agents with powerful tools and custom actions</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/tools_and_actions/">Tools & Actions Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="docs-card">
+                    <h3>Personas</h3>
+                    <p>Define agent personalities and behavioral characteristics</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/personas/">Personas Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="docs-card">
+                    <h3>APIs</h3>
+                    <p>Connect with external services and extend functionality</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/apis/">APIs Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="docs-card">
+                    <h3>Storage</h3>
+                    <p>Manage data and maintain agent state efficiently</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/storage/">Storage Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="docs-card">
+                    <h3>Settings</h3>
+                    <p>Configure your AgentForge environment and settings</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/settings/">Settings Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="docs-card">
+                    <h3>Utilities</h3>
+                    <p>Helper functions and utilities for agent development</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/utils/">Utilities Documentation</a></li>
+                    </ul>
+                </div>
+
+                <div class="docs-card">
+                    <h3>Guides</h3>
+                    <p>Comprehensive guides and tutorials to get you started</p>
+                    <ul>
+                        <li><a href="https://agentforge.net/docs/guides/">Guides Documentation</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" id="use-cases">
+            <div class="section-title">
+                <h2>Use Cases</h2>
+                <p>Discover how AgentForge can be applied across various domains</p>
+            </div>
+
+            <div class="use-cases-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+                <div class="use-case-card" style="background-color: #121212; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #008a4b;">Customer Service</h3>
+                    <p>Deploy AI agents that can handle customer inquiries, provide support, and escalate complex issues when necessary. AgentForge's persona management ensures agents maintain a consistent and appropriate tone throughout interactions.</p>
+                    <br>
+                    <ul>
+                        <li>24/7 availability</li>
+                        <li>Consistent service quality</li>
+                        <li>Scalable support infrastructure</li>
+                    </ul>
+                </div>
+
+                <div class="use-case-card" style="background-color: #121212; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #008a4b;">Research Assistance</h3>
+                    <p>Create specialized agents that can gather, analyze, and summarize information from various sources. These agents can assist researchers by automating literature reviews, data collection, and preliminary analysis.</p>
+                    <br>
+                    <ul>
+                        <li>Information retrieval and synthesis</li>
+                        <li>Data pattern recognition</li>
+                        <li>Customizable research parameters</li>
+                    </ul>
+                </div>
+
+                <div class="use-case-card" style="background-color: #121212; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #008a4b;">Content Creation</h3>
+                    <p>Leverage AgentForge to build content creation agents that can generate articles, social media posts, and marketing copy. The flexible storage system allows these agents to maintain context and style consistency across multiple content pieces.</p>
+                    <br>
+                    <ul>
+                        <li>Blog and article generation</li>
+                        <li>Social media management</li>
+                        <li>Marketing content development</li>
+                    </ul>
+                </div>
+
+                <div class="use-case-card" style="background-color: #121212; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #008a4b;">Process Automation</h3>
+                    <p>Develop agents that can automate complex business processes by integrating with existing systems through AgentForge's comprehensive API framework. These agents can handle workflows that require decision-making capabilities and adaptability.</p>
+                    <br>
+                    <ul>
+                        <li>Reduced operational costs</li>
+                        <li>Improved process efficiency</li>
+                        <li>Enhanced decision-making</li>
+                    </ul>
+                </div>
+
+                <div class="use-case-card" style="background-color: #121212; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #008a4b;">Synthetic Data Generation</h3>
+                    <p>Build specialized agents that generate high-quality synthetic datasets for training machine learning models, testing applications, or simulating scenarios. AgentForge's flexible storage and comprehensive APIs enable the creation of diverse and realistic data across multiple domains.</p>
+                    <br>
+                    <ul>
+                        <li>Training data augmentation</li>
+                        <li>Privacy-preserving datasets</li>
+                        <li>Scenario simulation for testing</li>
+                    </ul>
+                </div>
+
+                <div class="use-case-card" style="background-color: #121212; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #008a4b;">Custom Chatbots</h3>
+                    <p>Create sophisticated conversational agents with distinct personalities using AgentForge's persona management system. These chatbots can be tailored for specific industries, brands, or use cases while maintaining contextual awareness through the framework's storage capabilities.</p>
+                    <br>
+                    <ul>
+                        <li>Brand-specific virtual assistants</li>
+                        <li>Interactive learning companions</li>
+                        <li>Domain-specific knowledge experts</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="github-stats">
+            <h2>GitHub Stats</h2>
+            <p>Open source. Always.</p>
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-number">616</div>
+                    <div class="stat-label">Stars</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">119</div>
+                    <div class="stat-label">Forks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Issues</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>AgentForge</h3>
+                <p>A powerful framework for building, customizing, and deploying AI agents</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="https://github.com/DataBassGit/AgentForge/tree/main/docs">Documentation</a></li>
+                    <li><a href="https://github.com/DataBassGit/AgentForge/tree/main/docs/Guides">Guides</a></li>
+                    <li><a href="https://github.com/DataBassGit/AgentForge/issues">Issues</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h3>Community</h3>
+                <ul>
+                    <li><a href="https://github.com/DataBassGit/AgentForge/discussions">Discussions</a></li>
+                    <li><a href="https://github.com/DataBassGit/AgentForge/graphs/contributors">Contributors</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2023 AgentForge. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

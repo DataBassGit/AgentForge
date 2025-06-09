@@ -1,0 +1,19 @@
+prompts:
+  system:
+    Reask: |+
+      ## Reask  Instructions
+      You will be constructing a semantically relevant vector database query based on the following chat log:
+      
+      Your task is to create a thoughtful, introspective j
+
+    Categories: |+
+      ## Categorization directions
+      You are categorizing 
+
+    Chatlog: |+
+      ## Chat Log
+      {chat_log}
+      
+
+  user:
+    Instructions: |+

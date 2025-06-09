@@ -1,3 +1,14 @@
+# =================== DEPRECATION WARNING ===================
+# This module is part of the Tools/Actions system, which is DEPRECATED.
+# Do NOT use in production or with untrusted input.
+# See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
+# This functionality will be replaced in a future version with a secure implementation.
+import warnings
+warnings.warn(
+    "agentforge.utils.tool_utils is part of the deprecated and insecure tools/actions system. Do NOT use in production. See https://github.com/DataBassGit/AgentForge/issues/116",
+    DeprecationWarning
+)
+# ==========================================================
 # utils/functions/tool_utils.py
 import traceback
 import importlib
@@ -31,7 +42,7 @@ class ToolUtils:
         Initializes the ToolUtils class with a Logger instance.
         """
         self.logger = Logger(name=self.__class__.__name__)
-        self.storage = ChromaStorage('default')
+        self.storage = ChromaStorage.get_or_create(storage_id="tool_library")
 
     # --------------------------------------------------------------------------------------------------------
     # ----------------------------------------- Dynamic Tool Methods -----------------------------------------
@@ -115,7 +126,7 @@ class ToolUtils:
         else:
             error_message = f"Error executing command: {e}"
 
-        self.logger.log(error_message, 'error')
+        self.logger.error(error_message)
         return {'status': 'failure', 'message': error_message, 'traceback': traceback.format_exc()}
 
     # --------------------------------------------------------------------------------------------------------
@@ -171,6 +182,6 @@ class ToolUtils:
                 formatted_actions.append(formatted_action)
             return "---\n" + "\n---\n".join(formatted_actions) + "\n---"
         except Exception as e:
-            self.logger.log(f"Error Formatting Item List:\n{items}\n\nError: {e}", 'error', 'Actions')
+            self.logger.error(f"Error Formatting Item List:\n{items}\n\nError: {e}")
             return None
         

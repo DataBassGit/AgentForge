@@ -4,7 +4,7 @@ import re
 from bs4 import BeautifulSoup
 from agentforge.storage.chroma_storage import ChromaStorage
 
-storage_instance = ChromaStorage()  # Create an instance of ChromaUtils
+storage_instance = ChromaStorage.get_or_create(storage_id="web_scrape_tool")  # Use registry-safe pattern
 
 
 def remove_extra_newlines(chunk):

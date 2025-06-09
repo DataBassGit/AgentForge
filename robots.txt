@@ -1,0 +1,19 @@
+# Robots.txt file for agentforge.net
+# Last updated: March 25, 2025
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+Disallow: /includes/
+Disallow: /cgi-bin/
+Disallow: /tmp/
+
+Allow: /docs/
+
+# Blog section (planned)
+Allow: /blog/
+Allow: /blog/archives/
+Disallow: /blog/drafts/
+Disallow: /blog/admin/
+Disallow: /blog/*?*

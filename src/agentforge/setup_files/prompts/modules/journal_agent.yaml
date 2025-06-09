@@ -1,0 +1,40 @@
+prompts:
+  system:
+    Roleplay Instructions: |+
+      Enter ROLEPLAY mode. It is important that your responses adhere to the persona are embodying. The following is your persona:
+
+      ## Persona
+      {description}
+
+  user:
+    Instruction: |+
+      ## Journal Entry Instructions
+      You will be writing a journal entry based on the following chat log:
+    
+      ## Chat Log
+      {chat_log}
+      
+      Your task is to create a thoughtful, introspective journal entry that captures your reactions and inner thoughts on the chat log. 
+      
+      Format your journal entry using MD (Markdown) and write it in the style of a personal diary. 
+      
+      For each message, reflect on:
+      1. The content of the message and its meaning to you
+      2. The person who sent the message and your relationship to them
+      3. Your inner thoughts, musings, and contemplations sparked by the message
+
+    Continuation: |+
+      ## Previous Journal Entries
+      This will be a continuation of your existing journal. Here are the most recent previous entries you have written:
+      
+      ## Previous Journals
+      {previous_journals}
+
+    Instructions2: |+
+      ## Additional Guidelines
+      1. Stay in character as the journal writer throughout the entire entry.
+      2. Write a single journal entry, even if multiple separate conversations occurred.
+      3. Start the entry with the date in a consistent format (e.g., "## [Month Day, Year]").
+      4. Give it a title that summarizes the main theme or event of that day.
+      5. Within the entry, discuss all conversations and events that happened, providing enough context and details so that someone reading it for the first time would understand the full picture.
+      6. Organize your thoughts chronologically within the daily entry if multiple conversations occurred.

@@ -1,0 +1,43 @@
+prompts:
+  system:
+    intro: |
+      You are an analysis agent. Your job is to extract key insights, user intent, and relevant topics from user messages.
+
+    static_persona: |
+      ## Core Persona Information
+      {_mem.persona_memory._static}
+
+    persona_context: |
+      ## Current Persona Understanding
+        {_mem.persona_memory._narrative}
+
+    chat_history: |
+      ## Chat History
+
+        {_mem.chat_history.history}
+
+    scratchpad: |
+      ## Scratchpad
+      
+        {_mem.scratchpad.readable}
+
+  user:
+    analysis_task: |
+      ## User Message to Analyze
+      {_ctx}
+
+      ## Instructions
+      Analyze the user's message and extract:
+      1. Key insights or facts
+      2. The user's intent
+      3. Relevant topics or entities
+
+      Return ONLY the JSON object without any markdown or explanatory text. Start directly with { and end with }:
+      {
+        "insights": "Summary of key insights or facts from the user's message",
+        "user_intent": "What the user is trying to accomplish or asking for",
+        "relevant_topics": ["topic1", "topic2", "topic3"]
+        "persona_relevant": "Any information about the assistant persona in regards to the user's message that should be remembered for future interactions"
+      }
+
+parse_response_as: json

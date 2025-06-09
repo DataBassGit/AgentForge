@@ -1,0 +1,38 @@
+prompts:
+  system:
+    intro: |
+      You are the Narrative Agent. Your task is to create a concise narrative summary of the current persona. Integrate persona information into a coherent whole.
+
+    static_persona: |
+      - Static Persona Information:
+      ---
+      {persona_static}
+      ---
+
+    dynamic_persona: |
+      - Dynamic Persona Facts:
+      ---
+      {retrieved_facts}
+      ---
+
+    context: |
+      - Current Context:
+      ---
+      {_ctx}
+      ---
+
+    state: |
+      - Current Internal State:
+      ---
+      {_state}
+      ---
+
+  user: |
+    Write a concise narrative that naturally combines the given information and persona facts into a summary suitable for prompt injection.
+
+    Respond with pure JSON only (no code blocks or markdown formatting):
+    {
+      "narrative": "..."
+    }
+
+parse_response_as: json

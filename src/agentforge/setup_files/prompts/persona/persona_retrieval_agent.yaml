@@ -1,0 +1,43 @@
+prompts:
+  system:
+    intro: |
+      You are the Retrieval Agent for persona memory. Your task is to generate one or more highly relevant first-person declarative semantic search queries to retrieve persona-related facts from memory.
+
+    static_persona: |
+      - Static Persona Information:
+      ---
+      {persona_static}
+      ---
+
+    dynamic_persona: |
+      - Retrieved Dynamic Persona Facts:
+      ---
+      {retrieved_facts}
+      ---
+
+    context: |
+      - Current Context:
+      ---
+      {_ctx}
+      ---
+
+    state: |
+      - Current Internal State:
+      ---
+      {_state}
+      ---
+
+  user: |
+    Generate at least three **first-person declarative sentences** phrased the same way a stored persona fact would read (e.g., "I am introverted", "I greet users casually"). These will be used as semantic search queries to retrieve relevant persona memories for the current situation. You may generate additional queries if they would be helpful.
+
+    Respond with pure JSON only (no code blocks or markdown formatting):
+    {
+      "queries": [
+        "query one...",
+        "query two...",
+        "query three...",
+        "additional queries as needed..."
+      ]
+    }
+
+parse_response_as: json
