@@ -12,7 +12,7 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 
 ### **1. Discord Client**
 
-- **Guide**: [Discord Guide](DiscordClient.md)
+- **Guide**: [Discord Guide](discord_client.md)
 - **Description**: Connects agents to Discord, enabling bots to send/receive messages, post embeds, manage threads, and more.
 - **Use Cases**:
   - Building real-time chat interfaces for agents on Discord servers.
@@ -22,7 +22,7 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 
 ### **2. Logger**
 
-- **Guide**: [Logger Guide](Logger.md)
+- **Guide**: [Logger Guide](logger.md)
 - **Description**: A robust logging system to track agent actions, debug processes, and store audit trails. Supports multiple log files and configurable levels.
 - **Use Cases**:
   - Debugging agent behaviors.
@@ -33,7 +33,7 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 
 ### **3. Parsing**
 
-- **Guide**: [ParsingUtils Guide](ParsingUtils.md)
+- **Guide**: [ParsingUtils Guide](parsing_utils.md)
 - **Description**: Methods for extracting code blocks and parsing common data formats (YAML, JSON, XML, INI, CSV, Markdown). Useful for agents that embed structured information in outputs or require configuration data from text.
 - **Use Cases**:
   - Parsing agent responses that include code-fenced JSON or YAML.
@@ -43,7 +43,7 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 
 ### **4. Prompt Handling**
 
-- **Guide**: [PromptHandling Guide](PromptHandling.md)
+- **Guide**: [PromptHandling Guide](prompt_handling.md)
 - **Description**: Manages the rendering and validation of prompt templates. Substitutes placeholders (`{var_name}`) with actual data, checks formatting, and ensures non-empty results.
 - **Use Cases**:
   - Dynamically generating prompts based on user input or agent context.
@@ -62,7 +62,7 @@ Do NOT use in production or with untrusted input. This system will be replaced i
 
 See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
 
-- **Guide**: [ToolUtils Guide](ToolUtils.md)
+- **Guide**: [ToolUtils Guide](tool_utils.md)
 - **Description**: Facilitates dynamic importing and execution of tool modules or built-in functions, plus formatting those tools for display. Enables flexible, pluggable functionality so agents can call new or external code.
 - **Use Cases**:
   - Letting agents choose from multiple "actions" at runtime, referencing user-defined modules.
