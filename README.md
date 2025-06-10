@@ -74,7 +74,7 @@ Comprehensive documentation is available to help you get started and go deeper:
 We welcome issues and pull requests with improvements or bug fixes!
 
 ### Special Note
-We're looking for a UI/UX collaborator passionate about open-source to help develop a front-end for AgentForge. Interested? See [Contact Us](#contact-us) below.
+We’re looking for a volunteer UI/UX collaborator—ideally someone who’s genuinely passionate about open-source—to help us develop a front-end for **AgentForge**. To be clear, this isn’t a paid position or formal job; we’re just a couple of backend folks looking to team up with someone interested in contributing their front-end skills for the love of the project and learning together. If you’re interested in collaborating, see [Contact Us](#contact-us) below.
 
 ---
 
