@@ -18,6 +18,8 @@ Logs/
 *.log
 *Logs/
 *logs/
+logs/
+
 
 # Database directories
 *DB/
@@ -46,4 +48,6 @@ src/agentforge/persona/chatbot.json
 .vscode/
 /.cursorignore
 .cursor/rules/
+.pytest_cache/
+.cursor/
 
