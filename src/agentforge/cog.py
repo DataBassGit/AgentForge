@@ -96,7 +96,8 @@ class Cog:
         """
         try:
             self.logger.info(f"Running cog '{self.cog_file}'...")
-            self.mem_mgr.load_chat()
+            # Load chat history with the initial user context so semantic search can use it
+            self.mem_mgr.load_chat(_ctx=kwargs, _state={})
             self._execute_workflow(**kwargs)
             result = self._process_execution_result()
             self.logger.info(f"Cog '{self.cog_file}' completed successfully!")

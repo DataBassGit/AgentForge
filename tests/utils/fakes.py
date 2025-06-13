@@ -112,7 +112,19 @@ class FakeChromaStorage:
         metadata = metadata or [{} for _ in data]
         if not (len(data) == len(ids) == len(metadata)):
             raise ValueError("data, ids, and metadata must have the same length")
-        self.select_collection(collection_name).upsert(data, metadata, ids)
+        # Ensure each metadata dict has an integer 'id' mirroring the sequential id
+        processed_metas = []
+        for idx, meta in enumerate(metadata):
+            meta_copy = dict(meta)  # avoid mutating caller's dict
+            # ids[idx] is a string; store numeric version
+            try:
+                meta_copy.setdefault("id", int(ids[idx]))
+            except ValueError:
+                # fall back to string if non-numeric but still provide something
+                meta_copy.setdefault("id", ids[idx])
+            processed_metas.append(meta_copy)
+
+        self.select_collection(collection_name).upsert(data, processed_metas, ids)
 
     def query_storage(self, *, collection_name: str, query: Optional[str | List[str]] = None, num_results: int = 1, **_):
         col = self.select_collection(collection_name)

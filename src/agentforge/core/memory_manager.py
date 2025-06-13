@@ -57,6 +57,10 @@ class MemoryManager:
         max_results = self.cog_config.cog.chat_history_max_results
         self._chat_history_max_results = max_results if max_results is not None and max_results >= 0 else 10
 
+        # Pull chat_history_max_retrieval from cog config, defaulting to 20 if missing or negative
+        max_retrieval = getattr(self.cog_config.cog, "chat_history_max_retrieval", None)
+        self._chat_history_max_retrieval = max_retrieval if max_retrieval is not None and max_retrieval >= 0 else 20
+
         self.memory_nodes["chat_history"] = {
             "instance": ChatHistoryMemory(self.cog_name, self.persona),
             "config": None,
@@ -225,7 +229,7 @@ class MemoryManager:
         chat_node = self.memory_nodes.get("chat_history").get("instance")
         chat_node.update_memory(_ctx, output)
 
-    def load_chat(self):
+    def load_chat(self, _ctx: dict = None, _state: dict = None):
         """
         Query the chat history node and load the most recent N messages into its store.
         N is determined by chat_history_max_results in the cog config (default 10, 0 means no limit).
@@ -233,4 +237,10 @@ class MemoryManager:
         if not self._chat_memory_enabled or "chat_history" not in self.memory_nodes:
             return
       
-        self.memory_nodes["chat_history"]["instance"].query_memory(num_results=self._chat_history_max_results)
+        chat_node = self.memory_nodes["chat_history"]["instance"]
+        chat_node.query_memory(
+            num_results=self._chat_history_max_results,
+            max_retrieval=self._chat_history_max_retrieval,
+            _ctx=_ctx or {},
+            _state=_state or {},
+        )

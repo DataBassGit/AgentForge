@@ -1,14 +1,5 @@
 from __future__ import annotations
 
-import os, pathlib, sys
-project_root = pathlib.Path(__file__).parent.parent.resolve()
-os.chdir(project_root)
-sys.path.insert(0, str(project_root / "src"))
-
-# == prevent Config() from hunting in the wrong place ==
-import agentforge.config as _afcfg
-_afcfg.Config.find_project_root = lambda self, _root_path: project_root
-
 import logging
 import shutil
 import sys
@@ -16,31 +7,16 @@ from pathlib import Path
 
 import pytest
 
-# Ensure `src/` is importable without installing the package
-REPO_ROOT = Path(__file__).resolve().parent.parent
-SRC_PATH = REPO_ROOT / "src"
-if str(SRC_PATH) not in sys.path:
-    sys.path.insert(0, str(SRC_PATH))
+from agentforge.testing.bootstrap import bootstrap_test_env
+bootstrap_test_env(use_fakes=True, silence_output=True, cleanup_on_exit=False)
 
-# Ensure a .agentforge directory exists at repo root for eager imports that
-# instantiate Config() before fixtures have a chance to run.
-DEFAULT_AF = REPO_ROOT / ".agentforge"
-if not DEFAULT_AF.exists():
-    setup_src = SRC_PATH / "agentforge" / "setup_files"
-    shutil.copytree(setup_src, DEFAULT_AF)
+# Because bootstrap switched CWD to the repo root and placed `src/` on the
+# import path, we can now cleanly reference repository-local resources.
+REPO_ROOT = Path.cwd()
+SRC_PATH = REPO_ROOT / "src"
 
 from agentforge.config import Config  # noqa: E402 – path fixed above
 from tests.utils.fakes import FakeChromaStorage
-
-import agentforge.storage.chroma_storage as cs_mod
-import agentforge.storage.memory as mem_mod
-
-# Apply monkeypatch early so any import pulls the fake.
-cs_mod.ChromaStorage = FakeChromaStorage  # type: ignore[attr-defined]
-mem_mod.ChromaStorage = FakeChromaStorage  # type: ignore[attr-defined]
-
-# Provide missing convenience API required by storage tests
-setattr(FakeChromaStorage, "create_collection", FakeChromaStorage.select_collection)
 
 ###############################################################################
 # Generic helpers & fixtures
