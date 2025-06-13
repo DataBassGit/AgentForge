@@ -55,7 +55,7 @@ class MemoryManager:
             return
         
         max_results = self.cog_config.cog.chat_history_max_results
-        self._chat_history_max_results = max_results if max_results is not None and max_results >= 0 else 10
+        self._chat_history_max_results = max_results if max_results is not None and max_results >= 0 else 20
 
         # Pull chat_history_max_retrieval from cog config, defaulting to 20 if missing or negative
         max_retrieval = getattr(self.cog_config.cog, "chat_history_max_retrieval", None)

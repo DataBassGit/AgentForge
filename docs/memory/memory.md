@@ -67,24 +67,33 @@ prompts:
   system:
     intro: |
       You are an analysis agent. Your job is to extract key insights, user intent, and relevant topics from user messages.
+      
     chat_history: |
       ## Chat History
       {_mem.chat_history.history}
+
+    relevant_history: |
+      ## Relevant Past Conversations
+      {_mem.chat_history.relevant}
+
     scratchpad: |
       ## Scratchpad
       {_mem.scratchpad.readable}
+      
     persona_context: |
       ## Current Persona Understanding
       {_mem.persona_memory._narrative}
+      
   user:
     analysis_task: |
       ## User Message to Analyze
       {_ctx}
 ```
 
-- `{_mem.general_memory.readable}`: Human-readable summary of memory node `general_memory`.
+- `{_mem.<node_id>.readable}`: Human-readable summary of memory node if available.
 - `{_mem.persona_memory._narrative}`: Narrative summary from PersonaMemory.
-- `{_mem.chat_history.history}`: Recent chat history (if enabled).
+- `{_mem.chat_history.history}`: Recent chat turns (recency slice).
+- `{_mem.chat_history.relevant}`: Semantically relevant past messages (semantic slice, if enabled).
 
 The `_mem` variable is automatically constructed by the Cog engine and contains all memory nodes defined in your YAML (plus `chat_history` if enabled).
 

@@ -112,8 +112,8 @@ Memory nodes declared under `memory` are shared across all agents in a Cog. Each
 
 **Automatic Chat History Memory:**
 - Unless `chat_memory_enabled: false` is set at the top level, a `chat_history` memory node is automatically added for you.
-- You can configure the number of results with `chat_history_max_results` (default: 10).
-- Access chat history in prompts as `{memory.chat_history.readable}`.
+- Configure the recency slice with `chat_history_max_results` (default: 20, `0` = no limit) and the semantic slice with `chat_history_max_retrieval` (default: 20, `0` = disable semantic retrieval).
+- Access chat history in prompts with `{_mem.chat_history.history}` (recent turns) and `{_mem.chat_history.relevant}` (semantically relevant turns).
 
 > **Note:** You do not need to define a `chat_history` memory node yourself—this is handled automatically when chat memory is enabled.
 
@@ -255,7 +255,7 @@ cog:
 
 - **Prompt Engineering**: Structure prompts with clear sections and use memory in context sections.
 - **Decision Branches**: Always quote branch names in YAML, set reasonable `max_visits`, and define `fallback` paths.
-- **Memory Management**: Use `query_before` and `update_after` to control memory usage, and be explicit about `query_keys` and `update_keys`. Use `{memory.node_id.readable}` in prompts for human-friendly formatting.
+- **Memory Management**: Use `query_before` and `update_after` to control memory usage, and be explicit about `query_keys` and `update_keys`. Use `{_mem.<node_id>.readable}` in prompts for human-friendly formatting.
 - **Chat History**: Leverage the automatic `chat_history` memory node for conversation context unless explicitly disabled.
 - **Testing**: Use `cog.get_track_flow_trail()` to inspect execution order and outputs.
 
