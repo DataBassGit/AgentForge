@@ -2,12 +2,11 @@
 default_model: 
   api: gemini_api 
   model: gemini_flash 
-# Uncomment to use alternative default models 
+# Example of using alternative default models 
 #  api: lm_studio_api 
 #  model: LMStudio 
 #  api: openai_api 
 #  model: omni_model 
-#  model: o1_preview 
  
 # Library of models and parameter defaults 
 model_library: 
@@ -35,7 +34,7 @@ model_library:
         omni_model: 
           identifier: gpt-4o 
           params: 
-            max_new_tokens: 15000  # Example of overriding parameters 
+            max_tokens: 15000  # Example of overriding parameters 
         smart_model: 
           identifier: gpt-4 
         smart_fast_model: 

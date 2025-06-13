@@ -12,6 +12,11 @@ prompts:
 
         {_mem.chat_history.history}
 
+    relevant_history: |
+      ## Relevant Past Conversations
+
+        {_mem.chat_history.relevant}
+
     scratchpad: |
       ## Scratchpad
       

@@ -10,6 +10,8 @@ class GPT(BaseModel):
     """
 
     def _do_api_call(self, prompt, **filtered_params):
+        if isinstance(prompt, dict) and "messages" in prompt:
+            prompt = prompt["messages"]
         response = client.chat.completions.create(
             model=self.model_name,
             messages=prompt,

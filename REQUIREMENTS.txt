@@ -24,6 +24,9 @@ requests
 xmltodict
 setuptools>=70.0.0
 python-dotenv
+accelerate
+# Torch is required by sentence-transformers; leave unpinned so env picks suitable CPU-only build
+torch
 
 # Optional Dependencies
 matplotlib~=3.9.2

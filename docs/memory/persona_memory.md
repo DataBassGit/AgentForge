@@ -17,7 +17,7 @@ This creates a dynamic persona system that evolves based on interactions while m
 - **Narrative Generation**: Automatically creates coherent persona narratives from static and dynamic facts
 - **Intelligent Updates**: Determines when to add new facts or update existing ones
 - **Fact Superseding**: Tracks when facts become outdated and manages fact evolution
-- **Placeholder Integration**: Provides `{memory.<node_id>._narrative}` and `{persona._static}` placeholders in prompt templates
+- **Placeholder Integration**: Provides `{_mem.<node_id>._narrative}` and `{persona._static}` placeholders in prompt templates
 
 ## Configuration
 
@@ -71,7 +71,7 @@ prompts:
       {persona._static}
     dynamic_persona: |+
       ## Dynamic Context
-      {memory.persona_memory._narrative}
+      {_mem.persona_memory._narrative}
   user:
     instruction: |+
       Respond to: {user_input}

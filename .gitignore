@@ -18,6 +18,8 @@ Logs/
 *.log
 *Logs/
 *logs/
+logs/
+
 
 # Database directories
 *DB/
@@ -43,10 +45,9 @@ sandbox/**/Tests/
 AgentForge.log
 src/agentforge/persona/chatbot.json
 *.env
+.vscode/
 /.cursorignore
-
-examples/episodic_memory_cog_example.yaml
-
-examples/journal_cog_example.yaml
-
 .cursor/rules/
+.pytest_cache/
+.cursor/
+

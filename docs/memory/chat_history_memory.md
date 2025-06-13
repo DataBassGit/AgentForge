@@ -33,7 +33,18 @@ You can control how many recent messages are included in the chat history contex
 ```yaml
 cog:
   name: "CustomChatHistoryExample"
-  chat_history_max_results: 20  # Default is 10; 0 means no limit
+  chat_history_max_results: 10  # Default is 20; 0 means no limit
+  ...
+```
+
+### Configuring Semantic Retrieval
+
+You can enable a semantic "relevant messages" slice by setting `chat_history_max_retrieval`:
+
+```yaml
+cog:
+  name: "CustomChatHistoryExample"
+  chat_history_max_retrieval: 15  # Default is 20; 0 disables semantic retrieval
   ...
 ```
 
@@ -49,6 +60,7 @@ cog:
   description: "Example workflow demonstrating ChatHistoryMemory functionality"
   # chat_memory_enabled: false  # Optional: disable chat history
   # chat_history_max_results: 20  # Optional: set max results
+  # chat_history_max_retrieval: 15  # Optional: set max semantic retrieval
 
   agents:
     - id: understanding
@@ -78,9 +90,13 @@ prompts:
     chat_history: |
       ## Chat History
       {_mem.chat_history.history}
+       
+      ## Relevant Past Conversation
+      {_mem.chat_history.relevant}
 ```
 
-- `{_mem.chat_history.history}`: Renders a human-readable summary of recent conversation turns.
+- `{_mem.chat_history.history}`: Recent conversation turns in chronological order.
+- `{_mem.chat_history.relevant}`: Semantically relevant past messages (if retrieval is enabled).
 
 You can combine chat history with other memory nodes in your prompts for richer context.
 
@@ -91,6 +107,7 @@ You can combine chat history with other memory nodes in your prompts for richer 
 - The `MemoryManager` automatically creates and manages the `chat_history` node for each Cog (unless disabled).
 - After each agent execution, the latest user and agent messages are recorded in chat history.
 - When an agent runs, the most recent N messages (as configured) are loaded into the `_mem.chat_history` context.
+- If semantic retrieval is enabled, up to `chat_history_max_retrieval` additional relevant messages are included in `_mem.chat_history.relevant`.
 - Agents never interact with chat history directly; they only access it via the prompt context.
 
 ---
@@ -99,6 +116,7 @@ You can combine chat history with other memory nodes in your prompts for richer 
 
 - Use chat history in your agent prompts to provide context for multi-turn conversations.
 - Adjust `chat_history_max_results` to balance context richness and prompt length.
+- Use `chat_history_max_retrieval` to control the size of the semantic slice (set to `0` to disable).
 - Disable chat history only if your workflow does not require prior conversation context.
 - Combine chat history with other memory nodes (e.g., PersonaMemory, ScratchPad) for advanced workflows.
 

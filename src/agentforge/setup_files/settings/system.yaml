@@ -16,8 +16,8 @@ logging:
   console_level: warning
   folder: ./logs
   files:  # Log levels: critical, error, warning, info, debug
-    agentforge: error
-    model_io: error
+    agentforge: debug
+    model_io: debug
 
 # Miscellaneous settings
 misc:
