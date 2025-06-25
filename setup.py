@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 LICENSE = "GNU General Public License v3 or later (GPLv3+)"
 
 
@@ -11,7 +11,7 @@ def get_long_description():
 
 setup(
     name="agentforge",
-    version="0.6.1",
+    version="0.6.2",
     description="AI-driven task automation system",
     author="John Smith, Ansel Anselmi",
     author_email="contact@agentforge.net",
