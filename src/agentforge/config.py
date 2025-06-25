@@ -10,6 +10,11 @@ import sys
 from typing import Dict, Any, Optional, Tuple
 from ruamel.yaml import YAML
 from types import ModuleType
+# Optional: load environment variables from a .env file if python-dotenv is available
+try:
+    from dotenv import load_dotenv  # type: ignore
+except ImportError:  # pragma: no cover
+    load_dotenv = None
 
 # Import ConfigManager for structured config objects
 from .core.config_manager import ConfigManager
@@ -71,7 +76,18 @@ class Config:
         """
         Initializes all instance attributes for the Config class.
         """
-        self.project_root = self.find_project_root(root_path)
+        # Load environment variables from a `.env` file if python-dotenv is installed.
+        if load_dotenv is not None:
+            load_dotenv()
+
+        # Determine the project root following the precedence:
+        # 1. Explicit `root_path` argument
+        # 2. `AGENTFORGE_ROOT` environment variable
+        # 3. Auto-discovery walking up the directory tree
+        env_root = os.getenv("AGENTFORGE_ROOT")
+        root_candidate = root_path or env_root  # may be None, which signals auto-discover
+
+        self.project_root = self.find_project_root(root_candidate)
         self.config_path = self.project_root / ".agentforge"
         self.data = {}
         self.config_manager = ConfigManager()
