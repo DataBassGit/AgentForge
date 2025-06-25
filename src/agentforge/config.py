@@ -236,7 +236,7 @@ class Config:
         Returns (api_name, model_name, agent_params_override).
         Raises ValueError if no valid API/Model can be determined.
         """
-        selected_model = self.data['settings']['models'].get('default_model', {})
+        selected_model = self.data['settings']['models'].get('default_model') or {}
         default_api = selected_model.get('api')
         default_model = selected_model.get('model')
         model_overrides = agent.get('model_overrides', {})
