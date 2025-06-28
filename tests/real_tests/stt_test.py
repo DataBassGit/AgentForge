@@ -48,9 +48,9 @@ def main() -> None:  # noqa: D401
     )
     args = parser.parse_args()
 
-    audio_agent = Agent(agent_name="audio_agent")
+    audio_agent = Agent(agent_name="stt_agent")
 
-    print("Audio Agent is ready – press <enter> to use the bundled sample clip or provide a file path. Type 'quit' to exit.")
+    print("STT Agent is ready - press <enter> to use the bundled sample clip or provide a file path. Type 'quit' to exit.")
 
     while True:
         # Consume any --file value only on first loop ----------------------
@@ -58,7 +58,7 @@ def main() -> None:  # noqa: D401
             audio_path = args.file
             args.file = None  # use only once
         else:
-            user_in = input("Audio path (blank for sample): ").strip()
+            user_in = input("STT Agent: Audio path (blank for sample): ").strip()
             if user_in.lower() == "quit":
                 print("Chao!")
                 break

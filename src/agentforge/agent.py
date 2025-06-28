@@ -214,11 +214,16 @@ class Agent:
     def _route_audio_save(self, blob: bytes, fmt: str = "wav") -> str:
         """Persist TTS bytes to disk and optionally auto-play.
 
-        The save location is resolved in this order:
-            1. Environment `AF_SAVE_AUDIO_FILES` – if set to a path, use it;
-               if set to a truthy value ("1", "true"), fall back to system path.
-            2. `settings.system.paths.audio` in `system.yaml` (if defined).
-            3. OS temp directory.
+        Behaviour is driven by the *audio* section in `settings/system.yaml`:
+
+            1. `audio.save_files` – if *true*, save to `audio.save_dir`.
+               • If `audio.save_dir` is blank, fall back to `settings.system.paths.audio`
+                 or the OS temp directory.
+            2. If `audio.save_files` is *false*, content is still written to the OS
+               temp dir so that a valid file path is returned, but it will not be
+               persisted elsewhere.
+            3. `audio.autoplay` – when *true*, the saved file is auto-played using
+               common platform tools (afplay/paplay/aplay/ffplay).
         """
         import os
         import tempfile
@@ -227,27 +232,23 @@ class Agent:
         import platform
         import subprocess
 
+        audio_cfg = getattr(self.agent_config.settings.system, "audio", None)
+
+        # Determine save behavior
+        save_enabled: bool = getattr(audio_cfg, "save_files", False) if audio_cfg else False
+
+        # Fallback directory logic
         cfg_paths = getattr(self.agent_config.settings.system, "paths", {})
+        default_dir = None
         if isinstance(cfg_paths, dict):
             default_dir = cfg_paths.get("audio")
         else:
             default_dir = getattr(cfg_paths, "audio", None)
 
-        env_val = os.getenv("AF_SAVE_AUDIO_FILES", "0")
-        # Determine whether saving is enabled and directory to use
-        save_enabled = False
         base_dir: str
-        if env_val.lower() in {"0", "false", "no"}:
-            save_enabled = False
-        elif env_val and env_val not in {"1", "true", "yes"}:
-            save_enabled = True
-            base_dir = env_val
+        if save_enabled:
+            base_dir = (getattr(audio_cfg, "save_dir", "") or default_dir or tempfile.gettempdir())
         else:
-            # Truthy flag without path
-            save_enabled = True
-            base_dir = default_dir or tempfile.gettempdir()
-
-        if not save_enabled:
             # Still need to save somewhere to hand a path back; use temp dir.
             base_dir = tempfile.gettempdir()
 
@@ -260,8 +261,10 @@ class Agent:
         with open(file_path, "wb") as fp:
             fp.write(blob)
 
-        # Optional auto-play
-        if os.getenv("AF_AUTO_PLAY", "0").lower() in {"1", "true", "yes"}:
+        # Optional auto-play controlled by config
+        auto_play = getattr(audio_cfg, "autoplay", False) if audio_cfg else False
+
+        if auto_play:
             try:
                 system = platform.system()
                 if system == "Darwin":

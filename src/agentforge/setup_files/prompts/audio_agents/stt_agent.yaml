@@ -1,7 +1,7 @@
 prompts:
   user: |
-    {text}
+    {audio}
 
 model_overrides:
   api: openai_api
-  model: tts_standard
+  model: whisper_base

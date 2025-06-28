@@ -23,6 +23,12 @@ logging:
 misc:
   on_the_fly: true  # Enables real-time dynamic adjustments for prompts and agent setting overrides
 
+# Audio settings
+audio:
+  autoplay: true      # Automatically play generated audio files after saving
+  save_files: false    # Persist audio files to disk (true) or use temp dir only (false)
+  save_dir: ./audio_files         # Optional custom directory; blank uses paths.audio or temp
+
 # System file paths (Read/Write access)
 paths:
   files: ./files

@@ -126,9 +126,10 @@ def test_route_audio_save(tmp_path, monkeypatch, isolated_config):
 
     agent = Agent("AudioAgent")
 
-    # Ensure files are routed to tmp_path regardless of env
-    monkeypatch.setenv("AF_SAVE_AUDIO_FILES", str(tmp_path))
-    monkeypatch.setenv("AF_AUTO_PLAY", "0")
+    # Configure audio settings for this test
+    dummy_cfg.settings.system.audio.save_files = True
+    dummy_cfg.settings.system.audio.save_dir = str(tmp_path)
+    dummy_cfg.settings.system.audio.autoplay = False
 
     file_path = agent._route_audio_save(b"12345", fmt="wav")
     assert Path(file_path).exists(), "Audio file was not written"
