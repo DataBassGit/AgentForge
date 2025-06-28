@@ -92,13 +92,23 @@ class TTS(AudioOutputMixin, BaseModel):
             input_text = str(prompt)
 
         voice = filtered_params.pop("voice", "alloy")
-        audio_format = filtered_params.pop("format", "wav")
+
+        # OpenAI SDK ≥1.13 expects `response_format`; older versions used `format`.
+        # Accept either key from upstream config for compatibility.
+        audio_format = (
+            filtered_params.pop("response_format", None)
+            or filtered_params.pop("format", None)
+            or "wav"
+        )
+
+        # Guarantee legacy key is not forwarded even if both are present.
+        filtered_params.pop("format", None)
 
         response = client.audio.speech.create(
             model=self.model_name,
             voice=voice,
             input=input_text,
-            format=audio_format,
+            response_format=audio_format,
             **filtered_params,
         )
 

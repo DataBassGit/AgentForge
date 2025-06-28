@@ -5,8 +5,10 @@ default_model:
 # Example of using alternative default models 
 #  api: lm_studio_api 
 #  model: LMStudio 
-#  api: openai_api 
+  # api: openai_api 
 #  model: omni_model 
+  # model: whisper_base
+  # model: tts_standard
  
 # Library of models and parameter defaults 
 model_library: 
@@ -75,7 +77,7 @@ model_library:
 
       params:
         voice: alloy  # default voice
-        format: wav  # default audio format
+        response_format: wav  # default audio format
  
   anthropic_api: 
     Claude: 
