@@ -54,6 +54,29 @@ model_library:
         temperature: 0.8 
         top_p: 0.1 
  
+    # ------------------------------------------------------------------
+    # Audio models
+    # ------------------------------------------------------------------
+    STT:  # Whisper Speech-to-Text
+      models:
+        whisper_base:
+          identifier: whisper-1
+          modality: stt  # primary modality tag (optional metadata)
+          params: {}
+
+      params:  # Defaults forwarded to STT wrapper
+        response_format: text
+
+    TTS:  # Text-to-Speech
+      models:
+        tts_standard:
+          identifier: tts-1
+          modality: tts
+
+      params:
+        voice: alloy  # default voice
+        format: wav  # default audio format
+ 
   anthropic_api: 
     Claude: 
       models: 

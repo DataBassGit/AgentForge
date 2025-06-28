@@ -30,33 +30,48 @@ class BaseModel:
         self.num_retries = kwargs.get("num_retries", self.default_retries)
         self.base_backoff = kwargs.get("base_backoff", self.default_backoff)
 
-    def generate(self, model_prompt=None, *, images=None, **params):
+    def generate(self, model_prompt=None, *, images=None, audio=None, **params):
         """
         Main entry point for generating responses. This method handles retries,
         calls _call_api for the actual request, and logs everything.
         """
-        self._validate_modalities(images)
+        # Accept `images` / `audio` passed either as explicit kwarg *or* inside **params
+        if images is None and "images" in params:
+            images = params.pop("images")
+        elif images is not None and "images" in params:
+            raise TypeError("Duplicate 'images' argument supplied to generate().")
+
+        if audio is None and "audio" in params:
+            audio = params.pop("audio")
+        elif audio is not None and "audio" in params:
+            raise TypeError("Duplicate 'audio' argument supplied to generate().")
+
+        self._validate_modalities(images, audio)
         self._init_logger(model_prompt, params)
 
-        parts        = self._build_parts(model_prompt, images)
+        parts        = self._build_parts(model_prompt, images, audio)
         request_body = self._merge_parts(parts)
 
         return self._run_with_retries(request_body, params)
 
     # ─────────────────── helper trio for readability ────────────────────
-    def _validate_modalities(self, images):
+    def _validate_modalities(self, images, audio):
         if images and "image" not in self.supported_modalities:
             raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle images")
+        if audio and "audio" not in self.supported_modalities:
+            raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle audio inputs")
 
     def _init_logger(self, model_prompt, params):
         self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
         if model_prompt:
             self.logger.log_prompt(model_prompt)
 
-    def _build_parts(self, model_prompt, images):
+    def _build_parts(self, model_prompt, images, audio):
         parts = {"text": self._prepare_prompt(model_prompt)}
         if images:
             parts["image"] = self._prepare_image_payload(images)
+        if audio:
+            parts["audio"] = self._prepare_audio_payload(audio)
         return parts
 
     # ─────────────────── retry/back‑off execution ───────────────────────
@@ -71,7 +86,11 @@ class BaseModel:
                 response = self._do_api_call(request_body, **filtered)
                 reply    = self._process_response(response)
 
-                self.logger.log_response(reply)
+                # Avoid dumping binary blobs into logs
+                if isinstance(reply, (bytes, bytearray)):
+                    self.logger.log_response(f"<binary {len(reply)} bytes>")
+                else:
+                    self.logger.log_response(reply)
                 break
             except RateLimitError as e:
                 self.logger.warning(f"Rate limit exceeded: {e}. Retrying in {backoff} seconds...")
@@ -104,6 +123,10 @@ class BaseModel:
         """Default implementation raises UnsupportedModalityError for image modality."""
         raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle images")
 
+    def _prepare_audio_payload(self, audio):
+        """Default implementation raises UnsupportedModalityError for audio modality."""
+        raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle audio inputs")
+
     def _merge_parts(self, parts):
         """
         Combine text and optional image parts into an API-specific message format.
@@ -117,6 +140,10 @@ class BaseModel:
                 content.extend(parts["image"])
                 messages[-1]["content"] = content
             
+        # Include audio payload directly if provided.
+        if "audio" in parts and parts["audio"] is not None:
+            return {"messages": messages, "audio": parts["audio"]}
+
         return {"messages": messages}
 
     @staticmethod

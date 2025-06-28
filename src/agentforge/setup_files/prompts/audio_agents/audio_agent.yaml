@@ -1,0 +1,6 @@
+prompts:
+  system: |
+    Transcribe the input audio to text.
+
+  user: |
+    {audio}
