@@ -5,6 +5,7 @@ from agentforge.apis.base_api import BaseModel
 from agentforge.utils.logger import Logger
 from agentforge.utils.prompt_processor import PromptProcessor
 from agentforge.utils.parsing_processor import ParsingProcessor
+from agentforge.utils.audio_manager import AudioManager
 
 
 class Agent:
@@ -55,6 +56,9 @@ class Agent:
         # Media
         self.images: List[str] = []
         
+        # Audio
+        self.audio_manager: AudioManager | None = None
+
     # ---------------------------------
     # Execution
     # ---------------------------------
@@ -98,6 +102,8 @@ class Agent:
         self.prompt_template = self.agent_config.prompts
         self.model = self.agent_config.model
         self.load_persona_data()
+        # Instantiate AudioManager after config is ready
+        self.audio_manager = AudioManager(self.agent_config, self.logger)
         
     def load_persona_data(self) -> None:
         """Load persona data if personas are enabled in system settings."""
@@ -179,7 +185,6 @@ class Agent:
         if self.images:
             params['images'] = self.images
 
-        # TODO: This needs verification against prompt_processor.render_prompts(), audio may not be in the prompt but a separate parameter.
         # Allow callers to supply raw audio for STT models via agent.run(audio=<bytes-or-path>)
         if 'audio' in self.template_data:
             params['audio'] = self.template_data['audio']
@@ -194,12 +199,12 @@ class Agent:
         """Handle text vs. binary results.
 
         • Text → optional structured parsing.
-        • Bytes → save to disk via `_route_audio_save` and return the file path.
+        • Bytes → save to disk via `AudioManager.save_tts_bytes` and return the file path.
         """
 
         # Audio bytes – treat as TTS output
         if isinstance(self.result, (bytes, bytearray)):
-            saved_path = self._route_audio_save(self.result)
+            saved_path = self.audio_manager.save_tts_bytes(self.result)
             self.parsed_result = saved_path  # downstream components will use the path
             return
 
@@ -207,81 +212,6 @@ class Agent:
         self.parsed_result = self.parsing_processor.parse_by_format(
             self.result, self.agent_config.parse_response_as
         )
-
-    # -----------------------------------------------------------------
-    # Audio helpers
-    # -----------------------------------------------------------------
-    def _route_audio_save(self, blob: bytes, fmt: str = "wav") -> str:
-        """Persist TTS bytes to disk and optionally auto-play.
-
-        Behaviour is driven by the *audio* section in `settings/system.yaml`:
-
-            1. `audio.save_files` – if *true*, save to `audio.save_dir`.
-               • If `audio.save_dir` is blank, fall back to `settings.system.paths.audio`
-                 or the OS temp directory.
-            2. If `audio.save_files` is *false*, content is still written to the OS
-               temp dir so that a valid file path is returned, but it will not be
-               persisted elsewhere.
-            3. `audio.autoplay` – when *true*, the saved file is auto-played using
-               common platform tools (afplay/paplay/aplay/ffplay).
-        """
-        import os
-        import tempfile
-        import datetime
-        import pathlib
-        import platform
-        import subprocess
-
-        audio_cfg = getattr(self.agent_config.settings.system, "audio", None)
-
-        # Determine save behavior
-        save_enabled: bool = getattr(audio_cfg, "save_files", False) if audio_cfg else False
-
-        # Fallback directory logic
-        cfg_paths = getattr(self.agent_config.settings.system, "paths", {})
-        default_dir = None
-        if isinstance(cfg_paths, dict):
-            default_dir = cfg_paths.get("audio")
-        else:
-            default_dir = getattr(cfg_paths, "audio", None)
-
-        base_dir: str
-        if save_enabled:
-            base_dir = (getattr(audio_cfg, "save_dir", "") or default_dir or tempfile.gettempdir())
-        else:
-            # Still need to save somewhere to hand a path back; use temp dir.
-            base_dir = tempfile.gettempdir()
-
-        # Ensure directory exists
-        pathlib.Path(base_dir).mkdir(parents=True, exist_ok=True)
-
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        file_path = os.path.join(base_dir, f"tts_{timestamp}.{fmt}")
-
-        with open(file_path, "wb") as fp:
-            fp.write(blob)
-
-        # Optional auto-play controlled by config
-        auto_play = getattr(audio_cfg, "autoplay", False) if audio_cfg else False
-
-        if auto_play:
-            try:
-                system = platform.system()
-                if system == "Darwin":
-                    subprocess.Popen(["afplay", file_path])
-                elif system == "Linux":
-                    # Try paplay → aplay → ffplay
-                    for cmd in (["paplay", file_path], ["aplay", file_path], ["ffplay", "-nodisp", "-autoexit", file_path]):
-                        try:
-                            subprocess.Popen(cmd)
-                            break
-                        except FileNotFoundError:
-                            continue
-                # On Windows or unknown, silently skip
-            except Exception as exc:
-                self.logger.warning(f"Auto-play failed: {exc}")
-
-        return file_path
 
     def post_process_result(self) -> None:
         """

@@ -116,8 +116,8 @@ def _build_dummy_agent_config(isolated_config: Config):
 
 
 @pytest.mark.usefixtures("isolated_config")
-def test_route_audio_save(tmp_path, monkeypatch, isolated_config):
-    """_route_audio_save should persist bytes and return path."""
+def test_audio_manager_save(tmp_path, monkeypatch, isolated_config):
+    """AudioManager.save_tts_bytes should persist bytes and return path."""
 
     dummy_cfg = _build_dummy_agent_config(isolated_config)
 
@@ -131,7 +131,7 @@ def test_route_audio_save(tmp_path, monkeypatch, isolated_config):
     dummy_cfg.settings.system.audio.save_dir = str(tmp_path)
     dummy_cfg.settings.system.audio.autoplay = False
 
-    file_path = agent._route_audio_save(b"12345", fmt="wav")
+    file_path = agent.audio_manager.save_tts_bytes(b"12345", fmt="wav")
     assert Path(file_path).exists(), "Audio file was not written"
     assert Path(file_path).read_bytes() == b"12345"
 
