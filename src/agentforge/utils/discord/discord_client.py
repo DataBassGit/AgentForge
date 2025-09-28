@@ -166,7 +166,11 @@ class DiscordClient:
             channel_id (int): The ID of the channel to send the message to.
             content (str): The content of the message to send.
         """
-        self.utils.send_message(channel_id, content)
+        try:
+            self.utils.send_message(channel_id, content)
+            return True
+        except:
+            return False
 
     def send_dm(self, user_id, content):
         """

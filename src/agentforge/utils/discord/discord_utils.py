@@ -43,7 +43,7 @@ class DiscordUtils:
             except discord.errors.Forbidden:
                 self.logger.error(f"[DiscordUtils.send_message] Bot doesn't have permission to send messages in channel {channel_id}")
             except Exception as e:
-                self.logger.error(f"[DiscordUtils.send_message] Error sending message to channel {channel_id}: {str(e)}")
+                self.logger.error(f"[DiscordUtils.send_message] Error sending message to channel {channel_id}: {str(e)}\nMessage: {msg.content}")
 
         try:
             return asyncio.run_coroutine_threadsafe(send(), self.client.loop)
