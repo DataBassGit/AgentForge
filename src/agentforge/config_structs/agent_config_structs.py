@@ -47,6 +47,14 @@ class PathSettings:
 
 
 @dataclass
+class AudioSettings:
+    """Audio-related system settings."""
+    autoplay: bool = False  # Automatically play generated audio files
+    save_files: bool = False  # Persist audio to a directory instead of tmp
+    save_dir: str = ""  # Custom directory for audio files (optional)
+
+
+@dataclass
 class SystemSettings:
     """System settings structure from settings/system.yaml."""
     persona: PersonaSettings
@@ -54,6 +62,7 @@ class SystemSettings:
     logging: LoggingSettings
     misc: MiscSettings
     paths: PathSettings
+    audio: AudioSettings
 
 
 @dataclass

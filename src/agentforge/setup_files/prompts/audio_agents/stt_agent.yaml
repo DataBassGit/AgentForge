@@ -1,0 +1,7 @@
+prompts:
+  user: |
+    {audio}
+
+model_overrides:
+  api: openai_api
+  model: whisper_base

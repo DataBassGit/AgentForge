@@ -5,6 +5,7 @@ from agentforge.apis.base_api import BaseModel
 from agentforge.utils.logger import Logger
 from agentforge.utils.prompt_processor import PromptProcessor
 from agentforge.utils.parsing_processor import ParsingProcessor
+from agentforge.utils.audio_manager import AudioManager
 
 
 class Agent:
@@ -55,6 +56,9 @@ class Agent:
         # Media
         self.images: List[str] = []
         
+        # Audio
+        self.audio_manager: AudioManager | None = None
+
     # ---------------------------------
     # Execution
     # ---------------------------------
@@ -98,6 +102,8 @@ class Agent:
         self.prompt_template = self.agent_config.prompts
         self.model = self.agent_config.model
         self.load_persona_data()
+        # Instantiate AudioManager after config is ready
+        self.audio_manager = AudioManager(self.agent_config, self.logger)
         
     def load_persona_data(self) -> None:
         """Load persona data if personas are enabled in system settings."""
@@ -162,7 +168,14 @@ class Agent:
     def _execute_model_generation(self) -> None:
         """Execute the actual model generation with configured parameters."""
         params = self._build_model_params()
-        self.result = self.model.generate(self.prompt, **params).strip()
+        # `generate` may return str or raw bytes (for TTS).
+        result = self.model.generate(self.prompt, **params)
+
+        # Preserve raw bytes; strip only when we have text.
+        if isinstance(result, str):
+            result = result.strip()
+
+        self.result = result
 
     def _build_model_params(self) -> Dict[str, Any]:
         """Build parameters for model generation."""
@@ -171,7 +184,11 @@ class Agent:
         
         if self.images:
             params['images'] = self.images
-            
+
+        # Allow callers to supply raw audio for STT models via agent.run(audio=<bytes-or-path>)
+        if 'audio' in self.template_data:
+            params['audio'] = self.template_data['audio']
+
         return params
 
     # ---------------------------------
@@ -179,11 +196,22 @@ class Agent:
     # ---------------------------------
 
     def parse_result(self) -> None:
+        """Handle text vs. binary results.
+
+        • Text → optional structured parsing.
+        • Bytes → save to disk via `AudioManager.save_tts_bytes` and return the file path.
         """
-        Parse the model output using the agent's parse_response_as, if specified.
-        The parsed result is stored in self.parsed_result.
-        """
-        self.parsed_result = self.parsing_processor.parse_by_format(self.result, self.agent_config.parse_response_as)
+
+        # Audio bytes – treat as TTS output
+        if isinstance(self.result, (bytes, bytearray)):
+            saved_path = self.audio_manager.save_tts_bytes(self.result)
+            self.parsed_result = saved_path  # downstream components will use the path
+            return
+
+        # Otherwise, default behaviour
+        self.parsed_result = self.parsing_processor.parse_by_format(
+            self.result, self.agent_config.parse_response_as
+        )
 
     def post_process_result(self) -> None:
         """

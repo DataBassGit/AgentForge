@@ -3,7 +3,7 @@
 
 from agentforge.testing.bootstrap import bootstrap_test_env
 # Ensure the repo-root config and paths are in place *before* importing AgentForge
-bootstrap_test_env(use_fakes=False, silence_output=False)
+bootstrap_test_env(use_fakes=False, silence_output=False, cleanup_on_exit=True)
 
 from dotenv import load_dotenv
 from agentforge.cog import Cog

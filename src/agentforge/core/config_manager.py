@@ -19,6 +19,7 @@ from ..config_structs import (
     CogFlow,
     CogDefinition,
     CogConfig,
+    AudioSettings,
 )
 
 # from agentforge.utils.logger import Logger
@@ -123,16 +124,29 @@ class ConfigManager:
     def _validate_prompt_format(self, prompts: Dict[str, Any]) -> None:
         """
         Validates that the prompts dictionary has the correct format.
-        Raises ValueError if the prompts do not contain only 'system' and 'user' keys,
-        or if the sub-prompts are not dictionaries or strings.
+        ‑ The 'user' prompt is mandatory.
+        ‑ The 'system' prompt is optional.
+        ‑ No other top-level keys are allowed.
+        Raises ValueError if the format is invalid.
         """
-        if set(prompts.keys()) != {'system', 'user'}:
+        allowed_keys = {"system", "user"}
+        prompt_keys = set(prompts.keys())
+
+        # Check for unsupported keys first
+        unsupported = prompt_keys - allowed_keys
+        if unsupported:
             raise ValueError(
                 "Prompts should contain only 'system' and 'user' keys. "
                 "Please check the prompt YAML file format."
             )
-        for prompt_type in ['system', 'user']:
-            prompt_value = prompts.get(prompt_type, {})
+
+        # Ensure required 'user' prompt exists
+        if "user" not in prompt_keys:
+            raise ValueError("Prompts must include a 'user' key containing the user prompt template(s).")
+
+        # Validate types of each present prompt section
+        for prompt_type in prompt_keys:
+            prompt_value = prompts.get(prompt_type)
             if not isinstance(prompt_value, (dict, str)):
                 raise ValueError(
                     f"The '{prompt_type}' prompt should be either a string or a dictionary of sub-prompts."
@@ -235,12 +249,19 @@ class ConfigManager:
             files=raw_system.get('paths', {}).get('files', './files')
         )
         
+        audio_settings = AudioSettings(
+            autoplay=raw_system.get('audio', {}).get('autoplay', False),
+            save_files=raw_system.get('audio', {}).get('save_files', False),
+            save_dir=raw_system.get('audio', {}).get('save_dir', "")
+        )
+        
         system_settings = SystemSettings(
             persona=persona_settings,
             debug=debug_settings,
             logging=logging_settings,
             misc=misc_settings,
-            paths=path_settings
+            paths=path_settings,
+            audio=audio_settings
         )
         
         return Settings(

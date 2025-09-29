@@ -5,8 +5,10 @@ default_model:
 # Example of using alternative default models 
 #  api: lm_studio_api 
 #  model: LMStudio 
-#  api: openai_api 
+  # api: openai_api 
 #  model: omni_model 
+  # model: whisper_base
+  # model: tts_standard
  
 # Library of models and parameter defaults 
 model_library: 
@@ -53,6 +55,29 @@ model_library:
         stop: null 
         temperature: 0.8 
         top_p: 0.1 
+ 
+    # ------------------------------------------------------------------
+    # Audio models
+    # ------------------------------------------------------------------
+    STT:  # Whisper Speech-to-Text
+      models:
+        whisper_base:
+          identifier: whisper-1
+          modality: stt  # primary modality tag (optional metadata)
+          params: {}
+
+      params:  # Defaults forwarded to STT wrapper
+        response_format: text
+
+    TTS:  # Text-to-Speech
+      models:
+        tts_standard:
+          identifier: tts-1
+          modality: tts
+
+      params:
+        voice: alloy  # default voice
+        response_format: wav  # default audio format
  
   anthropic_api: 
     Claude: 

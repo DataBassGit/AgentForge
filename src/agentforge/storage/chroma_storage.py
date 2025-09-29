@@ -234,7 +234,24 @@ class ChromaStorage:
         """
         try:
             if self.client is None:
-                if self.db_path:
+                storage_settings = self.config.settings.storage
+
+                if storage_settings['options'].get('use_http_client', False):
+                    host = storage_settings['options'].get('http_host', 'localhost')
+                    port = storage_settings['options'].get('http_port', 8000)
+                    ssl = storage_settings['options'].get('http_ssl', False)
+                    headers = storage_settings['options'].get('http_headers', None)
+
+                    self.client = chromadb.HttpClient(
+                        host=host,
+                        port=port,
+                        ssl=ssl,
+                        headers=headers,
+                        settings=Settings(allow_reset=True)
+                    )
+                    logger.info(f"[init_storage] Connected to ChromaDB server at {host}:{port}")
+
+                elif self.db_path:
                     self.client = chromadb.PersistentClient(path=self.db_path, settings=Settings(allow_reset=True))
                 else:
                     self.client = chromadb.EphemeralClient()

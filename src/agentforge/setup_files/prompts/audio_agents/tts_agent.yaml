@@ -1,0 +1,7 @@
+prompts:
+  user: |
+    {text}
+
+model_overrides:
+  api: openai_api
+  model: tts_standard

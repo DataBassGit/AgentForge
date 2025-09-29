@@ -213,7 +213,10 @@ class PromptProcessor:
         Raises:
             ValueError: If any of the prompts are empty strings after rendering.
         """
+        required_prompt_types = {"user"}        # expand later if needed
         for prompt_type, prompt_content in rendered_prompts.items():
+            if prompt_type not in required_prompt_types:
+                continue      # optional → skip emptiness check
             if not prompt_content.strip():
                 error_message = (
                     f"Error: The '{prompt_type}' prompt is empty after rendering. "
