@@ -57,7 +57,10 @@ class Gemini(BaseModel):
         return response
 
     def _process_response(self, raw_response):
-        return raw_response.text
+        try:
+            return raw_response.text
+        except Exception as e:
+            print(f"Gemini Response error: {e}\nResponses{raw_response.candidates}")
 
 
 class GeminiVision(VisionMixin, Gemini):
