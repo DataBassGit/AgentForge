@@ -8,6 +8,8 @@ class LMStudio(BaseModel):
     """
 
     def _do_api_call(self, prompt, **filtered_params):
+        if isinstance(prompt, dict) and "messages" in prompt:
+            prompt = prompt["messages"]
         url = filtered_params.pop('host_url', 'http://localhost:1234/v1/chat/completions')
         headers = {'Content-Type': 'application/json'}
         data = {

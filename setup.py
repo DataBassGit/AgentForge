@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "0.6.2"
+__version__ = "0.6.4"
 LICENSE = "GNU General Public License v3 or later (GPLv3+)"
 
 
