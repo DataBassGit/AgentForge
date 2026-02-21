@@ -36,6 +36,7 @@ setup(
         "spacy",
         "termcolor==2.4.0",
         "openai",
+        "oauth-cli-kit>=0.1.3,<1.0.0",
         "anthropic",
         "google-api-python-client",
         "beautifulsoup4",

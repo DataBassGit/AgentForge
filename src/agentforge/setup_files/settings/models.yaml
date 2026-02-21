@@ -78,6 +78,18 @@ model_library:
       params:
         voice: alloy  # default voice
         response_format: wav  # default audio format
+
+    Codex:
+      models:
+        codex_gpt51:
+          identifier: gpt-5.1-codex
+        codex_gpt5_mini:
+          identifier: gpt-5-codex-mini
+
+      params:
+        timeout: 60
+        verify_ssl: true
+        host_url: https://chatgpt.com/backend-api/codex/responses
  
   anthropic_api: 
     Claude: 

@@ -59,12 +59,14 @@ def test_stt_wrapper(monkeypatch):
     # Prepare fake response object
     dummy_resp = SimpleNamespace(text="hello world")
 
-    # Patch OpenAI client method used by STT
-    import agentforge.apis.openai_api as oai  # noqa: WPS433 – test import
-
-    # Ensure .audio.transcriptions.create exists & returns dummy_resp
+    # Patch runtime client factory used by STT
     audio_ns = SimpleNamespace(transcriptions=SimpleNamespace(create=MagicMock(return_value=dummy_resp)))
-    monkeypatch.setattr(oai.client, "audio", audio_ns, raising=True)
+    client_ns = SimpleNamespace(audio=audio_ns)
+    monkeypatch.setattr(
+        "agentforge.apis.openai_runtime.OpenAIRuntime._get_sdk_client",
+        lambda _self: client_ns,
+        raising=True,
+    )
 
     stt = STT("whisper-1")
     out = stt.generate({"system": "", "user": ""}, audio=b"\x00\x01")
@@ -82,11 +84,14 @@ def test_tts_wrapper(monkeypatch):
     fake_bytes = b"FAKEBYTES"
     dummy_resp = SimpleNamespace(content=fake_bytes)
 
-    import agentforge.apis.openai_api as oai  # noqa: WPS433 – test import
-
     speech_ns = SimpleNamespace(create=MagicMock(return_value=dummy_resp))
     audio_ns = SimpleNamespace(speech=speech_ns)
-    monkeypatch.setattr(oai.client, "audio", audio_ns, raising=True)
+    client_ns = SimpleNamespace(audio=audio_ns)
+    monkeypatch.setattr(
+        "agentforge.apis.openai_runtime.OpenAIRuntime._get_sdk_client",
+        lambda _self: client_ns,
+        raising=True,
+    )
 
     tts = TTS("tts-1")
     out = tts.generate({"system": "", "user": "hello"})
@@ -136,4 +141,4 @@ def test_audio_manager_save(tmp_path, monkeypatch, isolated_config):
     assert Path(file_path).read_bytes() == b"12345"
 
     # Clean up
-    Path(file_path).unlink(missing_ok=True) 
+    Path(file_path).unlink(missing_ok=True)
