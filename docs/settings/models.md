@@ -38,8 +38,12 @@ model_library:
         max_tokens: 10000
     Codex:
       models:
-        codex_gpt5_mini:
-          identifier: gpt-5-codex-mini
+        codex_gpt53_codex:
+          identifier: gpt-5.3-codex
+        codex_gpt52_codex:
+          identifier: gpt-5.2-codex
+        codex_gpt52:
+          identifier: gpt-5.2
       params:
         timeout: 60
         verify_ssl: true

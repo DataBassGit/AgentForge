@@ -81,10 +81,18 @@ model_library:
 
     Codex:
       models:
-        codex_gpt51:
+        codex_gpt53_codex:
+          identifier: gpt-5.3-codex
+        codex_gpt52_codex:
+          identifier: gpt-5.2-codex
+        codex_gpt52:
+          identifier: gpt-5.2
+        codex_gpt51_codex_max:
+          identifier: gpt-5.1-codex-max
+        codex_gpt51_codex:
           identifier: gpt-5.1-codex
-        codex_gpt5_mini:
-          identifier: gpt-5-codex-mini
+        codex_gpt51_codex_mini:
+          identifier: gpt-5.1-codex-mini
 
       params:
         timeout: 60
