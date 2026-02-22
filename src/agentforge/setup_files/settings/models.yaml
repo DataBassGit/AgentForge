@@ -150,10 +150,19 @@ model_library:
   litellm_api:
     LiteLLM:
       models:
-        4o: gpt-4o-2024-08-06
-
-      params:
-        endpoint: openai
+        4o:
+          identifier: gpt-4o-2024-08-06
+          params:
+            endpoint: openai
+        qwen3_next_80b:
+          identifier: qwen3-next-80b-a3b-instruct
+          params:
+            endpoint: lm_studio
+            host_url: http://localhost:1234/v1/
+        gemini_flash:
+          identifier: gemini-3-flash-preview
+          params:
+            endpoint: gemini
  
   ollama_api: 
     Ollama: 

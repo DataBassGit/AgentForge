@@ -1,7 +1,6 @@
-import requests
 import json
 from .base_api import BaseModel
-import os
+import litellm
 
 class LiteLLM(BaseModel):
 
@@ -10,25 +9,69 @@ class LiteLLM(BaseModel):
         return model_prompt
 
     def _do_api_call(self, prompt, **filtered_params):
-        url = filtered_params.pop('host_url', 'http://localhost:11434/api/generate')
+        url = filtered_params.pop('host_url', None)
         try:
             endpoint = filtered_params.pop('endpoint')
         except KeyError as e:
             self.logger.critical(f"Missing required parameter (endpoint): {e}")
-        headers = {'Content-Type': 'application/json'}
+        messages_dict = prompt.get("messages", {})
+
+        system_text = messages_dict.get("system")
+        user_text = messages_dict.get("user")
+
+        messages = []
+        if system_text:
+            messages.append({"role": "system", "content": system_text})
+        if user_text:
+            messages.append({"role": "user", "content": user_text})
+
         data = {
             "model": f"{endpoint}/{self.model_name}",
-            messages: [{"content": prompt.get('system'), "role": "system"},
-                {"content": prompt.get('user'), "role": "user"}],
-            **filtered_params
+            "messages": messages,
+            **filtered_params,
         }
+        #litellm._turn_on_debug()
 
-        response = requests.post(url, headers=headers, json=data)
-
-        if response.status_code != 200:
-            # return error content
-            self.logger.error(f"Request error: {response}")
+        try:
+            if url:
+                response = litellm.completion(api_base=url,
+                                              model=data["model"],
+                                              messages=data["messages"],
+                                              **filtered_params)
+            else:
+                response = litellm.completion(model=data["model"],
+                                              messages=data["messages"],
+                                              **filtered_params)
+        except litellm.AuthenticationError as e:
+            # Thrown when the API key is invalid
+            print(f"Authentication failed: {e}")
             return None
+        except litellm.RateLimitError as e:
+            # Thrown when you've exceeded your rate limit
+            print(f"Rate limited: {e}")
+            return None
+        except litellm.APIError as e:
+            # Thrown for general API errors
+            print(f"API error: {e}")
+            return None
+
+        if response.model_extra:
+            # return error content
+            completion_tokens = response.usage.completion_tokens
+            prompt_tokens = response.usage.prompt_tokens
+
+            self.logger.info(
+                f"""Request usage:
+            
+                Completion tokens: {response.usage.completion_tokens}
+                Prompt tokens: {response.usage.prompt_tokens}"""
+            )
+            print(
+                f"""Request usage:
+            
+                Completion tokens: {response.usage.completion_tokens}
+                Prompt tokens: {response.usage.prompt_tokens}"""
+            )
 
         return response.json()
 
