@@ -95,6 +95,8 @@ model_library:
           identifier: gpt-5.1-codex-mini
 
       params:
+        reasoning:
+          effort: medium
         timeout: 60
         verify_ssl: true
         host_url: https://chatgpt.com/backend-api/codex/responses
