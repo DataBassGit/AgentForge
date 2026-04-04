@@ -2,7 +2,7 @@
 import requests
 import io
 from pathlib import Path
-import pypdf
+import fitz
 
 
 class GetText:
@@ -140,12 +140,14 @@ class GetText:
         Exception: For errors during PDF text extraction.
         """
         try:
+            data = file_stream.read()
+            doc = fitz.open(stream=data, filetype="pdf")
             text = ""
-            reader = pypdf.PdfReader(file_stream)
-            for page in reader.pages:
-                page_text = page.extract_text()
+            for page in doc:
+                page_text = page.get_text()
                 if page_text:
                     text += page_text
+            doc.close()
             return text.strip()
         except Exception as e:
             raise Exception(f"Error extracting text from PDF: {str(e)}")
