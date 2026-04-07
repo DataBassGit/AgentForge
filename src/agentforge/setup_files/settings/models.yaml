@@ -147,6 +147,11 @@ model_library:
         stream: false 
         temperature: 0.8
 
+    LMStudioVision:
+      models:
+        gemma4_vision:
+          identifier: gemma-4-26b-a4b-it-heretic-guff
+
   litellm_api:
     LiteLLM:
       models:
