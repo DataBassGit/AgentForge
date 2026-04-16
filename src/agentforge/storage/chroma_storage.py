@@ -86,7 +86,7 @@ def validate_inputs(data: Union[list, str], ids: list, metadata: list[dict]):
         raise ValueError("Data cannot be empty.")
 
     if not (len(data) == len(ids) == len(metadata)):
-        raise ValueError("The length of data, ids, and metadata lists must match.")
+        raise ValueError(f"The length of data, ids, and metadata lists must match.\n===\nData:{data}\nID:{ids}\nMetadata:{metadata}")
 
 def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[dict] = None):
     """
@@ -119,14 +119,18 @@ def apply_iso_timestamps(metadata: list[dict], config):
     if do_time_stamp:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for m in metadata:
-            m['iso_timestamp'] = timestamp
+            # ONLY apply if it doesn't already exist
+            if 'iso_timestamp' not in m:
+                m['iso_timestamp'] = timestamp
 
 def apply_unix_timestamps(metadata: list[dict], config):
     do_time_stamp = config['options'].get('unix_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().timestamp()
         for m in metadata:
-            m['unix_timestamp'] = timestamp
+            # ONLY apply if it doesn't already exist
+            if 'unix_timestamp' not in m:
+                m['unix_timestamp'] = timestamp
 
 def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
     """

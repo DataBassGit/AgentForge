@@ -122,11 +122,15 @@ model_library:
  
   gemini_api: 
     Gemini: 
-      models: 
-        gemini_pro: 
-          identifier: gemini-2.5-pro-preview-05-06 
-        gemini_flash: 
-          identifier: gemini-2.5-flash-preview-04-17 
+      models:
+        gemini_pro:
+          identifier: gemini-3.1-pro-preview
+        gemini_flash:
+          identifier: gemini-3-flash-preview
+        gemini_flash_lite:
+          identifier: gemini-3.1-flash-lite-preview
+        gemini_exp:
+          identifier: gemini-2.0-flash-thinking-exp-01-21
  
       params:  # Default parameters for Gemini models 
         candidate_count: 1 
