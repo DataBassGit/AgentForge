@@ -459,7 +459,7 @@ class ChromaStorage:
             logger.error(f"Error peeking collection: {e}")
             return None
 
-    def load_collection(self, collection_name: str, include: dict = None, where: dict = None, where_doc: dict = None):
+    def load_collection(self, collection_name: str, include: list = None, where: dict = None, where_doc: dict = None):
         """
         Loads data from a specified collection based on provided filters.
         Parameters:
@@ -915,36 +915,52 @@ class ChromaStorage:
             collection_name (str): The name of the collection.
             x (int): Number of most recent entries to retrieve.
             include (list, optional): Which fields to include in the result.
-                Defaults to ['documents', 'metadatas', 'ids'].
+                Defaults to ['documents', 'metadatas'].
 
         Returns:
             dict: The collection entries, sorted by id ascending, with only the requested fields.
         """
         if not include:
-            include = ['documents', 'metadatas', 'ids']
+            include = ['documents', 'metadatas']
 
-        # 1. Find the current max id
+            # 1. Anchor to the absolute highest ID in the database
         max_id_entry = self.search_metadata_min_max(collection_name, 'id', 'max')
         if max_id_entry is None or "target" not in max_id_entry or max_id_entry["target"] is None:
-            return {key: [] for key in include}
+            empty_return = {key: [] for key in include}
+            empty_return['ids'] = []
+            return empty_return
 
         max_id = max_id_entry["target"]
-        start_id = max(1, max_id - x + 1)
 
-        # 2. Query for entries with id >= start_id
+        # 2. The Buffer Filter: Ask for the target 'x' plus a safety buffer of 50
+        # This keeps the query under the 1000-item limit, but gives us enough padding for gaps
+        buffer = 50
+        start_id = max(1, max_id - (x + buffer))
+
         filters = {"id": {"$gte": start_id}}
+
+        # Securely fetch only the end of the DB
         results = self.load_collection(collection_name, include=include, where=filters)
 
-        # 3. Sort results by id ascending
-        if results and "ids" in results and results["ids"]:
-            sorted_indices = sorted(range(len(results["ids"])), key=lambda i: int(results["ids"][i]))
-            # Only include requested fields
-            sorted_results = {}
-            for key in include:
-                if key in results:
-                    sorted_results[key] = [results[key][i] for i in sorted_indices]
-            return sorted_results
-        else:
-            return {key: [] for key in include}
+        if not results or not results.get("ids"):
+            empty_return = {key: [] for key in include}
+            empty_return['ids'] = []
+            return empty_return
+
+        # 3. Sort chronologically
+        sorted_indices = sorted(range(len(results["ids"])), key=lambda i: int(results["ids"][i]))
+
+        # 4. Slice EXACTLY the last 'x' indices
+        sliced_indices = sorted_indices[-x:]
+
+        # 5. Map the sliced items back into our final dictionary
+        sorted_results = {}
+        sorted_results['ids'] = [results['ids'][i] for i in sliced_indices]
+
+        for key in include:
+            if key in results:
+                sorted_results[key] = [results[key][i] for i in sliced_indices]
+
+        return sorted_results
 
     
