@@ -31,11 +31,12 @@ setup(
         "sentence-transformers",
         "wheel",
         "groq",
-        "pypdf",
+        "pymupdf",
         "colorama",
         "spacy",
         "termcolor==2.4.0",
         "openai",
+        "oauth-cli-kit>=0.1.3,<1.0.0",
         "anthropic",
         "google-api-python-client",
         "beautifulsoup4",
@@ -54,7 +55,6 @@ setup(
     extras_require={
         "other": [
             "matplotlib~=3.9.2",
-            "umap~=0.1.1",
             "cv2",
             "pytesseract"
         ],

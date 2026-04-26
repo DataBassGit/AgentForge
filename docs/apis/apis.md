@@ -54,6 +54,7 @@ AgentForge ships with the following built-in API classes. Each is configured via
 |---------------|----------------|------------------------------------|
 | `GPT`         | `openai_api`   | OpenAI GPT models                  |
 | `O1Series`    | `openai_api`   | OpenAI GPT (O1 series)             |
+| `Codex`       | `openai_api`   | OpenAI Codex via OAuth             |
 | `Ollama`      | `ollama_api`   | Ollama local LLM API               |
 | `LMStudio`    | `lm_studio_api`| LM Studio local LLM API            |
 | `OpenRouter`  | `openrouter_api`| OpenRouter API                     |

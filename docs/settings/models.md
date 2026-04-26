@@ -36,6 +36,18 @@ model_library:
       params:         # Default parameters for all GPT models
         temperature: 0.8
         max_tokens: 10000
+    Codex:
+      models:
+        codex_gpt53_codex:
+          identifier: gpt-5.3-codex
+        codex_gpt52_codex:
+          identifier: gpt-5.2-codex
+        codex_gpt52:
+          identifier: gpt-5.2
+      params:
+        timeout: 60
+        verify_ssl: true
+        host_url: https://chatgpt.com/backend-api/codex/responses
 
   gemini_api:
     Gemini:
@@ -89,6 +101,11 @@ from agentforge.config import Config
 # Returns (api_name, class_name, identifier, merged_params)
 api, cls, ident, final_params = Config().resolve_model_overrides(agent_yaml_dict)
 ```
+
+## Codex Parameters (`openai_api.Codex`)
+
+- `top_p`, `reasoning`, `text`: Supported response body parameters.
+- `host_url`, `timeout`, `verify_ssl`: Transport controls for the Codex HTTP/SSE endpoint.
 
 ## Agent-Level Overrides
 Add a `model_overrides` section to your agent's YAML to change API, model, or parameters:

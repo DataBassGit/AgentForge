@@ -17,7 +17,14 @@ class VisionMixin:
 
         def to_png_b64(obj):
             if isinstance(obj, (str, Path)):
-                data = Path(obj).read_bytes()
+                str_obj = str(obj)
+                if str_obj.startswith(('http://', 'https://')):
+                    import requests
+                    response = requests.get(str_obj)
+                    response.raise_for_status()
+                    data = response.content
+                else:
+                    data = Path(obj).read_bytes()
             elif isinstance(obj, bytes):
                 data = obj
             elif isinstance(obj, Image.Image):

@@ -51,3 +51,5 @@ src/agentforge/persona/chatbot.json
 .pytest_cache/
 .cursor/
 
+
+.agentforge/

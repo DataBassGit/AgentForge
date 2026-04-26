@@ -65,6 +65,20 @@ $env:OPENAI_API_KEY='your-openai-api-key'
 
 ---
 
+### Codex OAuth Requirement
+
+OpenAI Codex models use an interactive OAuth login and do **not** use `OPENAI_API_KEY`.
+
+Run:
+
+```shell
+python -m agentforge.init_codex_oauth
+```
+
+Use this once per environment (or rerun when tokens expire).
+
+---
+
 ### Local LLMs
 
 **AgentForge** supports local models via **Ollama** and **LMStudio**.
@@ -114,4 +128,3 @@ If you plan to use **ChromaDB** (the default database), you need the Microsoft C
 
 - Proceed to the [Installation Guide](InstallationGuide.md) to install AgentForge.
 - After installation, check out the [Using AgentForge Guide](UsingAgentForge.md) to get started with running agents.
-

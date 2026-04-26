@@ -10,6 +10,11 @@ class UnsupportedModalityError(Exception):
     pass
 
 
+class NonRetriableModelError(Exception):
+    """Raised when retrying cannot resolve the model failure."""
+    pass
+
+
 class BaseModel:
     """
     A base class encapsulating shared logic (e.g., logging, retries, prompt building).
@@ -104,6 +109,8 @@ class BaseModel:
                     time.sleep(backoff)
                 else:
                     raise
+            except NonRetriableModelError:
+                raise
             except Exception as e:
                 self.logger.warning(f"Error: {e}. Retrying in {backoff} seconds...")
                 time.sleep(backoff)

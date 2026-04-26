@@ -78,6 +78,28 @@ model_library:
       params:
         voice: alloy  # default voice
         response_format: wav  # default audio format
+
+    Codex:
+      models:
+        codex_gpt53_codex:
+          identifier: gpt-5.3-codex
+        codex_gpt52_codex:
+          identifier: gpt-5.2-codex
+        codex_gpt52:
+          identifier: gpt-5.2
+        codex_gpt51_codex_max:
+          identifier: gpt-5.1-codex-max
+        codex_gpt51_codex:
+          identifier: gpt-5.1-codex
+        codex_gpt51_codex_mini:
+          identifier: gpt-5.1-codex-mini
+
+      params:
+        reasoning:
+          effort: medium
+        timeout: 60
+        verify_ssl: true
+        host_url: https://chatgpt.com/backend-api/codex/responses
  
   anthropic_api: 
     Claude: 
@@ -100,11 +122,15 @@ model_library:
  
   gemini_api: 
     Gemini: 
-      models: 
-        gemini_pro: 
-          identifier: gemini-2.5-pro-preview-05-06 
-        gemini_flash: 
-          identifier: gemini-2.5-flash-preview-04-17 
+      models:
+        gemini_pro:
+          identifier: gemini-3.1-pro-preview
+        gemini_flash:
+          identifier: gemini-3-flash-preview
+        gemini_flash_lite:
+          identifier: gemini-3.1-flash-lite-preview
+        gemini_exp:
+          identifier: gemini-2.0-flash-thinking-exp-01-21
  
       params:  # Default parameters for Gemini models 
         candidate_count: 1 
@@ -123,7 +149,29 @@ model_library:
         host_url: http://localhost:1234/v1/chat/completions 
         max_tokens: 10000 
         stream: false 
-        temperature: 0.8 
+        temperature: 0.8
+
+    LMStudioVision:
+      models:
+        gemma4_vision:
+          identifier: gemma-4-26b-a4b-it-heretic-guff
+
+  litellm_api:
+    LiteLLM:
+      models:
+        4o:
+          identifier: gpt-4o-2024-08-06
+          params:
+            endpoint: openai
+        qwen3_next_80b:
+          identifier: qwen3-next-80b-a3b-instruct
+          params:
+            endpoint: lm_studio
+            host_url: http://localhost:1234/v1/
+        gemini_flash:
+          identifier: gemini-3-flash-preview
+          params:
+            endpoint: gemini
  
   ollama_api: 
     Ollama: 

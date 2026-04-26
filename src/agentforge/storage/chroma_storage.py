@@ -4,17 +4,18 @@ import uuid
 from datetime import datetime
 from typing import Optional, Union
 import threading
-
+from agentforge.storage.chroma_recover import auto_recover
 import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
-from scipy.ndimage import value_indices
+# from scipy.ndimage import value_indices
 
 from agentforge.utils.logger import Logger
 from agentforge.config import Config
 
 logger = Logger(name="Chroma Utils", default_logger='chroma_utils')
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 
 ##########################################################
 # Section 1: Static Methods
@@ -70,6 +71,7 @@ def validate_collection_name(collection_name: str):
 
     return collection_name
 
+
 def validate_inputs(data: Union[list, str], ids: list, metadata: list[dict]):
     """
     Validates the inputs for the save_memory method.
@@ -86,7 +88,9 @@ def validate_inputs(data: Union[list, str], ids: list, metadata: list[dict]):
         raise ValueError("Data cannot be empty.")
 
     if not (len(data) == len(ids) == len(metadata)):
-        raise ValueError("The length of data, ids, and metadata lists must match.")
+        raise ValueError(
+            f"The length of data, ids, and metadata lists must match.\n===\nData:{data}\nID:{ids}\nMetadata:{metadata}")
+
 
 def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[dict] = None):
     """
@@ -108,25 +112,33 @@ def generate_defaults(data: Union[list, str], ids: list = None, metadata: list[d
 
     return ids, metadata
 
+
 def apply_uuids(metadata: list[dict], config: dict):
     do_uuid = config['options'].get('add_uuid', False)
     if do_uuid:
         for m in metadata:
             m['uuid'] = str(uuid.uuid4())
 
+
 def apply_iso_timestamps(metadata: list[dict], config):
     do_time_stamp = config['options'].get('iso_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         for m in metadata:
-            m['iso_timestamp'] = timestamp
+            # ONLY apply if it doesn't already exist
+            if 'iso_timestamp' not in m:
+                m['iso_timestamp'] = timestamp
+
 
 def apply_unix_timestamps(metadata: list[dict], config):
     do_time_stamp = config['options'].get('unix_timestamp', False)
     if do_time_stamp:
         timestamp = datetime.now().timestamp()
         for m in metadata:
-            m['unix_timestamp'] = timestamp
+            # ONLY apply if it doesn't already exist
+            if 'unix_timestamp' not in m:
+                m['unix_timestamp'] = timestamp
+
 
 def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
     """
@@ -143,6 +155,7 @@ def save_to_collection(collection, data: list, ids: list, metadata: list[dict]):
         metadatas=metadata,
         ids=ids
     )
+
 
 ##########################################################
 # Section 2: ChromaDB
@@ -273,12 +286,11 @@ class ChromaStorage:
         try:
             self.db_path, self.db_embed = self.chromadb_settings()
 
-
             # Initialize embedding based on the specified backend in the configuration
             if not self.db_embed:
                 self.embedding = embedding_functions.DefaultEmbeddingFunction()
                 return
-            
+
             if self.db_embed == 'text-embedding-ada-002':
                 openai_api_key = os.getenv('OPENAI_API_KEY')
                 self.embedding = embedding_functions.OpenAIEmbeddingFunction(
@@ -286,7 +298,7 @@ class ChromaStorage:
                     model_name=self.db_embed
                 )
                 return
-            
+
             if self.db_embed:
                 self.embedding = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=self.db_embed)
                 return
@@ -386,6 +398,7 @@ class ChromaStorage:
         """
         return self.client.list_collections()
 
+    @auto_recover
     def select_collection(self, collection_name: str):
         """
         Selects (or creates if not existent) a collection within the storage by name.
@@ -404,6 +417,7 @@ class ChromaStorage:
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
+    @auto_recover
     def delete_collection(self, collection_name: str):
         """
         Deletes a collection from the storage by its name.
@@ -416,6 +430,7 @@ class ChromaStorage:
         except Exception as e:
             print("\n\nError deleting collection: ", e)
 
+    @auto_recover
     def count_collection(self, collection_name: str):
         """
         Counts the number of documents in a specified collection.
@@ -429,6 +444,7 @@ class ChromaStorage:
         self.select_collection(collection_name)
         return self.collection.count()
 
+    @auto_recover
     def peek(self, collection_name: str):
         """
         Peeks into a collection to retrieve a brief overview of its contents.
@@ -455,7 +471,8 @@ class ChromaStorage:
             logger.error(f"Error peeking collection: {e}")
             return None
 
-    def load_collection(self, collection_name: str, include: dict = None, where: dict = None, where_doc: dict = None):
+    @auto_recover
+    def load_collection(self, collection_name: str, include: list = None, where: dict = None, where_doc: dict = None):
         """
         Loads data from a specified collection based on provided filters.
         Parameters:
@@ -513,7 +530,9 @@ class ChromaStorage:
             metadata[i]['id'] = next_id
         return new_ids, metadata
 
-    def save_to_storage(self, collection_name: str, data: list, ids: Optional[list] = None, metadata: Optional[list[dict]] = None):
+    @auto_recover
+    def save_to_storage(self, collection_name: str, data: list, ids: Optional[list] = None,
+                        metadata: Optional[list[dict]] = None):
         """
         Saves data to memory, creating or updating documents in a specified collection.
 
@@ -534,8 +553,8 @@ class ChromaStorage:
             metadata = [{} for _ in data] if metadata is None else metadata
 
             if ids is None:
-                ids, metadata = self.apply_sequential_ids(collection_name,data, metadata)
-            
+                ids, metadata = self.apply_sequential_ids(collection_name, data, metadata)
+
             validate_inputs(data, ids, metadata)
             apply_uuids(metadata, self.config.settings.storage)
             apply_unix_timestamps(metadata, self.config.settings.storage)
@@ -550,6 +569,7 @@ class ChromaStorage:
         except Exception as e:
             raise ValueError(f"[ChromaStorage][save_to_storage] Error saving to storage. Error: {e}\n\nData:\n{data}")
 
+    @auto_recover
     def query_storage(self, collection_name: str, query: Optional[Union[str, list]] = None,
                       filter_condition: Optional[dict] = None, include: Optional[list] = None,
                       embeddings: Optional[list] = None, num_results: int = 1):
@@ -597,6 +617,7 @@ class ChromaStorage:
             logger.error(f"[query_memory] Error querying storage: {e}")
             return None
 
+    @auto_recover
     def delete_from_storage(self, collection_name, ids):
         if ids and not isinstance(ids, list):
             ids = [ids]
@@ -608,6 +629,7 @@ class ChromaStorage:
     # Section 7: Advanced
     ##########################################################
 
+    @auto_recover
     def search_storage_by_threshold(self, collection_name: str, query: str, threshold: float = 0.8,
                                     num_results: int = 1):
         """
@@ -630,8 +652,8 @@ class ChromaStorage:
             query_emb = self.return_embedding(query)
 
             results = self.query_storage(collection_name=collection_name, embeddings=query_emb,
-                                        include=["documents", "metadatas", "distances"],
-                                        num_results=num_results)
+                                         include=["documents", "metadatas", "distances"],
+                                         num_results=num_results)
 
             # We compare against the first result's embedding and `distance.cosine` returns
             # a similarity measure. May need to adjust the logic based on the actual behavior
@@ -656,6 +678,7 @@ class ChromaStorage:
             logger.error(f"[search_storage_by_threshold] Error searching storage by threshold: {e}")
             return {'failed': f"Error searching storage by threshold: {e}"}
 
+    @auto_recover
     def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
         try:
             self.select_collection(collection_name)
@@ -698,9 +721,9 @@ class ChromaStorage:
 
         except Exception as e:
             # Only log errors if it's a truly unexpected error
-            logger.error(f"[search_metadata_min_max] Unexpected error: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+            logger.error(
+                f"[search_metadata_min_max] Unexpected error: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
             return None
-
 
     # def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
     #     """
@@ -809,7 +832,7 @@ class ChromaStorage:
                 query=query,
                 num_results=num_results
             )
-            count=self.count_collection(temp_collection_name)
+            count = self.count_collection(temp_collection_name)
             print(f"Count: {count}")
 
             # Delete the temporary collection
@@ -911,36 +934,50 @@ class ChromaStorage:
             collection_name (str): The name of the collection.
             x (int): Number of most recent entries to retrieve.
             include (list, optional): Which fields to include in the result.
-                Defaults to ['documents', 'metadatas', 'ids'].
+                Defaults to ['documents', 'metadatas'].
 
         Returns:
             dict: The collection entries, sorted by id ascending, with only the requested fields.
         """
         if not include:
-            include = ['documents', 'metadatas', 'ids']
+            include = ['documents', 'metadatas']
 
-        # 1. Find the current max id
+            # 1. Anchor to the absolute highest ID in the database
         max_id_entry = self.search_metadata_min_max(collection_name, 'id', 'max')
         if max_id_entry is None or "target" not in max_id_entry or max_id_entry["target"] is None:
-            return {key: [] for key in include}
+            empty_return = {key: [] for key in include}
+            empty_return['ids'] = []
+            return empty_return
 
         max_id = max_id_entry["target"]
-        start_id = max(1, max_id - x + 1)
 
-        # 2. Query for entries with id >= start_id
+        # 2. The Buffer Filter: Ask for the target 'x' plus a safety buffer of 50
+        # This keeps the query under the 1000-item limit, but gives us enough padding for gaps
+        buffer = 50
+        start_id = max(1, max_id - (x + buffer))
+
         filters = {"id": {"$gte": start_id}}
+
+        # Securely fetch only the end of the DB
         results = self.load_collection(collection_name, include=include, where=filters)
 
-        # 3. Sort results by id ascending
-        if results and "ids" in results and results["ids"]:
-            sorted_indices = sorted(range(len(results["ids"])), key=lambda i: int(results["ids"][i]))
-            # Only include requested fields
-            sorted_results = {}
-            for key in include:
-                if key in results:
-                    sorted_results[key] = [results[key][i] for i in sorted_indices]
-            return sorted_results
-        else:
-            return {key: [] for key in include}
+        if not results or not results.get("ids"):
+            empty_return = {key: [] for key in include}
+            empty_return['ids'] = []
+            return empty_return
 
-    
+        # 3. Sort chronologically
+        sorted_indices = sorted(range(len(results["ids"])), key=lambda i: int(results["ids"][i]))
+
+        # 4. Slice EXACTLY the last 'x' indices
+        sliced_indices = sorted_indices[-x:]
+
+        # 5. Map the sliced items back into our final dictionary
+        sorted_results = {}
+        sorted_results['ids'] = [results['ids'][i] for i in sliced_indices]
+
+        for key in include:
+            if key in results:
+                sorted_results[key] = [results[key][i] for i in sliced_indices]
+
+        return sorted_results

@@ -122,6 +122,16 @@ your_project/
     tools/
 ```
 
+### 6. Initialize Codex OAuth (Only for Codex Models)
+
+If you plan to use OpenAI Codex models, run the OAuth login command after project initialization:
+
+```shell
+python -m agentforge.init_codex_oauth
+```
+
+This stores OAuth credentials used by the `Codex` provider. Codex OAuth is separate from `OPENAI_API_KEY`.
+
 ---
 
 ## Using AgentForge
