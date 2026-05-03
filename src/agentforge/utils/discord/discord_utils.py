@@ -1,4 +1,6 @@
 import asyncio
+import threading
+
 import discord
 from agentforge.tools.semantic_chunk import semantic_chunk
 
@@ -14,36 +16,50 @@ class DiscordUtils:
         self.client = client
         self.logger = logger
 
-    def send_message(self, channel_id, content):
+    def send_message(self, channel_id, content, message_id=None):
         """
-        Send a message to a specified Discord channel.
-        
+        Send a message to a specified Discord channel, optionally replying to a specific message.
+
         Args:
             channel_id (int): The ID of the channel to send the message to
             content (str): The content of the message to send
+            message_id (int, optional): The ID of the message to reply to. Defaults to None.
         """
+
         async def send():
             try:
                 messages = semantic_chunk(content, min_length=200, max_length=1900)
                 channel = self.client.get_channel(channel_id)
-                
+
                 if not channel:
                     self.logger.error(f"[DiscordUtils.send_message] Channel {channel_id} not found")
                     return
+
+                # Create a message reference if a message_id is provided
+                reference = discord.MessageReference(message_id=message_id,
+                                                     channel_id=channel_id) if message_id else None
+                first_message_sent = False
 
                 for msg in messages:
                     if len(msg.content) > 2000:
                         # Re-chunk the over-sized message
                         sub_messages = semantic_chunk(msg.content, min_length=200, max_length=1900)
                         for sub_msg in sub_messages:
-                            await channel.send(sub_msg.content)
+                            # Only attach the reply reference to the very first chunk sent
+                            current_ref = reference if not first_message_sent else None
+                            await channel.send(sub_msg.content, reference=current_ref)
+                            first_message_sent = True
                     else:
-                        await channel.send(msg.content)
+                        current_ref = reference if not first_message_sent else None
+                        await channel.send(msg.content, reference=current_ref)
+                        first_message_sent = True
 
             except discord.errors.Forbidden:
-                self.logger.error(f"[DiscordUtils.send_message] Bot doesn't have permission to send messages in channel {channel_id}")
+                self.logger.error(
+                    f"[DiscordUtils.send_message] Bot doesn't have permission to send messages in channel {channel_id}")
             except Exception as e:
-                self.logger.error(f"[DiscordUtils.send_message] Error sending message to channel {channel_id}: {str(e)}\nMessage: {msg.content}")
+                self.logger.error(
+                    f"[DiscordUtils.send_message] Error sending message to channel {channel_id}: {str(e)}\nMessage: {content[:100]}...")
 
         try:
             return asyncio.run_coroutine_threadsafe(send(), self.client.loop)
@@ -125,7 +141,7 @@ class DiscordUtils:
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.send_embed] Failed to schedule embed sending: {str(e)}")
 
-    def create_thread(self, channel_id, message_id, name, auto_archive_duration=1440, remove_author=True):
+    def create_thread(self, channel_id, message_id, name, auto_archive_duration=1440, remove_author=True, do_lock_thread=True):
         """
         Create a new thread in a specified channel, attached to a specific message.
 
@@ -163,8 +179,13 @@ class DiscordUtils:
                 if remove_author:
                     await thread.remove_user(message.author)
                     self.logger.info(f"[DiscordUtils.create_thread] Removed author {message.author} from thread '{name}'")
+                if do_lock_thread:
+                    await thread.edit(locked=True, archived=False)
+                    self.logger.info(f"[DiscordUtils.create_thread] Locked thread '{name}'")
 
                 return thread.id
+            except discord.errors.Forbidden:
+                self.logger.error(f"[DiscordUtils.create_thread] Bot doesn't have permission to create threads in channel {channel_id}")
             except discord.errors.HTTPException as e:
                 if e.code == 160004:  # Thread already exists error code
                     if message.thread:
@@ -172,8 +193,7 @@ class DiscordUtils:
                     self.logger.error(f"[DiscordUtils.create_thread] Thread exists but cannot be accessed")
                 else:
                     self.logger.error(f"[DiscordUtils.create_thread] Error creating thread: {str(e)}")
-            except discord.errors.Forbidden:
-                self.logger.error(f"[DiscordUtils.create_thread] Bot doesn't have permission to create threads in channel {channel_id}")
+
             except Exception as e:
                 self.logger.error(f"[DiscordUtils.create_thread] Error creating thread: {str(e)}")
             return None
@@ -220,4 +240,48 @@ class DiscordUtils:
             return asyncio.run_coroutine_threadsafe(reply_async(), self.client.loop).result()
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.reply_to_thread] Failed to schedule reply: {str(e)}")
+            return False
+
+    def lock_thread(self, thread_id):
+        """
+        Lock a thread so that only users with MANAGE_THREADS (like the bot) can send messages.
+
+        Args:
+            thread_id (int): The ID of the thread to lock
+
+        Returns:
+            bool: True if locked successfully, False otherwise
+        """
+
+        async def lock_async():
+            try:
+                # Attempt to get the thread from cache
+                thread = self.client.get_channel(thread_id)
+
+                # Fallback to fetching via API if the thread isn't in cache
+                if not thread:
+                    try:
+                        thread = await self.client.fetch_channel(thread_id)
+                    except discord.NotFound:
+                        self.logger.error(f"[DiscordUtils.lock_thread] Thread {thread_id} not found")
+                        return False
+
+                # Setting locked=True prevents normal users from replying.
+                # Setting archived=False ensures it stays visible in the active threads list.
+                await thread.edit(locked=True, archived=False)
+
+                self.logger.info(f"[DiscordUtils.lock_thread] Thread {thread_id} locked")
+                return True
+
+            except discord.errors.Forbidden:
+                self.logger.error(
+                    f"[DiscordUtils.lock_thread] Bot doesn't have MANAGE_THREADS permission for {thread_id}")
+            except Exception as e:
+                self.logger.error(f"[DiscordUtils.lock_thread] Error locking thread: {str(e)}")
+            return False
+
+        try:
+            return asyncio.run_coroutine_threadsafe(lock_async(), self.client.loop).result()
+        except RuntimeError as e:
+            self.logger.error(f"[DiscordUtils.lock_thread] Failed to schedule thread lock: {str(e)}")
             return False
