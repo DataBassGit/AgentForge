@@ -39,16 +39,18 @@ class VoiceReceiver:
     Handles NaCl transport decryption, RTP padding removal, DAVE E2EE decryption,
     and Opus decoding natively. (Adapted from Hermes-Agent example.py)
     """
-    SILENCE_THRESHOLD = 1.5
-    MIN_SPEECH_DURATION = 0.25
     SAMPLE_RATE = 48000
     CHANNELS = 2
 
-    def __init__(self, voice_client, logger: Logger):
+    def __init__(self, voice_client, logger: Logger, silence_threshold=1.5, min_speech_duration=0.75):
         self._vc = voice_client
         self.logger = logger
         self._running = False
         self._paused = False
+
+        # Dynamic attributes for audio filtering
+        self.silence_threshold = silence_threshold
+        self.min_speech_duration = min_speech_duration
 
         self._secret_key = None
         self._bot_ssrc = 0
@@ -163,7 +165,7 @@ class VoiceReceiver:
             box = nacl.secret.Aead(self._secret_key)
             decrypted = box.decrypt(encrypted, header, bytes(nonce))
         except Exception as e:
-            self.logger.warning(f"NaCl decrypt failed: {e} (hdr={header_size}, enc={len(encrypted)})")
+            self.logger.debug(f"NaCl decrypt failed: {e} (hdr={header_size}, enc={len(encrypted)})")
             return
 
         # Skip encrypted extension data
@@ -226,7 +228,7 @@ class VoiceReceiver:
                 buf = self._buffers[ssrc]
                 buf_duration = len(buf) / (self.SAMPLE_RATE * self.CHANNELS * 2)
 
-                if silence_duration >= self.SILENCE_THRESHOLD and buf_duration >= self.MIN_SPEECH_DURATION:
+                if silence_duration >= self.silence_threshold and buf_duration >= self.min_speech_duration:
                     user_id = self._ssrc_to_user.get(ssrc, 0)
                     if not user_id:
                         user_id = self._infer_user_for_ssrc(ssrc)
@@ -237,7 +239,7 @@ class VoiceReceiver:
                     self._buffers[ssrc] = bytearray()
                     self._last_packet_time.pop(ssrc, None)
 
-                elif silence_duration >= self.SILENCE_THRESHOLD * 2:
+                elif silence_duration >= self.silence_threshold * 2:
                     self._buffers.pop(ssrc, None)
                     self._last_packet_time.pop(ssrc, None)
 
