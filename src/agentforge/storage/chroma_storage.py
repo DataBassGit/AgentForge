@@ -399,21 +399,34 @@ class ChromaStorage:
         return self.client.list_collections()
 
     @auto_recover
-    def select_collection(self, collection_name: str):
+    def select_collection(self, collection_name: str, metadata: dict = None):
         """
         Selects (or creates if not existent) a collection within the storage by name.
 
         Parameters:
             collection_name (str): The name of the collection to select or create.
+            metadata (dict, optional): Metadata to apply to the collection. Defaults to {"hnsw:space": "cosine"}.
 
         Raises:
             ValueError: If there's an error in getting or creating the collection.
         """
         try:
             collection_name = validate_collection_name(collection_name)
-            self.collection = self.client.get_or_create_collection(name=collection_name,
-                                                                   embedding_function=self.embedding,
-                                                                   metadata={"hnsw:space": "cosine"})
+            # 1.5.8 Fix: allow metadata override, default to cosine space
+            collection_metadata = metadata if metadata is not None else {"hnsw:space": "cosine"}
+
+            self.collection = self.client.get_or_create_collection(
+                name=collection_name,
+                embedding_function=self.embedding,
+                metadata=collection_metadata
+            )
+
+            # 1.5.8 Fix: get_or_create_collection no longer overwrites metadata for existing collections.
+            # Explicitly modify it to guarantee enforcement if it already existed.
+            try:
+                self.collection.modify(metadata=collection_metadata)
+            except Exception:
+                pass  # Silently ignore if collection doesn't permit metadata change
         except Exception as e:
             raise ValueError(f"\n\nError getting or creating collection. Error: {e}")
 
@@ -463,6 +476,13 @@ class ChromaStorage:
 
             if num_results > 0:
                 result = self.collection.peek()
+
+                # 1.5.8 Fix: Convert numpy array embeddings back into standard Python lists
+                if result and result.get('embeddings') is not None:
+                    result['embeddings'] = [
+                        e.tolist() if hasattr(e, 'tolist') else e
+                        for e in result['embeddings']
+                    ]
             else:
                 result = {'documents': "No Results!"}
 
@@ -500,6 +520,14 @@ class ChromaStorage:
         try:
             self.select_collection(collection_name)
             data = self.collection.get(**params)
+
+            # 1.5.8 Fix: Convert numpy array embeddings back into standard Python lists
+            if data and data.get('embeddings') is not None:
+                data['embeddings'] = [
+                    e.tolist() if hasattr(e, 'tolist') else e
+                    for e in data['embeddings']
+                ]
+
             logger.debug(
                 f"\nCollection: {collection_name}"
                 f"\nData: {data}",
@@ -609,7 +637,14 @@ class ChromaStorage:
                 if unformatted_result:
                     for key, value in unformatted_result.items():
                         if value:
-                            result[key] = value[0]
+                            # 1.5.8 Fix: Convert nested numpy arrays inside value[0] back into standard Python lists
+                            if key == 'embeddings' and value[0] is not None:
+                                result[key] = [
+                                    e.tolist() if hasattr(e, 'tolist') else e
+                                    for e in value[0]
+                                ]
+                            else:
+                                result[key] = value[0]
 
             return result
 

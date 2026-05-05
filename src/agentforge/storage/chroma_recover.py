@@ -111,11 +111,12 @@ def extract_raw_data(db_path: str, collection_uuid: str) -> Dict[str, List[Any]]
     logger.info("Extracting data based on exact DB Schema...")
 
     # 1. Map internal integer IDs to the user's string IDs
+    # 1.5.8 Fix: Explicitly filter by scope = 'VECTOR' to avoid reading Sparse Vector definitions
     cursor.execute("""
         SELECT e.id, e.embedding_id 
         FROM embeddings e 
         JOIN segments s ON e.segment_id = s.id 
-        WHERE s.collection = ?
+        WHERE s.collection = ? AND s.scope = 'VECTOR'
     """, (collection_uuid,))
 
     id_map = {row[0]: row[1] for row in cursor.fetchall()}
