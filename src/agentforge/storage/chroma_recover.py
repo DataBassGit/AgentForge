@@ -100,24 +100,37 @@ def backup_target_files(db_path: str, segment_uuid: Optional[str]) -> str:
         raise RuntimeError("Aborting recovery: Backup failed.")
 
 
-def extract_raw_data(db_path: str, collection_uuid: str) -> Dict[str, List[Any]]:
-    """Dynamically extracts IDs, Documents, and Metadata using exact schema bindings."""
+def extract_raw_data(db_path: str, collection_uuid: str, brute_force: bool = False) -> Dict[str, List[Any]]:
+    """
+    Dynamically extracts IDs, Documents, and Metadata using exact schema bindings.
+    If brute_force is True, it ignores the VECTOR scope constraint and pulls all orphaned data.
+    """
     sqlite_path = os.path.join(db_path, "chroma.sqlite3")
     conn = sqlite3.connect(sqlite_path)
     cursor = conn.cursor()
 
     data = {'ids': [], 'documents': [], 'metadatas': [], 'embeddings': []}
 
-    logger.info("Extracting data based on exact DB Schema...")
+    if brute_force:
+        logger.info("Extracting data using BRUTE FORCE (ignoring segment scope)...")
+        cursor.execute("SELECT id FROM segments WHERE collection = ?", (collection_uuid,))
+        segment_ids = [r[0] for r in cursor.fetchall()]
 
-    # 1. Map internal integer IDs to the user's string IDs
-    # 1.5.8 Fix: Explicitly filter by scope = 'VECTOR' to avoid reading Sparse Vector definitions
-    cursor.execute("""
-        SELECT e.id, e.embedding_id 
-        FROM embeddings e 
-        JOIN segments s ON e.segment_id = s.id 
-        WHERE s.collection = ? AND s.scope = 'VECTOR'
-    """, (collection_uuid,))
+        if not segment_ids:
+            conn.close()
+            return data
+
+        placeholders = ",".join(["?"] * len(segment_ids))
+        cursor.execute(f"SELECT DISTINCT id, embedding_id FROM embeddings WHERE segment_id IN ({placeholders})",
+                       segment_ids)
+    else:
+        logger.info("Extracting data based on exact DB Schema (VECTOR scope)...")
+        cursor.execute("""
+            SELECT e.id, e.embedding_id 
+            FROM embeddings e 
+            JOIN segments s ON e.segment_id = s.id 
+            WHERE s.collection = ? AND s.scope = 'VECTOR'
+        """, (collection_uuid,))
 
     id_map = {row[0]: row[1] for row in cursor.fetchall()}
     internal_ids = list(id_map.keys())
@@ -178,7 +191,7 @@ def extract_raw_data(db_path: str, collection_uuid: str) -> Dict[str, List[Any]]
 
         meta = meta_dict.get(internal_id, {})
         if not meta:
-            meta = {"source": "auto-recovered"}
+            meta = {"source": "brute-force-recovered" if brute_force else "auto-recovered"}
         data['metadatas'].append(meta)
 
         data['embeddings'].append(None)  # Force Local SentenceTransformer to rebuild
@@ -198,18 +211,31 @@ def recover_collection(client: Any, db_path: str, collection_name: str, embeddin
     logger.info("Safeguarding data...")
     backup_target_files(db_path, seg_uuid)
 
-    logger.info("Extracting text and metadata from SQLite...")
-    raw_data = extract_raw_data(db_path, col_uuid)
+    # -------------------------------------------------------------
+    # METHOD 1: Try standard extraction first
+    # -------------------------------------------------------------
+    raw_data = extract_raw_data(db_path, col_uuid, brute_force=False)
     total_records = len(raw_data.get('ids', []))
+
+    # -------------------------------------------------------------
+    # METHOD 2: Fallback to brute force if VECTOR segment is corrupted
+    # -------------------------------------------------------------
+    if total_records == 0:
+        logger.warning("No records found in standard VECTOR segment. Attempting Brute Force recovery...")
+        raw_data = extract_raw_data(db_path, col_uuid, brute_force=True)
+        total_records = len(raw_data.get('ids', []))
 
     if total_records == 0:
         logger.warning("No records found to recover in any segment.")
         return False
 
     try:
-        logger.info(f"Deleting corrupted HNSW index...")
+        logger.info(f"Deleting corrupted collection framework...")
         client.delete_collection(name=collection_name)
+    except Exception as e:
+        logger.warning(f"Could not cleanly delete collection (may already be missing/corrupt): {e}")
 
+    try:
         logger.info("Rebuilding collection framework...")
         new_col = client.create_collection(
             name=collection_name,
@@ -219,7 +245,7 @@ def recover_collection(client: Any, db_path: str, collection_name: str, embeddin
         logger.error(f"Failed to reset collection: {e}")
         return False
 
-    logger.info("Injecting data and regenerating vectors (this may take a moment)...")
+    logger.info(f"Injecting {total_records} recovered records back into the matrix...")
     batch_size = 500
     stats = RecoveryStats(total_items=total_records)
 
