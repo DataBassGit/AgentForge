@@ -1,5 +1,4 @@
 import requests
-import json
 from .base_api import BaseModel
 
 class Ollama(BaseModel):
@@ -7,6 +6,10 @@ class Ollama(BaseModel):
     @staticmethod
     def _prepare_prompt(model_prompt):
         return model_prompt
+
+    def _merge_parts(self, parts):
+        """Return prompts in the system/user shape expected by Ollama."""
+        return parts["text"]
 
     def _do_api_call(self, prompt, **filtered_params):
         url = filtered_params.pop('host_url', 'http://localhost:11434/api/generate')
