@@ -97,7 +97,7 @@ cog:
 
 **How to Run a Cog:**
 ```python
-from agentforge.cogs import Cog
+from agentforge.cog import Cog
 cog = Cog('example_cog_with_memory')
 result = cog.run(user_input="Your message here")
 print(result)

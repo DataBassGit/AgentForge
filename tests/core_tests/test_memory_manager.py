@@ -2,8 +2,9 @@
 
 import pytest
 from agentforge.core.memory_manager import MemoryManager
+from agentforge.storage.chat_history_memory import ChatHistoryMemory
 from agentforge.utils.parsing_processor import ParsingProcessor
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import patch
 from agentforge.storage.memory import Memory
 
 
@@ -20,6 +21,44 @@ def test_memory_manager_initialization(isolated_config):
     assert cog.mem_mgr.cog_name == "example_cog"
     assert cog.mem_mgr.cog_config is not None
     assert hasattr(cog.mem_mgr, 'memory_nodes')
+
+
+def test_disabled_chat_memory_is_not_initialized_loaded_or_recorded(isolated_config):
+    """A Cog opt-out must suppress all automatic chat-history behavior."""
+    from agentforge.cog import Cog
+
+    with patch.object(ChatHistoryMemory, "query_memory", autospec=True) as query_chat, \
+         patch.object(ChatHistoryMemory, "update_memory", autospec=True) as record_chat:
+        cog = Cog("example_cog")
+
+        assert cog.cog_config.cog.chat_memory_enabled is False
+        assert cog.mem_mgr._chat_memory_enabled is False
+        assert "chat_history" not in cog.mem_mgr.memory_nodes
+
+        cog.run(user_input="memory-free analysis")
+
+        query_chat.assert_not_called()
+        record_chat.assert_not_called()
+
+
+def test_default_chat_memory_is_initialized_loaded_and_recorded(isolated_config):
+    """Omitting the opt-out retains automatic chat-history behavior."""
+    from agentforge.cog import Cog
+
+    with patch.object(ChatHistoryMemory, "query_memory", autospec=True) as query_chat, \
+         patch.object(ChatHistoryMemory, "update_memory", autospec=True) as record_chat:
+        cog = Cog("example_cog_with_chat_memory")
+
+        assert cog.cog_config.cog.chat_memory_enabled is None
+        assert cog.mem_mgr._chat_memory_enabled is True
+        assert "chat_history" in cog.mem_mgr.memory_nodes
+        assert cog.mem_mgr._chat_history_max_results == 20
+        assert cog.mem_mgr._chat_history_max_retrieval == 20
+
+        cog.run(user_input="retain automatic history")
+
+        query_chat.assert_called_once()
+        record_chat.assert_called_once()
 
 
 def test_memory_manager_extract_keys():
@@ -126,4 +165,4 @@ def test_memory_manager_hooks_called_during_cog_execution(example_cog, monkeypat
     for agent_id, context, state in update_calls:
         assert isinstance(agent_id, str)
         assert isinstance(context, dict)
-        assert isinstance(state, dict) 
+        assert isinstance(state, dict)

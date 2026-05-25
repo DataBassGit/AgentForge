@@ -2,24 +2,20 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-import sys
 
 import pytest
 
-from agentforge.storage.memory import Memory
-
 
 @pytest.mark.timeout(1)
-def test_example_cog_runs_and_creates_memory(example_cog):
-    """Test that ExampleCog executes successfully and creates memory entries."""
+def test_example_cog_runs_without_automatic_chat_memory(example_cog):
+    """Test that ExampleCog honors its automatic chat-memory opt-out."""
     ctx = example_cog.run(user_input="hello")
 
     # Keys produced by stub agents
     assert any(k in str(ctx).lower() for k in ("analysis", "rationale", "final"))
 
-    # memory interaction – general_memory collection should exist
-    mem: Memory = next(iter(example_cog.mem_mgr.memory_nodes.values()))["instance"]  # type: ignore[index]
-    assert mem.store is not None
+    # No configured memory exists and the automatic chat node is disabled.
+    assert example_cog.mem_mgr.memory_nodes == {}
 
 
 @pytest.mark.parametrize("decision_key", ["choice", "conclusion", "foo"])
@@ -182,4 +178,4 @@ def test_dot_notated_end_returns_nested_value(tmp_path, isolated_config, monkeyp
     # Run the cog and check the result
     cog = Cog("DotEndCog")
     result = cog.run(user_input="test")
-    assert result == "THIS IS THE NESTED VALUE", f"Expected only the nested value, got: {result}" 
+    assert result == "THIS IS THE NESTED VALUE", f"Expected only the nested value, got: {result}"

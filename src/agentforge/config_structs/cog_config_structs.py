@@ -62,6 +62,7 @@ class CogDefinition:
     flow: Optional[CogFlow] = None
     chat_memory_enabled: Optional[bool] = None
     chat_history_max_results: Optional[int] = None
+    chat_history_max_retrieval: Optional[int] = None
 
 
 @dataclass
@@ -74,4 +75,4 @@ class CogConfig:
     """
     cog: CogDefinition
     # Support for additional top-level fields
-    custom_fields: Dict[str, Any] = field(default_factory=dict) 
+    custom_fields: Dict[str, Any] = field(default_factory=dict)

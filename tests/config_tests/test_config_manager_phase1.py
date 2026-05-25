@@ -84,6 +84,34 @@ def test_config_manager_cog_config(isolated_config):
     print(f"  - Memory nodes: {len(cog_config.cog.memory)}")
 
 
+def test_config_manager_preserves_chat_history_settings():
+    """Test that documented Cog chat-history settings survive normalization."""
+    config_manager = ConfigManager()
+    raw_cog_data = {
+        "cog": {
+            "name": "ConfiguredChatHistoryCog",
+            "chat_memory_enabled": False,
+            "chat_history_max_results": 7,
+            "chat_history_max_retrieval": 3,
+            "agents": [
+                {"id": "analysis", "template_file": "cog_analyze_agent"}
+            ],
+            "flow": {
+                "start": "analysis",
+                "transitions": {
+                    "analysis": {"end": True}
+                }
+            }
+        }
+    }
+
+    cog_config = config_manager.build_cog_config(raw_cog_data)
+
+    assert cog_config.cog.chat_memory_enabled is False
+    assert cog_config.cog.chat_history_max_results == 7
+    assert cog_config.cog.chat_history_max_retrieval == 3
+
+
 def test_config_manager_validation():
     """Test that ConfigManager properly validates config data."""
     config_manager = ConfigManager()
@@ -229,4 +257,4 @@ def test_config_manager_cog_flow_parsing():
     print("✓ Flow parsing works correctly")
     print(f"  - Direct: {direct_transition.next_agent}")
     print(f"  - End: {end_transition.end}")
-    print(f"  - Decision: {decision_transition.decision_key} -> {len(decision_transition.decision_map)} options") 
+    print(f"  - Decision: {decision_transition.decision_key} -> {len(decision_transition.decision_map)} options")

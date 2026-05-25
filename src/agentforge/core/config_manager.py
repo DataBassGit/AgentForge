@@ -203,6 +203,9 @@ class ConfigManager:
             description=raw_cog.get('description'),
             persona=raw_cog.get('persona'),
             trail_logging=raw_cog.get('trail_logging', True),
+            chat_memory_enabled=raw_cog.get('chat_memory_enabled'),
+            chat_history_max_results=raw_cog.get('chat_history_max_results'),
+            chat_history_max_retrieval=raw_cog.get('chat_history_max_retrieval'),
             agents=agents,
             memory=memory,
             flow=flow
@@ -469,4 +472,4 @@ class ConfigManager:
         )
         
         if not has_end_transition:
-            print("Flow has no 'end:' transition; cog may loop forever.") 
+            print("Flow has no 'end:' transition; cog may loop forever.")
