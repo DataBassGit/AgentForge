@@ -1,18 +1,56 @@
-# ⚠️ DEPRECATION WARNING
-
-**The Tools system is DEPRECATED.**
-
-Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
-
-See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
-
-# Dynamic Tool Functionality
+# Dynamic Toos l& Skills Functionality
 
 ## Introduction to Dynamic Tools
 
-The **Dynamic Tool** system within our framework serves as a universal handler for executing functionalities, known as **tools**, which are specified in **YAML** files. This system is designed to be model-agnostic, meaning that it can work with any model as long as the model is capable of responding in the correct format and possesses the requisite intelligence to execute the functions. Tools are defined and managed within a dedicated directory in the project structure, allowing for organized development and easy access.
+The Dynamic Tool & Skill system within our framework serves as a universal handler for executing functionalities. This system is designed to be model-agnostic, meaning that it can work with any model as long as the model is capable of responding in the correct format and possesses the requisite intelligence to execute the functions. Capabilities are defined and managed within dedicated directories, allowing for organized development and easy access.
 
-**Tools Directory**: The tools are located within the `tools` directory in the project. Navigate to `your_project_root/.agentforge/tools` to access the **YAML** files for each tool.
+There are two primary ways to extend the framework:
+
+1. Skills (`SKILLS.md`): The modern standard for CLI-based commands, utilizing an isolated Docker environment for secure execution. Located in `your_project_root/.agentforge/skills`.
+
+2. Python Tools (YAML): Native Python execution for deep framework integration and memory access. Located in `your_project_root/.agentforge/tools`.
+
+## Defining Skills (The SKILLS Standard)
+
+The Skills system is our standard for adding CLI-based executables, mapping closely to standard context protocols. Skills are parsed from `SKILLS.md` (or `SKILL.md`) files located anywhere recursively within your `.agentforge/skills` directory structure.
+
+Skills use YAML Frontmatter for metadata and configuration, and the Markdown body as the tool's instruction set for the agent.
+
+### Example SKILLS.md Definition
+```markdown
+---
+name: blogwatcher
+description: "Monitor blogs and RSS/Atom feeds via blogwatcher-cli tool."
+version: 2.0.0
+author: JulienTant
+platforms: [linux, macos, windows]
+metadata:
+  tags: [RSS, Blogs, Feed-Reader, Monitoring]
+prerequisites:
+  commands: [blogwatcher-cli]
+---
+
+# Blogwatcher
+
+Track blog and RSS/Atom feed updates with the `blogwatcher-cli` tool. Supports automatic feed discovery, HTML scraping fallback, OPML import, and read/unread article management.
+
+[... additional markdown instructions ...]
+
+```
+
+### Key Skill Attributes
+
+ - **name**: A descriptive title for the skill (used in vector search and tool selection).
+
+ - **description**: A clear explanation of what the skill does. Used as the primary document for vector semantic search.
+
+ - **Markdown Body**: Read automatically as the Instruction parameter, providing agents with context on how to use the tool.
+
+*note: see https://github.com/anthropics/skills for more details about how to write skills properly.*
+
+### Secure Docker Execution
+
+To maintain system security, all Skills execute strictly inside a persistent Docker container. The system automatically provisions and attaches to an `ubuntu:latest` container named `agentforge_skills_env` at runtime. This prevents LLM-driven shell execution vulnerabilities on the host machine. The system will throw a `RuntimeError` if an agent attempts to execute a CLI skill natively on the host machine.
 
 ## Defining Tools in YAML
 
@@ -71,11 +109,11 @@ In addition to defining **tools**, our system comes with a set of built in **too
 
 ## Executing Tools with Dynamic Tool Functionality
 
-To execute a **tool**, use the `dynamic_tool` method in the `ToolUtils` class. The method dynamically loads the specified **tool** based on its module path and executes it using the provided arguments.
+To execute a **tool**, use the `dynamic_tool` method in the `ToolUtils` class. The method dynamically loads the specified **tool** or **skill** based on its module path and executes it using the provided arguments.
 
 ### Dynamic Tool Execution Process
 
-1. **Dynamic Module Import**: The tool's script module is dynamically imported using the `importlib` library.
+1. **Dynamic Module Import**: The tool's script module is dynamically imported and routes the execution directly into the isolated `agentforge_skills_env` Docker container via the Docker SDK
 2. **Command Execution**: The specific command (function or method) mentioned in the tool's **YAML** definition is then executed with the provided arguments.
 3. **Result Handling**: The result of the command execution is returned as an object, potentially being used in further processing or returned to the caller.
 
@@ -122,6 +160,8 @@ result = tool_utils.dynamic_tool(tool, payload)
 # The result of the execution will be handled by the tool_utils object
 ```
 
+In practice, however, you would not be building this payload or tool manually. The tool should be selected via searching chromadb for an appropriate tool, and the payload would be generated by an agent.
+
 >**Note on Tool Attributes**: Not all attributes defined in the tool's **YAML** file are used when executing the **tool** with the `dynamic_tool` method. Attributes such as `Name`, `Description`, `Example`, and `Instruction` provide context and usage information, which is crucial for the Large Language Model (LLM) to understand how to prime and prepare the **tool** for use. They inform the LLM about the **tool**'s purpose, how it operates, and how to properly integrate it into workflows. The actual execution relies on the `Command`, `Args`, and `Script` attributes to dynamically load and run the **tool**. The context becomes more relevant when we get into [Actions](actions.md).
 
 ## Implementing Custom Tools
@@ -144,11 +184,15 @@ Ensure that the `Script` attribute correctly points to the custom tool's script 
 
 ## Compatibility and Requirements
 
+- **Docker Daemon**: Ensure Docker is installed and running on the host machine. If Docker is unavailable, the initialization process will log a warning and CLI skills execution will be completely disabled.
+- **Python Packages**: The docker Python SDK (pip install docker) and pyyaml are required for parsing and executing the new SKILLS standard.
 - **Script Path Specification**: Ensure that the `Script` path in the **YAML** definition matches the exact name of the module in the Python environment.
 - **Function Compatibility**: The Python library function or method should be compatible with dynamic calling and must be defined within the specified script path.
 
 ## Best Practices for Tool Definitions
 
+_ **Default to Skills***: If you are writing an integration with a third-party application or a CLI tool, always use the `SKILLS.md` standard. It is safer, more portable, and aligns with broader industry Context Protocols.
+- **Keep Python Tools Local**: Use YAML Python tools only when you need deep integrations with local memory, system states, or internal Python logic.
 - **Validate Your Definitions**: Test each **YAML** tool definition to ensure it functions as expected.
 - **Follow the Format**: Adhere to the **YAML** format provided in the example to avoid execution errors.
 

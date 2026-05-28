@@ -1,22 +1,14 @@
-# =================== DEPRECATION WARNING ===================
-# This module is DEPRECATED.
-# Do NOT use in production or with untrusted input.
-# See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
-# This functionality will be replaced in a future version with a secure implementation.
-import warnings
-warnings.warn(
-    "agentforge.modules.actions is DEPRECATED and insecure. Do NOT use in production. See https://github.com/DataBassGit/AgentForge/issues/116",
-    DeprecationWarning
-)
-# ==========================================================
+import os
+import re
+import yaml
 import traceback
 from typing import List, Dict, Optional, Union
 from agentforge.agent import Agent
 from agentforge.utils.logger import Logger
-from agentforge.storage.chroma_storage import ChromaStorage
 from agentforge.utils.parsing_processor import ParsingProcessor
-from ..config import Config
-from ..utils.tool_utils import ToolUtils
+from agentforge.config import Config
+from agentforge.utils.tool_utils import ToolUtils
+
 
 def id_generator(data: List[Dict]) -> List[str]:
     """
@@ -46,16 +38,23 @@ class Actions:
     # -------------------------------- Constructor and Initialization Methods --------------------------------
     # --------------------------------------------------------------------------------------------------------
 
-    def __init__(self):
+    def __init__(self, chroma_instance):
         """
         Initializes the Actions class, setting up logger, storage utilities, and loading necessary components for
         action processing.
+
+        Parameters:
+            chroma_instance: An active instance of ChromaStorage to use for memory operations.
         """
         # Initialize the logger, storage, and functions
         self.logger = Logger(name=self.__class__.__name__)
         self.config = Config()
-        self.storage = ChromaStorage.get_or_create(storage_id="actions_module")
-        self.tool_utils = ToolUtils()
+        self.storage = chroma_instance
+
+        # Initialize persistent Docker container for skills execution
+        self.docker_container = self._initialize_docker_container()
+
+        self.tool_utils = ToolUtils(docker_container=self.docker_container)
         self.parsing_utils = ParsingProcessor()
 
         # Initialize the agents
@@ -67,9 +66,49 @@ class Actions:
         self.actions = self.initialize_collection('Actions')
         self.tools = self.initialize_collection('Tools')
 
+        # Load skills recursively from the skills directory
+        self.skills = self.load_all_skills()
+
     # --------------------------------------------------------------------------------------------------------
     # ------------------------------------------- Helper Methods ---------------------------------------------
     # --------------------------------------------------------------------------------------------------------
+
+    def _initialize_docker_container(self):
+        """
+        Initializes a persistent Docker container to be used for executing CLI-based skills securely.
+        """
+        try:
+            import docker
+            client = docker.from_env()
+            container_name = "agentforge_skills_env"
+
+            try:
+                # Try to attach to an existing container
+                container = client.containers.get(container_name)
+                if container.status != 'running':
+                    container.start()
+                self.logger.log(f"Attached to existing Docker container: {container_name}", 'info', 'Actions')
+                return container
+            except docker.errors.NotFound:
+                # Create a new persistent container holding an idle baseline image
+                self.logger.log(f"Creating new persistent Docker container: {container_name}", 'info', 'Actions')
+                container = client.containers.run(
+                    "ubuntu:latest",  # Can be customized via system settings in the future
+                    command="tail -f /dev/null",  # Keeps the container running
+                    name=container_name,
+                    detach=True
+                )
+                return container
+        except ImportError:
+            self.logger.log(
+                "Docker python package (docker) not installed. CLI skills execution is completely disabled.", 'error',
+                'Actions')
+            return None
+        except Exception as e:
+            self.logger.log(
+                f"Failed to initialize persistent Docker container: {e}. CLI skills execution is completely disabled.",
+                'error', 'Actions')
+            return None
 
     def initialize_collection(self, collection_name: str) -> Dict[str, Dict]:
         """
@@ -96,6 +135,121 @@ class Actions:
         # Save the item into the selected collection
         self.storage.save_memory(collection_name=collection_name, data=description, ids=ids, metadata=metadata)
         self.logger.log(f"\n{collection_name} collection initialized", 'info', 'Actions')
+
+        return item_list
+
+    def load_all_skills(self) -> Dict[str, Dict]:
+        """
+        Recursively searches for and loads all SKILL.md and SKILLS.md files within the
+        .agentforge/skills directory.
+
+        Returns:
+            Dict[str, Dict]: A dictionary of all loaded skills/tools.
+        """
+        all_skills = {}
+        # Resolve the path to .agentforge/skills
+        skills_dir = os.path.join(str(self.config.config_path), "skills")
+
+        if not os.path.isdir(skills_dir):
+            self.logger.log(f"Skills directory not found at '{skills_dir}'. Skipping skill load.", 'info', 'Actions')
+            return all_skills
+
+        # Search recursively using os.walk
+        for subdir, dirs, files in os.walk(skills_dir):
+            for file in files:
+                if file in ["SKILL.md", "SKILLS.md"]:
+                    file_path = os.path.join(subdir, file)
+                    skills = self.load_skills_from_markdown(file_path)
+                    if skills:
+                        all_skills.update(skills)
+
+        return all_skills
+
+    def load_skills_from_markdown(self, file_path: str) -> Dict[str, Dict]:
+        """
+        Loads tools/skills from a markdown file to populate the Tools collection.
+        Parses YAML frontmatter as metadata and the markdown body as instructions.
+
+        Parameters:
+            file_path (str): Path to the SKILLS.md file.
+
+        Returns:
+            Dict[str, Dict]: A dictionary of loaded skills/tools.
+        """
+        if not os.path.exists(file_path):
+            self.logger.log(f"Skills file '{file_path}' not found. Skipping.", 'info', 'Actions')
+            return {}
+
+        item_list = {}
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+
+            # Regex to extract YAML frontmatter
+            frontmatter_match = re.match(r'^---\s*\n(.*?)\n---\s*\n(.*)', content, re.DOTALL)
+
+            if frontmatter_match:
+                yaml_content = frontmatter_match.group(1)
+                markdown_body = frontmatter_match.group(2).strip()
+                try:
+                    parsed_metadata = yaml.safe_load(yaml_content) or {}
+                except Exception as e:
+                    self.logger.log(f"Error parsing YAML frontmatter in '{file_path}': {e}", 'error', 'Actions')
+                    parsed_metadata = {}
+            else:
+                parsed_metadata = {}
+                markdown_body = content
+
+            if not parsed_metadata:
+                self.logger.log(f"No valid YAML frontmatter found in '{file_path}'.", 'warning', 'Actions')
+                return {}
+
+            name = parsed_metadata.get('name', parsed_metadata.get('Name', f"Skill_{os.path.basename(file_path)}"))
+            description = parsed_metadata.get('description', parsed_metadata.get('Description', ''))
+
+            skill_id = f"skill_{str(name).replace(' ', '_').lower()}"
+
+            # Base skill data
+            skill_data = {
+                'ID': skill_id,
+                'Name': name,
+                'Description': description,
+                'Instruction': markdown_body
+            }
+
+            # Merge the rest of the YAML frontmatter into skill_data
+            for k, v in parsed_metadata.items():
+                if k.lower() == 'example':
+                    continue  # Deprecate 'example' metadata field
+                if k not in skill_data:
+                    skill_data[k] = v
+
+            item_list[name] = skill_data
+
+            # Prepare metadata for ChromaDB (must be primitive types: str, int, float, bool)
+            chroma_meta = {}
+            for k, v in skill_data.items():
+                if isinstance(v, (str, int, float, bool)):
+                    chroma_meta[k] = v
+                elif v is None:
+                    chroma_meta[k] = ""
+                else:
+                    chroma_meta[k] = str(v)  # Flatten arrays/dicts to string to prevent Chroma errors
+
+            # Description is the actual document stored for vector search
+            doc_text = description if description else str(name)
+
+            # Save the item into the Skills collection
+            self.storage.save_memory(
+                collection_name='Skills',
+                data=[doc_text],
+                ids=[skill_id],
+                metadata=[chroma_meta]
+            )
+            self.logger.log(f"\nSkills collection updated with skill '{name}' from {file_path}", 'info', 'Actions')
+
+        except Exception as e:
+            self.logger.log(f"Error loading skills from {file_path}: {e}", 'error', 'Actions')
 
         return item_list
 
@@ -126,7 +280,36 @@ class Actions:
         except Exception as e:
             self.logger.log(f"Error loading {collection_name.lower()}: {e}", 'error', 'Actions')
 
-        if not item_list:
+        # "checking tools first, then skills" for vector search integration
+        if collection_name.lower() == 'tools':
+            try:
+                skill_list = self.storage.search_storage_by_threshold(collection_name='Skills',
+                                                                      query=objective,
+                                                                      threshold=threshold,
+                                                                      num_results=num_results)
+                if skill_list and skill_list.get('metadatas'):
+                    if not item_list or not item_list.get('metadatas'):
+                        item_list = skill_list
+                    else:
+                        item_list['metadatas'].extend(skill_list['metadatas'])
+                        if 'distances' in item_list and 'distances' in skill_list:
+                            item_list['distances'].extend(skill_list['distances'])
+                        if 'documents' in item_list and 'documents' in skill_list:
+                            item_list['documents'].extend(skill_list['documents'])
+
+                        # Sort combined results by distance to keep relevance accurate
+                        if 'distances' in item_list:
+                            combined = list(
+                                zip(item_list['distances'], item_list['metadatas'], item_list.get('documents', [])))
+                            combined.sort(key=lambda x: x[0])
+                            item_list['distances'] = [x[0] for x in combined]
+                            item_list['metadatas'] = [x[1] for x in combined]
+                            if 'documents' in item_list:
+                                item_list['documents'] = [x[2] for x in combined]
+            except Exception as e:
+                self.logger.log(f"Error loading skills for objective: {e}", 'error', 'Actions')
+
+        if not item_list or not item_list.get('metadatas'):
             self.logger.log(f"No {collection_name} Found", 'info', 'Actions')
             return {}
 
@@ -134,8 +317,16 @@ class Actions:
             parsed_item_list = {}
             for metadata in item_list.get('metadatas', []):
                 item_name = metadata.get('Name')
-                if item_name in getattr(self, collection_name.lower()):
-                    parsed_item_list[item_name] = getattr(self, collection_name.lower())[item_name]
+                if collection_name.lower() == 'tools':
+                    # Check tools first, then skills
+                    if item_name in self.tools:
+                        parsed_item_list[item_name] = self.tools[item_name]
+                    elif hasattr(self, 'skills') and item_name in self.skills:
+                        parsed_item_list[item_name] = self.skills[item_name]
+                else:
+                    target_collection = getattr(self, collection_name.lower(), {})
+                    if item_name in target_collection:
+                        parsed_item_list[item_name] = target_collection[item_name]
             item_list = parsed_item_list
 
         return item_list
@@ -154,9 +345,17 @@ class Actions:
             Exception: If an error occurs while loading action tools.
         """
         try:
-            tools = [self.tools[tool] for tool in action['Tools']]
+            tools = []
+            for tool_name in action.get('Tools', []):
+                # Checking tools first, then skills
+                if tool_name in self.tools:
+                    tools.append(self.tools[tool_name])
+                elif hasattr(self, 'skills') and tool_name in self.skills:
+                    tools.append(self.skills[tool_name])
+                else:
+                    raise KeyError(f"Tool or Skill '{tool_name}' not found")
         except Exception as e:
-            error_message = f"Error in loading tools from action '{action['Name']}': {e}"
+            error_message = f"Error in loading tools from action '{action.get('Name', 'Unknown')}': {e}"
             self.logger.log(error_message, 'error', 'Actions')
             tools = {'error': error_message, 'traceback': traceback.format_exc()}
 
@@ -220,15 +419,6 @@ class Actions:
                 msg = {'error': "Error Creating Action"}
                 self.logger.log(msg['error'], 'error', 'Actions')
                 return msg
-            # else:
-            #     path = f".agentforge/actions/unverified/{new_action['Name'].replace(' ', '_')}.yaml"
-            #     with open(path, "w") as file:
-            #         yaml.dump(new_action, file)
-            #     # self.functions.agent_utils.config.add_item(new_action, 'Actions')
-            #     count = self.storage.count_documents(collection_name='actions') + 1
-            #     metadata = [{'Name': new_action['Name'], 'Description': new_action['Description'], 'Path': path}]
-            #     self.storage.save_memory(collection_name='actions', data=new_action['Description'], ids=count,
-            #                              metadata=metadata)
 
         return new_action
 

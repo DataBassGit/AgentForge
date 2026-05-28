@@ -1,11 +1,3 @@
-# ⚠️ DEPRECATION WARNING
-
-**The Actions system is DEPRECATED.**
-
-Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
-
-See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
-
 # Actions
 
 ## Overview
@@ -75,7 +67,7 @@ The **Actions** class consists of several methods that work together to manage a
   - **[`auto_execute`](#auto_execute-method)**: Provides a straightforward example of how to use the other methods in the class to select or craft an appropriate action and execute it based on a given objective. This method is not intended as a comprehensive or final solution but rather as a starting point. Developers are encouraged to build and customize their own workflows using the more granular methods provided by the class.
 
 - **Action Retrieval and Selection**
-  - **[`get_relevant_actions_for_objective`](#get_relevant_actions_for_objective-method)**: Searches the database for actions relevant to a specific objective, filtering results based on a relevance threshold.
+  - **[`get_relevant_actions_for_objective`](#get_relevant_actions_for_objective-method)**:  Searches the database for items (actions, tools, or skills) relevant to a specific objective, filtering results based on a relevance threshold. When searching for tools, it automatically checks tools first, then skills.
   - **[`select_action_for_objective`](#select_action_for_objective-method)**: Chooses the most suitable action from a list of possible actions for a given objective, optionally considering additional context.
 
 - **Action Creation**
@@ -172,7 +164,7 @@ ensuring that only the necessary details are provided to the agents.
 
 ### **`__init__` Method**
 
-Initializes the **Actions** class, setting up logging, storage utilities, and loading necessary components for action processing.
+Initializes the **Actions** class, setting up logging, storage utilities, loading necessary components for action processing, and spinning up the Docker container for secure Skill execution.
 
 - **Parameters:** None
 - **Returns:** None
@@ -181,8 +173,10 @@ Initializes the **Actions** class, setting up logging, storage utilities, and lo
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
-actions = Actions()
+storage = ChromaStorage.get_or_create(storage_id="default")
+actions = Actions(chroma_instance=storage)
 ```
 
 ---
@@ -199,10 +193,14 @@ Initializes a specified collection in the vector database with preloaded data.
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
-actions = Actions()
+storage = ChromaStorage.get_or_create(storage_id="default")
+actions = Actions(chroma_instance=storage)
+
 actions.initialize_collection('actions')
 actions.initialize_collection('tools')
+
 ```
 
 ---
@@ -221,10 +219,12 @@ Automatically executes actions for the given objective and context.
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
 objective = 'Stay up to date with current world events'
+storage = ChromaStorage.get_or_create(storage_id="default")
 
-actions = Actions()
+actions = Actions(chroma_instance=storage)
 result = actions.auto_execute(objective)
 ```
 
@@ -251,11 +251,13 @@ Loads actions based on the current objective and specified criteria.
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
 objective = 'Stay up to date with current world events'
+storage = ChromaStorage.get_or_create(storage_id="default")
 
-actions = Actions()
-actions_list = actions.get_relevant_actions_for_objective(objective=objective, threshold=0.9, num_results=5)
+actions = Actions(chroma_instance=storage)
+actions_list = actions.get_relevant_items_for_objective(collection_name='Actions', objective=objective, threshold=0.9, num_results=5)
 ```
 
 **Expected Output:**
@@ -297,6 +299,7 @@ Selects an action for the given objective from the provided action list.
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
 objective = 'Stay up to date with current world events'
 context = 'Focus on technology'
@@ -318,8 +321,10 @@ action_list = {
     },
 }
 
-actions = Actions()
+storage = ChromaStorage.get_or_create(storage_id="default")
+actions = Actions(chroma_instance=storage)
 selected_action = actions.select_action_for_objective(objective=objective, action_list=action_list, context=context)
+
 ```
 
 **Expected Output when `parse_result` is `True`:**
@@ -350,6 +355,7 @@ Crafts a new action for the given objective.
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
 objective = 'Automate file backup'
 tool_list = {
@@ -361,11 +367,13 @@ tool_list = {
         "Instruction": "To use the 'File Writer' tool, follow these steps:\n1. Call the `write_file` function ...",
         "Name": "File Writer",
     },
-    # ... more tools ...
+    # ... more tools/skills ...
 }
 
-actions = Actions()
+storage = ChromaStorage.get_or_create(storage_id="default")
+actions = Actions(chroma_instance=storage)
 crafted_action = actions.craft_action_for_objective(objective=objective, tool_list=tool_list, context=None)
+
 ```
 
 **Expected Output:**
@@ -401,6 +409,7 @@ Prepares the tool for execution by running the ToolPrimingAgent.
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
 objective = 'Automate file backup'
 action = {
@@ -419,8 +428,10 @@ tool = {
     "Name": "Read Directory",
 }
 
-actions = Actions()
+storage = ChromaStorage.get_or_create(storage_id="default")
+actions = Actions(chroma_instance=storage)
 payload = actions.prime_tool_for_action(objective=objective, action=action, tool=tool)
+
 ```
 
 **Expected Output:**
@@ -453,6 +464,7 @@ Runs the specified tools in sequence for the given objective and action by runni
 
 ```python
 from agentforge.modules.actions import Actions
+from agentforge.storage.chroma_storage import ChromaStorage
 
 objective = 'Automate file backup'
 action = {
@@ -461,7 +473,8 @@ action = {
     "Tools": ["Read Directory", "Read File", "File Writer"],
 }
 
-actions = Actions()
+storage = ChromaStorage.get_or_create(storage_id="default")
+actions = Actions(chroma_instance=storage)
 result = actions.run_tools_in_sequence(objective=objective, action=action)
 ```
 
