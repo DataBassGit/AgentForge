@@ -12,7 +12,7 @@ python --version
 python -m pip --version
 ```
 
-Use this venv for local checks when it exists. If the venv is missing, create a new one with the Python version you are validating for the change. The package metadata currently declares `python_requires=">=3.9"` and classifiers through Python 3.13, while public docs and local commands may not be fully aligned. Treat Python-version claims as cleanup targets, not settled truth.
+Use this venv for local checks when it exists. If the venv is missing, create a new one with the Python version you are validating for the change. The package metadata currently declares `python_requires=">=3.10"` and classifiers through Python 3.13, while public docs and local commands may not be fully aligned. Treat Python-version claims as cleanup targets, not settled truth.
 
 ## Dependencies
 
@@ -58,6 +58,25 @@ basedpyright --project pyproject.toml
 ```
 
 Ruff owns line length and signature-adjacent style guardrails. BasedPyright owns type checking only and should not be used for formatting or line-length enforcement.
+
+## Git Hooks
+
+Tracked Git hooks live in `.githooks/`. Install them for the local checkout with:
+
+```shell
+scripts/install-git-hooks.sh
+```
+
+The pre-push hook uses the repo venv when available, or `AGENTFORGE_PYTHON` when set. It runs Ruff lint, Ruff format check, and basedpyright on Python files being pushed, then runs the default pytest suite:
+
+```shell
+ruff check <pushed python files>
+ruff format --check <pushed python files>
+basedpyright --project pyproject.toml <pushed python files>
+python -m pytest
+```
+
+Ruff and basedpyright are scoped to pushed Python files because the current whole-repo static-tooling baseline is intentionally not clean yet. Clean Ruff and basedpyright findings as each subsystem is touched. Pytest remains full default-suite verification, with integration-marked tests excluded by `pytest.ini`.
 
 ## Project Configuration
 
