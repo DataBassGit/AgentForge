@@ -320,7 +320,7 @@ class Cog:
         if not self.last_executed_agent:
             return self.state
             
-        agent_transition = self.transition_resolver._get_agent_transition(self.last_executed_agent)
+        agent_transition = self.transition_resolver.get_transition(self.last_executed_agent)
         
         # Handle the 'end' keyword - check for end transition
         if agent_transition.type == "end" or agent_transition.end:

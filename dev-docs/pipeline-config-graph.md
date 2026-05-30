@@ -13,7 +13,11 @@ There are two primary execution paths:
 
 The framework should stay responsible for reusable orchestration mechanics. Applications should stay responsible for their prompts, workflow purpose, credentials, persona content, and persisted data policy.
 
-## Component Graph
+## Component Maps
+
+These diagrams are component maps, not exact call-order traces. They separate configuration ingestion from runtime execution so each view stays readable.
+
+### Resource And Configuration Map
 
 ```mermaid
 flowchart TD
@@ -34,31 +38,6 @@ flowchart TD
     SetupFiles["src/agentforge/setup_files"]
   end
 
-  subgraph AgentRuntime["Agent runtime"]
-    Agent["Agent"]
-    PromptProcessor["PromptProcessor"]
-    BaseModel["BaseModel"]
-    Provider["Provider adapter"]
-    ParsingProcessor["ParsingProcessor"]
-    AgentOutput["Agent output"]
-  end
-
-  subgraph CogRuntime["Cog runtime"]
-    Cog["Cog"]
-    AgentRegistry["AgentRegistry"]
-    AgentRunner["AgentRunner"]
-    TransitionResolver["TransitionResolver"]
-    MemoryManager["MemoryManager"]
-    TrailRecorder["TrailRecorder"]
-    CogResult["Cog result"]
-  end
-
-  subgraph MemoryLayer["Memory and storage"]
-    MemoryNodes["Memory nodes"]
-    ChromaStorage["ChromaStorage or fake storage"]
-    ChatHistory["ChatHistoryMemory"]
-  end
-
   RuntimeCall --> Config
   AgentForgeDir --> SettingsYaml
   AgentForgeDir --> PromptYaml
@@ -74,28 +53,66 @@ flowchart TD
   CustomApis --> Config
   Config --> ConfigManager
   ConfigManager --> Structs
+```
 
-  Structs --> Agent
-  Agent --> PromptProcessor
+### Runtime Execution Map
+
+```mermaid
+flowchart TD
+  RuntimeCall["Python script or app"]
+  Structs["AgentConfig / CogConfig dataclasses"]
+
+  subgraph DirectAgentRuntime["Direct Agent runtime"]
+    DirectAgent["Agent"]
+    PromptProcessor["PromptProcessor"]
+    BaseModel["BaseModel"]
+    Provider["Provider adapter"]
+    ParsingProcessor["ParsingProcessor"]
+    DirectAgentOutput["Agent output"]
+  end
+
+  subgraph CogRuntime["Cog runtime"]
+    Cog["Cog"]
+    AgentRegistry["AgentRegistry"]
+    AgentRunner["AgentRunner"]
+    CogAgent["Agent instances"]
+    CogAgentOutput["Agent output / state entry"]
+    TransitionResolver["TransitionResolver"]
+    MemoryManager["MemoryManager"]
+    TrailRecorder["TrailRecorder"]
+    CogResult["Cog result"]
+  end
+
+  subgraph MemoryLayer["Memory and storage"]
+    MemoryNodes["Memory nodes"]
+    ChromaStorage["ChromaStorage or fake storage"]
+    ChatHistory["ChatHistoryMemory"]
+  end
+
+  RuntimeCall --> DirectAgent
+  Structs --> DirectAgent
+  DirectAgent --> PromptProcessor
   PromptProcessor --> BaseModel
   BaseModel --> Provider
   Provider --> BaseModel
-  BaseModel --> Agent
-  Agent --> ParsingProcessor
-  ParsingProcessor --> AgentOutput
+  BaseModel --> DirectAgent
+  DirectAgent --> ParsingProcessor
+  ParsingProcessor --> DirectAgentOutput
 
   Structs --> Cog
+  RuntimeCall --> Cog
   Cog --> AgentRegistry
-  AgentRegistry --> Agent
+  AgentRegistry --> CogAgent
   Cog --> MemoryManager
   MemoryManager --> MemoryNodes
   MemoryNodes --> ChromaStorage
   MemoryManager --> ChatHistory
   Cog --> AgentRunner
-  AgentRunner --> Agent
+  AgentRunner --> CogAgent
+  CogAgent --> CogAgentOutput
+  CogAgentOutput --> Cog
   Cog --> TransitionResolver
   Cog --> TrailRecorder
-  AgentOutput --> Cog
   TransitionResolver --> Cog
   Cog --> CogResult
 ```

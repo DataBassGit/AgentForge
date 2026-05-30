@@ -46,6 +46,30 @@ class TestTransitionResolver:
         # Assert
         assert next_agent is None
 
+    def test_get_transition_returns_configured_transition(self):
+        """Test public transition lookup for result extraction callers."""
+        transitions = {
+            "agent1": CogFlowTransition(type="end", end=True)
+        }
+        flow = CogFlow(start="agent1", transitions=transitions)
+        resolver = TransitionResolver(flow)
+
+        transition = resolver.get_transition("agent1")
+
+        assert transition.type == "end"
+        assert transition.end is True
+
+    def test_get_transition_missing_agent_raises_exception(self):
+        """Test public transition lookup preserves missing-transition diagnostics."""
+        transitions = {
+            "agent1": CogFlowTransition(type="direct", next_agent="agent2")
+        }
+        flow = CogFlow(start="agent1", transitions=transitions)
+        resolver = TransitionResolver(flow)
+
+        with pytest.raises(TransitionResolverError, match="No transition defined for agent: nonexistent"):
+            resolver.get_transition("nonexistent")
+
     def test_decision_transition_with_match(self):
         """Test decision transitions with matching decision values."""
         # Setup
@@ -416,4 +440,4 @@ class TestTransitionResolver:
         # Test end transitions
         assert resolver.get_next_agent("finalize", {}) is None
         assert resolver.get_next_agent("human_review", {}) is None
-        assert resolver.get_next_agent("error_handler", {}) is None 
+        assert resolver.get_next_agent("error_handler", {}) is None

@@ -33,8 +33,8 @@ def load_yaml_file(file_path: str) -> Dict[str, Any]:
         or an error occurs during parsing, an empty dictionary is returned.
     """
     try:
-        with open(file_path, 'r') as yaml_file:
-            return yaml.safe_load(yaml_file)
+        with open(file_path, 'r', encoding='utf-8') as yaml_file:
+            return yaml.safe_load(yaml_file) or {}
     except FileNotFoundError:
         print(f"File {file_path} not found.")
         return {}
@@ -129,32 +129,27 @@ class Config:
         Reads and parses a YAML file, returning its contents as a Python dictionary.
         Returns an empty dictionary if the file is not found or an error occurs.
         """
-        try:
-            with open(file_path, 'r') as yaml_file:
-                return yaml.safe_load(yaml_file)
-        except FileNotFoundError:
-            print(f"File {file_path} not found.")
-            return {}
-        except yaml.YAMLError:
-            print(f"Error decoding YAML from {file_path}")
-            return {}
+        return load_yaml_file(file_path)
 
     def load_all_configurations(self):
         """
         Recursively loads all configuration data from YAML files under each subdirectory of the .agentforge folder.
         """
         with self._lock:
+            loaded_data = {}
             for subdir, dirs, files in os.walk(self.config_path):
-                for file in files:
+                dirs.sort()
+                for file in sorted(files):
                     if file.endswith(('.yaml', '.yml')):
                         subdir_path = pathlib.Path(subdir)
                         relative_path = subdir_path.relative_to(self.config_path)
-                        nested_dict = self.get_nested_dict(self.data, relative_path.parts)
+                        nested_dict = self.get_nested_dict(loaded_data, relative_path.parts)
                         file_path = str(subdir_path / file)
                         data = self.load_yaml_file(file_path)
                         if data:
                             filename_without_ext = os.path.splitext(file)[0]
                             nested_dict[filename_without_ext] = data
+            self.data = loaded_data
 
     def save(self):
         """
@@ -504,5 +499,3 @@ class Config:
         """
         persona_data = self.resolve_persona(agent_config=agent_config)
         return persona_data
-
-

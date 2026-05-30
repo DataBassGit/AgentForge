@@ -41,7 +41,7 @@ class TransitionResolver:
         Delegates each step to focused helper methods for clarity.
         """
         self.logger.info(f"Getting next agent for {current_agent_id}")
-        agent_transition = self._get_agent_transition(current_agent_id)
+        agent_transition = self.get_transition(current_agent_id)
         if self._is_end_transition(agent_transition):
             return self._handle_end_transition(current_agent_id)
         next_agent = self._handle_transition(current_agent_id, agent_transition, agent_outputs)
@@ -85,8 +85,8 @@ class TransitionResolver:
             The number of times this agent has been visited
         """
         return self.visit_counts.get(agent_id, 0)
-    
-    def _get_agent_transition(self, agent_id: str) -> CogFlowTransition:
+
+    def get_transition(self, agent_id: str) -> CogFlowTransition:
         """
         Get the transition definition for the specified agent.
         Raises TransitionResolverError if no transition is defined.
@@ -97,6 +97,10 @@ class TransitionResolver:
             raise TransitionResolverError(f"No transition defined for agent: {agent_id}")
         self.logger.log(f"Transition data: {agent_transition}", "debug", "Transition")
         return agent_transition
+
+    def _get_agent_transition(self, agent_id: str) -> CogFlowTransition:
+        """Compatibility alias for older internal callers."""
+        return self.get_transition(agent_id)
     
     def _increment_visit_count(self, agent_id: str) -> int:
         """
@@ -169,4 +173,4 @@ class TransitionResolver:
             self.logger.log(f"No matching branch found for decision value '{decision_value}' and no fallback branch defined", "warning", "Decision")
             self.logger.log(f"No match and no fallback", "debug", "Decision")
         self.logger.log(f"Returning next agent='{next_agent}'", "debug", "Decision")
-        return next_agent 
+        return next_agent

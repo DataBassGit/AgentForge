@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from agentforge.config import Config
+from agentforge.config import Config, load_yaml_file
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -42,6 +42,37 @@ def test_defaults_are_loaded(isolated_config: Config):  # noqa: D103
     # Ensure at least one persona and prompt exists
     assert cfg.data.get("personas"), "No personas loaded"
     assert cfg.data.get("prompts"), "No prompts loaded"
+
+
+def test_empty_yaml_file_loads_as_empty_dict(tmp_path: Path):
+    """Empty YAML should normalize to an empty dictionary through both loader entrypoints."""
+    empty_yaml = tmp_path / "empty.yaml"
+    empty_yaml.write_text("")
+
+    assert load_yaml_file(str(empty_yaml)) == {}
+    assert Config.load_yaml_file(str(empty_yaml)) == {}
+
+
+def test_reload_removes_deleted_yaml_from_loaded_data(isolated_config: Config):
+    """Reloading should rebuild config data instead of retaining deleted YAML entries."""
+    prompt_path = Path(isolated_config.config_path) / "prompts" / "TemporaryReloadAgent.yaml"
+    prompt_path.write_text(
+        """
+prompts:
+  user: "Hello"
+"""
+    )
+
+    isolated_config.load_all_configurations()
+    loaded_prompt = isolated_config.find_config("prompts", "TemporaryReloadAgent")
+    assert loaded_prompt is not None
+    assert loaded_prompt["prompts"]["user"] == "Hello"
+
+    prompt_path.unlink()
+    isolated_config.load_all_configurations()
+
+    with pytest.raises(FileNotFoundError):
+        isolated_config.find_config("prompts", "TemporaryReloadAgent")
 
 
 def test_session5_provider_defaults_are_current_and_codex_is_configurable(isolated_config: Config):
