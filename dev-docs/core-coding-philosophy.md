@@ -83,9 +83,9 @@ Use the configured line-length limit as the normal formatting boundary. Multi-li
 
 Do not treat vertical formatting as the main solution for long signatures. A long or repeatedly wrapped signature is usually a design signal: consider grouping related parameters into a dedicated options object, config object, dataclass, request object, or another meaningful domain object before accepting a bloated API shape.
 
-When configuring Ruff for this repo, keep signature formatting aligned with this rule: use Ruff for line-length and signature-adjacent linting, enable `E501` and `PLR0913`, set the project line length to `120` unless a later phase chooses otherwise, and configure `lint.pylint.max-args` deliberately. BasedPyright should remain focused on type checking and should not enforce formatting or line length.
+When configuring Ruff for this repo, keep signature formatting aligned with this rule: use Ruff for line-length and signature-adjacent linting, enable `E501`, `PLR0913`, and `UP045`, set the project line length to `120` unless a later phase chooses otherwise, and configure `lint.pylint.max-args` deliberately. BasedPyright should remain focused on type checking and should not enforce formatting or line length.
 
-AgentForge now declares Python `>=3.10`, so touched code may prefer PEP 604 union syntax such as `str | None` over `Optional[str]` when it makes signatures shorter and easier to scan. Treat that as staged cleanup, not a reason to bulk-convert untouched modules during a guardrail or tooling session.
+AgentForge now declares Python `>=3.10`, so touched code should use PEP 604 union syntax such as `str | None` instead of `Optional[str]`. Treat this as staged cleanup for selected files, not a reason to bulk-convert untouched modules during an unrelated session.
 
 ### Classes And Abstractions
 

@@ -77,7 +77,7 @@ line-length = 120
 indent-width = 4
 
 [tool.ruff.lint]
-extend-select = ["E501", "PLR0913"]
+extend-select = ["E501", "PLR0913", "UP045"]
 
 [tool.ruff.lint.pylint]
 max-args = 6

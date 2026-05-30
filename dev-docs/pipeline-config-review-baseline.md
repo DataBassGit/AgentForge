@@ -35,23 +35,24 @@ This is a developer-only review baseline for the AgentForge pipeline/config arch
 - Added test-first `Config` coverage for empty YAML normalization and stale deleted YAML entries during reload.
 - Consolidated the module-level and class-level YAML loader entrypoints behind one implementation while preserving both public call shapes.
 - Changed `Config.load_all_configurations()` to rebuild loaded data from a fresh dictionary and sort traversal for deterministic reloads.
+- Added Ruff `UP045` to enforce `T | None` over `Optional[T]` in selected Python cleanup scopes, then converted the Session 6 touched Python files.
 
 ## Verification Evidence
 
 - Test-first `Config` proof: `.venv/bin/python -m pytest tests/config_tests/test_config.py::test_empty_yaml_file_loads_as_empty_dict tests/config_tests/test_config.py::test_reload_removes_deleted_yaml_from_loaded_data` failed before implementation with `2 failed`, proving empty YAML returned `None` and deleted YAML remained in loaded config data.
 - After the `Config` fix, the same targeted tests passed with `2 passed`.
 - `.venv/bin/python -m pytest tests/config_tests/test_config.py` passed with `7 passed`.
-- `.venv/bin/python -m pytest tests/core_tests/test_transition_resolver.py tests/cog_tests/test_cog_trail_logging_and_flow_validation.py tests/config_tests/test_config_manager_phase1.py` passed with `30 passed`.
+- `.venv/bin/python -m pytest tests/config_tests/test_config.py tests/core_tests/test_transition_resolver.py tests/cog_tests/test_cog_trail_logging_and_flow_validation.py tests/config_tests/test_config_manager_phase1.py` passed with `37 passed`.
 - `.venv/bin/python -m pytest` passed with `217 passed, 1 deselected`.
-- `.venv/bin/ruff check src/agentforge/config.py tests/config_tests/test_config.py` still reports existing scoped `Config` cleanup baseline issues, mostly `E701` debug-print one-liners and long existing signatures/docstrings.
-- `.venv/bin/ruff format --check src/agentforge/config.py tests/config_tests/test_config.py` still reports `src/agentforge/config.py` would be reformatted; broad formatting was intentionally not run.
-- `.venv/bin/basedpyright --project pyproject.toml src/agentforge/config.py tests/config_tests/test_config.py` still reports existing `Config` diagnostics around optional `find_config()` returns and `find_file_in_directory()` path typing; the new config tests do not add a diagnostic.
-- The previous transition/Cog scoped Ruff and basedpyright checks still report the existing staged cleanup baseline in those touched files; they remain deferred.
+- `.venv/bin/ruff check src/agentforge/config.py src/agentforge/cog.py src/agentforge/core/transition_resolver.py tests/config_tests/test_config.py tests/core_tests/test_transition_resolver.py` passed.
+- `.venv/bin/ruff format --check src/agentforge/config.py src/agentforge/cog.py src/agentforge/core/transition_resolver.py tests/config_tests/test_config.py tests/core_tests/test_transition_resolver.py` passed.
+- `.venv/bin/basedpyright --project pyproject.toml src/agentforge/config.py src/agentforge/cog.py src/agentforge/core/transition_resolver.py tests/config_tests/test_config.py tests/core_tests/test_transition_resolver.py` passed with `0 errors, 0 warnings, 0 notes`.
+- `.venv/bin/python -c "import tomllib; tomllib.load(open('pyproject.toml', 'rb'))"` passed after the Ruff rule update.
 - `git diff --check` passed.
 - `bash -n .githooks/pre-push scripts/install-git-hooks.sh` passed.
 
 ## Remaining Risks
 
 - Logger behavior is intentionally not changed in this session, so duplicate-handler, cross-root file-handler, config-mutation, and model I/O privacy concerns remain as documented follow-up work.
-- `Config` still has print-based diagnostics, optional typing friction, and broad formatting debt; those are cleanup candidates but not part of the agreed Session 6 addendum scope.
+- `Config` still has print-based diagnostics and broader design cleanup candidates; the touched Python files now pass scoped Ruff and basedpyright checks.
 - Several tests in touched areas still contain print-only success noise and older style comments, but broad test cleanup was explicitly kept out of this session and should become an immediate follow-up session.

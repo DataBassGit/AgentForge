@@ -5,8 +5,9 @@ The Cog class provides a workflow framework for executing a series of
 chained agents based on configurable flow definitions and transitions.
 """
 
-from typing import Any, List, Optional
+from typing import Any, List
 from agentforge.config import Config
+from agentforge.config_structs.cog_config_structs import CogFlow
 from agentforge.config_structs.trail_structs import ThoughtTrailEntry
 from agentforge.core.agent_registry import AgentRegistry
 from agentforge.core.agent_runner import AgentRunner
@@ -20,19 +21,19 @@ from agentforge.core.trail_recorder import TrailRecorder
 class Cog:
     """
     Orchestrates a workflow of agents based on flow configuration.
-    
+
     Cog reads agent definitions, flow transitions, and memory configurations
     from a YAML file and executes agents in the specified order, handling
     decision-based routing and memory management.
-    
+
     The workflow follows a template method pattern with clear separation of
     concerns across semantic sections for improved maintainability and testing.
     """
 
-    def __init__(self, cog_file: str, enable_trail_logging: Optional[bool] = None, log_file: Optional[str] = 'cog'):
+    def __init__(self, cog_file: str, enable_trail_logging: bool | None = None, log_file: str | None = "cog"):
         """
         Initialize a Cog instance with necessary configurations and services.
-        
+
         Args:
             cog_file: Name of the cog configuration file
             enable_trail_logging: Override for trail logging setting. Uses config default if None.
@@ -40,16 +41,15 @@ class Cog:
         """
         self.cog_file = cog_file
         self.config = Config()
-        self.logger = Logger(name='Cog', default_logger=log_file)
-        
+        self.logger = Logger(name="Cog", default_logger=log_file or "cog")
+
         # Initialize core configurations
         self._initialize_cog_config()
         self._initialize_core_services()
         self._initialize_trail_logging(enable_trail_logging)
-        
+
         # Initialize execution state
-        self.last_executed_agent: Optional[str] = None
-        self.branch_call_counts: dict = {}
+        self.last_executed_agent: str | None = None
         self._reset_execution_state()
 
     # ---------------------------------
@@ -62,15 +62,24 @@ class Cog:
 
     def _initialize_core_services(self) -> None:
         """Initialize all core service components."""
+        self.flow = self._get_configured_flow()
+
         # Create agents using AgentRegistry
         self.agents = AgentRegistry.build_agents(self.cog_config)
-        
+
         # Initialize core components
         self.mem_mgr = MemoryManager(self.cog_config, self.cog_file)
         self.agent_runner = AgentRunner()
-        self.transition_resolver = TransitionResolver(self.cog_config.cog.flow)
+        self.transition_resolver = TransitionResolver(self.flow)
 
-    def _initialize_trail_logging(self, enable_trail_logging: Optional[bool]) -> None:
+    def _get_configured_flow(self) -> CogFlow:
+        """Return the validated Cog flow or raise if configuration normalization failed."""
+        flow = self.cog_config.cog.flow
+        if flow is None:
+            raise ValueError(f"Cog '{self.cog_file}' must define a flow.")
+        return flow
+
+    def _initialize_trail_logging(self, enable_trail_logging: bool | None) -> None:
         """Initialize trail logging with appropriate configuration."""
         if enable_trail_logging is None:
             enable_trail_logging = self.cog_config.cog.trail_logging
@@ -83,10 +92,10 @@ class Cog:
     def run(self, **kwargs: Any) -> Any:
         """
         Execute the cog by iteratively running agents as defined in the flow.
-        
+
         Args:
             **kwargs: Initial context values to provide to the agents
-            
+
         Returns:
             Any: Based on the 'end' keyword in the final transition:
                 - If 'end: true', returns the output of the last agent executed
@@ -110,7 +119,7 @@ class Cog:
     def get_track_flow_trail(self) -> List[ThoughtTrailEntry]:
         """
         Get the trail of agent executions for this cog run.
-        
+
         Returns:
             List of ThoughtTrailEntry objects representing the execution trail
         """
@@ -123,13 +132,13 @@ class Cog:
     def _reset_execution_state(self) -> None:
         """Reset all execution state for a fresh run."""
         self.context: dict = {}  # external context (runtime/user input)
-        self.state: dict = {}    # internal state (agent-local/internal data)
+        self.state: dict = {}  # internal state (agent-local/internal data)
         self.branch_call_counts: dict = {}
         self._reset_trail_logging()
 
     def _reset_trail_logging(self) -> None:
         """Reset trail logging for a new execution."""
-        if hasattr(self, 'trail_recorder'):
+        if hasattr(self, "trail_recorder"):
             self.trail_recorder.reset_trail()
 
     def _prepare_execution_state(self, **kwargs: Any) -> None:
@@ -162,48 +171,48 @@ class Cog:
         Orchestrates agent execution with transition resolution.
         """
         self.logger.log("Starting cog execution", "debug", "Flow")
-        
-        current_agent_id = self.cog_config.cog.flow.start
+
+        current_agent_id = self.flow.start
         self.last_executed_agent = None
         self.transition_resolver.reset_visit_counts()
-        
+
         while current_agent_id:
-                self.logger.log(f"Processing agent: {current_agent_id}", "debug", "Flow")
-                
-                # Execute single agent cycle
-                current_agent_id = self._execute_single_agent_cycle(current_agent_id)
-                
+            self.logger.log(f"Processing agent: {current_agent_id}", "debug", "Flow")
+
+            # Execute single agent cycle
+            current_agent_id = self._execute_single_agent_cycle(current_agent_id)
+
         self.logger.log("Cog execution completed", "debug", "Flow")
 
-    def _execute_single_agent_cycle(self, agent_id: str) -> Optional[str]:
+    def _execute_single_agent_cycle(self, agent_id: str) -> str | None:
         """
         Execute a complete cycle for a single agent.
-        
+
         Args:
             agent_id: The ID of the agent to execute
-            
+
         Returns:
             The ID of the next agent to execute, or None if flow should end
         """
         # Handle pre-execution operations
         self._prepare_agent_execution(agent_id)
-        
+
         # Execute the agent
         agent_output = self._execute_agent(agent_id)
-        
+
         # Handle post-execution operations
         self._finalize_agent_execution(agent_id, agent_output)
-        
+
         # Determine next agent in flow
         return self._determine_next_agent(agent_id)
 
-    def _determine_next_agent(self, current_agent_id: str) -> Optional[str]:
+    def _determine_next_agent(self, current_agent_id: str) -> str | None:
         """
         Determine the next agent in the flow based on transition rules.
-        
+
         Args:
             current_agent_id: The ID of the current agent
-            
+
         Returns:
             The ID of the next agent, or None if flow should end
         """
@@ -220,23 +229,23 @@ class Cog:
     def _prepare_agent_execution(self, agent_id: str) -> None:
         """
         Prepare for agent execution by handling pre-execution operations.
-        
+
         Args:
             agent_id: The ID of the agent to prepare for execution
         """
         # Call pre-execution hook
         self.pre_agent_execution(agent_id)
-        
+
         # Handle memory operations before agent execution
         self._handle_pre_execution_memory(agent_id)
 
     def _execute_agent(self, agent_id: str) -> Any:
         """
         Execute a single agent and return its output.
-        
+
         Args:
             agent_id: The ID of the agent to execute
-            
+
         Returns:
             The output from the agent execution
         """
@@ -249,23 +258,23 @@ class Cog:
     def _finalize_agent_execution(self, agent_id: str, output: Any) -> None:
         """
         Finalize agent execution by handling post-execution operations.
-        
+
         Args:
             agent_id: The ID of the executed agent
             output: The output from the agent execution
         """
         # Process agent output
         processed_output = self.process_agent_output(agent_id, output)
-        
+
         # Update agent state
         self._update_agent_state(agent_id, processed_output)
-        
+
         # Track output for logging if enabled
         self._track_agent_output(agent_id, processed_output)
-        
+
         # Handle memory operations after agent execution
         self._handle_post_execution_memory(agent_id)
-        
+
         # Call post-execution hook
         self.post_agent_execution(agent_id, processed_output)
 
@@ -273,11 +282,11 @@ class Cog:
         """Track agent output in thought flow trail if logging is enabled."""
         self.trail_recorder.record_agent_output(agent_id, output)
 
-    def _handle_execution_error(self, agent_id: Optional[str], error: Exception) -> None:
+    def _handle_execution_error(self, agent_id: str | None, error: Exception) -> None:
         """
         Extension point for custom error handling.
         This method is not called automatically - subclasses can call it when needed.
-        
+
         Args:
             agent_id: The ID of the agent that failed, if available
             error: The exception that occurred
@@ -291,7 +300,7 @@ class Cog:
     def _handle_pre_execution_memory(self, agent_id: str) -> None:
         """
         Handle memory operations before agent execution.
-        
+
         Args:
             agent_id: The ID of the agent about to be executed
         """
@@ -300,7 +309,7 @@ class Cog:
     def _handle_post_execution_memory(self, agent_id: str) -> None:
         """
         Handle memory operations after agent execution.
-        
+
         Args:
             agent_id: The ID of the agent that was executed
         """
@@ -313,36 +322,36 @@ class Cog:
     def _process_execution_result(self) -> Any:
         """
         Process and return the final execution result based on end conditions.
-        
+
         Returns:
             The processed result based on end transition configuration
         """
         if not self.last_executed_agent:
             return self.state
-            
+
         agent_transition = self.transition_resolver.get_transition(self.last_executed_agent)
-        
+
         # Handle the 'end' keyword - check for end transition
         if agent_transition.type == "end" or agent_transition.end:
             return self._extract_end_result(agent_transition)
-            
+
         # Default behavior: return the full internal state
         return self.state
 
     def _extract_end_result(self, agent_transition) -> Any:
         """
         Extract the final result based on end transition configuration.
-        
+
         Args:
             agent_transition: The transition configuration for the final agent
-            
+
         Returns:
             The extracted result based on end configuration
         """
         # If `end: true`, return the last agent's output
         if agent_transition.end is True:
             return self.state.get(self.last_executed_agent)
-        
+
         # If end is a string, it could be an agent_id or dot notation
         if isinstance(agent_transition.end, str):
             # Check if it's just an agent ID
@@ -350,16 +359,16 @@ class Cog:
                 return self.state[agent_transition.end]
             # Otherwise treat as dot notation in state
             return self._get_nested_result(agent_transition.end)
-            
+
         return self.state.get(self.last_executed_agent)
 
     def _get_nested_result(self, path: str) -> Any:
         """
         Extract nested result using dot notation.
-        
+
         Args:
             path: Dot notation path to extract from state
-            
+
         Returns:
             The value at the specified path
         """
@@ -373,7 +382,7 @@ class Cog:
         """
         Load custom additional context for the cog execution.
         Override this method in subclasses to load custom context data.
-        
+
         Args:
             **kwargs: Context data to potentially augment
         """
@@ -383,11 +392,11 @@ class Cog:
         """
         Process agent output before storing in state.
         Override this method in subclasses to implement custom output processing.
-        
+
         Args:
             agent_id: The ID of the agent that produced the output
             output: The raw output from the agent
-            
+
         Returns:
             The processed output to store in state
         """
@@ -397,7 +406,7 @@ class Cog:
         """
         Hook called before each agent execution.
         Override this method in subclasses for custom pre-execution logic.
-        
+
         Args:
             agent_id: The ID of the agent about to be executed
         """
@@ -407,7 +416,7 @@ class Cog:
         """
         Hook called after each agent execution.
         Override this method in subclasses for custom post-execution logic.
-        
+
         Args:
             agent_id: The ID of the agent that was executed
             output: The output from the agent execution
