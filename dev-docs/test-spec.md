@@ -67,6 +67,23 @@ Keep noisy setup in fixtures or named helpers. Avoid repeating YAML construction
 
 Prefer asserting behavior over implementation details. It is okay to assert provider request shape, normalized dataclass fields, or logged/raised diagnostic messages when those are the contract under test.
 
+## Deterministic Test Review
+
+Use test review to decide whether existing tests protect real behavior, not whether they look thorough. The review should be deterministic and tied to this repo's current dev docs, public contracts, setup files, and source boundaries.
+
+For each reviewed test or test group, record these answers in notes, commit messages, or the project TODO when they affect cleanup planning:
+
+1. What supported behavior or compatibility promise does this test protect?
+2. What realistic failure would this test catch?
+3. Which boundary is under test: public API, provider adapter, config loader, Cog flow, parser, storage/memory contract, setup-file default, or test-only helper?
+4. Are the assertions strong enough to fail for the intended bug, or are they mostly ceremony?
+5. Does the test use the right fixture/fake/live boundary for the behavior?
+6. Should the test be kept, updated, split, moved, marked integration, replaced, or deleted?
+
+Prefer updating weak tests into useful boundary tests over deleting them. Delete only when the behavior is unsupported, duplicated without adding signal, or testing implementation trivia that actively blocks clearer code.
+
+When a review finds missing coverage, add the smallest focused test that would have failed for the realistic bug. Do not expand a cleanup pass into a broad test rewrite unless the existing harness prevents trustworthy verification.
+
 ## Integration And Live Tests
 
 Mark tests with `@pytest.mark.integration` when they require heavier wiring, real local services, or slower cross-component behavior. They are skipped by default.
