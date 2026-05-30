@@ -42,7 +42,7 @@ setup(
         "ruamel.yaml",
         "requests",
         "xmltodict",
-        "setuptools>=70.0.0 ",  # not directly required, pinned by Snyk to avoid a vulnerability
+        "setuptools>=70.0.0",  # not directly required, pinned by Snyk to avoid a vulnerability
     ],
     extras_require={"other": ["opencv-python", "pytesseract"]},
     license=LICENSE,
@@ -56,6 +56,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
     ],
     python_requires=">=3.10",
     package_data={

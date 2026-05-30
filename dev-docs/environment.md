@@ -4,28 +4,38 @@ This document is for agents and developers running AgentForge locally. It is not
 
 ## Local Virtual Environment
 
-The repository currently contains a local `venv/` using Python 3.13:
+The repository uses a local `.venv/` using Python 3.14:
 
 ```shell
-source venv/bin/activate
+source .venv/bin/activate
 python --version
 python -m pip --version
 ```
 
-Use this venv for normal local checks when it exists. If the venv is missing, create a new one with the Python version you are validating for the change. The package metadata currently declares `python_requires=">=3.10"` and classifiers through Python 3.13. Treat Python 3.14 as under compatibility review until the broad local development dependency surface installs and the default suite passes there.
+Use this venv for normal local checks when it exists. If the venv is missing, recreate it with the current local development Python:
+
+```shell
+python3.14 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r REQUIREMENTS.txt
+.venv/bin/python -m pip install -e .
+```
+
+The package metadata declares `python_requires=">=3.10"` and classifiers through Python 3.14. Python 3.14 is the preferred local development version after the Phase 1 Session 3 compatibility follow-up, but Python 3.10 remains the declared lower bound until later compatibility work intentionally changes it.
 
 ## Python Compatibility Checks
 
-Python 3.14 compatibility checks should use a separate temporary venv, not the repo-local `venv/`:
+Use a separate temporary venv when rechecking Python compatibility or dependency resolution without disturbing the repo-local `.venv/`:
 
 ```shell
 python3.14 -m venv --clear /tmp/agentforge-py314-compat
 /tmp/agentforge-py314-compat/bin/python -m pip install --upgrade pip
-/tmp/agentforge-py314-compat/bin/python -m pip install --dry-run --report /tmp/agentforge-py314-setup-report.json -e .
-/tmp/agentforge-py314-compat/bin/python -m pip install --dry-run --report /tmp/agentforge-py314-requirements-report.json -r REQUIREMENTS.txt
+/tmp/agentforge-py314-compat/bin/python -m pip install -r REQUIREMENTS.txt
+/tmp/agentforge-py314-compat/bin/python -m pip install -e .
+/tmp/agentforge-py314-compat/bin/python -m pytest
 ```
 
-As of the Phase 1 Session 3 follow-up, Python 3.14 dry-run resolution succeeds for runtime metadata, the optional OCR/image extra, and `REQUIREMENTS.txt` after removing unused Matplotlib/UMAP/color-output dependencies and aligning PDF/OpenCV package names. Do not add a Python 3.14 classifier or use Python 3.14 as the default repo venv until the full dependency set installs and the default pytest suite passes in a Python 3.14 compatibility environment. The remaining compatibility risk is not a single `python_version <= "3.13"` blocker; it is the size and build surface of the Chroma, Torch, sentence-transformers, and optional media stack.
+As of the Phase 1 Session 3 compatibility follow-up, this full Python 3.14 install path passed for `REQUIREMENTS.txt`, editable package metadata, and the default pytest suite. The remaining compatibility risk is not a known `python_version <= "3.13"` blocker; it is the size and build surface of the Chroma, Torch, sentence-transformers, and optional media stack.
 
 ## Dependencies
 
@@ -80,7 +90,7 @@ Tracked Git hooks live in `.githooks/`. Install them for the local checkout with
 scripts/install-git-hooks.sh
 ```
 
-The pre-push hook uses the repo venv when available, or `AGENTFORGE_PYTHON` when set. It runs Ruff lint, Ruff format check, and basedpyright on Python files being pushed, then runs the default pytest suite:
+The pre-push hook uses `AGENTFORGE_PYTHON` when set, then `.venv/bin/python`, then legacy `venv/bin/python`, then a system Python fallback. It runs Ruff lint, Ruff format check, and basedpyright on Python files being pushed, then runs the default pytest suite:
 
 ```shell
 ruff check <pushed python files>
@@ -169,7 +179,7 @@ Do not change provider credential behavior without updating provider docs, setup
 ## Known Friction Points
 
 - Public install docs, `REQUIREMENTS.txt`, and `setup.py` currently need an alignment pass.
-- Package metadata now targets Python `>=3.10`; broad annotation modernization, such as replacing `Optional[...]` with `... | None`, should happen in staged cleanup rather than the tooling baseline session.
+- Package metadata now supports Python 3.14 while keeping the lower bound at Python `>=3.10`; broad annotation modernization, such as replacing `Optional[...]` with `... | None`, should happen in staged cleanup rather than the tooling baseline session.
 - `setup.py` declares a console entrypoint for `agentforge.cli:main`; verify the source tree before relying on that CLI.
 - Tools and Actions are deprecated in public docs but still present in source and setup files for compatibility.
 - Storage tests should use `FakeChromaStorage` unless exercising Chroma integration specifically.

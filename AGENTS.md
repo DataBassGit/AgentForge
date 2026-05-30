@@ -6,9 +6,9 @@ This file is the entrypoint for agents and developers working in this repository
 
 - `dev-docs/architecture.md` explains the main runtime components and extension boundaries.
 - `dev-docs/core-coding-philosophy.md` defines the project coding standard for cleanup and feature work.
-- `dev-docs/environment.md` covers local setup, the repo venv, requirements, `.agentforge` discovery, and test execution.
+- `dev-docs/environment.md` covers local setup, the repo `.venv`, requirements, `.agentforge` discovery, and test execution.
 - `dev-docs/pipeline-config-graph.md` gives the high-level data-flow map and a Mermaid graph.
-- `dev-docs/python-compatibility-baseline.md` records the current Python 3.14 compatibility evidence and blockers.
+- `dev-docs/python-compatibility-baseline.md` records the current Python 3.14 compatibility evidence.
 - `dev-docs/roadmap.md` summarizes future direction that should shape current decisions.
 - `dev-docs/static-tooling-baseline.md` records the current Ruff and basedpyright baseline for staged cleanup work.
 - `dev-docs/test-review-baseline.md` records the current deterministic test-review baseline and first cleanup actions.
@@ -27,10 +27,10 @@ Do not move these files into `docs/` unless the project intentionally decides th
 
 ## Local Environment
 
-The repository currently has a local `venv/` using Python 3.13. Use it for repo-local checks when available:
+The repository currently uses a local `.venv/` with Python 3.14. Use it for repo-local checks when available:
 
 ```shell
-source venv/bin/activate
+source .venv/bin/activate
 python -m pytest
 ```
 

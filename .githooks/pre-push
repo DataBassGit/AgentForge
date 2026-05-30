@@ -18,6 +18,11 @@ find_python() {
         return 0
     fi
 
+    if [[ -x ".venv/bin/python" ]]; then
+        printf '%s\n' "$(pwd)/.venv/bin/python"
+        return 0
+    fi
+
     if [[ -x "venv/bin/python" ]]; then
         printf '%s\n' "$(pwd)/venv/bin/python"
         return 0
@@ -111,7 +116,7 @@ if ((${#pushed_python_files[@]} > 0)); then
     mapfile -t python_files < <(printf '%s\n' "${!pushed_python_files[@]}" | sort)
 fi
 
-python_bin="$(find_python)" || fail "Could not find a Python interpreter. Activate venv or set AGENTFORGE_PYTHON."
+python_bin="$(find_python)" || fail "Could not find a Python interpreter. Activate .venv or set AGENTFORGE_PYTHON."
 log "Using Python: $python_bin"
 
 if ((${#python_files[@]} > 0)); then

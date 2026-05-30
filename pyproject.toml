@@ -17,6 +17,7 @@ include = ["src", "tests"]
 exclude = [
     "**/__pycache__",
     ".agentforge",
+    ".venv",
     ".pytest_cache",
     ".ruff_cache",
     "build",
@@ -29,4 +30,4 @@ exclude = [
 pythonVersion = "3.10"
 typeCheckingMode = "basic"
 venvPath = "."
-venv = "venv"
+venv = ".venv"

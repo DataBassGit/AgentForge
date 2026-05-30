@@ -4,9 +4,9 @@ Recorded 2026-05-30 for Phase 1, Session 1. This is a staging report for future 
 
 ## Tooling Context
 
-- Python: `venv/bin/python --version` reported `Python 3.13.13`.
-- Ruff: `venv/bin/ruff --version` reported `ruff 0.15.15`.
-- basedpyright: installed as `basedpyright 1.39.6`.
+- Python: the Session 1 baseline was recorded with `venv/bin/python --version` reporting `Python 3.13.13`; the repo-local development environment later moved to `.venv/` on Python 3.14 during Session 3 follow-up.
+- Ruff: the Session 1 baseline used `venv/bin/ruff --version`, which reported `ruff 0.15.15`.
+- basedpyright: the Session 1 baseline used `basedpyright 1.39.6`.
 - Config source: root `pyproject.toml`.
 - Scope: `src` and `tests` for basedpyright; Ruff default discovery from the repo root.
 - Dependency context: only Ruff and basedpyright were installed during this session, so missing-import diagnostics can include dependencies from the broader local development stack.
