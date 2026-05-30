@@ -25,7 +25,7 @@ python3.14 -m venv --clear /tmp/agentforge-py314-compat
 /tmp/agentforge-py314-compat/bin/python -m pip install --dry-run --report /tmp/agentforge-py314-requirements-report.json -r REQUIREMENTS.txt
 ```
 
-As of the Phase 1 Session 3 baseline, Python 3.14 runtime metadata resolution succeeds, but `REQUIREMENTS.txt` does not resolve cleanly because optional `matplotlib~=3.9.2` attempts a source build and fails while building its NumPy build dependency under Python 3.14. Do not add a Python 3.14 classifier or use Python 3.14 as the default repo venv until that blocker is resolved and the default pytest suite passes in a Python 3.14 compatibility environment.
+As of the Phase 1 Session 3 follow-up, Python 3.14 dry-run resolution succeeds for runtime metadata, the optional OCR/image extra, and `REQUIREMENTS.txt` after removing unused Matplotlib/UMAP/color-output dependencies and aligning PDF/OpenCV package names. Do not add a Python 3.14 classifier or use Python 3.14 as the default repo venv until the full dependency set installs and the default pytest suite passes in a Python 3.14 compatibility environment. The remaining compatibility risk is not a single `python_version <= "3.13"` blocker; it is the size and build surface of the Chroma, Torch, sentence-transformers, and optional media stack.
 
 ## Dependencies
 

@@ -19,22 +19,15 @@ setup(
     include_package_data=True,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    entry_points={
-        "console_scripts": [
-            "agentforge=agentforge.cli:main"
-        ]
-    },
+    entry_points={"console_scripts": ["agentforge=agentforge.cli:main"]},
     install_requires=[
         "chromadb>=1.1.0",
         "numpy<2.0.0; python_version<'3.12'",
         "numpy>=2.0.0; python_version>='3.12'",
         "sentence-transformers",
-        "wheel",
         "groq",
         "pymupdf",
-        "colorama",
         "spacy",
-        "termcolor==2.4.0",
         "openai",
         "oauth-cli-kit>=0.1.3,<1.0.0",
         "anthropic",
@@ -48,17 +41,10 @@ setup(
         "PyYAML",
         "ruamel.yaml",
         "requests",
-        "ruamel.yaml",
         "xmltodict",
         "setuptools>=70.0.0 ",  # not directly required, pinned by Snyk to avoid a vulnerability
     ],
-    extras_require={
-        "other": [
-            "matplotlib~=3.9.2",
-            "cv2",
-            "pytesseract"
-        ],
-    },
+    extras_require={"other": ["opencv-python", "pytesseract"]},
     license=LICENSE,
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
@@ -73,8 +59,7 @@ setup(
     ],
     python_requires=">=3.10",
     package_data={
-        'agentforge.utils.guiutils': ['discord_client.py'],
-        '': ['*.yaml'],  # Include your file types as needed
+        "agentforge.utils.guiutils": ["discord_client.py"],
+        "": ["*.yaml"],  # Include your file types as needed
     },
-
 )

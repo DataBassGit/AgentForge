@@ -5,10 +5,8 @@ numpy>=2.0.0; python_version>='3.12'
 sentence-transformers
 wheel
 groq
-pypdf
-colorama
+pymupdf
 spacy
-termcolor==2.4.0
 openai
 oauth-cli-kit>=0.1.3,<1.0.0
 anthropic
@@ -33,8 +31,6 @@ torch
 ruff
 basedpyright
 
-# Optional Dependencies
-matplotlib~=3.9.2
-umap~=0.1.1
+# Optional OCR/Image Dependencies
 opencv-python  # cv2
 pytesseract
