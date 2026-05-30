@@ -75,6 +75,16 @@ Optimize code for human-readable flow. The surface path should be obvious before
 - **Put larger commentary in the file's opening comment block**, not in every method. Module-level summary, ownership, and context belong up top once, not repeated per function.
 - **Use inline comments sparingly and deliberately.** Prefer readable code, but add a short comment when it clarifies non-obvious reasoning, invariants, ordering constraints, provider quirks, or intentionally surprising tradeoffs. Do not narrate obvious statements line by line.
 
+### Function And Method Signatures
+
+Prefer function and method definitions to stay on a single line when they fit cleanly within the project's configured maximum line length. Avoid automatically expanding short or moderately sized signatures into multi-line vertical argument lists, because high-level code is easier to scan when the declaration and name remain visually compact.
+
+Use the configured line-length limit as the normal formatting boundary. Multi-line signatures are allowed when a definition genuinely exceeds that limit, when public or heavily typed interfaces are clearer when split, or when the parameter names and defaults would be harder to read on one line.
+
+Do not treat vertical formatting as the main solution for long signatures. A long or repeatedly wrapped signature is usually a design signal: consider grouping related parameters into a dedicated options object, config object, dataclass, request object, or another meaningful domain object before accepting a bloated API shape.
+
+When configuring Ruff for this repo, keep signature formatting aligned with this rule: use Ruff for line-length and signature-adjacent linting, enable `E501` and `PLR0913`, set the project line length to `120` unless a later phase chooses otherwise, and configure `lint.pylint.max-args` deliberately. BasedPyright should remain focused on type checking and should not enforce formatting or line length.
+
 ### Classes And Abstractions
 
 Use classes when they model a real domain concept, preserve invariants, own lifecycle or state, or make behavior easier to reason about. Domain records, adapters, state objects, positions, profiles, attribution results, and similar objects are good candidates for classes when they clarify responsibility and reduce duplication.
