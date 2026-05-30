@@ -36,7 +36,9 @@ def test_generate_preserves_system_and_user_prompt_for_ollama(monkeypatch):
     result = model.generate(
         {"system": "system prompt", "user": "user prompt"},
         host_url="http://localhost:11434/api/generate",
+        max_tokens=128,
         stream=False,
+        temperature=0.7,
     )
 
     assert result == "provider path works"
@@ -47,4 +49,5 @@ def test_generate_preserves_system_and_user_prompt_for_ollama(monkeypatch):
         "system": "system prompt",
         "prompt": "user prompt",
         "stream": False,
+        "options": {"num_predict": 128, "temperature": 0.7},
     }

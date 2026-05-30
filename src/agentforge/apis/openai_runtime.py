@@ -1,11 +1,11 @@
 import io
 import json
 import os
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, cast
 
 import requests
 
-from .base_api import NonRetriableModelError
+from .base_api import ModelResponseError, NonRetriableModelError
 from agentforge.auth.codex_oauth import get_codex_credentials
 
 try:
@@ -39,8 +39,7 @@ class OpenAIRuntime:
         if self._sdk_client is None:
             if OpenAI is None:
                 raise OpenAIDependencyError(
-                    "The 'openai' package is required for OpenAI API usage. "
-                    "Install dependencies and try again."
+                    "The 'openai' package is required for OpenAI API usage. Install dependencies and try again."
                 )
             if not os.getenv("OPENAI_API_KEY"):
                 raise OpenAIAuthError(
@@ -50,10 +49,14 @@ class OpenAIRuntime:
         return self._sdk_client
 
     def chat_completions(self, model: str, messages: List[Dict[str, Any]], params: Dict[str, Any]) -> str:
+        request_params = dict(params)
+        if "max_completion_tokens" not in request_params and "max_tokens" in request_params:
+            request_params["max_completion_tokens"] = request_params.pop("max_tokens")
+        else:
+            request_params.pop("max_tokens", None)
+
         response = self._get_sdk_client().chat.completions.create(
-            model=model,
-            messages=messages,
-            **params,
+            model=model, messages=cast(Any, messages), **request_params
         )
         return self._extract_chat_content(response)
 
@@ -68,11 +71,7 @@ class OpenAIRuntime:
             audio_file = open(audio_blob, "rb")
 
         try:
-            response = self._get_sdk_client().audio.transcriptions.create(
-                file=audio_file,
-                model=model,
-                **params,
-            )
+            response = self._get_sdk_client().audio.transcriptions.create(file=audio_file, model=model, **params)
         finally:
             try:
                 audio_file.close()
@@ -84,29 +83,21 @@ class OpenAIRuntime:
     def tts(self, model: str, input_text: str, params: Dict[str, Any]) -> bytes:
         request_params = dict(params)
         voice = request_params.pop("voice", "alloy")
-        audio_format = (
-            request_params.pop("response_format", None)
-            or request_params.pop("format", None)
-            or "wav"
-        )
+        audio_format = request_params.pop("response_format", None) or request_params.pop("format", None) or "wav"
         request_params.pop("format", None)
 
         response = self._get_sdk_client().audio.speech.create(
-            model=model,
-            voice=voice,
-            input=input_text,
-            response_format=audio_format,
-            **request_params,
+            model=model, voice=voice, input=input_text, response_format=audio_format, **request_params
         )
         content = getattr(response, "content", response)
         if isinstance(content, bytes):
             return content
         if isinstance(content, bytearray):
-            return bytes(content)
+            return bytes(cast(Any, content))
         if isinstance(content, str):
             return content.encode("utf-8")
         try:
-            return bytes(content)
+            return bytes(cast(Any, content))
         except Exception:
             return str(content).encode("utf-8")
 
@@ -128,12 +119,7 @@ class OpenAIRuntime:
             "store": False,
             "stream": True,
             "instructions": instructions,
-            "input": [
-                {
-                    "role": "user",
-                    "content": [{"type": "input_text", "text": user_text}],
-                }
-            ],
+            "input": [{"role": "user", "content": [{"type": "input_text", "text": user_text}]}],
             "text": {"verbosity": "medium"},
         }
 
@@ -151,14 +137,7 @@ class OpenAIRuntime:
             "User-Agent": "agentforge (python)",
         }
 
-        response = requests.post(
-            host_url,
-            json=body,
-            headers=headers,
-            stream=True,
-            timeout=timeout,
-            verify=verify_ssl,
-        )
+        response = requests.post(host_url, json=body, headers=headers, stream=True, timeout=timeout, verify=verify_ssl)
         self._raise_for_codex_status(response)
         return self._parse_codex_sse(response)
 
@@ -166,9 +145,12 @@ class OpenAIRuntime:
     def _extract_chat_content(response: Any) -> str:
         try:
             content = response.choices[0].message.content
-        except Exception:
-            return str(response)
-        return OpenAIRuntime._content_to_text(content)
+        except Exception as exc:
+            raise ModelResponseError("OpenAI chat completion response was malformed.") from exc
+        text = OpenAIRuntime._content_to_text(content)
+        if not text.strip():
+            raise ModelResponseError("OpenAI chat completion response was empty.")
+        return text
 
     @staticmethod
     def _content_to_text(content: Any) -> str:
@@ -237,7 +219,7 @@ class OpenAIRuntime:
         output_chunks: List[str] = []
         completed = False
 
-        for event in self._iter_sse_events(response.iter_lines(decode_unicode=True)):
+        for event in self._iter_sse_events(cast(Iterable[str], response.iter_lines(decode_unicode=True))):
             if not event:
                 continue
 

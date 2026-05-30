@@ -53,6 +53,7 @@ Homepage = "https://github.com/DataBassGit/AgentForge"
 [project.optional-dependencies]
 other = [
     "opencv-python",
+    "Pillow",
     "pytesseract",
 ]
 

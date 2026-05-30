@@ -39,7 +39,7 @@ def test_base_model_rejects_audio(monkeypatch):
     # Avoid needing a real prompt
     monkeypatch.setattr(model, "_prepare_prompt", lambda mp: [])
 
-    with pytest.raises(UnsupportedModalityError):
+    with pytest.raises(UnsupportedModalityError, match="requested modality 'audio'.*Supported modalities: text"):
         model.generate({}, audio=b"1234")
 
 

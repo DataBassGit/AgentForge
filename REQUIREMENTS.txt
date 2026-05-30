@@ -35,4 +35,5 @@ basedpyright
 
 # Optional OCR/Image Dependencies
 opencv-python  # cv2
+Pillow
 pytesseract

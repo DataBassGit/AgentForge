@@ -1,61 +1,43 @@
-# Default model settings for all agents unless overridden 
-default_model: 
-  api: gemini_api 
-  model: gemini_flash 
-# Example of using alternative default models 
-#  api: lm_studio_api 
-#  model: LMStudio 
-  # api: openai_api 
-#  model: omni_model 
-  # model: whisper_base
-  # model: tts_standard
- 
-# Library of models and parameter defaults 
-model_library: 
-  openai_api:  # API script name 
-    O1Series:  # Class name for the API (Case Sensitive) 
-      models:  # List of model configurations 
-        o1: 
-          identifier: o1 
-          params: {}  # No overrides for this model 
-        o1_preview: 
-          identifier: o1-preview 
-        o1_mini: 
-          identifier: o1-mini 
-        o4-mini:
-          identifier: o4-mini 
-        o3: 
-          identifier: o3 
-        o3-mini: 
-          identifier: o3-mini 
- 
-      params: {}  # Default parameters for the model class 
- 
-    GPT: 
-      models: 
-        omni_model: 
-          identifier: gpt-4o 
-          params: 
-            max_tokens: 15000  # Example of overriding parameters 
-        smart_model: 
-          identifier: gpt-4 
-        smart_fast_model: 
-          identifier: gpt-4-turbo 
-        fast_model: 
-          identifier: gpt-3.5-turbo 
-        gpt41_model: 
-          identifier: gpt-4.1 
-          params: 
-            max_tokens: 100000  # 1M token context window (max output set to 100k) 
- 
-      params:  # Default parameters for GPT models 
-        max_tokens: 10000 
-        n: 1 
-        presence_penalty: 0 
-        stop: null 
-        temperature: 0.8 
-        top_p: 0.1 
- 
+# Default model settings for all agents unless overridden
+default_model:
+  api: gemini_api
+  model: gemini_flash
+
+# Example of using alternative default models
+#  api: lm_studio_api
+#  model: LMStudio
+
+# Library of models and parameter defaults
+model_library:
+  openai_api:  # API script name
+    O1Series:  # Class name for the API (Case Sensitive)
+      models:  # List of model configurations
+        o3:
+          identifier: o3
+
+      params: {}  # Default parameters for the model class
+
+    GPT:
+      models:
+        gpt55_model:
+          identifier: gpt-5.5
+        gpt55_pro_model:
+          identifier: gpt-5.5-pro
+        gpt4o_model:
+          identifier: gpt-4o
+          params:
+            max_completion_tokens: 15000  # Example of overriding parameters
+        gpt41_model:
+          identifier: gpt-4.1
+
+      params:  # Default parameters for GPT models
+        max_completion_tokens: 10000
+        n: 1
+        presence_penalty: 0
+        stop: null
+        temperature: 0.8
+        top_p: 0.1
+
     # ------------------------------------------------------------------
     # Audio models
     # ------------------------------------------------------------------
@@ -65,6 +47,12 @@ model_library:
           identifier: whisper-1
           modality: stt  # primary modality tag (optional metadata)
           params: {}
+        gpt4o_transcribe:
+          identifier: gpt-4o-transcribe
+          modality: stt
+        gpt4o_mini_transcribe:
+          identifier: gpt-4o-mini-transcribe
+          modality: stt
 
       params:  # Defaults forwarded to STT wrapper
         response_format: text
@@ -74,6 +62,9 @@ model_library:
         tts_standard:
           identifier: tts-1
           modality: tts
+        gpt4o_mini_tts:
+          identifier: gpt-4o-mini-tts
+          modality: tts
 
       params:
         voice: alloy  # default voice
@@ -81,18 +72,10 @@ model_library:
 
     Codex:
       models:
+        codex_gpt55:
+          identifier: gpt-5.5
         codex_gpt53_codex:
           identifier: gpt-5.3-codex
-        codex_gpt52_codex:
-          identifier: gpt-5.2-codex
-        codex_gpt52:
-          identifier: gpt-5.2
-        codex_gpt51_codex_max:
-          identifier: gpt-5.1-codex-max
-        codex_gpt51_codex:
-          identifier: gpt-5.1-codex
-        codex_gpt51_codex_mini:
-          identifier: gpt-5.1-codex-mini
 
       params:
         reasoning:
@@ -100,55 +83,59 @@ model_library:
         timeout: 60
         verify_ssl: true
         host_url: https://chatgpt.com/backend-api/codex/responses
- 
-  anthropic_api: 
-    Claude: 
-      models: 
-        claude3opus: 
-          identifier: claude-3-opus-20240229 
-        claude4opus: 
-          identifier: claude-opus-4-20250514 
-        claude4sonnet: 
-          identifier: claude-sonnet-4-20250514 
-        claude3.7sonnet: 
-          identifier: claude-3-7-sonnet-latest 
-        claude3.7haiku: 
-          identifier: claude-3-5-haiku-latest 
- 
-      params:  # Default parameters for Claude models 
-        max_tokens: 10000 
-        temperature: 0.8 
-        top_p: 0.1 
- 
-  gemini_api: 
-    Gemini: 
+
+  anthropic_api:
+    Claude:
+      models:
+        claude_opus_4_8:
+          identifier: claude-opus-4-8
+        claude_opus_4_7:
+          identifier: claude-opus-4-7
+        claude_opus_4_6:
+          identifier: claude-opus-4-6
+        claude_opus_4_5:
+          identifier: claude-opus-4-5-20251101
+        claude4_1opus:
+          identifier: claude-opus-4-1-20250805
+        claude_sonnet_4_6:
+          identifier: claude-sonnet-4-6
+        claude_sonnet_4_5:
+          identifier: claude-sonnet-4-5-20250929
+        claude_haiku_4_5:
+          identifier: claude-haiku-4-5-20251001
+
+      params:  # Default parameters for Claude models
+        max_tokens: 10000
+
+  gemini_api:
+    Gemini:
       models:
         gemini_pro:
           identifier: gemini-3.1-pro-preview
         gemini_flash:
+          identifier: gemini-3.5-flash
+        gemini_3_flash_preview:
           identifier: gemini-3-flash-preview
         gemini_flash_lite:
-          identifier: gemini-3.1-flash-lite-preview
-        gemini_exp:
-          identifier: gemini-2.0-flash-thinking-exp-01-21
- 
-      params:  # Default parameters for Gemini models 
-        candidate_count: 1 
-        max_output_tokens: 10000 
-        temperature: 0.8 
-        top_k: 40 
-        top_p: 0.1 
- 
-  lm_studio_api: 
-    LMStudio: 
-      models: 
-        llama3_8b: 
-          identifier: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF 
- 
-      params:  # Default parameters for LMStudio models 
-        host_url: http://localhost:1234/v1/chat/completions 
-        max_tokens: 10000 
-        stream: false 
+          identifier: gemini-3.1-flash-lite
+
+      params:  # Default parameters for Gemini models
+        candidate_count: 1
+        max_output_tokens: 10000
+        temperature: 1.0
+        top_k: 40
+        top_p: 0.1
+
+  lm_studio_api:
+    LMStudio:
+      models:
+        llama3_8b:
+          identifier: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
+
+      params:  # Default parameters for LMStudio models
+        host_url: http://localhost:1234/v1/chat/completions
+        max_tokens: 10000
+        stream: false
         temperature: 0.8
 
     LMStudioVision:
@@ -169,45 +156,52 @@ model_library:
             endpoint: lm_studio
             host_url: http://localhost:1234/v1/
         gemini_flash:
-          identifier: gemini-3-flash-preview
+          identifier: gemini-3.5-flash
           params:
             endpoint: gemini
- 
-  ollama_api: 
-    Ollama: 
-      models: 
-        llama3.1_70b: 
-          identifier: llama3.1:70b 
- 
-      params:  # Default parameters for Ollama models 
-        host_url: http://localhost:11434/api/generate 
-        max_tokens: 10000 
-        stream: false 
-        temperature: 0.8 
- 
-  openrouter_api: 
-    OpenRouter: 
-      models: 
-        phi3med: 
-          identifier: microsoft/phi-3-medium-128k-instruct:free 
-        hermes: 
-          identifier: nousresearch/hermes-3-llama-3.1-405b 
-        reflection: 
-          identifier: mattshumer/reflection-70b:free 
- 
-  groq_api: 
-    GroqAPI: 
-      models: 
-        llama31: 
-          identifier: llama-3.3-70b-versatile 
- 
-      params:  # Default parameters for GroqAPI models 
-        max_tokens: 10000 
-        seed: -1 
-        stop: null 
-        temperature: 0.8 
-        top_p: 0.1 
- 
-# Embedding library 
-embedding_library: 
-  library: sentence_transformers 
+
+  ollama_api:
+    Ollama:
+      models:
+        llama3.1_70b:
+          identifier: llama3.1:70b
+
+      params:  # Default parameters for Ollama models
+        host_url: http://localhost:11434/api/generate
+        num_predict: 10000
+        stream: false
+        temperature: 0.8
+
+  openrouter_api:
+    OpenRouter:
+      models:
+        phi3med:
+          identifier: microsoft/phi-3-medium-128k-instruct:free
+        hermes:
+          identifier: nousresearch/hermes-3-llama-3.1-405b
+        reflection:
+          identifier: mattshumer/reflection-70b:free
+
+  groq_api:
+    GroqAPI:
+      models:
+        llama33_70b:
+          identifier: llama-3.3-70b-versatile
+        llama31:
+          identifier: llama-3.3-70b-versatile
+        llama31_8b:
+          identifier: llama-3.1-8b-instant
+        gpt_oss_120b:
+          identifier: openai/gpt-oss-120b
+        gpt_oss_20b:
+          identifier: openai/gpt-oss-20b
+
+      params:  # Default parameters for GroqAPI models
+        max_completion_tokens: 10000
+        stop: null
+        temperature: 0.8
+        top_p: 0.1
+
+# Embedding library
+embedding_library:
+  library: sentence_transformers

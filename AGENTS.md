@@ -9,6 +9,7 @@ This file is the entrypoint for agents and developers working in this repository
 - `dev-docs/environment.md` covers local setup, the repo `.venv`, requirements, `.agentforge` discovery, and test execution.
 - `dev-docs/package-install-baseline.md` records the current package metadata, artifact, and clean-install evidence.
 - `dev-docs/pipeline-config-graph.md` gives the high-level data-flow map and a Mermaid graph.
+- `dev-docs/provider-modality-baseline.md` records provider defaults, modality behavior, and request/response diagnostics.
 - `dev-docs/python-compatibility-baseline.md` records the current Python 3.14 compatibility evidence.
 - `dev-docs/roadmap.md` summarizes future direction that should shape current decisions.
 - `dev-docs/static-tooling-baseline.md` records the current Ruff and basedpyright baseline for staged cleanup work.

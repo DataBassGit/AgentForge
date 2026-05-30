@@ -36,7 +36,9 @@ class TestBaseModelVisionSupport:
         # Patch _prepare_prompt to avoid needing actual model_prompt
         with patch.object(model, "_prepare_prompt", return_value=[]):
             # Test that generate raises UnsupportedModalityError when images are passed
-            with pytest.raises(UnsupportedModalityError):
+            with pytest.raises(
+                UnsupportedModalityError, match="requested modality 'image'.*Supported modalities: text"
+            ):
                 model.generate(None, images=["image.png"])
 
 
@@ -90,7 +92,7 @@ class TestGeminiVision:
         assert img_path.exists(), "test.jpg not found in multimedia tests directory."
 
         prompt = {"system": "You are a helpful assistant.", "user": "What is in this image?"}
-        model = GeminiVision("gemini-2.5-flash-preview-04-17")
+        model = GeminiVision("gemini-2.5-flash")
         response = model.generate(prompt, images=[str(img_path)])
         assert response and isinstance(response, str) and len(response.strip()) > 0, (
             "Model did not return a valid response."

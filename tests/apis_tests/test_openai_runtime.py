@@ -1,13 +1,11 @@
 from types import SimpleNamespace
+from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
 
-from agentforge.apis.openai_runtime import (
-    OpenAIAuthError,
-    OpenAIRuntime,
-    OpenAIRuntimeError,
-)
+from agentforge.apis.base_api import ModelResponseError
+from agentforge.apis.openai_runtime import OpenAIAuthError, OpenAIRuntime, OpenAIRuntimeError
 from agentforge.auth import CodexCredentials
 
 
@@ -25,33 +23,35 @@ class _FakeResponse:
 def test_chat_completions_calls_sdk_client(monkeypatch):
     runtime = OpenAIRuntime()
     create_mock = MagicMock(
-        return_value=SimpleNamespace(
-            choices=[SimpleNamespace(message=SimpleNamespace(content="chat-output"))]
-        )
+        return_value=SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="chat-output"))])
     )
     client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create_mock)))
     monkeypatch.setattr(runtime, "_get_sdk_client", lambda: client)
 
     out = runtime.chat_completions(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": "hello"}],
-        params={"temperature": 0.4},
+        model="gpt-4o", messages=[{"role": "user", "content": "hello"}], params={"max_tokens": 128, "temperature": 0.4}
     )
 
     assert out == "chat-output"
     create_mock.assert_called_once_with(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": "hello"}],
-        temperature=0.4,
+        model="gpt-4o", messages=[{"role": "user", "content": "hello"}], max_completion_tokens=128, temperature=0.4
     )
+
+
+def test_chat_completions_malformed_response_is_non_retriable(monkeypatch):
+    runtime = OpenAIRuntime()
+    create_mock = MagicMock(return_value=SimpleNamespace(choices=[]))
+    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create_mock)))
+    monkeypatch.setattr(runtime, "_get_sdk_client", lambda: client)
+
+    with pytest.raises(ModelResponseError, match="malformed"):
+        runtime.chat_completions(model="gpt-4o", messages=[{"role": "user", "content": "hello"}], params={})
 
 
 def test_codex_responses_builds_expected_headers_and_body(monkeypatch):
     runtime = OpenAIRuntime()
     monkeypatch.setattr(
-        runtime,
-        "_get_codex_credentials",
-        lambda: CodexCredentials(account_id="acct_1", access_token="token_1"),
+        runtime, "_get_codex_credentials", lambda: CodexCredentials(account_id="acct_1", access_token="token_1")
     )
 
     captured = {}
@@ -77,16 +77,8 @@ def test_codex_responses_builds_expected_headers_and_body(monkeypatch):
 
     out = runtime.codex_responses(
         model="gpt-5-codex-mini",
-        messages=[
-            {"role": "system", "content": "sys"},
-            {"role": "user", "content": "write code"},
-        ],
-        params={
-            "top_p": 0.2,
-            "host_url": "https://example.com/codex",
-            "timeout": 12,
-            "verify_ssl": False,
-        },
+        messages=[{"role": "system", "content": "sys"}, {"role": "user", "content": "write code"}],
+        params={"top_p": 0.2, "host_url": "https://example.com/codex", "timeout": 12, "verify_ssl": False},
     )
 
     assert out == "Hello"
@@ -121,7 +113,7 @@ def test_codex_sse_delta_stream_is_parsed():
         ],
     )
 
-    out = runtime._parse_codex_sse(response)
+    out = runtime._parse_codex_sse(cast(Any, response))
     assert out == "Hello world"
 
 
@@ -137,9 +129,7 @@ def test_codex_sse_delta_stream_is_parsed():
 def test_codex_non_200_error_mappings(monkeypatch, status_code, response_text, exc_type, match):
     runtime = OpenAIRuntime()
     monkeypatch.setattr(
-        runtime,
-        "_get_codex_credentials",
-        lambda: CodexCredentials(account_id="acct_1", access_token="token_1"),
+        runtime, "_get_codex_credentials", lambda: CodexCredentials(account_id="acct_1", access_token="token_1")
     )
 
     def fake_post(*args, **kwargs):
@@ -148,19 +138,13 @@ def test_codex_non_200_error_mappings(monkeypatch, status_code, response_text, e
     monkeypatch.setattr("agentforge.apis.openai_runtime.requests.post", fake_post)
 
     with pytest.raises(exc_type, match=match):
-        runtime.codex_responses(
-            model="gpt-5-codex-mini",
-            messages=[{"role": "user", "content": "hi"}],
-            params={},
-        )
+        runtime.codex_responses(model="gpt-5-codex-mini", messages=[{"role": "user", "content": "hi"}], params={})
 
 
 def test_codex_supported_generation_params_are_forwarded(monkeypatch):
     runtime = OpenAIRuntime()
     monkeypatch.setattr(
-        runtime,
-        "_get_codex_credentials",
-        lambda: CodexCredentials(account_id="acct_1", access_token="token_1"),
+        runtime, "_get_codex_credentials", lambda: CodexCredentials(account_id="acct_1", access_token="token_1")
     )
     captured = {}
 
@@ -181,11 +165,7 @@ def test_codex_supported_generation_params_are_forwarded(monkeypatch):
     runtime.codex_responses(
         model="gpt-5-codex-mini",
         messages=[{"role": "user", "content": "hi"}],
-        params={
-            "top_p": 0.9,
-            "reasoning": {"effort": "medium"},
-            "text": {"verbosity": "high"},
-        },
+        params={"top_p": 0.9, "reasoning": {"effort": "medium"}, "text": {"verbosity": "high"}},
     )
 
     assert captured["json"]["top_p"] == 0.9
@@ -196,9 +176,7 @@ def test_codex_supported_generation_params_are_forwarded(monkeypatch):
 def test_codex_transport_timeout_and_verify_are_forwarded(monkeypatch):
     runtime = OpenAIRuntime()
     monkeypatch.setattr(
-        runtime,
-        "_get_codex_credentials",
-        lambda: CodexCredentials(account_id="acct_1", access_token="token_1"),
+        runtime, "_get_codex_credentials", lambda: CodexCredentials(account_id="acct_1", access_token="token_1")
     )
     captured = {}
 

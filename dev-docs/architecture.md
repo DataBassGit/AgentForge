@@ -84,4 +84,4 @@ When changing YAML schemas, update validation, dataclasses, setup files, docs, a
 - Package metadata now lives in `pyproject.toml`, but public install docs and local requirements still need a phase-closing alignment pass. Do not use one source as proof that the others are correct during cleanup.
 - AgentForge does not currently install a public `agentforge` console command. Use `python -m agentforge.init_agentforge` for setup scaffolding unless a later workflow phase adds a real CLI.
 - Some public docs still describe deprecated Tools/Actions. Preserve compatibility while future work defines the MCP-oriented replacement.
-- Provider failures and structured-output failures need clearer diagnostics. Avoid adding new provider paths without focused failure tests.
+- Provider failures now have a first diagnostic baseline: unsupported modalities name requested/supported capabilities, missing API keys fail before network calls for key-based cloud providers, and malformed or empty provider responses use `ModelResponseError`. Live provider behavior is still unverified, so avoid adding new provider paths without focused failure tests and an explicit live-check decision.
