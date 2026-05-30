@@ -12,7 +12,7 @@ The test suite is organized by responsibility:
 - `tests/cog_tests/`: Cog orchestration, trails, flow validation, and agent-runner integration.
 - `tests/config_tests/`: config loading, validation, and setup-file behavior.
 - `tests/core_tests/`: core orchestration helpers.
-- `tests/integration_tests/`: integration-marked framework behavior.
+- `tests/integration_tests/`: cross-component framework behavior. Fast fake-backed workflow tests may stay in the default suite; live, service-backed, slow, or credentialed tests must be marked `integration`.
 - `tests/memory_tests/`: memory surfaces and persona memory.
 - `tests/multimedia_tests/`: image/audio modality support.
 - `tests/storage_tests/`: storage fakes and storage boundary behavior.
@@ -84,9 +84,19 @@ Prefer updating weak tests into useful boundary tests over deleting them. Delete
 
 When a review finds missing coverage, add the smallest focused test that would have failed for the realistic bug. Do not expand a cleanup pass into a broad test rewrite unless the existing harness prevents trustworthy verification.
 
+Use this compact review record when a session needs durable notes:
+
+```markdown
+| Test or group | Supported behavior | Failure caught | Boundary | Fixture/live policy | Action |
+| --- | --- | --- | --- | --- | --- |
+| `tests/path/test_file.py::test_name` | Contract or behavior protected | Realistic bug it catches | Public API, provider adapter, config loader, Cog flow, parser, storage/memory contract, setup-file default, or test helper | Fake-backed default, integration-marked, or manual live | Keep, update, split, move, mark integration, replace, or delete |
+```
+
 ## Integration And Live Tests
 
 Mark tests with `@pytest.mark.integration` when they require heavier wiring, real local services, or slower cross-component behavior. They are skipped by default.
+
+Fast fake-backed cross-component tests may remain in the default suite even when they live under `tests/integration_tests/`. Use the marker for tests that require live services, credentials, heavyweight local infrastructure, unusually slow execution, or stochastic provider behavior.
 
 Manual live scripts under `tests/real_tests/` can use real providers and credentials. Do not make routine tests depend on API keys, OAuth state, running Ollama/LM Studio instances, Discord tokens, Chroma HTTP servers, or network access.
 
