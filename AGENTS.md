@@ -7,6 +7,7 @@ This file is the entrypoint for agents and developers working in this repository
 - `dev-docs/architecture.md` explains the main runtime components and extension boundaries.
 - `dev-docs/core-coding-philosophy.md` defines the project coding standard for cleanup and feature work.
 - `dev-docs/environment.md` covers local setup, the repo `.venv`, requirements, `.agentforge` discovery, and test execution.
+- `dev-docs/package-install-baseline.md` records the current package metadata, artifact, and clean-install evidence.
 - `dev-docs/pipeline-config-graph.md` gives the high-level data-flow map and a Mermaid graph.
 - `dev-docs/python-compatibility-baseline.md` records the current Python 3.14 compatibility evidence.
 - `dev-docs/roadmap.md` summarizes future direction that should shape current decisions.

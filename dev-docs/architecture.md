@@ -81,7 +81,7 @@ When changing YAML schemas, update validation, dataclasses, setup files, docs, a
 
 ## Current Architecture Risks
 
-- Package metadata, public install docs, and local requirements are not fully aligned. Do not use one source as proof that the others are correct during cleanup.
-- `setup.py` declares an `agentforge=agentforge.cli:main` console entrypoint, but the source tree should be checked before relying on a CLI surface.
+- Package metadata now lives in `pyproject.toml`, but public install docs and local requirements still need a phase-closing alignment pass. Do not use one source as proof that the others are correct during cleanup.
+- AgentForge does not currently install a public `agentforge` console command. Use `python -m agentforge.init_agentforge` for setup scaffolding unless a later workflow phase adds a real CLI.
 - Some public docs still describe deprecated Tools/Actions. Preserve compatibility while future work defines the MCP-oriented replacement.
 - Provider failures and structured-output failures need clearer diagnostics. Avoid adding new provider paths without focused failure tests.

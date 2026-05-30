@@ -1,2 +1,3 @@
-include src/agentforge/utils/guiutils/discord_client.py
-recursive-include src/agentforge/utils/ *
+recursive-include src/agentforge/setup_files *.yaml
+recursive-exclude src/agentforge __pycache__ *.py[cod]
+global-exclude __pycache__ *.py[cod]

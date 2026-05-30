@@ -7,7 +7,7 @@ Recorded 2026-05-30 for Phase 1, Session 3 and the immediate Python 3.14 compati
 - Official Python sources list Python 3.14.5 as the latest Python 3 release, released 2026-05-10: https://www.python.org/downloads/latest/ and https://www.python.org/downloads/source/.
 - Local default `python --version` and `python3 --version` both reported `Python 3.14.5`.
 - The repo-local development environment is now `.venv/` on Python 3.14.
-- Package metadata remains `python_requires=">=3.10"` and now includes classifiers through Python 3.14.
+- Package metadata declares `requires-python = ">=3.10"` and includes classifiers through Python 3.14.
 
 ## Python 3.14 Evidence
 
@@ -30,9 +30,9 @@ Recorded 2026-05-30 after checking whether newer or removable packages could res
 
 - `matplotlib~=3.9.2` was the immediate blocker. PyPI listed `matplotlib==3.10.9` with Python 3.14 classifiers during review, and a targeted dry-run for `matplotlib>=3.10,<3.11` resolved on Python 3.14. The repo has no source, test, or docs imports for Matplotlib, so AgentForge removed it from the local requirements and optional extra instead of carrying an unused plotting dependency.
 - `umap~=0.1.1` did not resolve for Python 3.14 and had no repo imports. The maintained package is `umap-learn`, but AgentForge does not currently use UMAP, so no replacement was added.
-- `REQUIREMENTS.txt` listed `pypdf`, while AgentForge imports `fitz` from PyMuPDF in `src/agentforge/tools/get_text.py`. The local requirements now use `pymupdf`, matching `setup.py` and the actual runtime import.
+- `REQUIREMENTS.txt` listed `pypdf`, while AgentForge imports `fitz` from PyMuPDF in `src/agentforge/tools/get_text.py`. The local requirements now use `pymupdf`, matching package metadata and the actual runtime import.
 - The optional extra used package name `cv2`, but the import is provided by `opencv-python`. The optional extra now uses `opencv-python`, and Python 3.14 dry-run resolution selected `opencv-python==4.13.0.92`.
-- Unused direct dependencies `colorama` and `termcolor` were removed from `setup.py` and `REQUIREMENTS.txt`. `wheel` was removed from runtime install metadata but remains in local requirements as development/build tooling.
+- Unused direct dependencies `colorama` and `termcolor` were removed from package metadata and `REQUIREMENTS.txt`. `wheel` was moved out of runtime install metadata and remains in local requirements and build-system requirements.
 - A duplicate `ruamel.yaml` runtime metadata entry was removed.
 - `pytest` and `pytest-timeout` were added to `REQUIREMENTS.txt` so a clean development environment can run the default suite.
 - `REQUIREMENTS.txt` now uses `chromadb>=1.1.0`, matching runtime metadata and avoiding the older `chromadb==1.0.0` local-development pin.
@@ -41,11 +41,11 @@ Recorded 2026-05-30 after checking whether newer or removable packages could res
 
 Python 3.14 is now locally supported for development and default test execution. The repo-local development venv should be `.venv/` on Python 3.14, and the package metadata includes the Python 3.14 classifier.
 
-Keep `python_requires=">=3.10"` until later compatibility work intentionally changes the lower bound. Do not update public `README.md` or hosted `docs/` with Python 3.14 claims until Phase 1 closure verifies the final install workflow and documentation surface.
+Keep `requires-python = ">=3.10"` until later compatibility work intentionally changes the lower bound. Do not update public `README.md` or hosted `docs/` with Python 3.14 claims until Phase 1 closure verifies the final install workflow and documentation surface.
 
 ## Remaining Risks
 
 - The local requirements install still pulls a very large Torch/CUDA dependency stack through `torch` and `sentence-transformers`; this is compatible enough to install, but it remains a packaging and environment-size risk for Session 4.
 - The default pytest suite is fake-backed and excludes tests marked `integration`; no live provider, audio, Discord, or storage service checks were run for this compatibility claim.
-- Runtime, development, and optional feature dependencies are still mixed across `setup.py` and `REQUIREMENTS.txt`. Session 4 should split or document those surfaces more clearly.
+- Runtime, development, and optional feature dependencies are still conservative and broad across `pyproject.toml` and `REQUIREMENTS.txt`. A later session should split optional-heavy dependency groups only after adding lazy imports and clearer missing-extra diagnostics.
 - Public install docs remain intentionally unchanged until phase closure.

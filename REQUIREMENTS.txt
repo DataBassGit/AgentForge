@@ -3,7 +3,6 @@ chromadb>=1.1.0
 numpy<2.0.0; python_version<'3.12'
 numpy>=2.0.0; python_version>='3.12'
 sentence-transformers
-wheel
 groq
 pymupdf
 spacy
@@ -21,13 +20,14 @@ PyYAML
 ruamel.yaml
 requests
 xmltodict
-setuptools>=70.0.0
 python-dotenv
 accelerate
 # Torch is required by sentence-transformers; leave unpinned so env picks suitable CPU-only build
 torch
 
 # Developer Tooling
+build
+wheel
 pytest
 pytest-timeout
 ruff
