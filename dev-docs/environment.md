@@ -12,7 +12,20 @@ python --version
 python -m pip --version
 ```
 
-Use this venv for local checks when it exists. If the venv is missing, create a new one with the Python version you are validating for the change. The package metadata currently declares `python_requires=">=3.10"` and classifiers through Python 3.13, while public docs and local commands may not be fully aligned. Treat Python-version claims as cleanup targets, not settled truth.
+Use this venv for normal local checks when it exists. If the venv is missing, create a new one with the Python version you are validating for the change. The package metadata currently declares `python_requires=">=3.10"` and classifiers through Python 3.13. Treat Python 3.14 as under compatibility review until the broad local development dependency surface installs and the default suite passes there.
+
+## Python Compatibility Checks
+
+Python 3.14 compatibility checks should use a separate temporary venv, not the repo-local `venv/`:
+
+```shell
+python3.14 -m venv --clear /tmp/agentforge-py314-compat
+/tmp/agentforge-py314-compat/bin/python -m pip install --upgrade pip
+/tmp/agentforge-py314-compat/bin/python -m pip install --dry-run --report /tmp/agentforge-py314-setup-report.json -e .
+/tmp/agentforge-py314-compat/bin/python -m pip install --dry-run --report /tmp/agentforge-py314-requirements-report.json -r REQUIREMENTS.txt
+```
+
+As of the Phase 1 Session 3 baseline, Python 3.14 runtime metadata resolution succeeds, but `REQUIREMENTS.txt` does not resolve cleanly because optional `matplotlib~=3.9.2` attempts a source build and fails while building its NumPy build dependency under Python 3.14. Do not add a Python 3.14 classifier or use Python 3.14 as the default repo venv until that blocker is resolved and the default pytest suite passes in a Python 3.14 compatibility environment.
 
 ## Dependencies
 
