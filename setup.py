@@ -66,13 +66,12 @@ setup(
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         f"License :: OSI Approved :: {LICENSE}",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     package_data={
         'agentforge.utils.guiutils': ['discord_client.py'],
         '': ['*.yaml'],  # Include your file types as needed

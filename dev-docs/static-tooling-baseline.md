@@ -1,0 +1,62 @@
+# Static Tooling Baseline
+
+Recorded 2026-05-30 for Phase 1, Session 1. This is a staging report for future cleanup, not a mandate to fix everything in one pass.
+
+## Tooling Context
+
+- Python: `venv/bin/python --version` reported `Python 3.13.13`.
+- Ruff: `venv/bin/ruff --version` reported `ruff 0.15.15`.
+- basedpyright: installed as `basedpyright 1.39.6`.
+- Config source: root `pyproject.toml`.
+- Scope: `src` and `tests` for basedpyright; Ruff default discovery from the repo root.
+- Dependency context: only Ruff and basedpyright were installed during this session, so missing-import diagnostics can include dependencies from the broader local development stack.
+
+## Ruff Baseline
+
+`ruff check .` runs and currently fails with 226 violations. Ruff reports 82 safe-fixable findings, with 10 additional hidden unsafe fixes available only if explicitly requested.
+
+| Rule | Count | Main meaning |
+| --- | ---: | --- |
+| `E501` | 95 | Lines over the configured 120-character limit. |
+| `F401` | 69 | Unused imports. |
+| `E402` | 22 | Module-level imports after executable setup code. |
+| `E701` | 12 | Multiple statements on one line after a colon. |
+| `F541` | 11 | f-strings without placeholders. |
+| `F841` | 6 | Assigned local variables never used. |
+| `E712` | 5 | Boolean comparisons that should use `is` or direct truthiness. |
+| `E722` | 3 | Bare `except`. |
+| `F811` | 2 | Redefined names. |
+| `PLR0913` | 1 | Function has more than 6 arguments. |
+
+The single `PLR0913` finding is `src/agentforge/modules/actions.py:425`, where a function has 7 arguments and should be handled as a staged API/design cleanup rather than a formatting-only fix.
+
+Top Ruff hotspots by path are `src/agentforge` with 150 findings, `tests/integration_tests` with 21, `tests/real_tests` with 13, and `tests/config_tests` with 12. The highest-count individual files are `tests/integration_tests/test_example_cog_with_personamemory.py`, `src/agentforge/config.py`, `src/agentforge/core/config_manager.py`, `src/agentforge/testing/bootstrap.py`, and `src/agentforge/utils/parsing_processor.py`.
+
+`ruff format --check .` runs and currently reports 112 files that would be reformatted, with 21 files already formatted. Do not run broad formatting until a cleanup session explicitly owns the resulting churn.
+
+## BasedPyright Baseline
+
+`basedpyright --project pyproject.toml` runs and currently fails after analyzing 132 files, with 293 errors and 19 warnings.
+
+| Rule | Count | Main meaning |
+| --- | ---: | --- |
+| `reportOptionalMemberAccess` | 95 | Values typed as possibly `None` are used without narrowing. |
+| `reportMissingImports` | 65 | Imports cannot be resolved in the current environment. |
+| `reportArgumentType` | 51 | Argument types do not match callable signatures. |
+| `reportAttributeAccessIssue` | 47 | Accessed attributes are unknown for the inferred type. |
+| `reportMissingModuleSource` | 19 | Installed or referenced modules lack analyzable source. |
+| `reportReturnType` | 9 | Returned values do not match annotated return types. |
+| `reportOptionalSubscript` | 7 | Values typed as possibly `None` are subscripted without narrowing. |
+| `reportOperatorIssue` | 5 | Operators are used with incompatible inferred types. |
+| `reportAssignmentType` | 4 | Assigned values do not match declared types. |
+| `reportCallIssue` | 3 | Call shape cannot be proven compatible. |
+
+Top basedpyright hotspots by path are `src/agentforge` with 222 diagnostics, `tests/cog_tests` with 22, `tests/config_tests` with 14, `tests/memory_tests` with 12, and `tests/utils` with 9. The highest-count individual files are `src/agentforge/storage/chroma_storage.py`, `src/agentforge/modules/actions.py`, `src/agentforge/agent.py`, `tests/cog_tests/test_cog_trail_logging_and_flow_validation.py`, and `src/agentforge/utils/discord/discord_utils.py`.
+
+The missing-import group should be interpreted carefully until the dependency and package workflow sessions align the development environment. The optional-member and dynamic-attribute findings are more useful cleanup signals for Agent, Cog, Config, storage, memory, and test fixture boundaries.
+
+## Cleanup Staging Notes
+
+Start future cleanup by subsystem rather than by tool. Good first cuts are unused imports and line length in one owned subsystem, the one `PLR0913` signature outlier, optional narrowing in Agent/Cog/Config flow, and dynamic test fixture attributes that basedpyright cannot currently prove.
+
+Do not add a basedpyright baseline suppression file yet. The current report is intentionally visible so later sessions can choose which categories become enforced and which require environment or typing-policy decisions first.

@@ -1,0 +1,30 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+extend-select = ["E501", "PLR0913"]
+
+[tool.ruff.lint.pylint]
+max-args = 6
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.basedpyright]
+include = ["src", "tests"]
+exclude = [
+    "**/__pycache__",
+    ".agentforge",
+    ".pytest_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+    "docs",
+    "logs",
+    "src/agentforge.egg-info",
+    "venv",
+]
+pythonVersion = "3.10"
+typeCheckingMode = "basic"

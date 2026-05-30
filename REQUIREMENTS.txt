@@ -29,6 +29,10 @@ accelerate
 # Torch is required by sentence-transformers; leave unpinned so env picks suitable CPU-only build
 torch
 
+# Developer Tooling
+ruff
+basedpyright
+
 # Optional Dependencies
 matplotlib~=3.9.2
 umap~=0.1.1

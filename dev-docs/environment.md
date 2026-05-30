@@ -29,6 +29,36 @@ They are not guaranteed to match exactly. When adding or changing dependencies, 
 
 Do not install heavy or network-fetched dependencies unless the task requires it. Network access may be restricted in agent sessions.
 
+## Static Tooling
+
+Ruff and basedpyright are local developer tools tracked in `REQUIREMENTS.txt`. They are not runtime package dependencies.
+
+Install only the static tools when validating cleanup guardrails in an existing venv:
+
+```shell
+python -m pip install ruff basedpyright
+```
+
+Run Ruff lint checks without applying fixes:
+
+```shell
+ruff check .
+```
+
+Run Ruff formatting in check mode only unless the change explicitly approves formatting edits:
+
+```shell
+ruff format --check .
+```
+
+Run basedpyright as the repo type checker:
+
+```shell
+basedpyright --project pyproject.toml
+```
+
+Ruff owns line length and signature-adjacent style guardrails. BasedPyright owns type checking only and should not be used for formatting or line-length enforcement.
+
 ## Project Configuration
 
 AgentForge expects consumer configuration under `.agentforge/`. Default resources live in `src/agentforge/setup_files/` and can be scaffolded with:
@@ -107,6 +137,7 @@ Do not change provider credential behavior without updating provider docs, setup
 ## Known Friction Points
 
 - Public install docs, `REQUIREMENTS.txt`, and `setup.py` currently need an alignment pass.
+- Package metadata now targets Python `>=3.10`; broad annotation modernization, such as replacing `Optional[...]` with `... | None`, should happen in staged cleanup rather than the tooling baseline session.
 - `setup.py` declares a console entrypoint for `agentforge.cli:main`; verify the source tree before relying on that CLI.
 - Tools and Actions are deprecated in public docs but still present in source and setup files for compatibility.
 - Storage tests should use `FakeChromaStorage` unless exercising Chroma integration specifically.

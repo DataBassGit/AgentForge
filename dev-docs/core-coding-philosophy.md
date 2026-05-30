@@ -85,6 +85,8 @@ Do not treat vertical formatting as the main solution for long signatures. A lon
 
 When configuring Ruff for this repo, keep signature formatting aligned with this rule: use Ruff for line-length and signature-adjacent linting, enable `E501` and `PLR0913`, set the project line length to `120` unless a later phase chooses otherwise, and configure `lint.pylint.max-args` deliberately. BasedPyright should remain focused on type checking and should not enforce formatting or line length.
 
+AgentForge now declares Python `>=3.10`, so touched code may prefer PEP 604 union syntax such as `str | None` over `Optional[str]` when it makes signatures shorter and easier to scan. Treat that as staged cleanup, not a reason to bulk-convert untouched modules during a guardrail or tooling session.
+
 ### Classes And Abstractions
 
 Use classes when they model a real domain concept, preserve invariants, own lifecycle or state, or make behavior easier to reason about. Domain records, adapters, state objects, positions, profiles, attribution results, and similar objects are good candidates for classes when they clarify responsibility and reduce duplication.

@@ -9,6 +9,7 @@ This file is the entrypoint for agents and developers working in this repository
 - `dev-docs/environment.md` covers local setup, the repo venv, requirements, `.agentforge` discovery, and test execution.
 - `dev-docs/pipeline-config-graph.md` gives the high-level data-flow map and a Mermaid graph.
 - `dev-docs/roadmap.md` summarizes future direction that should shape current decisions.
+- `dev-docs/static-tooling-baseline.md` records the current Ruff and basedpyright baseline for staged cleanup work.
 - `dev-docs/test-spec.md` describes how to create, update, organize, retire, and run tests.
 
 Do not move these files into `docs/` unless the project intentionally decides they should become public documentation. The current `docs/` folder is used by the hosted documentation navigator.
