@@ -1,62 +1,32 @@
 # AgentForge Architecture
 
-This document is developer-facing architecture guidance for local work in the
-AgentForge repository. It describes durable design shape and extension
-boundaries. User-facing explanations belong in `README.md` and `docs/`.
+This document is developer-facing architecture guidance for local work in the AgentForge repository. It describes durable design shape and extension boundaries. User-facing explanations belong in `README.md` and `docs/`.
 
 ## System Role
 
-AgentForge is a Python library for building agents and Cog workflows from
-project-owned `.agentforge/` resources. The framework owns reusable runtime
-machinery: configuration loading, prompt rendering, provider calls, parsing,
-memory integration, and Cog orchestration. Applications own their product
-workflows, prompt content, credentials, personas, and persisted data.
+AgentForge is a Python library for building agents and Cog workflows from project-owned `.agentforge/` resources. The framework owns reusable runtime machinery: configuration loading, prompt rendering, provider calls, parsing, memory integration, and Cog orchestration. Applications own their product workflows, prompt content, credentials, personas, and persisted data.
 
-Keep that boundary clear. A consumer project can expose a reusable framework
-gap, but consumer-specific behavior should not become library default behavior
-without a general AgentForge contract.
+Keep that boundary clear. A consumer project can expose a reusable framework gap, but consumer-specific behavior should not become library default behavior without a general AgentForge contract.
 
 ## Main Components
 
-`Config` is the process-wide configuration loader. It discovers a project root,
-loads YAML from `.agentforge/`, resolves model/provider configuration, imports
-built-in or custom provider classes, resolves personas, and builds structured
-agent and Cog configuration through `ConfigManager`.
+`Config` is the process-wide configuration loader. It discovers a project root, loads YAML from `.agentforge/`, resolves model/provider configuration, imports built-in or custom provider classes, resolves personas, and builds structured agent and Cog configuration through `ConfigManager`.
 
-`ConfigManager` validates and normalizes raw YAML dictionaries into dataclasses
-under `src/agentforge/config_structs/`. It is the boundary where config shape
-should become explicit. Avoid scattering schema assumptions across runtime
-classes when they belong in validation or normalization.
+`ConfigManager` validates and normalizes raw YAML dictionaries into dataclasses under `src/agentforge/config_structs/`. It is the boundary where config shape should become explicit. Avoid scattering schema assumptions across runtime classes when they belong in validation or normalization.
 
-`Agent` is the single-agent execution template. Its public `run()` flow loads
-data, processes inputs, renders prompts, calls the configured model, parses the
-result, runs post-processing hooks, and builds output. Subclasses should
-override the named extension points instead of replacing the whole flow.
+`Agent` is the single-agent execution template. Its public `run()` flow loads data, processes inputs, renders prompts, calls the configured model, parses the result, runs post-processing hooks, and builds output. Subclasses should override the named extension points instead of replacing the whole flow.
 
-`Cog` orchestrates multi-agent workflows. It loads a Cog config, builds agent
-instances through `AgentRegistry`, prepares memory through `MemoryManager`,
-executes agents through `AgentRunner`, routes transitions through
-`TransitionResolver`, records optional trail data, and returns the final result
-defined by the flow end condition.
+`Cog` orchestrates multi-agent workflows. It loads a Cog config, builds agent instances through `AgentRegistry`, prepares memory through `MemoryManager`, executes agents through `AgentRunner`, routes transitions through `TransitionResolver`, records optional trail data, and returns the final result defined by the flow end condition.
 
-`BaseModel` and provider classes under `src/agentforge/apis/` own model API
-request/response details. Shared retry, modality validation, prompt part
-building, and parameter filtering live in `BaseModel`; provider-specific
-request shape and response extraction live in subclasses.
+`BaseModel` and provider classes under `src/agentforge/apis/` own model API request/response details. Shared retry, modality validation, prompt part building, and parameter filtering live in `BaseModel`; provider-specific request shape and response extraction live in subclasses.
 
-`PromptProcessor` renders AgentForge prompt templates and nested placeholders
-from context/state/memory data. `ParsingProcessor` parses model outputs into
-supported structured formats with code-fenced parsing followed by bare parsing
-fallback.
+`PromptProcessor` renders AgentForge prompt templates and nested placeholders from context/state/memory data. `ParsingProcessor` parses model outputs into supported structured formats with code-fenced parsing followed by bare parsing fallback.
 
-Storage and memory code under `src/agentforge/storage/` provides reusable memory
-surfaces, Chroma-backed storage, chat history, scratchpad, and persona memory.
-Memory nodes are declared in Cog YAML and mediated through `MemoryManager`.
+Storage and memory code under `src/agentforge/storage/` provides reusable memory surfaces, Chroma-backed storage, chat history, scratchpad, and persona memory. Memory nodes are declared in Cog YAML and mediated through `MemoryManager`.
 
 ## Configuration Model
 
-AgentForge reads consumer resources from `.agentforge/`, usually scaffolded from
-`src/agentforge/setup_files/`.
+AgentForge reads consumer resources from `.agentforge/`, usually scaffolded from `src/agentforge/setup_files/`.
 
 The important categories are:
 
@@ -73,8 +43,7 @@ Project root discovery uses this precedence:
 2. `AGENTFORGE_ROOT`.
 3. Auto-discovery walking upward from the running script.
 
-For tests and scripts, prefer explicit roots or the test bootstrap helper over
-depending on incidental current working directory behavior.
+For tests and scripts, prefer explicit roots or the test bootstrap helper over depending on incidental current working directory behavior.
 
 ## Runtime Flow
 
@@ -100,33 +69,19 @@ A `Cog` run follows this shape:
 
 ## Extension Boundaries
 
-Add new agent behavior by subclassing `Agent` and overriding focused extension
-points such as `load_additional_data`, `process_data`, `post_process_result`,
-or `build_output`.
+Add new agent behavior by subclassing `Agent` and overriding focused extension points such as `load_additional_data`, `process_data`, `post_process_result`, or `build_output`.
 
-Add new provider behavior by implementing a provider class under
-`src/agentforge/apis/` or a consumer custom API module. Keep provider-specific
-parameters, request shape, response extraction, and credential errors inside the
-provider boundary.
+Add new provider behavior by implementing a provider class under `src/agentforge/apis/` or a consumer custom API module. Keep provider-specific parameters, request shape, response extraction, and credential errors inside the provider boundary.
 
-Add new Cog routing behavior in `TransitionResolver` only when it is a reusable
-workflow contract. Keep product-specific decisions in agent output and Cog YAML.
+Add new Cog routing behavior in `TransitionResolver` only when it is a reusable workflow contract. Keep product-specific decisions in agent output and Cog YAML.
 
-Add new memory behavior behind a memory class and config definition. Preserve
-consumer ownership of data, filters, and authority decisions.
+Add new memory behavior behind a memory class and config definition. Preserve consumer ownership of data, filters, and authority decisions.
 
-When changing YAML schemas, update validation, dataclasses, setup files, docs,
-and tests together. Schema drift is expensive in this repo because many
-features are configured declaratively.
+When changing YAML schemas, update validation, dataclasses, setup files, docs, and tests together. Schema drift is expensive in this repo because many features are configured declaratively.
 
 ## Current Architecture Risks
 
-- Package metadata, public install docs, and local requirements are not fully
-  aligned. Do not use one source as proof that the others are correct during
-  cleanup.
-- `setup.py` declares an `agentforge=agentforge.cli:main` console entrypoint,
-  but the source tree should be checked before relying on a CLI surface.
-- Some public docs still describe deprecated Tools/Actions. Preserve
-  compatibility while future work defines the MCP-oriented replacement.
-- Provider failures and structured-output failures need clearer diagnostics.
-  Avoid adding new provider paths without focused failure tests.
+- Package metadata, public install docs, and local requirements are not fully aligned. Do not use one source as proof that the others are correct during cleanup.
+- `setup.py` declares an `agentforge=agentforge.cli:main` console entrypoint, but the source tree should be checked before relying on a CLI surface.
+- Some public docs still describe deprecated Tools/Actions. Preserve compatibility while future work defines the MCP-oriented replacement.
+- Provider failures and structured-output failures need clearer diagnostics. Avoid adding new provider paths without focused failure tests.
