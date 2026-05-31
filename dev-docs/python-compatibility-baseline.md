@@ -1,6 +1,6 @@
 # Python Compatibility Baseline
 
-Recorded 2026-05-30 for Phase 1, Session 3 and the immediate Python 3.14 compatibility follow-up. This is developer-only compatibility evidence, not public support documentation.
+Python 3.14 compatibility review. This is developer-only compatibility evidence, not public support documentation.
 
 ## Current Python Facts
 
@@ -11,7 +11,7 @@ Recorded 2026-05-30 for Phase 1, Session 3 and the immediate Python 3.14 compati
 
 ## Python 3.14 Evidence
 
-Session 3 first used `/tmp/agentforge-py314-compat` so compatibility could be proven before replacing the repo-local Python 3.13 `venv/`.
+The initial compatibility check used `/tmp/agentforge-py314-compat` so compatibility could be proven before replacing the repo-local Python 3.13 `venv/`.
 
 | Surface | Command | Result |
 | --- | --- | --- |
@@ -41,11 +41,11 @@ Recorded 2026-05-30 after checking whether newer or removable packages could res
 
 Python 3.14 is now locally supported for development and default test execution. The repo-local development venv should be `.venv/` on Python 3.14, and the package metadata includes the Python 3.14 classifier.
 
-Keep `requires-python = ">=3.10"` until later compatibility work intentionally changes the lower bound. Do not update public `README.md` or hosted `docs/` with Python 3.14 claims until Phase 1 closure verifies the final install workflow and documentation surface.
+Keep `requires-python = ">=3.10"` until later compatibility work intentionally changes the lower bound. Do not update public `README.md` or hosted `docs/` with Python 3.14 claims until the final install workflow and documentation surface are verified.
 
 ## Remaining Risks
 
-- The local requirements install still pulls a very large Torch/CUDA dependency stack through `torch` and `sentence-transformers`; this is compatible enough to install, but it remains a packaging and environment-size risk for Session 4.
+- The local requirements install still pulls a very large Torch/CUDA dependency stack through `torch` and `sentence-transformers`; this is compatible enough to install, but it remains a packaging and environment-size risk.
 - The default pytest suite is fake-backed and excludes tests marked `integration`; no live provider, audio, Discord, or storage service checks were run for this compatibility claim.
-- Runtime, development, and optional feature dependencies are still conservative and broad across `pyproject.toml` and `REQUIREMENTS.txt`. A later session should split optional-heavy dependency groups only after adding lazy imports and clearer missing-extra diagnostics.
-- Public install docs remain intentionally unchanged until phase closure.
+- Runtime, development, and optional feature dependencies are still conservative and broad across `pyproject.toml` and `REQUIREMENTS.txt`. A later packaging pass should split optional-heavy dependency groups only after adding lazy imports and clearer missing-extra diagnostics.
+- Public install docs remain intentionally unchanged until the install and support story is ready for user-facing documentation.

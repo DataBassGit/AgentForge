@@ -1,21 +1,21 @@
 # Static Tooling Baseline
 
-Recorded 2026-05-30 for Phase 1, Session 1. This is a staging report for future cleanup, not a mandate to fix everything in one pass.
+Developer-only snapshot of the repo's Ruff and basedpyright state. This is a current cleanup baseline, not project planning history.
 
 ## Tooling Context
 
-- Python: the Session 1 baseline was recorded with `venv/bin/python --version` reporting `Python 3.13.13`; the repo-local development environment later moved to `.venv/` on Python 3.14 during Session 3 follow-up.
-- Ruff: the Session 1 baseline used `venv/bin/ruff --version`, which reported `ruff 0.15.15`.
-- basedpyright: the Session 1 baseline used `basedpyright 1.39.6`.
+- Python: the initial baseline used `venv/bin/python --version`, which reported `Python 3.13.13`; the repo-local development environment later moved to `.venv/` on Python 3.14.
+- Ruff: the initial baseline used `venv/bin/ruff --version`, which reported `ruff 0.15.15`.
+- basedpyright: the initial baseline used `basedpyright 1.39.6`.
 - Config source: root `pyproject.toml`.
 - Scope: `src` and `tests` for basedpyright; Ruff default discovery from the repo root.
-- Dependency context: only Ruff and basedpyright were installed during this session, so missing-import diagnostics can include dependencies from the broader local development stack.
+- Dependency context: only Ruff and basedpyright were installed during the initial baseline, so missing-import diagnostics can include dependencies from the broader local development stack.
 
 ## Ruff Baseline
 
 `ruff check .` runs and currently fails with 284 violations. Ruff reports 175 safe-fixable findings, with 5 additional hidden unsafe fixes available only if explicitly requested.
 
-Session 6 follow-up added Ruff `UP045` so touched Python files use `T | None` instead of `Optional[T]`. This intentionally increases the full-repo baseline until older untouched modules are selected for staged cleanup.
+The repo now selects Ruff `UP045` so touched Python files use `T | None` instead of `Optional[T]`. This intentionally increases the full-repo baseline until older untouched modules are selected for cleanup.
 
 | Rule | Count | Main meaning |
 | --- | ---: | --- |
@@ -30,13 +30,18 @@ Session 6 follow-up added Ruff `UP045` so touched Python files use `T | None` in
 | `F811` | 2 | Redefined names. |
 | `PLR0913` | 1 | Function has more than 6 arguments. |
 
-The single `PLR0913` finding is `src/agentforge/modules/actions.py:425`, where a function has 7 arguments and should be handled as a staged API/design cleanup rather than a formatting-only fix.
+The single `PLR0913` finding is `src/agentforge/modules/actions.py:425`, where a function has 7 arguments and should be handled as a focused API/design cleanup rather than a formatting-only fix.
 
-The new highest-count category is now `UP045`, which should be burned down only when each older subsystem is already being touched. The original Session 1 hotspots remain useful for orientation, but their counts should be refreshed after the next dedicated static cleanup pass.
+The highest-count category is now `UP045`, which should be burned down only when each older subsystem is already being touched. The original hotspots remain useful for orientation, but their counts should be refreshed after the next dedicated static cleanup pass.
 
-`ruff format --check .` runs and currently reports 112 files that would be reformatted, with 21 files already formatted. Do not run broad formatting until a cleanup session explicitly owns the resulting churn.
+`ruff format --check .` runs and currently reports 112 files that would be reformatted, with 21 files already formatted. Do not run broad formatting until a cleanup pass explicitly owns the resulting churn.
 
-Session 8 ran a scoped Ruff cleanup on selected config/Cog/core test files plus `src/agentforge/testing/bootstrap.py`; the focused `ruff check` and `ruff format --check` commands now pass for those files after applying formatting only to that selected set.
+## Ruff Clean Scopes
+
+Focused `ruff check` and `ruff format --check` currently pass for these selected file groups after applying formatting only to the files in each group:
+
+- Selected config/Cog/core test files plus `src/agentforge/testing/bootstrap.py`.
+- Selected storage/memory boundary files: `src/agentforge/core/memory_manager.py`, `src/agentforge/storage/memory.py`, `src/agentforge/storage/persona_memory.py`, `src/agentforge/storage/chat_history_memory.py`, `tests/memory_tests`, `tests/storage_tests/test_fake_chroma.py`, `tests/core_tests/test_memory_manager.py`, `tests/integration_tests/test_persona_memory_integration.py`, and `tests/integration_tests/test_example_cog_with_personamemory.py`.
 
 ## BasedPyright Baseline
 
@@ -57,12 +62,19 @@ Session 8 ran a scoped Ruff cleanup on selected config/Cog/core test files plus 
 
 Top basedpyright hotspots by path are `src/agentforge` with 222 diagnostics, `tests/cog_tests` with 22, `tests/config_tests` with 14, `tests/memory_tests` with 12, and `tests/utils` with 9. The highest-count individual files are `src/agentforge/storage/chroma_storage.py`, `src/agentforge/modules/actions.py`, `src/agentforge/agent.py`, `tests/cog_tests/test_cog_trail_logging_and_flow_validation.py`, and `src/agentforge/utils/discord/discord_utils.py`.
 
-The missing-import group should be interpreted carefully until the dependency and package workflow sessions align the development environment. The optional-member and dynamic-attribute findings are more useful cleanup signals for Agent, Cog, Config, storage, memory, and test fixture boundaries.
+The missing-import group should be interpreted carefully until the dependency and package workflow align the development environment. The optional-member and dynamic-attribute findings are more useful cleanup signals for Agent, Cog, Config, storage, memory, and test fixture boundaries.
 
-Session 8 cleared the focused basedpyright findings in `tests/cog_tests/test_cog_trail_logging_and_flow_validation.py`, `tests/core_tests/test_memory_manager.py`, and the selected neighboring files without adding suppressions or changing public runtime behavior.
+## BasedPyright Clean Scopes
+
+Focused basedpyright currently passes for these selected file groups without suppressions:
+
+- Selected config/Cog/core tests and neighboring files after adding explicit narrowing and keeping invalid test input marked as intentionally untyped.
+- Selected storage/memory boundary files after chat-history access narrowing, memory storage/collection typing, `T | None` annotations in touched memory classes, structured `CogConfig` handling in `PersonaMemory`, and tests that use production attributes rather than dynamic test-only attributes.
 
 ## Cleanup Staging Notes
 
-Start future cleanup by subsystem rather than by tool. Good next cuts are unused imports and line length in one owned subsystem, the one `PLR0913` signature outlier, optional narrowing in Agent/Cog/Config flow outside the Session 8 cleanup, and dynamic test fixture attributes that basedpyright cannot currently prove.
+Start cleanup by subsystem rather than by tool. Good next cuts are unused imports and line length in one owned subsystem, the one `PLR0913` signature outlier, optional narrowing in Agent/Cog/Config flow outside the already-clean selected scopes, and dynamic test fixture attributes that basedpyright cannot currently prove.
 
-Do not add a basedpyright baseline suppression file yet. The current report is intentionally visible so later sessions can choose which categories become enforced and which require environment or typing-policy decisions first.
+Storage/memory still has larger cleanup candidates outside the current clean scope: Chroma storage typing and recovery scripts, ScratchPad shape and ownership, retrieval ownership boundaries, storage privacy/data-retention policy, and whether memory formatting helpers should stay as framework defaults or move closer to consumers.
+
+Do not add a basedpyright baseline suppression file yet. The current report is intentionally visible so later cleanup work can choose which categories become enforced and which require environment or typing-policy decisions first.

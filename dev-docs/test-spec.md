@@ -71,7 +71,7 @@ Prefer asserting behavior over implementation details. It is okay to assert prov
 
 Use test review to decide whether existing tests protect real behavior, not whether they look thorough. The review should be deterministic and tied to this repo's current dev docs, public contracts, setup files, and source boundaries.
 
-For each reviewed test or test group, record these answers in notes, commit messages, or the project TODO when they affect cleanup planning:
+For each reviewed test or test group, record these answers in notes or commit messages when they affect cleanup planning:
 
 1. What supported behavior or compatibility promise does this test protect?
 2. What realistic failure would this test catch?
@@ -84,7 +84,7 @@ Prefer updating weak tests into useful boundary tests over deleting them. Delete
 
 When a review finds missing coverage, add the smallest focused test that would have failed for the realistic bug. Do not expand a cleanup pass into a broad test rewrite unless the existing harness prevents trustworthy verification.
 
-Use this compact review record when a session needs durable notes:
+Use this compact review record when a cleanup pass needs durable notes:
 
 ```markdown
 | Test or group | Supported behavior | Failure caught | Boundary | Fixture/live policy | Action |

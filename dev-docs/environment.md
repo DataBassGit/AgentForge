@@ -21,7 +21,7 @@ python3.14 -m venv .venv
 .venv/bin/python -m pip install -e .
 ```
 
-The package metadata declares `requires-python = ">=3.10"` and classifiers through Python 3.14. Python 3.14 is the preferred local development version after the Phase 1 Session 3 compatibility follow-up, but Python 3.10 remains the declared lower bound until later compatibility work intentionally changes it.
+The package metadata declares `requires-python = ">=3.10"` and classifiers through Python 3.14. Python 3.14 is the preferred local development version after the compatibility review, but Python 3.10 remains the declared lower bound until later compatibility work intentionally changes it.
 
 ## Python Compatibility Checks
 
@@ -35,7 +35,7 @@ python3.14 -m venv --clear /tmp/agentforge-py314-compat
 /tmp/agentforge-py314-compat/bin/python -m pytest
 ```
 
-As of the Phase 1 Session 3 compatibility follow-up, this full Python 3.14 install path passed for `REQUIREMENTS.txt`, editable package metadata, and the default pytest suite. The remaining compatibility risk is not a known `python_version <= "3.13"` blocker; it is the size and build surface of the Chroma, Torch, sentence-transformers, and optional media stack.
+This full Python 3.14 install path has passed for `REQUIREMENTS.txt`, editable package metadata, and the default pytest suite. The remaining compatibility risk is not a known `python_version <= "3.13"` blocker; it is the size and build surface of the Chroma, Torch, sentence-transformers, and optional media stack.
 
 ## Dependencies
 
@@ -182,23 +182,23 @@ Do not change provider credential behavior without updating provider docs, setup
 Build package artifacts into `/tmp` when validating install workflow changes:
 
 ```shell
-python -m build --sdist --wheel --outdir /tmp/agentforge-session4-dist
+python -m build --sdist --wheel --outdir /tmp/agentforge-package-dist
 ```
 
 Install the built wheel into a clean Python 3.14 venv and verify imports plus setup-file scaffolding:
 
 ```shell
-python3.14 -m venv --clear /tmp/agentforge-session4-install
-/tmp/agentforge-session4-install/bin/python -m pip install --upgrade pip
-/tmp/agentforge-session4-install/bin/python -m pip install /tmp/agentforge-session4-dist/agentforge-0.6.5-py3-none-any.whl
+python3.14 -m venv --clear /tmp/agentforge-package-install
+/tmp/agentforge-package-install/bin/python -m pip install --upgrade pip
+/tmp/agentforge-package-install/bin/python -m pip install /tmp/agentforge-package-dist/agentforge-0.6.5-py3-none-any.whl
 ```
 
 AgentForge does not currently install an `agentforge` console script. Use `python -m agentforge.init_agentforge` to scaffold `.agentforge/` and `python -m agentforge.init_codex_oauth` for Codex OAuth setup.
 
 ## Known Friction Points
 
-- Public install docs and package/dependency workflow still need a phase-closing alignment pass.
-- Package metadata now supports Python 3.14 while keeping the lower bound at Python `>=3.10`; broad annotation modernization, such as replacing `Optional[...]` with `... | None`, should happen in staged cleanup rather than the tooling baseline session.
+- Public install docs and package/dependency workflow still need an alignment pass.
+- Package metadata now supports Python 3.14 while keeping the lower bound at Python `>=3.10`; broad annotation modernization, such as replacing `Optional[...]` with `... | None`, should happen in scoped cleanup rather than the tooling baseline.
 - No public `agentforge` console command is installed yet; revisit a real CLI/scaffold command during beginner workflow work if it becomes useful.
 - Tools and Actions are deprecated in public docs but still present in source and setup files for compatibility.
 - Storage tests should use `FakeChromaStorage` unless exercising Chroma integration specifically.

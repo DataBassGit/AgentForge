@@ -49,7 +49,7 @@ Do not add broad provider abstractions before repeated needs are visible across 
 
 AgentForge already has text, audio-input, audio-output, and basic image/vision paths. Modernization should make those paths graceful and explicit: unsupported modalities should fail clearly, supported modalities should have provider-specific request/response tests, and setup defaults should not imply capabilities that the provider path cannot actually handle.
 
-Vision support is still rudimentary and should be reviewed as part of provider modernization. Image generation is a future feature and should be tracked as roadmap direction only during the current cleanup pass unless a separate implementation phase explicitly scopes it.
+Vision support is still rudimentary and should be reviewed as part of provider modernization. Image generation is a future feature and should be tracked as roadmap direction only during the current cleanup pass unless a separate implementation effort explicitly scopes it.
 
 ## Memory, Retrieval, And Runtime Patterns
 

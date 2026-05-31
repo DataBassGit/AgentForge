@@ -1,5 +1,6 @@
 """Tests for the MemoryManager class."""
 
+from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
@@ -66,6 +67,49 @@ def test_default_chat_memory_is_initialized_loaded_and_recorded(isolated_config)
 
         query_chat.assert_called_once()
         record_chat.assert_called_once()
+
+
+def test_cog_persona_namespaces_memory_storage(isolated_config, fake_chroma):
+    """A Cog-level persona should select the memory storage namespace."""
+    from agentforge.cog import Cog
+
+    project_root = Path(isolated_config.project_root)
+    (project_root / ".agentforge" / "personas" / "explicit_persona.yaml").write_text(
+        """
+static:
+  name: Explicit Persona
+  description: Test persona for memory namespacing.
+""",
+        encoding="utf-8",
+    )
+    (project_root / ".agentforge" / "cogs" / "persona_namespace_cog.yaml").write_text(
+        """
+cog:
+  name: PersonaNamespaceCog
+  persona: explicit_persona
+  chat_memory_enabled: false
+  agents:
+    - id: analysis
+      template_file: cog_analyze_agent
+  memory:
+    - id: general_memory
+      query_before: analysis
+      query_keys: [user_input]
+  flow:
+    start: analysis
+    transitions:
+      analysis:
+        end: true
+""",
+        encoding="utf-8",
+    )
+    isolated_config.load_all_configurations()
+
+    cog = Cog("persona_namespace_cog")
+    memory = cog.mem_mgr.memory_nodes["general_memory"]["instance"]
+
+    assert cog.mem_mgr.persona == "explicit_persona"
+    assert memory.storage.storage_id == "explicit_persona"
 
 
 def test_memory_manager_extract_keys():

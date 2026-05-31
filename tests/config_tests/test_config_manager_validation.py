@@ -1,5 +1,5 @@
 """
-Test ConfigManager Phase 1: Basic configuration validation and object building.
+Test ConfigManager configuration validation and object building.
 
 This test suite validates that ConfigManager can:
 1. Build structured AgentConfig objects from raw data

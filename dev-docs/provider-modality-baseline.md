@@ -1,8 +1,6 @@
 # Provider And Modality Baseline
 
-Recorded 2026-05-30 for Phase 1 Session 5.
-
-This is a developer-only baseline for provider defaults, modality behavior, and request/response diagnostics. Public `README.md` and hosted `docs/` stay unchanged until the Phase 1 closure pass.
+This is a developer-only baseline for provider defaults, modality behavior, and request/response diagnostics. Public `README.md` and hosted `docs/` should be updated only when the supported behavior is ready for user-facing documentation.
 
 ## Official References Checked
 
@@ -12,7 +10,7 @@ This is a developer-only baseline for provider defaults, modality behavior, and 
 - Groq model catalog and model-specific pages: https://console.groq.com/docs/models
 - OpenRouter model API guidance: https://openrouter.ai/docs/guides/overview/models
 
-## Session 5 Decisions
+## Provider Decisions
 
 - Keep provider work fake-backed and local. No live provider, credentialed, audio-device, Discord, Ollama server, LM Studio server, or image-generation checks were added to routine verification.
 - Keep `text`, `image`, and `audio` as AgentForge capability flags. Unsupported modality errors now name the requested modality and the provider's supported modalities.
@@ -56,12 +54,12 @@ This is a developer-only baseline for provider defaults, modality behavior, and 
 - Scoped Ruff lint and format checks passed on touched Python files.
 - Scoped basedpyright passed on touched Python files with `0 errors, 0 warnings, 0 notes`.
 - `python -c "import tomllib; tomllib.load(open('pyproject.toml','rb'))"` passed.
-- `.venv/bin/python -m build --sdist --wheel --outdir /tmp/agentforge-session5-dist` built `agentforge-0.6.5.tar.gz` and `agentforge-0.6.5-py3-none-any.whl`. Sandboxed isolated-build attempts could not resolve PyPI for build dependencies; network-approved reruns succeeded.
+- `.venv/bin/python -m build --sdist --wheel --outdir /tmp/agentforge-provider-dist` built `agentforge-0.6.5.tar.gz` and `agentforge-0.6.5-py3-none-any.whl`. Sandboxed isolated-build attempts could not resolve PyPI for build dependencies; network-approved reruns succeeded.
 
 ## Remaining Risks
 
-- Provider catalogs move quickly. This session used conservative stable entries and avoided broad “latest model” chasing; a later provider-catalog session should decide whether AgentForge wants newer defaults such as the latest Anthropic or Gemini families.
+- Provider catalogs move quickly. This baseline used conservative stable entries and avoided broad “latest model” chasing; a later provider-catalog review should decide whether AgentForge wants newer defaults such as the latest Anthropic or Gemini families.
 - Live provider behavior was not verified. Fake-backed tests prove request shape and local diagnostics, not credentials, quotas, provider availability, or exact remote schema changes.
 - The installed `google-generativeai` package emits a deprecation warning recommending migration to `google.genai`. That SDK migration is provider modernization work, but it is larger than this setup-defaults and diagnostics pass.
-- Image generation remains future roadmap work only. This session did not add image-generation provider classes or setup defaults.
+- Image generation remains roadmap work only. This baseline did not add image-generation provider classes or setup defaults.
 - Some compatibility aliases remain in setup defaults to avoid consumer churn where the underlying provider ID is still active, including the legacy-named `claude4_1opus` key. Remove or rename active aliases only in a staged catalog cleanup with migration notes.

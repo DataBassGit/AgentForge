@@ -25,7 +25,7 @@ class TrailRecorder:
         self.trail: List[ThoughtTrailEntry] = []
         self._execution_counter = 0
         
-        # TODO: Consider adding max_entries parameter for trail size limits in the future
+        # Future: consider adding max_entries parameter for trail size limits.
         # self.max_entries = max_entries
     
     def record_agent_output(self, agent_id: str, output: any, notes: Optional[str] = None, error: Optional[str] = None) -> None:
@@ -52,7 +52,7 @@ class TrailRecorder:
         self.trail.append(entry)
         self._log_trail_entry(entry)
         
-        # TODO: Implement trail size management if max_entries is added
+        # Future: implement trail size management if max_entries is added.
         # if self.max_entries and len(self.trail) > self.max_entries:
         #     self.trail.pop(0)  # Remove oldest entry
     
@@ -81,4 +81,4 @@ class TrailRecorder:
         if entry.error:
             log_message += f"\nERROR: {entry.error}"
         
-        self.logger.debug(log_message) 
+        self.logger.debug(log_message)
