@@ -1,6 +1,5 @@
 import httpx
-import asyncio
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from .async_base_api import AsyncBaseModel
 
 # Default port for the local motion_server.py
@@ -84,10 +83,7 @@ class AsyncMotionSmall(AsyncBaseModel):
         if not text:
             return {"status": "skipped", "message": "No motion text provided"}
 
-        return await self.runtime.generate_motion(
-            text=text,
-            logger=self.logger
-        )
+        return await self.runtime.generate_motion(text=text, logger=self.logger)
 
     def _process_response(self, raw_response):
         """

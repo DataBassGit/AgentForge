@@ -1,7 +1,7 @@
 import io
 import json
 import os
-from typing import Any, Dict, Iterable, List, Optional, cast
+from typing import Any, Dict, Iterable, List, cast
 
 import requests
 
@@ -274,7 +274,7 @@ class OpenAIRuntime:
             yield tail_event
 
     @staticmethod
-    def _parse_sse_frame(frame_lines: List[str]) -> Optional[Dict[str, Any]]:
+    def _parse_sse_frame(frame_lines: List[str]) -> Dict[str, Any] | None:
         if not frame_lines:
             return None
         data_chunks = []

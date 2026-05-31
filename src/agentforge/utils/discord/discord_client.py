@@ -6,7 +6,6 @@ import os
 import asyncio
 import threading
 from agentforge.utils.logger import Logger
-from agentforge.tools.semantic_chunk import semantic_chunk
 from agentforge.utils.discord.discord_utils import DiscordUtils
 
 
@@ -19,8 +18,8 @@ class DiscordClient:
         """
         Initialize the DiscordClient with necessary attributes and event handlers.
         """
-        self.discord_thread = None
-        self.token = str(os.getenv('DISCORD_TOKEN'))
+        self.discord_thread: threading.Thread | None = None
+        self.token = str(os.getenv("DISCORD_TOKEN"))
         self.intents = discord.Intents.default()
         self.intents.message_content = True
 
@@ -32,7 +31,7 @@ class DiscordClient:
         self.client = discord.Client(intents=self.intents)
         self.tree = app_commands.CommandTree(self.client)
 
-        self.logger = Logger('DiscordClient', 'DiscordClient')
+        self.logger = Logger("DiscordClient", "DiscordClient")
         self.message_queue = {}
         self.running = False
         self.utils = DiscordUtils(self.client, self.logger)
@@ -41,7 +40,7 @@ class DiscordClient:
         @self.client.event
         async def on_ready():
             await self.tree.sync()  # Syncs slash commands natively
-            self.logger.info(f'[DiscordClient.on_ready] {self.client.user} has connected to Discord!')
+            self.logger.info(f"[DiscordClient.on_ready] {self.client.user} has connected to Discord!")
 
         @self.client.event
         async def on_message(message: discord.Message):
@@ -49,7 +48,7 @@ class DiscordClient:
 
             content = message.content
             for mention in message.mentions:
-                content = content.replace(f'<@{mention.id}>', f'@{mention.display_name}')
+                content = content.replace(f"<@{mention.id}>", f"@{mention.display_name}")
 
             message_data = {
                 "channel": str(message.channel),
@@ -58,9 +57,9 @@ class DiscordClient:
                 "message_id": message.id,
                 "author": message.author.display_name,
                 "author_id": message.author,
-                "timestamp": message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                "timestamp": message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                 "mentions": message.mentions,
-                "attachments": message.attachments
+                "attachments": message.attachments,
             }
 
             if isinstance(message.channel, discord.Thread):
@@ -68,7 +67,9 @@ class DiscordClient:
                 message_data["thread_name"] = message.channel.name
 
             self.logger.debug(
-                f"[DiscordClient.on_message] Channel: {str(message.channel)}({message.channel.id}) - {message.author.display_name} said:\n{content}")
+                f"[DiscordClient.on_message] Channel: {str(message.channel)}({message.channel.id}) - "
+                f"{message.author.display_name} said:\n{content}"
+            )
 
             if message.author != self.client.user:
                 if message.channel.id not in self.message_queue:
@@ -94,7 +95,8 @@ class DiscordClient:
         """Stop the Discord client cleanly."""
         self.running = False
         asyncio.run_coroutine_threadsafe(self.client.close(), self.discord_loop).result()
-        self.discord_thread.join(timeout=2)
+        if self.discord_thread is not None:
+            self.discord_thread.join(timeout=2)
         self.logger.info("[DiscordClient.stop] Client Stopped")
 
     def process_channel_messages(self):
@@ -110,20 +112,20 @@ class DiscordClient:
         try:
             self.utils.send_message(channel_id, content, message_id)
             return True
-        except:
+        except BaseException:
             return False
 
     def send_dm(self, user_id, content):
         self.utils.send_dm(user_id, content)
 
-    def send_embed(self, channel_id, title, fields, color='blue', image_url=None):
+    def send_embed(self, channel_id, title, fields, color="blue", image_url=None):
         self.utils.send_embed(channel_id, title, fields, color, image_url)
 
     def load_commands(self):
         """Load slash commands using standard discord.py syntax."""
-        name = 'bot'
-        description = 'send a command to the bot'
-        function_name = 'bot'
+        name = "bot"
+        description = "send a command to the bot"
+        function_name = "bot"
 
         @self.tree.command(name=name, description=description)
         @app_commands.describe(command="send a command to the bot")
@@ -133,18 +135,19 @@ class DiscordClient:
 
         self.logger.info(f"[DiscordClient.load_commands] Register Command: {name} - Function: {function_name}")
 
-    async def handle_command(self, interaction: discord.Interaction, command_name: str, function_name: str,
-                             kwargs: dict):
+    async def handle_command(
+        self, interaction: discord.Interaction, command_name: str, function_name: str, kwargs: dict
+    ):
         message_data = {
             "channel": str(interaction.channel),
             "channel_id": interaction.channel_id,
             "message": f"/{command_name}",
             "author": interaction.user.display_name,
             "author_id": interaction.user,
-            "timestamp": interaction.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            "timestamp": interaction.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "mentions": [],
             "function_name": function_name,
-            "arg": kwargs.get('arg', None)
+            "arg": kwargs.get("arg", None),
         }
 
         if interaction.channel_id not in self.message_queue:
@@ -158,7 +161,7 @@ class DiscordClient:
         channel = self.client.get_channel(channel_id)
         if channel:
             if is_typing:
-                async with channel.typing():
+                async with channel.typing():  # type: ignore[reportAttributeAccessIssue]
                     await asyncio.sleep(5)
             else:
                 await asyncio.sleep(0)

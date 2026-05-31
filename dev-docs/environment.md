@@ -91,16 +91,16 @@ Tracked Git hooks live in `.githooks/`. Install them for the local checkout with
 scripts/install-git-hooks.sh
 ```
 
-The pre-push hook uses `AGENTFORGE_PYTHON` when set, then `.venv/bin/python`, then legacy `venv/bin/python`, then a system Python fallback. It runs Ruff lint, Ruff format check, and basedpyright on Python files being pushed, then runs the default pytest suite:
+The pre-push hook uses `AGENTFORGE_PYTHON` when set, then `.venv/bin/python`, then legacy `venv/bin/python`, then a system Python fallback. It runs full-repo Ruff lint, Ruff format check, basedpyright, and the default pytest suite:
 
 ```shell
-ruff check <pushed python files>
-ruff format --check <pushed python files>
-basedpyright --project pyproject.toml <pushed python files>
+ruff check .
+ruff format --check .
+basedpyright --project pyproject.toml
 python -m pytest
 ```
 
-Ruff and basedpyright are scoped to pushed Python files because the current whole-repo static-tooling baseline is intentionally not clean yet. Clean Ruff and basedpyright findings as each subsystem is touched. Pytest remains full default-suite verification, with integration-marked tests excluded by `pytest.ini`.
+The whole configured Python tree is expected to stay clean for Ruff and basedpyright. Pytest remains full default-suite verification, with integration-marked tests excluded by `pytest.ini`.
 
 ## Project Configuration
 

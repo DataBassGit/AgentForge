@@ -10,4 +10,4 @@ class AudioOutputMixin:
 
     # NOTE: No helper methods are strictly required for audio output, but providing a
     # convenience passthrough keeps implementations consistent with other mix-ins.
-    # Sub-classes may override `_process_response` if they need custom extraction. 
+    # Sub-classes may override `_process_response` if they need custom extraction.

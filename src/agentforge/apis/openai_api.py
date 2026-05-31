@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from .base_api import BaseModel
 from .openai_runtime import OpenAIRuntime
 from agentforge.apis.mixins.audio_input_mixin import AudioInputMixin
@@ -16,12 +18,10 @@ class GPT(_OpenAIBaseModel):
     """Concrete implementation for OpenAI GPT models."""
 
     def _do_api_call(self, prompt, **filtered_params):
-        messages = prompt["messages"] if isinstance(prompt, dict) and "messages" in prompt else prompt
-        return self.runtime.chat_completions(
-            model=self.model_name,
-            messages=messages,
-            params=filtered_params,
+        messages = cast(
+            list[dict[str, Any]], prompt["messages"] if isinstance(prompt, dict) and "messages" in prompt else prompt
         )
+        return self.runtime.chat_completions(model=self.model_name, messages=messages, params=filtered_params)
 
     def _process_response(self, raw_response):
         return raw_response
@@ -43,11 +43,7 @@ class STT(AudioInputMixin, _OpenAIBaseModel):
 
     def _do_api_call(self, prompt, **filtered_params):
         audio_blob = prompt.get("audio")
-        return self.runtime.stt(
-            model=self.model_name,
-            audio_blob=audio_blob,
-            params=filtered_params,
-        )
+        return self.runtime.stt(model=self.model_name, audio_blob=audio_blob, params=filtered_params)
 
     def _process_response(self, raw_response):
         return raw_response
@@ -67,11 +63,7 @@ class TTS(AudioOutputMixin, _OpenAIBaseModel):
         else:
             input_text = str(prompt)
 
-        return self.runtime.tts(
-            model=self.model_name,
-            input_text=input_text,
-            params=filtered_params,
-        )
+        return self.runtime.tts(model=self.model_name, input_text=input_text, params=filtered_params)
 
     def _process_response(self, raw_response):
         return raw_response
@@ -81,13 +73,10 @@ class Codex(_OpenAIBaseModel):
     """OpenAI Codex wrapper using OAuth-backed responses transport."""
 
     def _do_api_call(self, prompt, **filtered_params):
-        messages = prompt["messages"] if isinstance(prompt, dict) and "messages" in prompt else prompt
-        return self.runtime.codex_responses(
-            model=self.model_name,
-            messages=messages,
-            params=filtered_params,
+        messages = cast(
+            list[dict[str, Any]], prompt["messages"] if isinstance(prompt, dict) and "messages" in prompt else prompt
         )
+        return self.runtime.codex_responses(model=self.model_name, messages=messages, params=filtered_params)
 
     def _process_response(self, raw_response):
         return raw_response
-

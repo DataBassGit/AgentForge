@@ -70,7 +70,7 @@ class WriteFile:
             raise ValueError("File name must be a non-empty string")
         if not isinstance(text, str):
             raise ValueError("Text must be a string")
-        if mode not in ['w', 'a']:
+        if mode not in ["w", "a"]:
             raise ValueError("Mode must be either 'w' or 'a'")
 
         try:
@@ -110,7 +110,7 @@ class WriteFile:
             content_preview += "\n... (more content below)"
         return f"The {file} has successfully been created in '{folder}':\n\n'{content_preview}'"
 
-    def write_file(self, folder, file, text, mode='a'):
+    def write_file(self, folder, file, text, mode="a"):
         """
         Write content to a file, ensuring the folder exists.
 
@@ -136,7 +136,7 @@ class WriteFile:
             raise ValueError("File name must be a non-empty string")
         if not isinstance(text, str):
             raise ValueError("Text must be a string")
-        if mode not in ['w', 'a']:
+        if mode not in ["w", "a"]:
             raise ValueError("Mode must be either 'w' or 'a'")
 
         success, message = self.ensure_folder_exists(folder)

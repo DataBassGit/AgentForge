@@ -331,7 +331,7 @@ class Memory:
             storage_id = fallback_storage_id
         return str(storage_id).strip() or fallback_storage_id
 
-    def _build_merged_context(self, _ctx: dict, _state: dict) -> dict:
+    def _build_merged_context(self, _ctx: dict | None, _state: dict | None) -> dict:
         """
         Build a merged context from context and state.
         Returns:

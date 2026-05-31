@@ -5,18 +5,18 @@ The TrailRecorder class encapsulates all logic related to tracking agent executi
 and outputs in the thought flow trail, including logging functionality.
 """
 
-from typing import List, Optional
+from typing import Any, List
 from agentforge.config_structs.trail_structs import ThoughtTrailEntry
 from agentforge.utils.logger import Logger
 
 
 class TrailRecorder:
     """Encapsulates thought trail tracking and related logging functionality."""
-    
+
     def __init__(self, enabled: bool = True):
         """
         Initialize the trail recorder.
-        
+
         Args:
             enabled: Whether trail recording is enabled
         """
@@ -24,14 +24,16 @@ class TrailRecorder:
         self.enabled = enabled
         self.trail: List[ThoughtTrailEntry] = []
         self._execution_counter = 0
-        
+
         # Future: consider adding max_entries parameter for trail size limits.
         # self.max_entries = max_entries
-    
-    def record_agent_output(self, agent_id: str, output: any, notes: Optional[str] = None, error: Optional[str] = None) -> None:
+
+    def record_agent_output(
+        self, agent_id: str, output: Any, notes: str | None = None, error: str | None = None
+    ) -> None:
         """
         Record an agent's output in the trail.
-        
+
         Args:
             agent_id: ID of the agent that produced the output
             output: The agent's output to record
@@ -40,45 +42,41 @@ class TrailRecorder:
         """
         if not self.enabled:
             return
-            
+
         self._execution_counter += 1
         entry = ThoughtTrailEntry(
-            agent_id=agent_id,
-            output=output,
-            notes=notes,
-            execution_order=self._execution_counter,
-            error=error
+            agent_id=agent_id, output=output, notes=notes, execution_order=self._execution_counter, error=error
         )
         self.trail.append(entry)
         self._log_trail_entry(entry)
-        
+
         # Future: implement trail size management if max_entries is added.
         # if self.max_entries and len(self.trail) > self.max_entries:
         #     self.trail.pop(0)  # Remove oldest entry
-    
+
     def get_trail(self) -> List[ThoughtTrailEntry]:
         """
         Get a copy of the current trail.
-        
+
         Returns:
             List of ThoughtTrailEntry objects representing the execution trail
         """
         return self.trail.copy()
-    
+
     def reset_trail(self) -> None:
         """Clear the trail and reset counters."""
         self.trail.clear()
         self._execution_counter = 0
-    
+
     def _log_trail_entry(self, entry: ThoughtTrailEntry) -> None:
         """
         Log trail entry to debug output.
-        
+
         Args:
             entry: The trail entry to log
         """
         log_message = f"******\n{entry.agent_id}\n******\n{entry.output}\n******"
         if entry.error:
             log_message += f"\nERROR: {entry.error}"
-        
+
         self.logger.debug(log_message)

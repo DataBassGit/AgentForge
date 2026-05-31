@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 """Audio utilities for saving / playing TTS output.
 
 This module centralises all logic previously embedded in ``Agent._route_audio_save``.
 """
+
+from __future__ import annotations
 
 import datetime
 import os
@@ -44,13 +44,11 @@ class AudioManager:
 
         # Resolve fallback directory from `paths.audio` when explicit save_dir missing
         cfg_paths = getattr(cfg_sys, "paths", {})
-        default_dir = (
-            cfg_paths.get("audio") if isinstance(cfg_paths, dict) else getattr(cfg_paths, "audio", None)
-        )
+        default_dir = cfg_paths.get("audio") if isinstance(cfg_paths, dict) else getattr(cfg_paths, "audio", None)
 
         base_dir: str
         if save_enabled:
-            base_dir = (getattr(audio_cfg, "save_dir", "") or default_dir or tempfile.gettempdir())
+            base_dir = getattr(audio_cfg, "save_dir", "") or default_dir or tempfile.gettempdir()
         else:
             # Always need to write *somewhere* to give the caller a path
             base_dir = tempfile.gettempdir()
@@ -79,11 +77,7 @@ class AudioManager:
             if system == "Darwin":
                 subprocess.Popen(["afplay", file_path])
             elif system == "Linux":
-                for cmd in (
-                    ["paplay", file_path],
-                    ["aplay", file_path],
-                    ["ffplay", "-nodisp", "-autoexit", file_path],
-                ):
+                for cmd in (["paplay", file_path], ["aplay", file_path], ["ffplay", "-nodisp", "-autoexit", file_path]):
                     try:
                         subprocess.Popen(cmd)
                         break
@@ -91,4 +85,4 @@ class AudioManager:
                         continue
             # Windows / unknown — no-op
         except Exception as exc:  # pragma: no cover – best-effort only
-            self.logger.warning(f"Auto-play failed: {exc}") 
+            self.logger.warning(f"Auto-play failed: {exc}")

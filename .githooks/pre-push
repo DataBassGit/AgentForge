@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ZERO_SHA="0000000000000000000000000000000000000000"
-
 log() {
     printf '\n[pre-push] %s\n' "$*"
 }
@@ -41,63 +39,6 @@ find_python() {
     return 1
 }
 
-default_compare_ref() {
-    local ref
-
-    ref="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)"
-    if [[ -n "$ref" ]]; then
-        printf '%s\n' "$ref"
-        return 0
-    fi
-
-    for ref in origin/main origin/dev origin/master; do
-        if git rev-parse --verify --quiet "$ref" >/dev/null; then
-            printf '%s\n' "$ref"
-            return 0
-        fi
-    done
-
-    return 1
-}
-
-diff_base_for_ref() {
-    local local_sha="$1"
-    local remote_sha="$2"
-    local default_ref
-
-    if [[ "$remote_sha" != "$ZERO_SHA" ]]; then
-        printf '%s\n' "$remote_sha"
-        return 0
-    fi
-
-    default_ref="$(default_compare_ref || true)"
-    if [[ -n "$default_ref" ]]; then
-        git merge-base "$local_sha" "$default_ref"
-        return 0
-    fi
-
-    git rev-list --max-parents=0 "$local_sha" | tail -n 1
-}
-
-collect_pushed_python_files() {
-    local local_ref
-    local local_sha
-    local remote_ref
-    local remote_sha
-    local base
-    local file
-
-    while read -r local_ref local_sha remote_ref remote_sha; do
-        [[ -z "${local_ref:-}" ]] && continue
-        [[ "$local_sha" == "$ZERO_SHA" ]] && continue
-
-        base="$(diff_base_for_ref "$local_sha" "$remote_sha")"
-        while IFS= read -r file; do
-            [[ -n "$file" ]] && pushed_python_files["$file"]=1
-        done < <(git diff --name-only --diff-filter=ACMR "$base" "$local_sha" -- '*.py')
-    done
-}
-
 run_check() {
     local label="$1"
     shift
@@ -109,24 +50,12 @@ run_check() {
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
-declare -A pushed_python_files=()
-collect_pushed_python_files
-python_files=()
-if ((${#pushed_python_files[@]} > 0)); then
-    mapfile -t python_files < <(printf '%s\n' "${!pushed_python_files[@]}" | sort)
-fi
-
 python_bin="$(find_python)" || fail "Could not find a Python interpreter. Activate .venv or set AGENTFORGE_PYTHON."
 log "Using Python: $python_bin"
 
-if ((${#python_files[@]} > 0)); then
-    run_check "Ruff lint on pushed Python files" "$python_bin" -m ruff check --force-exclude "${python_files[@]}"
-    run_check "Ruff format check on pushed Python files" "$python_bin" -m ruff format --check --force-exclude "${python_files[@]}"
-    run_check "basedpyright on pushed Python files" "$python_bin" -m basedpyright --project pyproject.toml "${python_files[@]}"
-else
-    log "No pushed Python files; skipping scoped Ruff and basedpyright checks."
-fi
-
+run_check "Ruff lint" "$python_bin" -m ruff check .
+run_check "Ruff format check" "$python_bin" -m ruff format --check .
+run_check "basedpyright" "$python_bin" -m basedpyright --project pyproject.toml
 run_check "pytest default suite" "$python_bin" -m pytest
 
 log "All pre-push checks passed."

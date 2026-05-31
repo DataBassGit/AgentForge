@@ -1,5 +1,6 @@
 # input_prompt.py
 
+
 class UserInput:
     def __init__(self, default_input=None):
         self.default_input = default_input
@@ -34,9 +35,9 @@ class UserInput:
             response = self.get_input(full_prompt).lower()
             if not response:
                 response = default
-            if response in ['y', 'yes']:
+            if response in ["y", "yes"]:
                 return True
-            elif response in ['n', 'no']:
+            elif response in ["n", "no"]:
                 return False
             print("Please enter 'y' or 'n'.")
 

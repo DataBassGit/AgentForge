@@ -22,7 +22,7 @@ def remove_extra_newlines(chunk):
     """
     if not isinstance(chunk, str):
         raise ValueError("Input chunk must be a string")
-    return re.sub(r'\n+', '\n\n', chunk)
+    return re.sub(r"\n+", "\n\n", chunk)
 
 
 def get_plain_text(url):
@@ -52,7 +52,7 @@ def get_plain_text(url):
         response.raise_for_status()  # Raise an exception for bad status codes
 
         # Create a BeautifulSoup object with the HTML content
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
 
         # Extract the plain text from the HTML content
         plain_text = soup.get_text()
@@ -90,9 +90,12 @@ def chunk_save(chunks, url):
     try:
         for chunk in chunks:
             chunk = remove_extra_newlines(chunk)
-            storage_instance.save_memory(collection_name='Results', data=[chunk], metadata=[{"source_url": url}])
+            storage_instance.save_memory(  # type: ignore[reportAttributeAccessIssue]
+                collection_name="Results", data=[chunk], metadata=[{"source_url": url}]
+            )
     except Exception as e:
         raise Exception(f"Error saving chunks to memory: {str(e)}")
+
 
 # Usage example (commented out)
 # if __name__ == "__main__":

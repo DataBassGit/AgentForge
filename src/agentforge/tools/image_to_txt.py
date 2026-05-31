@@ -1,6 +1,7 @@
 import cv2
 import pytesseract
 
+
 def imagetotxt(image_path):
     """
     Extract text from an image using OCR (Optical Character Recognition).
@@ -23,7 +24,7 @@ def imagetotxt(image_path):
     try:
         # Load the image
         image = cv2.imread(image_path)
-        
+
         if image is None:
             raise ValueError(f"Unable to read the image file: {image_path}")
 
@@ -32,7 +33,7 @@ def imagetotxt(image_path):
 
         # Use Tesseract to extract text from the image
         extracted_text = pytesseract.image_to_string(gray)
-        
+
         return extracted_text.strip()
 
     except FileNotFoundError:
@@ -41,6 +42,7 @@ def imagetotxt(image_path):
         raise ImportError(f"Required library not installed: {str(e)}")
     except Exception as e:
         raise Exception(f"An error occurred while processing the image: {str(e)}")
+
 
 # Usage example (commented out)
 # if __name__ == "__main__":

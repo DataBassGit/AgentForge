@@ -1,8 +1,8 @@
 import asyncio
-import threading
 
 import discord
 from agentforge.tools.semantic_chunk import semantic_chunk
+
 
 class DiscordUtils:
     def __init__(self, client, logger):
@@ -36,8 +36,9 @@ class DiscordUtils:
                     return
 
                 # Create a message reference if a message_id is provided
-                reference = discord.MessageReference(message_id=message_id,
-                                                     channel_id=channel_id) if message_id else None
+                reference = (
+                    discord.MessageReference(message_id=message_id, channel_id=channel_id) if message_id else None
+                )
                 first_message_sent = False
 
                 for msg in messages:
@@ -56,10 +57,14 @@ class DiscordUtils:
 
             except discord.errors.Forbidden:
                 self.logger.error(
-                    f"[DiscordUtils.send_message] Bot doesn't have permission to send messages in channel {channel_id}")
+                    f"[DiscordUtils.send_message] Bot doesn't have permission to send messages in channel {channel_id}"
+                )
             except Exception as e:
+                content_preview = content[:100]
                 self.logger.error(
-                    f"[DiscordUtils.send_message] Error sending message to channel {channel_id}: {str(e)}\nMessage: {content[:100]}...")
+                    f"[DiscordUtils.send_message] Error sending message to channel {channel_id}: {str(e)}\n"
+                    f"Message: {content_preview}..."
+                )
 
         try:
             return asyncio.run_coroutine_threadsafe(send(), self.client.loop)
@@ -74,6 +79,7 @@ class DiscordUtils:
             user_id (int): The ID of the user to send the direct message to
             content (str): The content of the direct message to send
         """
+
         async def send_dm_async():
             try:
                 user = await self.client.fetch_user(user_id)
@@ -101,7 +107,7 @@ class DiscordUtils:
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.send_dm] Failed to schedule DM sending: {str(e)}")
 
-    def send_embed(self, channel_id, title, fields, color='blue', image_url=None):
+    def send_embed(self, channel_id, title, fields, color="blue", image_url=None):
         """
         Send an embed message to a specified Discord channel.
 
@@ -112,6 +118,7 @@ class DiscordUtils:
             color (str, optional): The color of the embed message. Defaults to 'blue'
             image_url (str, optional): The URL of the image to include in the embed message
         """
+
         async def send_embed_async():
             try:
                 channel = self.client.get_channel(channel_id)
@@ -119,10 +126,7 @@ class DiscordUtils:
                     # Convert color string to discord.Color
                     embed_color = getattr(discord.Color, color.lower(), discord.Color.blue)()
 
-                    embed = discord.Embed(
-                        title=title,
-                        color=embed_color
-                    )
+                    embed = discord.Embed(title=title, color=embed_color)
                     if image_url:
                         embed.set_image(url=image_url)
                     for name, value in fields:
@@ -141,7 +145,9 @@ class DiscordUtils:
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.send_embed] Failed to schedule embed sending: {str(e)}")
 
-    def create_thread(self, channel_id, message_id, name, auto_archive_duration=1440, remove_author=True, do_lock_thread=True):
+    def create_thread(
+        self, channel_id, message_id, name, auto_archive_duration=1440, remove_author=True, do_lock_thread=True
+    ):
         """
         Create a new thread in a specified channel, attached to a specific message.
 
@@ -156,6 +162,7 @@ class DiscordUtils:
         Returns:
             int: The ID of the created thread, or None if creation failed
         """
+
         async def create_thread_async():
             try:
                 channel = self.client.get_channel(channel_id)
@@ -165,11 +172,13 @@ class DiscordUtils:
 
                 message = await channel.fetch_message(message_id)
                 if not message:
-                    self.logger.error(f"[DiscordUtils.create_thread] Message with ID {message_id} not found in channel {channel_id}")
+                    self.logger.error(
+                        f"[DiscordUtils.create_thread] Message with ID {message_id} not found in channel {channel_id}"
+                    )
                     return None
 
                 # Safely check if thread exists using hasattr
-                if hasattr(message, 'thread') and message.thread:
+                if hasattr(message, "thread") and message.thread:
                     self.logger.info(f"[DiscordUtils.create_thread] Thread already exists for message {message_id}")
                     return message.thread.id
 
@@ -178,19 +187,24 @@ class DiscordUtils:
 
                 if remove_author:
                     await thread.remove_user(message.author)
-                    self.logger.info(f"[DiscordUtils.create_thread] Removed author {message.author} from thread '{name}'")
+                    self.logger.info(
+                        f"[DiscordUtils.create_thread] Removed author {message.author} from thread '{name}'"
+                    )
                 if do_lock_thread:
                     await thread.edit(locked=True, archived=False)
                     self.logger.info(f"[DiscordUtils.create_thread] Locked thread '{name}'")
 
                 return thread.id
             except discord.errors.Forbidden:
-                self.logger.error(f"[DiscordUtils.create_thread] Bot doesn't have permission to create threads in channel {channel_id}")
+                self.logger.error(
+                    "[DiscordUtils.create_thread] Bot doesn't have permission to create threads "
+                    f"in channel {channel_id}"
+                )
             except discord.errors.HTTPException as e:
                 if e.code == 160004:  # Thread already exists error code
                     if message.thread:
                         return message.thread.id
-                    self.logger.error(f"[DiscordUtils.create_thread] Thread exists but cannot be accessed")
+                    self.logger.error("[DiscordUtils.create_thread] Thread exists but cannot be accessed")
                 else:
                     self.logger.error(f"[DiscordUtils.create_thread] Error creating thread: {str(e)}")
 
@@ -215,6 +229,7 @@ class DiscordUtils:
         Returns:
             bool: True if the reply was sent successfully, False otherwise
         """
+
         async def reply_async():
             try:
                 thread = self.client.get_channel(thread_id)
@@ -231,7 +246,9 @@ class DiscordUtils:
                 self.logger.info(f"[DiscordUtils.reply_to_thread] Reply sent to thread {thread_id}")
                 return True
             except discord.errors.Forbidden:
-                self.logger.error(f"[DiscordUtils.reply_to_thread] Bot doesn't have permission to reply to thread {thread_id}")
+                self.logger.error(
+                    f"[DiscordUtils.reply_to_thread] Bot doesn't have permission to reply to thread {thread_id}"
+                )
             except Exception as e:
                 self.logger.error(f"[DiscordUtils.reply_to_thread] Error replying to thread: {str(e)}")
             return False
@@ -275,7 +292,8 @@ class DiscordUtils:
 
             except discord.errors.Forbidden:
                 self.logger.error(
-                    f"[DiscordUtils.lock_thread] Bot doesn't have MANAGE_THREADS permission for {thread_id}")
+                    f"[DiscordUtils.lock_thread] Bot doesn't have MANAGE_THREADS permission for {thread_id}"
+                )
             except Exception as e:
                 self.logger.error(f"[DiscordUtils.lock_thread] Error locking thread: {str(e)}")
             return False

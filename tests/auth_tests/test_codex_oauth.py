@@ -25,14 +25,8 @@ def test_cached_token_success_path(monkeypatch):
 
 def test_interactive_login_path_is_invoked(monkeypatch):
     login_mock = MagicMock()
-    tokens = [
-        None,
-        {"access_token": "token_b", "account_id": "acct_b"},
-    ]
-    module = SimpleNamespace(
-        get_token=MagicMock(side_effect=lambda: tokens.pop(0)),
-        login_oauth_interactive=login_mock,
-    )
+    tokens = [None, {"access_token": "token_b", "account_id": "acct_b"}]
+    module = SimpleNamespace(get_token=MagicMock(side_effect=lambda: tokens.pop(0)), login_oauth_interactive=login_mock)
     monkeypatch.setitem(sys.modules, "oauth_cli_kit", module)
 
     credentials = get_codex_credentials(interactive=True)
@@ -43,10 +37,7 @@ def test_interactive_login_path_is_invoked(monkeypatch):
 
 
 def test_non_interactive_missing_token_error_text(monkeypatch):
-    module = SimpleNamespace(
-        get_token=MagicMock(return_value=None),
-        login_oauth_interactive=MagicMock(),
-    )
+    module = SimpleNamespace(get_token=MagicMock(return_value=None), login_oauth_interactive=MagicMock())
     monkeypatch.setitem(sys.modules, "oauth_cli_kit", module)
 
     with pytest.raises(NonRetriableModelError, match="python -m agentforge.init_codex_oauth"):
@@ -56,10 +47,7 @@ def test_non_interactive_missing_token_error_text(monkeypatch):
 def test_force_reauth_ignores_cached_token(monkeypatch):
     login_mock = MagicMock()
     get_token_mock = MagicMock(return_value={"access_token": "fresh_token", "account_id": "acct_c"})
-    module = SimpleNamespace(
-        get_token=get_token_mock,
-        login_oauth_interactive=login_mock,
-    )
+    module = SimpleNamespace(get_token=get_token_mock, login_oauth_interactive=login_mock)
     monkeypatch.setitem(sys.modules, "oauth_cli_kit", module)
 
     credentials = get_codex_credentials(interactive=True, force_reauth=True)
