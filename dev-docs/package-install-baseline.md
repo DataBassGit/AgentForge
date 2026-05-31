@@ -1,6 +1,6 @@
 # Package Install Baseline
 
-Recorded 2026-05-30. This is developer-only package and install evidence, not public install documentation.
+Recorded 2026-05-30 and refreshed 2026-05-31. This is developer-only package and install evidence, not public install documentation.
 
 ## Metadata Decision
 
@@ -19,6 +19,8 @@ Built artifacts with:
 python -m build --sdist --wheel --outdir /tmp/agentforge-package-dist
 ```
 
+The refreshed isolated build completed after allowing access to PyPI for build-system requirements.
+
 Results:
 
 | Check | Result |
@@ -35,8 +37,12 @@ Results:
 Representative setup resources verified in both artifacts:
 
 - `setup_files/settings/system.yaml`
+- `setup_files/settings/models.yaml`
 - `setup_files/prompts/response_agent.yaml`
 - `setup_files/cogs/example_cog.yaml`
+- `setup_files/tools/read_file.yaml`
+- `setup_files/actions/web_search.yaml`
+- `setup_files/personas/default_assistant.yaml`
 
 ## Clean Install Evidence
 
@@ -46,11 +52,18 @@ Created a clean Python 3.14 venv at `/tmp/agentforge-package-install`, installed
 - `import agentforge.config` succeeds.
 - Installed package metadata reports version `0.6.5`.
 - `agentforge/setup_files/settings/system.yaml` is available through package resources.
-- `python -m agentforge.init_agentforge` copies `.agentforge/settings/system.yaml`, `.agentforge/prompts/response_agent.yaml`, and `.agentforge/cogs/example_cog.yaml` in a temporary project directory.
+- `python -m agentforge.init_agentforge` runs from a temporary project directory without a repo checkout on `sys.path`.
+- The scaffold creates 38 YAML files under `.agentforge`, including representative settings, prompts, cogs, tools, actions, and personas.
+- Running `python -m agentforge.init_agentforge` a second time skips identical files without prompting or rewriting them.
+- `Config(root_path=...)`, `Config.reset(root_path=...)`, and `AGENTFORGE_ROOT` each load the scaffolded `.agentforge` root.
 - `/tmp/agentforge-package-install/bin/agentforge` is absent.
 - `pip check` reports no broken requirements.
 
-The first clean-install attempt hit local disk quota because older temporary compatibility venvs were still present. After removing those generated temp directories, the same wheel install passed; this was an environment space issue rather than a package metadata failure.
+The sandboxed dependency install cannot resolve PyPI without network access. After approving PyPI access, the wheel installed successfully with its dependencies.
+
+## Editable Install Evidence
+
+The local Python 3.14 `.venv` reports `agentforge` version `0.6.5` as an editable install with project location `/home/ansel/Projects/AgentForge`. Focused package, config, Ruff, and basedpyright checks ran through that environment.
 
 ## Remaining Risks
 
