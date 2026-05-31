@@ -1,6 +1,6 @@
 # Using AgentForge
 
-This guide introduces the modern AgentForge framework, focusing on YAML-first configuration, agent and cog orchestration, memory, personas, and settings. It is designed for new developers and reflects the latest best practices and conventions.
+This guide introduces AgentForge's YAML-first configuration, agent and Cog orchestration, memory, personas, and settings.
 
 ---
 

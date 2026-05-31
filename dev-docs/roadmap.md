@@ -28,11 +28,9 @@ Current developer docs should not become a substitute for public beginner docs. 
 
 ## Prompt And Tooling Direction
 
-Advanced prompt templating may grow beyond the current placeholder renderer. Jinja-capable templating is a possible direction, but it should be introduced as a clear framework feature with escaping, missing-value behavior, and migration expectations documented.
+Advanced prompt templating may grow beyond the current placeholder renderer. Jinja-capable templating is a possible direction, but it should be introduced as a clear framework feature with escaping, missing-value behavior, and compatibility expectations documented.
 
 Tools and Actions are deprecated and should eventually be replaced by a supported modern surface, likely influenced by MCP-style tool contracts. Until that direction is explicit, preserve compatibility and avoid deepening the legacy API unnecessarily.
-
-Other development is currently happening on Tools/Actions and MCP support on the `dev` branch. Cleanup work on this branch should avoid that section until branches are ready to reconvene.
 
 ## Provider Integrations
 
@@ -49,7 +47,7 @@ Do not add broad provider abstractions before repeated needs are visible across 
 
 AgentForge already has text, audio-input, audio-output, and basic image/vision paths. Modernization should make those paths graceful and explicit: unsupported modalities should fail clearly, supported modalities should have provider-specific request/response tests, and setup defaults should not imply capabilities that the provider path cannot actually handle.
 
-Vision support is still rudimentary and should be reviewed as part of provider modernization. Image generation is a future feature and should be tracked as roadmap direction only during the current cleanup pass unless a separate implementation effort explicitly scopes it.
+Vision support is still rudimentary and should be reviewed as part of provider modernization. Image generation belongs on the roadmap until a separate implementation effort explicitly scopes it.
 
 ## Memory, Retrieval, And Runtime Patterns
 
@@ -71,4 +69,4 @@ Privacy settings should correspond to real behavior. If a setting disables loggi
 - Keep Cog flow decisions declarative where possible.
 - Keep tests fast and fake-backed by default.
 - Keep dev-only documentation outside `docs/` unless intentionally made public.
-- Keep public docs updates for cleanup closure once code behavior has stabilized.
+- Keep public docs aligned with current supported behavior.

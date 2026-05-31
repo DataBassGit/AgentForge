@@ -35,7 +35,7 @@ The important categories are:
 - `cogs/`: declarative multi-agent workflows.
 - `personas/`: optional persona content and defaults.
 - `custom_apis/`: consumer-provided provider modules.
-- `tools/` and `actions/`: deprecated surfaces retained for compatibility.
+- `tools/` and `actions/`: legacy dynamic execution surfaces retained for compatibility.
 
 Project root discovery uses this precedence:
 
@@ -79,9 +79,9 @@ Add new memory behavior behind a memory class and config definition. Preserve co
 
 When changing YAML schemas, update validation, dataclasses, setup files, docs, and tests together. Schema drift is expensive in this repo because many features are configured declaratively.
 
-## Current Architecture Risks
+## Architecture Boundaries
 
-- Package metadata now lives in `pyproject.toml`, but public install docs and local requirements still need an alignment pass. Do not use one source as proof that the others are correct during cleanup.
-- AgentForge does not currently install a public `agentforge` console command. Use `python -m agentforge.init_agentforge` for setup scaffolding unless a later workflow effort adds a real CLI.
-- Some public docs still describe deprecated Tools/Actions. Preserve compatibility while future work defines the MCP-oriented replacement.
-- Provider failures now have a first diagnostic baseline: unsupported modalities name requested/supported capabilities, missing API keys fail before network calls for key-based cloud providers, and malformed or empty provider responses use `ModelResponseError`. Live provider behavior is still unverified, so avoid adding new provider paths without focused failure tests and an explicit live-check decision.
+- Package metadata lives in `pyproject.toml`; local development dependencies live in `REQUIREMENTS.txt`.
+- AgentForge does not install a public `agentforge` console command. Use `python -m agentforge.init_agentforge` for setup scaffolding.
+- Tools and Actions remain available for compatibility with trusted project-owned definitions, but they should not become the model for new framework extension points.
+- Provider failures should be actionable: unsupported modalities name requested and supported capabilities, missing API keys fail before network calls for key-based cloud providers, and malformed or empty provider responses use `ModelResponseError`.

@@ -90,7 +90,7 @@ embedding_library:
 ## 6. Usage Examples
 ```python
 # Initialize or reuse storage client
-storage = ChromaStorage.get_or_create(storage_id="session_42")
+storage = ChromaStorage.get_or_create(storage_id="conversation_42")
 
 # Save a note
 storage.save_to_storage(

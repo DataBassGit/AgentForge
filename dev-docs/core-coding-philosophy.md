@@ -99,7 +99,7 @@ Avoid long blocks of setup variables before the reader reaches the module's purp
 
 ### Code Sections
 
-For files that benefit from navigational markers, prefer a brief opening context comment with useful file metadata, a short summary, and then clear top-level sections. Include only metadata that helps future readers understand ownership, timing, or context; adapt the fields to the language, project, and file type. Files with public API plus helpers, multiple responsibilities, or nontrivial length should usually have meaningful section comments.
+For files that benefit from navigational markers, prefer a brief opening context comment with useful file metadata, a short summary, and then clear top-level sections. Include only metadata that helps readers understand ownership, timing, or context; adapt the fields to the language, project, and file type. Files with public API plus helpers, multiple responsibilities, or nontrivial length should usually have meaningful section comments.
 
 ```python
 """

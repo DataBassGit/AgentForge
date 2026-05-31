@@ -59,7 +59,7 @@ If you encounter issues not covered in this guide:
 
 ## Tips
 
-- **Stay Updated**: Ensure you're using the latest version of **AgentForge**.
+- **Check Your Version**: Confirm the installed **AgentForge** version matches the documentation you are using.
 - **Consult the Documentation**: Refer to the other guides and documentation for detailed information.
 - **Community Support**: Engage with the community on Discord for assistance and to share experiences.
 

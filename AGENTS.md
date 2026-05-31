@@ -7,13 +7,8 @@ This file is the entrypoint for agents and developers working in this repository
 - `dev-docs/architecture.md` explains the main runtime components and extension boundaries.
 - `dev-docs/core-coding-philosophy.md` defines the project coding standard for cleanup and feature work.
 - `dev-docs/environment.md` covers local setup, the repo `.venv`, requirements, `.agentforge` discovery, and test execution.
-- `dev-docs/package-install-baseline.md` records the current package metadata, artifact, and clean-install evidence.
 - `dev-docs/pipeline-config-graph.md` gives the high-level data-flow map and a Mermaid graph.
-- `dev-docs/provider-modality-baseline.md` records provider defaults, modality behavior, and request/response diagnostics.
-- `dev-docs/python-compatibility-baseline.md` records the current Python 3.14 compatibility evidence.
-- `dev-docs/roadmap.md` summarizes future direction that should shape current decisions.
-- `dev-docs/static-tooling-baseline.md` records the current Ruff and basedpyright baseline for staged cleanup work.
-- `dev-docs/test-review-baseline.md` records the current deterministic test-review baseline and first cleanup actions.
+- `dev-docs/roadmap.md` summarizes directional constraints that should shape current decisions.
 - `dev-docs/test-spec.md` describes how to create, update, organize, retire, and run tests.
 
 Do not move these files into `docs/` unless the project intentionally decides they should become public documentation. The current `docs/` folder is used by the hosted documentation navigator.
@@ -25,7 +20,7 @@ Do not move these files into `docs/` unless the project intentionally decides th
 - Preserve public behavior unless the task explicitly asks for a public contract change.
 - Prefer existing AgentForge patterns over introducing new framework shape.
 - Keep consumer-owned configuration, prompts, personas, memory data, and product workflows out of the library unless they reveal a reusable framework need.
-- When a change affects architecture, testing policy, local setup, or roadmap assumptions, update the corresponding `dev-docs/` page in the same change.
+- When a change affects architecture, testing policy, local setup, or durable roadmap assumptions, update the corresponding `dev-docs/` page in the same change.
 
 ## Local Environment
 

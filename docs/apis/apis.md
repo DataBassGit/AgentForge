@@ -8,7 +8,7 @@ AgentForge provides a unified interface for integrating with a variety of Large 
 
 All API classes inherit from `BaseModel`, which provides:
 
-- **Unified Prompt and Image Handling**: Supports both text and (where available) image/multimodal prompts.
+- **Unified Prompt and Media Handling**: Supports text, image, audio-input, and audio-output modalities when the selected provider class implements them.
 - **Retry and Backoff Logic**: Automatic retries for rate limits and connection errors.
 - **Consistent Logging**: All prompts, responses, and errors are logged.
 - **Parameter Filtering**: Only relevant parameters are passed to the API.
@@ -50,18 +50,23 @@ class BaseModel:
 
 AgentForge ships with the following built-in API classes. Each is configured via YAML and can be used in agents or cogs by specifying the appropriate API and model.
 
-| API Class      | Config Key      | Description                        |
-|---------------|----------------|------------------------------------|
-| `GPT`         | `openai_api`   | OpenAI GPT models                  |
-| `O1Series`    | `openai_api`   | OpenAI GPT (O1 series)             |
-| `Codex`       | `openai_api`   | OpenAI Codex via OAuth             |
-| `Ollama`      | `ollama_api`   | Ollama local LLM API               |
-| `LMStudio`    | `lm_studio_api`| LM Studio local LLM API            |
-| `OpenRouter`  | `openrouter_api`| OpenRouter API                     |
-| `Gemini`      | `gemini_api`   | Google Gemini API                  |
-| `GeminiVision`| `gemini_api`   | Google Gemini with image support   |
-| `Claude`      | `anthropic_api`| Anthropic Claude API               |
-| `GroqAPI`     | `groq_api`     | Groq API                           |
+| API Class | Config Key | Description |
+| --- | --- | --- |
+| `GPT` | `openai_api` | OpenAI chat models |
+| `O1Series` | `openai_api` | OpenAI reasoning-series models |
+| `STT` | `openai_api` | OpenAI speech-to-text models |
+| `TTS` | `openai_api` | OpenAI text-to-speech models |
+| `Codex` | `openai_api` | OpenAI Codex via OAuth |
+| `Ollama` | `ollama_api` | Ollama local LLM API |
+| `LMStudio` | `lm_studio_api` | LM Studio local LLM API |
+| `LMStudioVision` | `lm_studio_api` | LM Studio image-capable API |
+| `OpenRouter` | `openrouter_api` | OpenRouter API |
+| `Gemini` | `gemini_api` | Google Gemini API |
+| `GeminiVision` | `gemini_api` | Google Gemini with image support |
+| `Claude` | `anthropic_api` | Anthropic Claude API |
+| `GroqAPI` | `groq_api` | Groq API |
+| `LiteLLM` | `litellm_api` | LiteLLM routing for configured endpoints |
+| `VLLM` | `vllm_api` | vLLM-compatible local/server API |
 
 ---
 
@@ -81,8 +86,8 @@ model_library:
   openai_api:
     GPT:
       models:
-        gpt-4:
-          identifier: "gpt-4"
+        gpt55_model:
+          identifier: gpt-5.5
           params:
             temperature: 0.7
       params:
@@ -90,9 +95,7 @@ model_library:
 
 default_model:
   api: openai_api
-  model: gpt-4
-  params:
-    temperature: 0.5
+  model: gpt55_model
 ```
 
 ---

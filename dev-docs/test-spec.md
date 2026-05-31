@@ -108,7 +108,7 @@ Update tests when the supported contract changes. Do not preserve stale tests by
 
 Delete tests when they cover behavior that is no longer supported and no longer guards a compatibility promise. If deletion removes the only coverage for a nearby supported behavior, replace it with a focused current test in the same change.
 
-When retiring deprecated Tools/Actions behavior, keep compatibility tests only for the behavior the project still intends to support during the transition.
+When retiring legacy Tools/Actions behavior, keep compatibility tests only for the behavior the project still supports.
 
 ## Acceptance Checklist
 

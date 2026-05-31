@@ -117,8 +117,6 @@ AgentForge currently ships with the following memory node types:
 - **ChatHistoryMemory**: Automatically manages chat history for a Cog, providing recent conversation context to agents. This node is added automatically unless disabled.
 - **ScratchPad**: A memory node for maintaining a working scratchpad or notes, with support for log consolidation.
 
-> **Note:** Additional memory types may be released in the future as the framework evolves.
-
 ---
 
 ## 6. Best Practices for Cog-Based Memory

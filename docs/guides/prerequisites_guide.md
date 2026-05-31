@@ -6,7 +6,7 @@ Before you begin using **AgentForge**, ensure your system meets the necessary re
 
 ## Python Version Requirement
 
-- **Python 3.11**
+- **Python 3.10 or newer**
 - Verify your Python version:
 
   ```shell
@@ -126,5 +126,5 @@ If you plan to use **ChromaDB** (the default database), you need the Microsoft C
 
 **Next Steps**:
 
-- Proceed to the [Installation Guide](InstallationGuide.md) to install AgentForge.
-- After installation, check out the [Using AgentForge Guide](UsingAgentForge.md) to get started with running agents.
+- Proceed to the [Installation Guide](installation_guide.md) to install AgentForge.
+- After installation, check out the [Using AgentForge Guide](using_agentforge.md) to run agents and Cog workflows.

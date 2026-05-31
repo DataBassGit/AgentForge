@@ -137,7 +137,7 @@ When an agent runs, the Cog engine provides three key variables in the prompt te
 - **`_state`**: The internal state dictionary, containing outputs from all previously executed agents in the workflow.
 - **`_mem`**: The memory manager, where each memory node is accessible as an attribute. For example, if you have a memory node with `id: persona_memory`, you can access its properties in your prompt as `{_mem.persona_memory.<property>}`.
 
-This allows agents to reference both the latest user input/context and the outputs of other agents. For example, in a prompt template:
+This allows agents to reference both current user input/context and the outputs of other agents. For example, in a prompt template:
 
 ```yaml
 prompts:

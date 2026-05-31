@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide will walk you through the steps required to install **AgentForge** on your system.
+This guide walks through installing **AgentForge** and scaffolding the `.agentforge/` project files used by the framework.
 
 ---
 
@@ -8,14 +8,14 @@ This guide will walk you through the steps required to install **AgentForge** on
 
 ### 1. Ensure Python is Installed
 
-- **Python Version**: AgentForge requires **Python 3.11**.
+- **Python Version**: AgentForge requires **Python 3.10 or newer**.
 - **Check Python Version**:
 
   ```shell
   python3 --version
   ```
   
-  If Python is not installed or the version is anything other than **3.11**, download **version 3.11** from the official [Python website](https://www.python.org/downloads/).
+  If Python is not installed or is older than **3.10**, download a supported version from the official [Python website](https://www.python.org/downloads/).
 
 ### 2. Set Up a Virtual Environment (Optional But Recommended)
 
@@ -24,7 +24,7 @@ Using a virtual environment helps avoid conflicts with system-wide packages.
 - **Create a Virtual Environment**:
 
   ```shell
-  python3.13 -m venv venv
+  python3 -m venv venv
   ```
 
 - **Activate the Virtual Environment**:
@@ -108,7 +108,7 @@ Navigate to your project directory and initialize your **AgentForge** project:
 python -m agentforge.init_agentforge
 ```
 
-This command creates a new `.agentforge` folder in your project with sub-folders containing **YAML** files:
+This command creates a `.agentforge` folder in your project with YAML settings, prompts, cogs, tools, actions, and personas:
 
 ```
 your_project/
@@ -136,12 +136,12 @@ This stores OAuth credentials used by the `Codex` provider. Codex OAuth is separ
 
 ## Using AgentForge
 
-Now that your project is set up, you can proceed to the [Using AgentForge Guide](using_agentforge.md) to learn how to run agents and build your solutions. This guide provides examples and instructions on how to create and interact with agents using **AgentForge**.
+After project setup, continue with the [Using AgentForge Guide](using_agentforge.md) to run agents and build Cog workflows.
 
 ---
 
 ## Next Steps
 
-- Review the [Prerequisites Guide](prerequisites_guide.md) if you haven't set up API keys or other necessary configurations.
+- Review the [Prerequisites Guide](prerequisites_guide.md) if you have not set up API keys or local model services.
 
 - If you're having trouble with **AgentForge**, please head over to the [Troubleshooting Guide](troubleshooting_guide.md) for solutions to common issues.

@@ -1,7 +1,7 @@
 [![GitHub - License](https://img.shields.io/github/license/DataBassGit/AgentForge?logo=github&style=plastic&color=green)](https://github.com/DataBassGit/AgentForge/blob/dev/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/agentforge?logo=pypi&style=plastic&color=blue)](https://pypi.org/project/agentforge/)
 [![Documentation](https://img.shields.io/badge/Docs-GitHub-blue?logo=github&style=plastic&color=green)](https://github.com/DataBassGit/AgentForge/tree/dev/docs)
-[![Python Version](https://img.shields.io/badge/Python-3.12-blue?style=plastic&logo=python)](https://www.python.org/)
+[![Python Version](https://img.shields.io/badge/Python-%3E%3D3.10-blue?style=plastic&logo=python)](https://www.python.org/)
 [![Homepage](https://img.shields.io/badge/Homepage-agentforge.net-green?style=plastic&logo=google-chrome)](https://agentforge.net/)
 
 ![AgentForge Logo](./docs/images/AF-Banner.jpg)
@@ -40,8 +40,6 @@ Build agents and cognitive architectures (multi-agent systems) with:
 - **OpenAI, Google & Anthropic API Support**: Integrate with popular LLM APIs.
 - **Open-Source Model Support**: Leverage local models through [Ollama](https://ollama.com) and [LMStudio](https://lmstudio.ai).
 
-> **Note:** Actions and tools are deprecated as of this release and will be replaced in a future version with a new system based on the MCP standard.
-
 ---
 
 ## Documentation
@@ -64,7 +62,7 @@ Comprehensive documentation is available to help you get started and go deeper:
 - **[Personas](docs/personas/personas.md)**: Use personas to encapsulate agent identity, style, and reusable knowledge.
 - **[Settings](docs/settings/settings.md)**: Configure models, storage, and system behavior.
 - **[Storage](docs/storage/chroma_storage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
-- **[Tools & Actions](docs/tools_and_actions/overview.md)**: *Deprecated*—will be replaced by an MCP-based system in a future release.
+- **[Tools & Actions](docs/tools_and_actions/overview.md)**: Reference the legacy dynamic execution surface retained for compatibility with trusted project-owned tools.
 - **[Utilities](docs/utils/utils_overview.md)**: Explore utility functions and tools that enhance the system's capabilities.
 
 ---

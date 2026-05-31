@@ -13,7 +13,7 @@
 ```yaml
 persona:
   enabled: true       # Load persona files from .agentforge/personas/
-  name: default       # Default persona filename (without .yaml)
+  name: default_assistant # Default persona filename (without .yaml)
   static_char_cap: 8000  # Max character length for persona markdown (0 disables truncation)
 
 debug:
@@ -26,11 +26,16 @@ logging:
   console_level: warning        # Minimum severity for console output
   folder: ./logs                # Relative folder for log files
   files:                        # Per-logger file-level overrides
-    agentforge: error
-    model_io: error
+    agentforge: debug
+    model_io: debug
 
 misc:
   on_the_fly: true   # Reload YAML configs at runtime for dynamic updates
+
+audio:
+  autoplay: true      # Play generated audio files after saving
+  save_files: false   # Persist audio files or use a temporary directory
+  save_dir: ./audio_files
 
 paths:
   files: ./files     # Read/write directory available to agents
@@ -38,9 +43,9 @@ paths:
 
 ### persona
 - **enabled** (bool): Toggle persona loading. Default `true`.
-- **name** (string): Persona filename (no `.yaml`). Default `default`.
+- **name** (string): Persona filename (no `.yaml`). Default `default_assistant`.
 - **static_char_cap** (int): Maximum character length for persona markdown loaded from `.agentforge/personas/`. If set to 0, truncation is disabled. Default: 8000.
-- **Behavior:** When enabled, `Config` loads `.agentforge/personas/<name>.yaml`. Agents can override via their own `personas` key.
+- **Behavior:** When enabled, `Config` loads `.agentforge/personas/<name>.yaml`. Agents can override via their own `persona` key.
 
 ### debug
 - **mode** (bool): Enable debug mode to bypass real LLM calls.
@@ -55,6 +60,11 @@ paths:
 
 ### misc
 - **on_the_fly** (bool): When `true`, **AgentForge** re-reads YAML files before each run for rapid iteration.
+
+### audio
+- **autoplay** (bool): Play generated audio files after they are saved.
+- **save_files** (bool): Persist generated audio files when `true`; use temporary files when `false`.
+- **save_dir** (string): Directory for saved audio files when persistence is enabled.
 
 ### paths
 - **files** (string): Default directory for agent I/O operations. You can add extra entries (e.g., `paths.temp`) and they will appear under `settings.system.paths`.
