@@ -715,49 +715,62 @@ class ChromaStorage:
 
     @auto_recover
     def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
+        """
+        Retrieves the collection entry with the minimum or maximum value for a specified metadata tag.
+
+        NOTE: This performs a scan of all metadata in the collection. For very large
+        collections, consider implementing a custom shadow index for better performance.
+
+        Returns:
+            dict or None: The full collection entry (including documents) for the target ID,
+                          or None if no entries match or an error occurs.
+        """
         try:
             self.select_collection(collection_name)
-            results = self.collection.get()
 
-            # Gracefully handle empty or missing lists
+            # FIX: 'ids' is returned by default and is not a valid option in the 'include' list.
+            # We only include 'metadatas' to keep the scan lightweight.
+            results = self.collection.get(include=['metadatas'])
+
             metadatas = results.get("metadatas", [])
             ids = results.get("ids", [])
+
             if not metadatas or not ids:
-                # No data in collection
                 return None
 
-            metadata_values = [entry.get(metadata_tag) for entry in metadatas if metadata_tag in entry]
-            if not metadata_values:
-                # No metadata values to search
+            # Extract the values for the specific tag we are interested in
+            indexed_values = []
+            for i, m in enumerate(metadatas):
+                val = m.get(metadata_tag)
+                if isinstance(val, (int, float)):
+                    indexed_values.append((val, i))
+
+            if not indexed_values:
                 return None
 
-            # Ensure all are numeric
-            if not all(isinstance(value, (int, float)) for value in metadata_values):
-                logger.error(f"[search_metadata_min_max] Metadata tag '{metadata_tag}' contains non-numeric values.")
-                return None
-
-            # Find the min or max as before
+            # Find the target index based on min or max
             if min_max == "min":
-                target_index = metadata_values.index(min(metadata_values))
+                target_val, target_index = min(indexed_values, key=lambda x: x[0])
             else:
-                target_index = metadata_values.index(max(metadata_values))
+                target_val, target_index = max(indexed_values, key=lambda x: x[0])
 
-            # Defensive: still check index range
-            if target_index >= len(ids):
+            # Now that we have the specific ID, perform a targeted fetch for the FULL entry
+            target_id = ids[target_index]
+            target_entry = self.collection.get(ids=[target_id])
+
+            if not target_entry or not target_entry["ids"]:
                 return None
 
-            target_entry = self.collection.get(ids=[ids[target_index]])
             return {
                 "ids": target_entry["ids"][0],
                 "target": target_entry["metadatas"][0][metadata_tag],
                 "metadata": target_entry["metadatas"][0],
-                "document": target_entry["documents"][0],
+                "document": target_entry["documents"][0] if "documents" in target_entry else None,
             }
 
         except Exception as e:
-            # Only log errors if it's a truly unexpected error
             logger.error(
-                f"[search_metadata_min_max] Unexpected error: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
+                f"[search_metadata_min_max] Error: {e}\nCollection: {collection_name}\nTarget Metadata: {metadata_tag}")
             return None
 
     # def search_metadata_min_max(self, collection_name, metadata_tag, min_max):
