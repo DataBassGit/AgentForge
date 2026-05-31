@@ -15,7 +15,6 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import Optional
 
 __all__ = ["bootstrap_test_env"]
 
@@ -92,7 +91,7 @@ def bootstrap_test_env(*, use_fakes: bool = True, silence_output: bool = True, c
     try:
         import agentforge.config as _afcfg  # pylint: disable=import-error
 
-        def _fixed_find_project_root(self, _root_path: Optional[str] = None):  # noqa: D401
+        def _fixed_find_project_root(self, _root_path: str | None = None):  # noqa: D401
             if _root_path:
                 custom_root = Path(_root_path).resolve()
                 agentforge_dir = custom_root / ".agentforge"

@@ -36,6 +36,8 @@ The new highest-count category is now `UP045`, which should be burned down only 
 
 `ruff format --check .` runs and currently reports 112 files that would be reformatted, with 21 files already formatted. Do not run broad formatting until a cleanup session explicitly owns the resulting churn.
 
+Session 8 ran a scoped Ruff cleanup on selected config/Cog/core test files plus `src/agentforge/testing/bootstrap.py`; the focused `ruff check` and `ruff format --check` commands now pass for those files after applying formatting only to that selected set.
+
 ## BasedPyright Baseline
 
 `basedpyright --project pyproject.toml` runs and currently fails after analyzing 132 files, with 293 errors and 19 warnings.
@@ -57,8 +59,10 @@ Top basedpyright hotspots by path are `src/agentforge` with 222 diagnostics, `te
 
 The missing-import group should be interpreted carefully until the dependency and package workflow sessions align the development environment. The optional-member and dynamic-attribute findings are more useful cleanup signals for Agent, Cog, Config, storage, memory, and test fixture boundaries.
 
+Session 8 cleared the focused basedpyright findings in `tests/cog_tests/test_cog_trail_logging_and_flow_validation.py`, `tests/core_tests/test_memory_manager.py`, and the selected neighboring files without adding suppressions or changing public runtime behavior.
+
 ## Cleanup Staging Notes
 
-Start future cleanup by subsystem rather than by tool. Good first cuts are unused imports and line length in one owned subsystem, the one `PLR0913` signature outlier, optional narrowing in Agent/Cog/Config flow, and dynamic test fixture attributes that basedpyright cannot currently prove.
+Start future cleanup by subsystem rather than by tool. Good next cuts are unused imports and line length in one owned subsystem, the one `PLR0913` signature outlier, optional narrowing in Agent/Cog/Config flow outside the Session 8 cleanup, and dynamic test fixture attributes that basedpyright cannot currently prove.
 
 Do not add a basedpyright baseline suppression file yet. The current report is intentionally visible so later sessions can choose which categories become enforced and which require environment or typing-policy decisions first.

@@ -35,8 +35,17 @@ Keep fast fake-backed cross-component tests in the default suite when they prote
 | `tests/integration_tests/test_persona_memory_integration.py` | PersonaMemory participates in a Cog workflow and invokes retrieval, narrative, and update agents with fake storage. | PersonaMemory fixture drift, memory trigger wiring regression, or dead fixture module collecting no tests. | Cog flow and storage/memory contract. | Fast fake-backed default. | Added one collected workflow test. |
 | `src/agentforge/testing/bootstrap.py` | Shared test bootstrap can create repo-root config for scripts while still allowing explicit temporary roots in tests. | Order-dependent tests caused by `isolated_config` silently using repo-root `.agentforge`. | Test helper. | Fake-backed default. | Restored explicit root-path handling in the bootstrap patch. |
 
+## Session 8 Follow-up
+
+Recorded 2026-05-31 after the scoped config/Cog/core test cleanup.
+
+- `tests/config_tests/test_config_manager_phase1.py` no longer emits print-only success output; assertions remain the test proof.
+- `tests/cog_tests/test_cog_trail_logging_and_flow_validation.py` now asserts parsed Cog flows are present before accessing flow members, matching the behavior under test and satisfying static narrowing.
+- `tests/core_tests/test_memory_manager.py` keeps the defensive non-dict `get_dot_notated` check while marking the invalid input as intentionally untyped for static analysis.
+- Focused Session 8 tests passed with `31 passed`, and the full default suite passed with `225 passed, 1 deselected`.
+
 ## Deferred Cleanup
 
 - Review whether `tests/conftest.py` and `src/agentforge/testing/bootstrap.py` should share one Agent-run stub instead of maintaining parallel behavior.
-- Continue replacing print-only success messages in tests when those files are touched for substantive reasons.
+- Continue replacing print-only success messages in tests outside the Session 8 scope when those files are touched for substantive reasons.
 - Review `tests/real_tests/` separately before deciding whether any manual live script should become a marked integration test.

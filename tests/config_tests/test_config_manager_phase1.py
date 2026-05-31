@@ -44,11 +44,6 @@ def test_config_manager_agent_config_building(isolated_config):
     assert "user" in agent_config.prompts
     assert agent_config.settings.system.persona.enabled is not None
 
-    print(f"✓ Agent config: {agent_config.name}")
-    print(f"  - Model: {type(agent_config.model).__name__}")
-    print(f"  - Persona enabled: {agent_config.settings.system.persona.enabled}")
-    print(f"  - Debug mode: {agent_config.settings.system.debug.mode}")
-
 
 def test_config_manager_cog_config(isolated_config):
     """Test that ConfigManager can build structured cog configs from raw data."""
@@ -78,11 +73,6 @@ def test_config_manager_cog_config(isolated_config):
     assert decide_transition.decision_key == "choice"
     assert "approve" in decide_transition.decision_map
     assert "reject" in decide_transition.decision_map
-
-    print(f"✓ Cog config: {cog_config.cog.name}")
-    print(f"  - Flow start: {cog_config.cog.flow.start}")
-    print(f"  - Agent count: {len(cog_config.cog.agents)}")
-    print(f"  - Memory nodes: {len(cog_config.cog.memory)}")
 
 
 def test_config_manager_preserves_chat_history_settings():
@@ -189,11 +179,6 @@ def test_config_manager_settings_building():
     assert "openai" in settings.models
     assert "chroma" in settings.storage
 
-    print("✓ Settings building works correctly")
-    print(f"  - Persona: {settings.system.persona.name} (enabled: {settings.system.persona.enabled})")
-    print(f"  - Debug mode: {settings.system.debug.mode}")
-    print(f"  - Logging level: {settings.system.logging.console_level}")
-
 
 def test_config_manager_cog_flow_parsing():
     """Test that ConfigManager correctly parses cog flow transitions."""
@@ -218,8 +203,3 @@ def test_config_manager_cog_flow_parsing():
     assert decision_transition.decision_map["approve"] == "respond"
     assert decision_transition.decision_map["reject"] == "analyze"
     assert decision_transition.fallback == "analyze"
-
-    print("✓ Flow parsing works correctly")
-    print(f"  - Direct: {direct_transition.next_agent}")
-    print(f"  - End: {end_transition.end}")
-    print(f"  - Decision: {decision_transition.decision_key} -> {len(decision_transition.decision_map)} options")
