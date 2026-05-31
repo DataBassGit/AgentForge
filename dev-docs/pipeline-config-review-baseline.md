@@ -22,10 +22,18 @@ This is a developer-only review baseline for the AgentForge pipeline/config arch
 
 ## Logger Evaluation
 
-- The custom logger currently provides config-driven file log categories, colored console output, model prompt/response helpers, runtime creation of missing log categories, and a small convenience wrapper over Python logging methods.
-- The logger also creates framework risk: dynamic logger creation mutates `system.yaml`, handler caches are process-global, file handlers are keyed by log filename instead of resolved project path, prompt/response helpers can record sensitive model I/O, and the wrapper duplicates standard logging concepts without strong test coverage.
+- At the Session 6 review point, the custom logger provided config-driven file log categories, colored console output, model prompt/response helpers, runtime creation of missing log categories, and a small convenience wrapper over Python logging methods.
+- At the Session 6 review point, the logger also created framework risk: dynamic logger creation mutated `system.yaml`, handler caches were process-global, file handlers were keyed by log filename instead of resolved project path, prompt/response helpers could record sensitive model I/O, and the wrapper duplicated standard logging concepts without strong test coverage.
 - The default setup enables `agentforge` and `model_io` at `debug`, so model prompts and responses are intentionally easy to capture when logging is enabled; Session 8 should review whether that default still matches the privacy baseline.
 - Decision for Session 6: keep logger behavior unchanged and document the risks. A later staged cleanup should add focused logger tests first, then consider resolving log paths against `Config.project_root`, keying handlers by full path, separating config mutation from log emission, and possibly replacing the wrapper with standard `logging` configuration.
+
+## Session 7 Logger Cleanup Update
+
+- Session 7 added focused logger tests for project-root path resolution, cross-root handler isolation, unconfigured category fallback, model I/O helpers, duplicate handler prevention, disabled logging, and invalid level validation.
+- `src/agentforge/utils/logger.py` now keeps the `Logger` facade and model I/O helpers but delegates emission to standard Python logging handlers keyed by resolved project-root log paths.
+- Runtime logger construction no longer mutates consumer-owned `.agentforge/settings/system.yaml`; unconfigured categories route through the configured fallback category, usually `agentforge`.
+- The cross-root file-handler and filename-only cache risks from Session 6 are resolved by using resolved `Path` keys and root-scoped internal logger names.
+- Raw prompt/response logging remains available through `model_io`, so the Session 8 privacy/default-level review remains relevant.
 
 ## Session 6 Simplification
 
@@ -53,6 +61,6 @@ This is a developer-only review baseline for the AgentForge pipeline/config arch
 
 ## Remaining Risks
 
-- Logger behavior is intentionally not changed in this session, so duplicate-handler, cross-root file-handler, config-mutation, and model I/O privacy concerns remain as documented follow-up work.
+- Logger model I/O helpers still record raw prompt and response text when `model_io` debug logging is enabled, so privacy defaults and possible redaction remain documented follow-up work.
 - `Config` still has print-based diagnostics and broader design cleanup candidates; the touched Python files now pass scoped Ruff and basedpyright checks.
 - Several tests in touched areas still contain print-only success noise and older style comments, but broad test cleanup was explicitly kept out of this session and should become an immediate follow-up session.
