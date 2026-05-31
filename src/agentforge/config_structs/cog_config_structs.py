@@ -40,7 +40,7 @@ class CogFlowTransition:
     decision_map: Dict[str, str] = field(default_factory=dict)  # For decision transitions
     fallback: Optional[str] = None
     max_visits: Optional[int] = None
-    end: bool = False
+    end: bool | str = False
 
 
 @dataclass

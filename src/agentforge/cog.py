@@ -5,9 +5,10 @@ The Cog class provides a workflow framework for executing a series of
 chained agents based on configurable flow definitions and transitions.
 """
 
-from typing import Any, List
+from typing import Any
+
 from agentforge.config import Config
-from agentforge.config_structs.cog_config_structs import CogFlow
+from agentforge.config_structs.cog_config_structs import CogFlow, CogFlowTransition
 from agentforge.config_structs.trail_structs import ThoughtTrailEntry
 from agentforge.core.agent_registry import AgentRegistry
 from agentforge.core.agent_runner import AgentRunner
@@ -116,7 +117,7 @@ class Cog:
             self.logger.error(f"Cog execution failed: {e}")
             raise
 
-    def get_track_flow_trail(self) -> List[ThoughtTrailEntry]:
+    def get_track_flow_trail(self) -> list[ThoughtTrailEntry]:
         """
         Get the trail of agent executions for this cog run.
 
@@ -131,9 +132,9 @@ class Cog:
 
     def _reset_execution_state(self) -> None:
         """Reset all execution state for a fresh run."""
-        self.context: dict = {}  # external context (runtime/user input)
-        self.state: dict = {}  # internal state (agent-local/internal data)
-        self.branch_call_counts: dict = {}
+        self.context: dict[str, Any] = {}  # external context (runtime/user input)
+        self.state: dict[str, Any] = {}  # internal state (agent-local/internal data)
+        self.branch_call_counts: dict[str, int] = {}
         self._reset_trail_logging()
 
     def _reset_trail_logging(self) -> None:
@@ -338,7 +339,7 @@ class Cog:
         # Default behavior: return the full internal state
         return self.state
 
-    def _extract_end_result(self, agent_transition) -> Any:
+    def _extract_end_result(self, agent_transition: CogFlowTransition) -> Any:
         """
         Extract the final result based on end transition configuration.
 
@@ -348,9 +349,13 @@ class Cog:
         Returns:
             The extracted result based on end configuration
         """
+        last_agent = self.last_executed_agent
+        if last_agent is None:
+            return self.state
+
         # If `end: true`, return the last agent's output
         if agent_transition.end is True:
-            return self.state.get(self.last_executed_agent)
+            return self.state.get(last_agent)
 
         # If end is a string, it could be an agent_id or dot notation
         if isinstance(agent_transition.end, str):
@@ -360,7 +365,7 @@ class Cog:
             # Otherwise treat as dot notation in state
             return self._get_nested_result(agent_transition.end)
 
-        return self.state.get(self.last_executed_agent)
+        return self.state.get(last_agent)
 
     def _get_nested_result(self, path: str) -> Any:
         """
@@ -423,5 +428,5 @@ class Cog:
         """
         pass
 
-    def _reset_branch_counts(self):
+    def _reset_branch_counts(self) -> None:
         self.branch_call_counts.clear()
