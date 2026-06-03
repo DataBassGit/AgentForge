@@ -42,12 +42,4 @@ def test_beginner_branch_loop_cog_debug_flow_uses_loop_guard(isolated_config, mo
 
     assert result == EXPECTED_FINAL_RESPONSE
     assert cog.mem_mgr.memory_nodes == {}
-    assert [entry.agent_id for entry in trail] == [
-        "draft",
-        "review",
-        "revise",
-        "review",
-        "revise",
-        "review",
-        "final",
-    ]
+    assert [entry.agent_id for entry in trail] == ["draft", "review", "revise", "review", "revise", "review", "final"]
