@@ -49,9 +49,49 @@ With the virtual environment activated, install **AgentForge** using pip:
 pip install agentforge
 ```
 
-### 4. Set Up Environment Variables
+### 4. Initialize Your Project
 
-Depending on the language model service you plan to use with **AgentForge**, you may need to set up environment variables with your API keys. If you're using local models like **LM Studio** or **Ollama**, you do **not** need to set up environment variables for API keys.
+Navigate to the root of the project that should own your **AgentForge** resources and initialize the project:
+
+```shell
+python -m agentforge.init_agentforge
+```
+
+This command creates a `.agentforge` folder in your current project with YAML settings, prompts, cogs, tools, actions, and personas:
+
+```
+your_project/
+  .agentforge/
+    actions/
+    cogs/
+    custom_apis/
+    personas/
+    prompts/
+    settings/
+    tools/
+```
+
+Some scaffolded folders are advanced or compatibility surfaces. Beginners can start with settings and prompts, then return to cogs, tools, actions, personas, and custom APIs later.
+
+#### Project Root Discovery
+
+AgentForge finds the active project root in this order:
+
+1. An explicit `Config(root_path=...)` or `Config.reset(root_path=...)` call.
+2. The `AGENTFORGE_ROOT` environment variable.
+3. Auto-discovery walking upward from the running script until it finds `.agentforge/`.
+
+For a beginner project, keep your script inside the project that contains `.agentforge/`.
+
+Set `AGENTFORGE_ROOT=/path/to/your/project` when your script lives somewhere else or you want the project root to be unambiguous.
+
+Explicit `Config(root_path=...)` and `Config.reset(root_path=...)` are advanced deterministic setup options used most often in tests or tools.
+
+### 5. Set Up Provider Credentials When You Need A Real Model
+
+Provider credentials are not required for the no-credential debug-mode first run.
+
+Depending on the language model service you plan to use with **AgentForge**, you may need to set up environment variables with your API keys before a real model call. If you're using local models like **LM Studio** or **Ollama**, you do **not** need to set up environment variables for API keys, but you do need the local service running.
 
 You can set environment variables in one of two ways:
 
@@ -100,28 +140,6 @@ load_dotenv()
 
 This will automatically load the variables from your `.env` file into the environment for your script.
 
-### 5. Initialize Your Project
-
-Navigate to your project directory and initialize your **AgentForge** project:
-
-```shell
-python -m agentforge.init_agentforge
-```
-
-This command creates a `.agentforge` folder in your project with YAML settings, prompts, cogs, tools, actions, and personas:
-
-```
-your_project/
-  .agentforge/
-    actions/
-    cogs/
-    custom_apis/
-    personas/
-    prompts/
-    settings/
-    tools/
-```
-
 ### 6. Initialize Codex OAuth (Only for Codex Models)
 
 If you plan to use OpenAI Codex models, run the OAuth login command after project initialization:
@@ -136,12 +154,12 @@ This stores OAuth credentials used by the `Codex` provider. Codex OAuth is separ
 
 ## Using AgentForge
 
-After project setup, continue with the [Using AgentForge Guide](using_agentforge.md) to run agents and build Cog workflows.
+After project setup, continue with the [Quickstart](quickstart.md) and [Using AgentForge Guide](using_agentforge.md) to follow the beginner workflow path.
 
 ---
 
 ## Next Steps
 
-- Review the [Prerequisites Guide](prerequisites_guide.md) if you have not set up API keys or local model services.
+- Review the [Prerequisites Guide](prerequisites_guide.md) if you are preparing API keys or local model services for a real model run.
 
 - If you're having trouble with **AgentForge**, please head over to the [Troubleshooting Guide](troubleshooting_guide.md) for solutions to common issues.

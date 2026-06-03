@@ -8,21 +8,36 @@
 
 # AgentForge
 
-**AgentForge** is a low-code framework for rapid development, testing, and iteration of AI-powered autonomous agents and cognitive architectures. Its core concepts—flexible **Agents**, declarative **Cogs**, and integrated **Memory**—enable both simple agent implementations and sophisticated multi-agent orchestration with minimal code.
+**AgentForge** is a low-code framework for rapid development, testing, and iteration of AI-powered autonomous agents and cognitive architectures. Its core concepts - flexible **Agents**, declarative **Cogs**, and optional **Memory** - support both simple first runs and sophisticated multi-agent orchestration.
 
 Compatible with a range of LLM models—including OpenAI, Google's Gemini, Anthropic's Claude, and local models via [Ollama](https://ollama.com) or [LMStudio](https://lmstudio.ai)—AgentForge lets you run different models for different agents as needed.
 
-Whether you're new to AI agents or building advanced cognitive systems, **AgentForge** provides the tools to craft intelligent, model-agnostic, and database-flexible autonomous agents.
+If you are new to AgentForge, start with the beginner path below before opening schemas, memory, storage, subclassing, utilities, or legacy Tools/Actions references.
 
 ---
 
 ## Table of Contents
 
-1. [Features](#features)
-2. [Documentation](#documentation)
-3. [Contributing](#contributing)
-4. [Contact Us](#contact-us)
-5. [License](#license)
+1. [Start Here](#start-here)
+2. [Features](#features)
+3. [Documentation](#documentation)
+4. [Contributing](#contributing)
+5. [Contact Us](#contact-us)
+6. [License](#license)
+
+---
+
+## Start Here
+
+Follow this public docs path in order:
+
+1. **[Quickstart](docs/guides/quickstart.md)**: Install AgentForge, scaffold `.agentforge/`, and understand the no-credential debug-mode first-run boundary.
+2. **[First Real Model Run](docs/guides/first_real_model_run.md)**: Learn when credentials or local model services become necessary.
+3. **[Core Concepts](docs/guides/core_concepts.md)**: Understand Agents, prompt templates, settings, and Cogs without starting from schema details.
+4. **[Beginner Cog Walkthrough](docs/guides/beginner_cog_walkthrough.md)**: See where a small multi-agent workflow will fit after the direct Agent path works.
+5. **[Advanced Reference](docs/guides/advanced_reference.md)**: Continue into memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions after the beginner workflow is clear.
+
+The **[Using AgentForge](docs/guides/using_agentforge.md)** guide is now the beginner workflow hub that connects those steps.
 
 ---
 
@@ -44,26 +59,22 @@ Build agents and cognitive architectures (multi-agent systems) with:
 
 ## Documentation
 
-Comprehensive documentation is available to help you get started and go deeper:
+### **Beginner Path**
 
-### **Getting Started**
+- **[Docs Landing](docs/README.md)**: Beginner-first public documentation map.
+- **[Quickstart](docs/guides/quickstart.md)**: First setup path, including `.agentforge` discovery and debug-mode boundaries.
+- **[First Real Model Run](docs/guides/first_real_model_run.md)**: Credential and local-provider boundary for the first real call.
+- **[Core Concepts](docs/guides/core_concepts.md)**: Plain-language mental model before reference details.
+- **[Beginner Cog Walkthrough](docs/guides/beginner_cog_walkthrough.md)**: The next step after a direct Agent run.
 
-- **[Installation Guide](docs/guides/installation_guide.md)**: Step-by-step instructions to install **AgentForge**.
-- **[Using AgentForge](docs/guides/using_agentforge.md)**: Learn how to run agents, create custom agents, and build cognitive architectures with examples.
-- **[Prerequisites Guide](docs/guides/prerequisites_guide.md)**: Details all pre-installation requirements and dependencies.
-- **[Troubleshooting Guide](docs/guides/troubleshooting_guide.md)**: Find solutions to common issues and platform-specific problems.
+### **Reference And Advanced Topics**
 
-### **Core Concepts**
-
-- **[Agents](docs/agents/agents.md)**: Create and customize individual AI agents for various tasks.
-- **[Cogs](docs/cogs/cogs.md)**: Design multi-agent workflows with branching logic and memory using YAML configuration. Cogs are the main way to build and run multi-agent systems in AgentForge.
-- **[Memory](docs/memory/memory.md)**: Add contextual memory to your agents and cogs for more coherent, context-aware interactions. Memory is managed declaratively in Cogs and accessed in agent prompts.
-- **[API Integration](docs/apis/apis.md)**: Understand how **AgentForge** connects with various Large Language Model (LLM) APIs.
-- **[Personas](docs/personas/personas.md)**: Use personas to encapsulate agent identity, style, and reusable knowledge.
-- **[Settings](docs/settings/settings.md)**: Configure models, storage, and system behavior.
-- **[Storage](docs/storage/chroma_storage.md)**: **AgentForge** uses ChromaDB as its vector store implementation for memory.
-- **[Tools & Actions](docs/tools_and_actions/overview.md)**: Reference the legacy dynamic execution surface retained for compatibility with trusted project-owned tools.
-- **[Utilities](docs/utils/utils_overview.md)**: Explore utility functions and tools that enhance the system's capabilities.
+- **[Agents Reference](docs/agents/agents.md)**: Agent lifecycle, prompts, and advanced subclassing links.
+- **[Cogs Reference](docs/cogs/cogs.md)**: Cog schema, transitions, branching, return values, and memory configuration.
+- **[Settings Reference](docs/settings/settings.md)**: Model, system, and storage settings.
+- **[APIs Reference](docs/apis/apis.md)**: Provider integration and advanced custom API hooks.
+- **[Memory](docs/memory/memory.md)** and **[Personas](docs/personas/personas.md)**: Optional advanced context systems.
+- **[Storage](docs/storage/chroma_storage.md)**, **[Utilities](docs/utils/utils_overview.md)**, and **[Tools & Actions](docs/tools_and_actions/overview.md)**: Advanced or compatibility material.
 
 ---
 

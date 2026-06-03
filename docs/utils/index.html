@@ -288,6 +288,37 @@
     const GITHUB_REPO = 'AgentForge';
     const GITHUB_BRANCH = 'main';
     const REPO_DOCS_ROOT = 'docs';
+    const NAV_ORDER = {
+      'docs': ['README.md', 'guides', 'agents', 'cogs', 'settings', 'apis', 'memory', 'personas', 'storage', 'tools_and_actions', 'utils', 'images'],
+      'docs/guides': ['quickstart.md', 'first_real_model_run.md', 'core_concepts.md', 'beginner_cog_walkthrough.md', 'advanced_reference.md', 'using_agentforge.md', 'installation_guide.md', 'prerequisites_guide.md', 'troubleshooting_guide.md'],
+    };
+    const NAV_LABELS = {
+      'docs': {
+        'README.md': 'Start Here',
+        'guides': 'Beginner Guides/',
+        'agents': 'Agents Reference/',
+        'cogs': 'Cogs Reference/',
+        'settings': 'Settings Reference/',
+        'apis': 'Provider APIs/',
+        'memory': 'Memory (Advanced)/',
+        'personas': 'Personas (Advanced)/',
+        'storage': 'Storage (Advanced)/',
+        'tools_and_actions': 'Tools & Actions (Legacy)/',
+        'utils': 'Utilities (Advanced)/',
+        'images': 'Images/',
+      },
+      'docs/guides': {
+        'quickstart.md': '1. Quickstart',
+        'first_real_model_run.md': '2. First Real Model Run',
+        'core_concepts.md': '3. Core Concepts',
+        'beginner_cog_walkthrough.md': '4. Beginner Cog Walkthrough',
+        'advanced_reference.md': '5. Advanced Reference',
+        'using_agentforge.md': 'Workflow Hub',
+        'installation_guide.md': 'Installation Details',
+        'prerequisites_guide.md': 'Prerequisites Details',
+        'troubleshooting_guide.md': 'Troubleshooting',
+      },
+    };
     // --- End Configuration ---
 
     const contentElement = document.getElementById('markdown-content');
@@ -360,6 +391,32 @@
         return finalApiPath || REPO_DOCS_ROOT; // Ensure we always return at least the root path
     }
 
+    function normalizeRepoPath(path) {
+        return (path || '').replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+    }
+
+    function compareNavItems(a, b) {
+        const order = NAV_ORDER[normalizeRepoPath(currentRepoPath)] || [];
+        const indexA = order.indexOf(a.name);
+        const indexB = order.indexOf(b.name);
+
+        if (indexA !== -1 || indexB !== -1) {
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        }
+
+        if (a.type === 'dir' && b.type !== 'dir') return -1;
+        if (a.type !== 'dir' && b.type === 'dir') return 1;
+        return a.name.localeCompare(b.name);
+    }
+
+    function getNavLabel(item) {
+        const labels = NAV_LABELS[normalizeRepoPath(currentRepoPath)] || {};
+        const fallback = item.type === 'dir' ? `${item.name}/` : item.name;
+        return labels[item.name] || fallback;
+    }
+
     // --- Build File List ---
     async function populateFileList() { /* ... same ... */
       currentRepoPath = getRepoPathFromURL(); // This now uses the corrected function
@@ -397,10 +454,11 @@
              }
         }
 
-        items.sort((a, b) => { if (a.type === 'dir' && b.type !== 'dir') return -1; if (a.type !== 'dir' && b.type === 'dir') return 1; return a.name.localeCompare(b.name); });
+        items.sort(compareNavItems);
         items.forEach(item => { const li = document.createElement('li'); let link = '';
-          if (item.type === 'dir') { link = `<a href="${item.name}/" class="dir-link">${item.name}/</a>`; }
-          else if (item.type === 'file') { if (item.name.toLowerCase().endsWith('.md')) { link = `<a href="${item.name}" class="md-link" data-filename="${item.name}">${item.name}</a>`; } else if (item.name.toLowerCase() !== 'index.html') { link = `<a href="${item.html_url}" class="file-link" target="_blank">${item.name}</a>`; } }
+          const navLabel = getNavLabel(item);
+          if (item.type === 'dir') { link = `<a href="${item.name}/" class="dir-link">${navLabel}</a>`; }
+          else if (item.type === 'file') { if (item.name.toLowerCase().endsWith('.md')) { link = `<a href="${item.name}" class="md-link" data-filename="${item.name}">${navLabel}</a>`; } else if (item.name.toLowerCase() !== 'index.html') { link = `<a href="${item.html_url}" class="file-link" target="_blank">${navLabel}</a>`; } }
           if(link) { li.innerHTML = link; fileListElement.appendChild(li); } });
 
         // Check if list is empty *besides* the potential parent link
@@ -408,7 +466,7 @@
         if (fileListElement.children.length === (hasParentLink ? 1 : 0)) {
              fileListElement.innerHTML += '<li><i>Empty directory.</i></li>';
         }
-        autoLoadReadme();
+        autoLoadDefaultMarkdown();
       } catch (error) {
          console.error('Error fetching dir contents:', error);
          fileListElement.innerHTML = `<li><i>Error: ${error.message}</i></li>`;
@@ -459,9 +517,9 @@
         }
     }
 
-    // --- Auto-load README ---
-    function autoLoadReadme() { /* ... same ... */
-         const readmeLink = fileListElement.querySelector('a.md-link[data-filename="README.md"], a.md-link[data-filename="readme.md"]'); if (readmeLink) { const isDefaultContent = contentElement.querySelector('h1')?.textContent === 'Welcome'; if(isDefaultContent) { loadAndRenderMarkdown(readmeLink.dataset.filename, readmeLink); } }
+    // --- Auto-load default markdown ---
+    function autoLoadDefaultMarkdown() { /* ... same ... */
+         const defaultLink = fileListElement.querySelector('a.md-link[data-filename="README.md"], a.md-link[data-filename="readme.md"], a.md-link'); if (defaultLink) { const isDefaultContent = contentElement.querySelector('h1')?.textContent === 'Welcome'; if(isDefaultContent) { loadAndRenderMarkdown(defaultLink.dataset.filename, defaultLink); } }
     }
 
     // --- Initialization ---
