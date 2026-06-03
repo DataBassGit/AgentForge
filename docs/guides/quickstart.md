@@ -1,34 +1,85 @@
 # Quickstart
 
-This is the first stop in the beginner documentation path.
+This is the first AgentForge workflow to run when you are new to the project.
 
-The full copy/paste no-credential direct Agent walkthrough belongs here.
+It installs AgentForge, scaffolds `.agentforge/`, turns on debug mode, and runs one direct Agent without provider credentials.
 
-For now, this page establishes the setup boundaries and next links without adding the full runnable example yet.
+## 1. Create A Project Environment
 
-## What This Step Is For
+From the project directory that should own your AgentForge files, create and activate a Python environment:
 
-The first successful workflow should prove that AgentForge is installed, the project owns a `.agentforge/` directory, and debug mode can bypass real provider calls.
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-It should not require cloud API keys, a running local model service, memory, personas, storage tuning, subclassing, or Cog branching.
+On Windows, activate the environment with:
 
-## Install And Scaffold
+```shell
+.venv\Scripts\activate
+```
 
-Create and activate a Python environment for your project, then install AgentForge:
+Install AgentForge:
 
 ```shell
 pip install agentforge
 ```
 
-From the root of the project that should own AgentForge resources, scaffold `.agentforge/`:
+## 2. Scaffold `.agentforge/`
+
+Run the scaffold command from the same project directory:
 
 ```shell
 python -m agentforge.init_agentforge
 ```
 
-The scaffold creates project-owned settings, prompts, cogs, personas, tools, actions, and custom API folders under `.agentforge/`.
+This creates the project-owned `.agentforge/` resource folder.
 
-Some scaffolded folders are advanced or compatibility surfaces; beginners can ignore them until the direct Agent and beginner Cog paths work.
+For this first run, you only need `.agentforge/settings/system.yaml` and `.agentforge/prompts/hello_agent.yaml`.
+
+## 3. Enable Debug Mode
+
+Debug mode returns a simulated response instead of calling a model provider.
+
+No API keys or local model services are needed for this quickstart.
+
+Use this copy/paste command to set `debug.mode` to `true`:
+
+```shell
+python -c "from pathlib import Path; p = Path('.agentforge/settings/system.yaml'); text = p.read_text(); p.write_text(text.replace('mode: false', 'mode: true', 1))"
+```
+
+You can also edit `.agentforge/settings/system.yaml` directly:
+
+```yaml
+debug:
+  mode: true
+```
+
+## 4. Run One Agent
+
+Create `run_hello_agent.py` in your project root:
+
+```python
+from agentforge.agent import Agent
+
+result = Agent("hello_agent").run(user_input="AgentForge")
+print(result)
+```
+
+Run it:
+
+```shell
+python run_hello_agent.py
+```
+
+The final output line should be:
+
+```text
+Hello from AgentForge debug mode.
+```
+
+When `debug.mode` is `true`, AgentForge may print config/debug messages before that final line.
 
 ## Where AgentForge Looks For `.agentforge/`
 
@@ -38,7 +89,7 @@ AgentForge resolves the active project root in this order:
 2. The `AGENTFORGE_ROOT` environment variable.
 3. Auto-discovery walking upward from the running script until it finds `.agentforge/`.
 
-For the beginner path, keep your script inside the project that contains `.agentforge/`.
+For the beginner path, keep `run_hello_agent.py` inside the project that contains `.agentforge/`.
 
 If your script lives outside that project, set `AGENTFORGE_ROOT` before running it:
 
@@ -50,11 +101,11 @@ Explicit `Config(root_path=...)` and `Config.reset(root_path=...)` are advanced 
 
 ## Credential Boundary
 
-The no-credential first run uses debug mode so AgentForge returns a simulated response instead of calling a model provider.
-
-Cloud credentials and local model services are part of the next step, [First Real Model Run](first_real_model_run.md).
+This quickstart uses debug mode, so it does not need provider credentials.
 
 The current scaffold defaults to Gemini for real model calls, so a real call requires `GOOGLE_API_KEY` unless you change `.agentforge/settings/models.yaml`.
+
+Cloud credentials and local model services are covered in [First Real Model Run](first_real_model_run.md).
 
 ## Next
 

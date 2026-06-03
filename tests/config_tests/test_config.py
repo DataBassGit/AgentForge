@@ -44,6 +44,14 @@ def test_defaults_are_loaded(isolated_config: Config):  # noqa: D103
     assert cfg.data.get("prompts"), "No prompts loaded"
 
 
+def test_hello_agent_quickstart_prompt_is_loaded(isolated_config: Config):
+    """The shipped beginner prompt should support the no-credential quickstart."""
+    hello_agent = isolated_config.find_config("prompts", "hello_agent")
+
+    assert hello_agent["prompts"]["user"] == "Say hello to {user_input}.\n"
+    assert hello_agent["simulated_response"] == "Hello from AgentForge debug mode."
+
+
 def test_empty_yaml_file_loads_as_empty_dict(tmp_path: Path):
     """Empty YAML should normalize to an empty dictionary through both loader entrypoints."""
     empty_yaml = tmp_path / "empty.yaml"

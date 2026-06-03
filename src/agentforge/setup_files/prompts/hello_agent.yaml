@@ -1,0 +1,8 @@
+prompts:
+  system: |
+    You are a friendly hello-world agent.
+
+  user: |
+    Say hello to {user_input}.
+
+simulated_response: "Hello from AgentForge debug mode."

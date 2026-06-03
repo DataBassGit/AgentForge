@@ -48,11 +48,12 @@ def test_setup_agentforge_scaffolds_packaged_yaml_and_root_config(tmp_path: Path
 
     init_agentforge.setup_agentforge()
 
-    assert len(EXPECTED_YAML_PATHS) == 38
+    assert len(EXPECTED_YAML_PATHS) == 39
     assert _project_yaml_paths(project_root) == EXPECTED_YAML_PATHS
     for relative_path in (
         "settings/system.yaml",
         "settings/models.yaml",
+        "prompts/hello_agent.yaml",
         "prompts/response_agent.yaml",
         "cogs/example_cog.yaml",
         "tools/read_file.yaml",
@@ -63,6 +64,7 @@ def test_setup_agentforge_scaffolds_packaged_yaml_and_root_config(tmp_path: Path
 
     cfg = Config.reset(root_path=str(project_root))
     assert cfg.project_root == project_root
+    assert cfg.find_config("prompts", "hello_agent")
     assert cfg.find_config("prompts", "response_agent")
 
     monkeypatch.setenv("AGENTFORGE_ROOT", str(project_root))
