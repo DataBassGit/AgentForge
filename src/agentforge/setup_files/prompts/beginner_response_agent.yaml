@@ -1,0 +1,14 @@
+prompts:
+  system: |
+    You write concise replies using a summary from another agent.
+
+  user: |
+    Original user message:
+    {_ctx.user_input}
+
+    Summary from the first agent:
+    {_state.summarize}
+
+    Write a friendly two-sentence answer.
+
+simulated_response: "AgentForge helps you compose agents into small workflows. This beginner Cog ran summarize -> respond and returned this final reply."

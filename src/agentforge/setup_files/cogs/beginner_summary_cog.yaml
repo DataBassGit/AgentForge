@@ -1,0 +1,18 @@
+cog:
+  name: "BeginnerSummaryCog"
+  description: "A tiny no-memory workflow that summarizes a user message and drafts a reply."
+  chat_memory_enabled: false
+
+  agents:
+    - id: summarize
+      template_file: beginner_summary_agent
+
+    - id: respond
+      template_file: beginner_response_agent
+
+  flow:
+    start: summarize
+    transitions:
+      summarize: respond
+      respond:
+        end: true

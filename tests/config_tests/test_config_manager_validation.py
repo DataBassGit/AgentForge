@@ -75,6 +75,22 @@ def test_config_manager_cog_config(isolated_config):
     assert "reject" in decide_transition.decision_map
 
 
+def test_config_manager_beginner_summary_cog_config(isolated_config):
+    """Test that the beginner no-memory Cog normalizes into the expected flow."""
+    config_manager = ConfigManager()
+    raw_cog_data = isolated_config.find_config("cogs", "beginner_summary_cog")
+
+    cog_config = config_manager.build_cog_config(raw_cog_data)
+
+    assert cog_config.cog.name == "BeginnerSummaryCog"
+    assert cog_config.cog.chat_memory_enabled is False
+    assert [agent.id for agent in cog_config.cog.agents] == ["summarize", "respond"]
+    assert cog_config.cog.flow is not None
+    assert cog_config.cog.flow.start == "summarize"
+    assert cog_config.cog.flow.transitions["summarize"].next_agent == "respond"
+    assert cog_config.cog.flow.transitions["respond"].end is True
+
+
 def test_config_manager_preserves_chat_history_settings():
     """Test that documented Cog chat-history settings survive normalization."""
     config_manager = ConfigManager()

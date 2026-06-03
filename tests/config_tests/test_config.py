@@ -52,6 +52,33 @@ def test_hello_agent_quickstart_prompt_is_loaded(isolated_config: Config):
     assert hello_agent["simulated_response"] == "Hello from AgentForge debug mode."
 
 
+def test_beginner_summary_cog_resources_are_loaded(isolated_config: Config):
+    """The shipped beginner Cog resources should support the no-memory walkthrough."""
+    beginner_cog = isolated_config.find_config("cogs", "beginner_summary_cog")["cog"]
+    summary_prompt = isolated_config.find_config("prompts", "beginner_summary_agent")
+    response_prompt = isolated_config.find_config("prompts", "beginner_response_agent")
+
+    assert beginner_cog["chat_memory_enabled"] is False
+    assert beginner_cog["flow"]["start"] == "summarize"
+    assert beginner_cog["flow"]["transitions"]["summarize"] == "respond"
+    assert beginner_cog["flow"]["transitions"]["respond"] == {"end": True}
+    assert beginner_cog["agents"] == [
+        {"id": "summarize", "template_file": "beginner_summary_agent"},
+        {"id": "respond", "template_file": "beginner_response_agent"},
+    ]
+
+    assert "{_ctx.user_input}" in summary_prompt["prompts"]["user"]
+    assert summary_prompt["simulated_response"] == (
+        "The user wants a short, friendly explanation of what AgentForge can do."
+    )
+    assert "{_ctx.user_input}" in response_prompt["prompts"]["user"]
+    assert "{_state.summarize}" in response_prompt["prompts"]["user"]
+    assert response_prompt["simulated_response"] == (
+        "AgentForge helps you compose agents into small workflows. "
+        "This beginner Cog ran summarize -> respond and returned this final reply."
+    )
+
+
 def test_empty_yaml_file_loads_as_empty_dict(tmp_path: Path):
     """Empty YAML should normalize to an empty dictionary through both loader entrypoints."""
     empty_yaml = tmp_path / "empty.yaml"

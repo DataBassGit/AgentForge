@@ -1,27 +1,120 @@
 # Beginner Cog Walkthrough
 
-This page is the fourth stop in the beginner documentation path.
+This guide continues after the direct Agent path works.
 
-The full beginner Cog example belongs here.
+It runs a tiny no-memory Cog that does two things: `summarize -> respond`.
 
-For now, this page establishes the expected learning order without adding the runnable Cog walkthrough yet.
+The example uses debug mode so you can prove the Cog wiring without provider credentials.
 
-## What The First Cog Should Teach
+## Start From A Scaffolded Project
 
-The first Cog should show how AgentForge moves from one direct Agent to a small declarative workflow.
+Use a project that already has `.agentforge/` from the [Quickstart](quickstart.md).
 
-It should stay no-memory and avoid personas, storage tuning, subclass hooks, custom APIs, and legacy Tools/Actions.
+If you followed [First Real Model Run](first_real_model_run.md), turn debug mode back on for deterministic output:
 
-A good first shape is a simple two-step flow such as `summarize -> respond` or `classify -> respond`.
+```shell
+python -c "from pathlib import Path; p = Path('.agentforge/settings/system.yaml'); text = p.read_text(); p.write_text(text.replace('mode: false', 'mode: true', 1))"
+```
 
-## What A Beginner Should Notice
+## The Cog File
+
+The scaffold includes `.agentforge/cogs/beginner_summary_cog.yaml`:
+
+```yaml
+cog:
+  name: "BeginnerSummaryCog"
+  description: "A tiny no-memory workflow that summarizes a user message and drafts a reply."
+  chat_memory_enabled: false
+
+  agents:
+    - id: summarize
+      template_file: beginner_summary_agent
+
+    - id: respond
+      template_file: beginner_response_agent
+
+  flow:
+    start: summarize
+    transitions:
+      summarize: respond
+      respond:
+        end: true
+```
+
+The `agents` list gives each node an ID and points it at a prompt file under `.agentforge/prompts/`.
+
+The `flow` starts with `summarize`, then moves directly to `respond`.
+
+The `respond` transition uses `end: true`, so `Cog.run(...)` returns the response agent's output.
+
+`chat_memory_enabled: false` keeps this first Cog independent from automatic chat history memory.
+
+## The Prompt Files
+
+The summary agent reads the runtime input from `_ctx.user_input`:
+
+```yaml
+prompts:
+  system: |
+    You summarize user messages for a response agent.
+
+  user: |
+    Summarize this user message in one sentence:
+    {_ctx.user_input}
+```
+
+The response agent reads the original input and the first agent's output from `_state.summarize`:
+
+```yaml
+prompts:
+  system: |
+    You write concise replies using a summary from another agent.
+
+  user: |
+    Original user message:
+    {_ctx.user_input}
+
+    Summary from the first agent:
+    {_state.summarize}
+
+    Write a friendly two-sentence answer.
+```
+
+In a Cog prompt, `_ctx` is the context passed to `Cog.run(...)`, and `_state` stores earlier agent outputs by node ID.
+
+## Run The Cog
+
+Create `run_beginner_cog.py` in your project root:
+
+```python
+from agentforge.cog import Cog
+
+result = Cog("beginner_summary_cog").run(user_input="What can AgentForge help me build?")
+print(result)
+```
+
+Run it:
+
+```shell
+python run_beginner_cog.py
+```
+
+With debug mode on, the final output should be:
+
+```text
+AgentForge helps you compose agents into small workflows. This beginner Cog ran summarize -> respond and returned this final reply.
+```
+
+## What To Notice
 
 - Cogs live under `.agentforge/cogs/`.
-- Cog nodes point at prompt templates under `.agentforge/prompts/`.
-- A short Python script imports `Cog`, creates the named workflow, calls `run(...)`, and prints the result.
-- Branching, loops, memory, and return-value rules can wait until the simple flow works.
+- Cog agent nodes point at prompt YAML files under `.agentforge/prompts/`.
+- The first prompt uses `_ctx.user_input` from the Python call.
+- The second prompt uses `_state.summarize` from the first node.
+- This Cog has no branching, loops, memory nodes, personas, storage setup, custom Agent subclasses, or custom APIs.
 
 ## Next
 
-- Use [Cogs](../cogs/cogs.md) for the full schema reference after the beginner walkthrough exists.
-- Use [Advanced Reference](advanced_reference.md) when you are ready for branch/loop Cogs, memory, personas, and storage-backed workflows.
+- Use [Cogs](../cogs/cogs.md) for the full schema reference after this simple flow works.
+- Continue to the branch/loop example when you are ready for decisions, fallbacks, and `max_visits`.
+- Use [Advanced Reference](advanced_reference.md) later for memory, personas, storage-backed workflows, custom APIs, custom Agents, utilities, and legacy Tools/Actions.

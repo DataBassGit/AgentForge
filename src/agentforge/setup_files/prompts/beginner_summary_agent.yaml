@@ -1,0 +1,9 @@
+prompts:
+  system: |
+    You summarize user messages for a response agent.
+
+  user: |
+    Summarize this user message in one sentence:
+    {_ctx.user_input}
+
+simulated_response: "The user wants a short, friendly explanation of what AgentForge can do."
