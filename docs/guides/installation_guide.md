@@ -1,6 +1,8 @@
 # Installation Guide
 
-This guide walks through installing **AgentForge** and scaffolding the `.agentforge/` project files used by the framework.
+This support guide gives installation and environment details for **AgentForge**.
+
+If you are doing your first no-credential run, start with [Quickstart](quickstart.md); return here when you need extra setup detail.
 
 ---
 
@@ -91,6 +93,8 @@ Explicit `Config(root_path=...)` and `Config.reset(root_path=...)` are advanced 
 
 Provider credentials are not required for the no-credential debug-mode first run.
 
+Use [First Real Model Run](first_real_model_run.md) for the beginner real-provider path before treating this section as reference detail.
+
 Depending on the language model service you plan to use with **AgentForge**, you may need to set up environment variables with your API keys before a real model call. If you're using local models like **LM Studio** or **Ollama**, you do **not** need to set up environment variables for API keys, but you do need the local service running.
 
 You can set environment variables in one of two ways:
@@ -160,6 +164,6 @@ After project setup, continue with the [Quickstart](quickstart.md) and [Using Ag
 
 ## Next Steps
 
-- Review the [Prerequisites Guide](prerequisites_guide.md) if you are preparing API keys or local model services for a real model run.
+- Review [First Real Model Run](first_real_model_run.md) first, then use the [Prerequisites Guide](prerequisites_guide.md) if you are preparing API keys or local model services.
 
 - If you're having trouble with **AgentForge**, please head over to the [Troubleshooting Guide](troubleshooting_guide.md) for solutions to common issues.

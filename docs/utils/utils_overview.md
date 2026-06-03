@@ -2,6 +2,10 @@
 
 ## Introduction
 
+This is an advanced utilities reference.
+
+Use it after the beginner Agent and Cog path, when you need logger, parsing, prompt handling, Discord, or compatibility helpers directly.
+
 In **AgentForge**, utility classes make building and extending agents easier. Each utility focuses on a specific aspect of agent functionality—handling everything from logging, prompt rendering, and parsing structured data and Discord integration.
 
 ---

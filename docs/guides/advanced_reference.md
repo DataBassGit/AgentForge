@@ -1,6 +1,6 @@
 # Advanced Reference
 
-This page is the fifth stop in the beginner documentation path.
+This page is the advanced-reference hub after the six-step beginner documentation path.
 
 Open these references after the no-credential direct Agent path, first real model run, core concepts, beginner Cog walkthrough, and branch/loop Cog walkthrough are clear.
 

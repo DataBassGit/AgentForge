@@ -1,5 +1,9 @@
 # API Integrations in AgentForge
 
+This is an advanced provider integration reference.
+
+Use [First Real Model Run](../guides/first_real_model_run.md) before creating custom APIs.
+
 AgentForge provides a unified interface for integrating with a variety of Large Language Model (LLM) APIs. All API integrations are built on the `BaseModel` class, which standardizes prompt handling, retries, logging, and parameter management. Adding a new API is as simple as subclassing `BaseModel` and registering your model in configuration.
 
 ---

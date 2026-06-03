@@ -1,6 +1,8 @@
 # AgentForge Prerequisites Guide
 
-Before you begin using **AgentForge**, ensure your system meets the necessary requirements and configurations.
+This support guide lists optional credentials, local services, and platform dependencies for **AgentForge**.
+
+The no-credential [Quickstart](quickstart.md) does not require API keys; use this page when preparing for [First Real Model Run](first_real_model_run.md) or advanced memory/storage workflows.
 
 ---
 
@@ -126,5 +128,6 @@ If you plan to use **ChromaDB** (the default database), you need the Microsoft C
 
 **Next Steps**:
 
-- Proceed to the [Installation Guide](installation_guide.md) to install AgentForge.
-- After installation, check out the [Using AgentForge Guide](using_agentforge.md) to run agents and Cog workflows.
+- Start with the [Quickstart](quickstart.md) for the no-credential path.
+- Use [First Real Model Run](first_real_model_run.md) when you are ready for provider credentials or local model services.
+- Use the [Installation Guide](installation_guide.md) when you need extra environment setup detail.

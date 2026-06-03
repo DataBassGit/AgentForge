@@ -1,5 +1,7 @@
 # Tools and Actions
 
+This is a legacy compatibility reference.
+
 Tools and Actions are AgentForge's legacy dynamic execution surface. They remain available for compatibility with trusted project-owned Python tools and action YAML files.
 
 Do not allow untrusted users or model output to choose arbitrary module paths, class names, commands, file paths, or shell-like behavior. Treat every tool definition as executable project code.

@@ -1,5 +1,9 @@
 # Memory in AgentForge Cogs
 
+This is an advanced context reference.
+
+Use it after the beginner no-memory Cog and branch/loop Cog examples are clear.
+
 Memory in AgentForge is designed to be used as part of a **Cog**—not as a standalone utility. Memory nodes are declared in your Cog YAML, managed by the `MemoryManager`, and made available to agents as part of the execution context. This enables agents to access, share, and update contextual information throughout a workflow.
 
 ---

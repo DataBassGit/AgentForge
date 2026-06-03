@@ -1,5 +1,9 @@
 # ChromaStorage Guide
 
+This is an advanced storage internals reference.
+
+Use it after the beginner Agent and Cog path, when you are intentionally working with memory persistence or ChromaDB behavior.
+
 ChromaStorage is the core interface to ChromaDB in **AgentForge**. It uses a thread‑safe registry keyed by `storage_id` to provide singleton storage clients, and supports both persistent and in‑memory (ephemeral) modes based on your configuration.
 
 ## 1. Quick Start

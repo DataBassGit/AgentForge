@@ -4,6 +4,8 @@ This guide is the beginner workflow hub for AgentForge.
 
 Use it to choose the next public guide in the recommended order instead of starting from schemas, storage internals, subclass hooks, or legacy tools.
 
+For optional extension points after this path, use [Advanced Reference](advanced_reference.md) as the advanced-reference hub.
+
 ## Beginner Workflow
 
 1. [Quickstart](quickstart.md): Install AgentForge, scaffold `.agentforge/`, and use debug mode as the first no-credential boundary.
@@ -49,7 +51,9 @@ Provider setup belongs in [First Real Model Run](first_real_model_run.md), not i
 
 ## After The Beginner Path
 
-The reference docs remain available for intentional extension points and advanced workflows:
+The reference docs remain available for intentional extension points and advanced workflows.
+
+Start from [Advanced Reference](advanced_reference.md) when you are not sure which reference page you need:
 
 - [Agents](../agents/agents.md), [Agent Prompts](../agents/agent_prompts.md), and [Custom Agents](../agents/custom_agents.md)
 - [Cogs](../cogs/cogs.md)

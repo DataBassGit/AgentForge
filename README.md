@@ -69,7 +69,7 @@ Build agents and cognitive architectures (multi-agent systems) with:
 - **[Beginner Cog Walkthrough](docs/guides/beginner_cog_walkthrough.md)**: The next step after a direct Agent run.
 - **[Branch/Loop Cog Walkthrough](docs/guides/branch_loop_cog_walkthrough.md)**: A beginner decision branch, revision loop, fallback, and `max_visits` example.
 
-### **Reference And Advanced Topics**
+### **Reference After The Beginner Path**
 
 - **[Agents Reference](docs/agents/agents.md)**: Agent lifecycle, prompts, and advanced subclassing links.
 - **[Cogs Reference](docs/cogs/cogs.md)**: Cog schema, transitions, branching, return values, and memory configuration.

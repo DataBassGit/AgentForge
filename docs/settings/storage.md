@@ -1,5 +1,9 @@
 # Storage Settings Guide
 
+This is an advanced storage settings reference.
+
+Use it after the beginner Agent and Cog path, when you are intentionally configuring memory persistence.
+
 > **Important:** Storage in AgentForge is managed by cogs through their memory nodes. Individual agents do not directly interact with storage. This design simplifies the architecture and centralizes memory management.
 
 `storage.yaml` is loaded from the project's `.agentforge/settings/storage.yaml` and merged into `Config().data['settings']['storage']`.

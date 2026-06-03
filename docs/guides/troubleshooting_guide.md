@@ -1,6 +1,8 @@
 # AgentForge Troubleshooting Guide
 
-This guide provides solutions to common issues you may encounter while using **AgentForge**.
+This support guide provides solutions to common issues you may encounter while using **AgentForge**.
+
+If you are still setting up the first run, follow [Quickstart](quickstart.md) first and return here when a specific error blocks you.
 
 ---
 
@@ -68,4 +70,5 @@ If you encounter issues not covered in this guide:
 **Next Steps**:
 
 - Return to the [Using AgentForge Guide](using_agentforge.md) to continue building your agents.
+- Check [First Real Model Run](first_real_model_run.md) for provider credential and local model service requirements.
 - Review the [Prerequisites Guide](prerequisites_guide.md) to ensure all requirements are met.

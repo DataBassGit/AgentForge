@@ -1,5 +1,9 @@
 # Persona Guide
 
+This is an advanced context reference.
+
+Use it after the beginner Agent and Cog path, when you intentionally want persona-driven prompt variables or persona memory.
+
 A **persona** in **AgentForge** is a YAML configuration that defines an agent's identity, background, style, and default values. When enabled, personas drive prompt variables and determine the storage context for both individual agents and multi-agent cogs.
 
 ## 1. What Is a Persona?

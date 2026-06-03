@@ -15,7 +15,7 @@ This public documentation path leads with the smallest successful workflow first
 
 The [Using AgentForge](guides/using_agentforge.md) guide is the workflow hub for this path.
 
-## Reference After The First Run
+## Reference After The Beginner Path
 
 - [Agents](agents/agents.md): Agent lifecycle, prompt files, and advanced subclass hooks.
 - [Cogs](cogs/cogs.md): Cog schema, flow transitions, branching, loops, return values, and memory configuration.

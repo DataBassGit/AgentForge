@@ -1,5 +1,9 @@
 # Custom Agents Guide
 
+This is an advanced extension reference.
+
+Use it after the beginner direct Agent and Cog workflows are clear.
+
 Subclassing `Agent` lets you add custom logic to any part of the agent workflow. Override only the methods you need for your use case.
 
 ---
