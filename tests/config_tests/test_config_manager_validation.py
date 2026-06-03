@@ -91,6 +91,29 @@ def test_config_manager_beginner_summary_cog_config(isolated_config):
     assert cog_config.cog.flow.transitions["respond"].end is True
 
 
+def test_config_manager_beginner_branch_loop_cog_config(isolated_config):
+    """Test that the beginner branch/loop Cog normalizes into the expected flow."""
+    config_manager = ConfigManager()
+    raw_cog_data = isolated_config.find_config("cogs", "beginner_branch_loop_cog")
+
+    cog_config = config_manager.build_cog_config(raw_cog_data)
+
+    assert cog_config.cog.name == "BeginnerBranchLoopCog"
+    assert cog_config.cog.chat_memory_enabled is False
+    assert [agent.id for agent in cog_config.cog.agents] == ["draft", "review", "revise", "final"]
+    assert cog_config.cog.flow is not None
+    assert cog_config.cog.flow.start == "draft"
+    assert cog_config.cog.flow.transitions["draft"].next_agent == "review"
+    review_transition = cog_config.cog.flow.transitions["review"]
+    assert review_transition.type == "decision"
+    assert review_transition.decision_key == "choice"
+    assert review_transition.decision_map == {"approve": "final", "revise": "revise"}
+    assert review_transition.fallback == "final"
+    assert review_transition.max_visits == 2
+    assert cog_config.cog.flow.transitions["revise"].next_agent == "review"
+    assert cog_config.cog.flow.transitions["final"].end is True
+
+
 def test_config_manager_preserves_chat_history_settings():
     """Test that documented Cog chat-history settings survive normalization."""
     config_manager = ConfigManager()

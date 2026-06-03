@@ -2,7 +2,7 @@
 
 This page is the fifth stop in the beginner documentation path.
 
-Open these references after the no-credential direct Agent path, first real model run, core concepts, and beginner Cog walkthrough are clear.
+Open these references after the no-credential direct Agent path, first real model run, core concepts, beginner Cog walkthrough, and branch/loop Cog walkthrough are clear.
 
 ## Agent And Prompt Extension
 

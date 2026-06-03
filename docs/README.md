@@ -10,7 +10,8 @@ This public documentation path leads with the smallest successful workflow first
 2. [First Real Model Run](guides/first_real_model_run.md): Learn when provider credentials or local model services are required.
 3. [Core Concepts](guides/core_concepts.md): Build the mental model for Agents, prompts, settings, and Cogs.
 4. [Beginner Cog Walkthrough](guides/beginner_cog_walkthrough.md): Move from one Agent to a small multi-agent workflow.
-5. [Advanced Reference](guides/advanced_reference.md): Continue into optional memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions.
+5. [Branch/Loop Cog Walkthrough](guides/branch_loop_cog_walkthrough.md): Add a decision branch, revision loop, fallback, and loop guard.
+6. [Advanced Reference](guides/advanced_reference.md): Continue into optional memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions.
 
 The [Using AgentForge](guides/using_agentforge.md) guide is the workflow hub for this path.
 

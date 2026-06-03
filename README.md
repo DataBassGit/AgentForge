@@ -34,8 +34,9 @@ Follow this public docs path in order:
 1. **[Quickstart](docs/guides/quickstart.md)**: Install AgentForge, scaffold `.agentforge/`, and understand the no-credential debug-mode first-run boundary.
 2. **[First Real Model Run](docs/guides/first_real_model_run.md)**: Learn when credentials or local model services become necessary.
 3. **[Core Concepts](docs/guides/core_concepts.md)**: Understand Agents, prompt templates, settings, and Cogs without starting from schema details.
-4. **[Beginner Cog Walkthrough](docs/guides/beginner_cog_walkthrough.md)**: See where a small multi-agent workflow will fit after the direct Agent path works.
-5. **[Advanced Reference](docs/guides/advanced_reference.md)**: Continue into memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions after the beginner workflow is clear.
+4. **[Beginner Cog Walkthrough](docs/guides/beginner_cog_walkthrough.md)**: Run a small no-memory multi-agent workflow.
+5. **[Branch/Loop Cog Walkthrough](docs/guides/branch_loop_cog_walkthrough.md)**: Add a decision branch, revision loop, fallback, and loop guard.
+6. **[Advanced Reference](docs/guides/advanced_reference.md)**: Continue into memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions after the beginner workflow is clear.
 
 The **[Using AgentForge](docs/guides/using_agentforge.md)** guide is now the beginner workflow hub that connects those steps.
 
@@ -66,6 +67,7 @@ Build agents and cognitive architectures (multi-agent systems) with:
 - **[First Real Model Run](docs/guides/first_real_model_run.md)**: Credential and local-provider boundary for the first real call.
 - **[Core Concepts](docs/guides/core_concepts.md)**: Plain-language mental model before reference details.
 - **[Beginner Cog Walkthrough](docs/guides/beginner_cog_walkthrough.md)**: The next step after a direct Agent run.
+- **[Branch/Loop Cog Walkthrough](docs/guides/branch_loop_cog_walkthrough.md)**: A beginner decision branch, revision loop, fallback, and `max_visits` example.
 
 ### **Reference And Advanced Topics**
 

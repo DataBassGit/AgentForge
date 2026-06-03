@@ -116,5 +116,5 @@ AgentForge helps you compose agents into small workflows. This beginner Cog ran 
 ## Next
 
 - Use [Cogs](../cogs/cogs.md) for the full schema reference after this simple flow works.
-- Continue to the branch/loop example when you are ready for decisions, fallbacks, and `max_visits`.
+- Continue to [Branch/Loop Cog Walkthrough](branch_loop_cog_walkthrough.md) when you are ready for decisions, fallbacks, and `max_visits`.
 - Use [Advanced Reference](advanced_reference.md) later for memory, personas, storage-backed workflows, custom APIs, custom Agents, utilities, and legacy Tools/Actions.

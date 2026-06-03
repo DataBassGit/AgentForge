@@ -79,6 +79,55 @@ def test_beginner_summary_cog_resources_are_loaded(isolated_config: Config):
     )
 
 
+def test_beginner_branch_loop_cog_resources_are_loaded(isolated_config: Config):
+    """The shipped branch/loop Cog resources should support the beginner walkthrough."""
+    branch_cog = isolated_config.find_config("cogs", "beginner_branch_loop_cog")["cog"]
+    draft_prompt = isolated_config.find_config("prompts", "beginner_draft_agent")
+    review_prompt = isolated_config.find_config("prompts", "beginner_review_agent")
+    revise_prompt = isolated_config.find_config("prompts", "beginner_revise_agent")
+    final_prompt = isolated_config.find_config("prompts", "beginner_final_agent")
+
+    assert branch_cog["chat_memory_enabled"] is False
+    assert branch_cog["flow"]["start"] == "draft"
+    assert branch_cog["flow"]["transitions"]["draft"] == "review"
+    assert branch_cog["flow"]["transitions"]["review"] == {
+        "choice": {"approve": "final", "revise": "revise"},
+        "fallback": "final",
+        "max_visits": 2,
+    }
+    assert branch_cog["flow"]["transitions"]["revise"] == "review"
+    assert branch_cog["flow"]["transitions"]["final"] == {"end": True}
+    assert branch_cog["agents"] == [
+        {"id": "draft", "template_file": "beginner_draft_agent"},
+        {"id": "review", "template_file": "beginner_review_agent"},
+        {"id": "revise", "template_file": "beginner_revise_agent"},
+        {"id": "final", "template_file": "beginner_final_agent"},
+    ]
+
+    assert "{_ctx.user_input}" in draft_prompt["prompts"]["user"]
+    assert "{_state.draft}" in review_prompt["prompts"]["user"]["draft"]
+    assert "{_state.revise}" in review_prompt["prompts"]["user"]["revision"]
+    assert review_prompt["parse_response_as"] == "json"
+    assert review_prompt["simulated_response"] == (
+        '{"choice": "revise", "rationale": "Make the reply more concrete for a beginner."}'
+    )
+    assert "{_state.review.rationale}" in revise_prompt["prompts"]["user"]
+    assert "{_state.review.rationale}" in final_prompt["prompts"]["user"]["review"]
+    assert final_prompt["simulated_response"] == (
+        "AgentForge helps you turn prompts into small agent workflows. "
+        "This branch/loop Cog drafted, reviewed, revised, and finished through its fallback after max_visits."
+    )
+
+
+def test_packaged_example_cog_response_prompt_matches_decision_node(isolated_config: Config):
+    """The legacy packaged example should reference its real decision node ID."""
+    response_prompt = isolated_config.find_config("prompts", "cog_response_agent")
+    rationale_prompt = response_prompt["prompts"]["user"]["rationale"]
+
+    assert "{_state.decision.rationale}" in rationale_prompt
+    assert "{_state.decide.rationale}" not in rationale_prompt
+
+
 def test_empty_yaml_file_loads_as_empty_dict(tmp_path: Path):
     """Empty YAML should normalize to an empty dictionary through both loader entrypoints."""
     empty_yaml = tmp_path / "empty.yaml"

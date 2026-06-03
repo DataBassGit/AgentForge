@@ -48,13 +48,18 @@ def test_setup_agentforge_scaffolds_packaged_yaml_and_root_config(tmp_path: Path
 
     init_agentforge.setup_agentforge()
 
-    assert len(EXPECTED_YAML_PATHS) == 42
+    assert len(EXPECTED_YAML_PATHS) == 47
     assert _project_yaml_paths(project_root) == EXPECTED_YAML_PATHS
     for relative_path in (
         "settings/system.yaml",
         "settings/models.yaml",
+        "cogs/beginner_branch_loop_cog.yaml",
         "cogs/beginner_summary_cog.yaml",
+        "prompts/beginner_draft_agent.yaml",
+        "prompts/beginner_final_agent.yaml",
         "prompts/beginner_response_agent.yaml",
+        "prompts/beginner_review_agent.yaml",
+        "prompts/beginner_revise_agent.yaml",
         "prompts/beginner_summary_agent.yaml",
         "prompts/hello_agent.yaml",
         "prompts/response_agent.yaml",
@@ -67,6 +72,7 @@ def test_setup_agentforge_scaffolds_packaged_yaml_and_root_config(tmp_path: Path
 
     cfg = Config.reset(root_path=str(project_root))
     assert cfg.project_root == project_root
+    assert cfg.find_config("cogs", "beginner_branch_loop_cog")
     assert cfg.find_config("cogs", "beginner_summary_cog")
     assert cfg.find_config("prompts", "hello_agent")
     assert cfg.find_config("prompts", "response_agent")

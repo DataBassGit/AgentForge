@@ -1,0 +1,31 @@
+cog:
+  name: "BeginnerBranchLoopCog"
+  description: "A tiny no-memory workflow that drafts, reviews, revises, and finishes with a loop guard."
+  chat_memory_enabled: false
+
+  agents:
+    - id: draft
+      template_file: beginner_draft_agent
+
+    - id: review
+      template_file: beginner_review_agent
+
+    - id: revise
+      template_file: beginner_revise_agent
+
+    - id: final
+      template_file: beginner_final_agent
+
+  flow:
+    start: draft
+    transitions:
+      draft: review
+      review:
+        choice:
+          "approve": final
+          "revise": revise
+        fallback: final
+        max_visits: 2
+      revise: review
+      final:
+        end: true

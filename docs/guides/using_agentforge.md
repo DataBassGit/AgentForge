@@ -10,7 +10,8 @@ Use it to choose the next public guide in the recommended order instead of start
 2. [First Real Model Run](first_real_model_run.md): Turn the same direct Agent path toward a real model only after the debug path is understood.
 3. [Core Concepts](core_concepts.md): Learn what Agents, prompt files, settings, and Cogs do before reading reference schemas.
 4. [Beginner Cog Walkthrough](beginner_cog_walkthrough.md): Move from a direct Agent to a small no-memory Cog workflow.
-5. [Advanced Reference](advanced_reference.md): Continue into memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions.
+5. [Branch/Loop Cog Walkthrough](branch_loop_cog_walkthrough.md): Add a beginner decision branch, revision loop, fallback, and `max_visits`.
+6. [Advanced Reference](advanced_reference.md): Continue into memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions.
 
 ## Setup Boundary
 

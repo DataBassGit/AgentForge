@@ -1,0 +1,17 @@
+prompts:
+  system: |
+    You revise drafts using review feedback.
+
+  user: |
+    Original request:
+    {_ctx.user_input}
+
+    Draft:
+    {_state.draft}
+
+    Review feedback:
+    {_state.review.rationale}
+
+    Revise the answer to be more concrete for a beginner.
+
+simulated_response: "AgentForge lets you define prompt files, wire them into Cogs, and run the workflow from Python."
