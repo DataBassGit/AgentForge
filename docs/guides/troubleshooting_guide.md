@@ -21,9 +21,17 @@ If you are still setting up the first run, follow [Quickstart](quickstart.md) fi
   - Verify that **AgentForge** is installed in your current environment.
   - Check for typos in import statements.
 
-### 3. API Key Errors
+### 3. Codex OAuth Errors
 
-- **Problem**: Errors related to missing or invalid API keys.
+- **Problem**: The default real-model path fails before sending a request.
+- **Solutions**:
+  - Run `python -m agentforge.init_codex_oauth --check`.
+  - If credentials are missing or expired, run `python -m agentforge.init_codex_oauth`.
+  - Confirm `debug.mode` is `false` only when you intend to call a real provider.
+
+### 4. API Key Errors
+
+- **Problem**: API-key providers such as OpenAI API models, Anthropic, Gemini, Groq, or OpenRouter fail before sending a request.
 - **Solutions**:
   - Double-check that your API keys are correctly set as environment variables.
   - Ensure there are no extra quotes or spaces in the environment variable values.

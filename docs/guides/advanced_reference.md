@@ -1,6 +1,6 @@
 # Advanced Reference
 
-This page is the advanced-reference hub after the six-step beginner documentation path.
+This page is the reference hub after the beginner Agent and Cog path.
 
 Open these references after the no-credential direct Agent path, first real model run, core concepts, beginner Cog walkthrough, and branch/loop Cog walkthrough are clear.
 
@@ -38,3 +38,9 @@ Open these references after the no-credential direct Agent path, first real mode
 - [Tools & Actions](../tools_and_actions/overview.md): Legacy dynamic execution surface retained for trusted project-owned tools and compatibility.
 
 Internal AgentForge development guidance is intentionally kept outside the public beginner docs path.
+
+## Navigation
+
+- Previous: [Branch/Loop Cog Walkthrough](branch_loop_cog_walkthrough.md)
+- Start: [AgentForge Documentation](../README.md)
+- Setup boundaries: [Using AgentForge](using_agentforge.md)

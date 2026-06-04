@@ -17,9 +17,24 @@ The no-credential [Quickstart](quickstart.md) does not require API keys; use thi
 
 ---
 
-## API Keys and Environment Variables
+## Default Real-Model Login
 
-**AgentForge** supports both cloud-based and local Large Language Models (LLMs).
+The shipped scaffold defaults to OpenAI Codex models for real calls.
+Codex uses an interactive OAuth login and does **not** use `OPENAI_API_KEY`.
+
+Run:
+
+```shell
+python -m agentforge.init_codex_oauth
+```
+
+Use this once per environment, or rerun when tokens expire.
+
+---
+
+## Optional API Keys and Environment Variables
+
+**AgentForge** also supports API-key cloud models and local Large Language Models (LLMs).
 
 ### Cloud-Based LLMs
 
@@ -64,20 +79,6 @@ $env:OPENAI_API_KEY='your-openai-api-key'
 ```
 
 ![Environment Variables](../../docs/images/EnvKeys.png)
-
----
-
-### Codex OAuth Requirement
-
-OpenAI Codex models use an interactive OAuth login and do **not** use `OPENAI_API_KEY`.
-
-Run:
-
-```shell
-python -m agentforge.init_codex_oauth
-```
-
-Use this once per environment (or rerun when tokens expire).
 
 ---
 

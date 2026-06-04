@@ -89,11 +89,23 @@ Set `AGENTFORGE_ROOT=/path/to/your/project` when your script lives somewhere els
 
 Explicit `Config(root_path=...)` and `Config.reset(root_path=...)` are advanced deterministic setup options used most often in tests or tools.
 
-### 5. Set Up Provider Credentials When You Need A Real Model
+### 5. Initialize Codex OAuth For The Default Real Model
 
 Provider credentials are not required for the no-credential debug-mode first run.
 
+The shipped scaffold defaults real model calls to OpenAI Codex through OAuth.
+Run the OAuth login command after project initialization when you are ready to use the default real-model path:
+
+```shell
+python -m agentforge.init_codex_oauth
+```
+
+This stores OAuth credentials used by the `Codex` provider.
+Codex OAuth is separate from `OPENAI_API_KEY`.
+
 Use [First Real Model Run](first_real_model_run.md) for the beginner real-provider path before treating this section as reference detail.
+
+### 6. Set Up Optional API Keys Or Local Services
 
 Depending on the language model service you plan to use with **AgentForge**, you may need to set up environment variables with your API keys before a real model call. If you're using local models like **LM Studio** or **Ollama**, you do **not** need to set up environment variables for API keys, but you do need the local service running.
 
@@ -144,21 +156,11 @@ load_dotenv()
 
 This will automatically load the variables from your `.env` file into the environment for your script.
 
-### 6. Initialize Codex OAuth (Only for Codex Models)
-
-If you plan to use OpenAI Codex models, run the OAuth login command after project initialization:
-
-```shell
-python -m agentforge.init_codex_oauth
-```
-
-This stores OAuth credentials used by the `Codex` provider. Codex OAuth is separate from `OPENAI_API_KEY`.
-
 ---
 
 ## Using AgentForge
 
-After project setup, continue with the [Quickstart](quickstart.md) and [Using AgentForge Guide](using_agentforge.md) to follow the beginner workflow path.
+After project setup, continue with the [Quickstart](quickstart.md), [First Real Model Run](first_real_model_run.md), and [Using AgentForge Guide](using_agentforge.md).
 
 ---
 

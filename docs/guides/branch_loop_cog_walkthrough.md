@@ -10,10 +10,12 @@ The example uses debug mode so the branch and loop behavior is deterministic and
 
 Use a project that already has `.agentforge/` from the [Quickstart](quickstart.md).
 
-Turn debug mode on if it is not already enabled:
+Turn debug mode on if it is not already enabled.
+Open `.agentforge/settings/system.yaml` and set:
 
-```shell
-python -c "from pathlib import Path; p = Path('.agentforge/settings/system.yaml'); text = p.read_text(); p.write_text(text.replace('mode: false', 'mode: true', 1))"
+```yaml
+debug:
+  mode: true
 ```
 
 ## The Cog File
@@ -108,7 +110,9 @@ AgentForge helps you turn prompts into small agent workflows. This branch/loop C
 - `max_visits: 2` prevents the `review -> revise -> review` loop from running forever.
 - `chat_memory_enabled: false` keeps this example independent from automatic chat history memory.
 
-## Next
+## Navigation
 
+- Previous: [Beginner Cog Walkthrough](beginner_cog_walkthrough.md)
+- Start: [AgentForge Documentation](../README.md)
 - Use [Cogs](../cogs/cogs.md) for the full schema reference.
 - Use [Advanced Reference](advanced_reference.md) later for memory, personas, storage-backed workflows, custom APIs, custom Agents, utilities, and legacy Tools/Actions.

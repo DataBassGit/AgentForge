@@ -175,6 +175,9 @@ Codex OAuth is separate from `OPENAI_API_KEY` and is initialized through:
 python -m agentforge.init_codex_oauth
 ```
 
+The shipped `models.yaml` scaffold defaults real model calls to `openai_api` / `codex_gpt55`.
+Tests and examples should use debug mode or fakes unless the change explicitly validates a live Codex path.
+
 Do not change provider credential behavior without updating provider docs, setup defaults, and focused failure tests.
 
 ## Package And Install Checks

@@ -10,10 +10,12 @@ The example uses debug mode so you can prove the Cog wiring without provider cre
 
 Use a project that already has `.agentforge/` from the [Quickstart](quickstart.md).
 
-If you followed [First Real Model Run](first_real_model_run.md), turn debug mode back on for deterministic output:
+If you followed [First Real Model Run](first_real_model_run.md), turn debug mode back on for deterministic output.
+Open `.agentforge/settings/system.yaml` and set:
 
-```shell
-python -c "from pathlib import Path; p = Path('.agentforge/settings/system.yaml'); text = p.read_text(); p.write_text(text.replace('mode: false', 'mode: true', 1))"
+```yaml
+debug:
+  mode: true
 ```
 
 ## The Cog File
@@ -113,8 +115,10 @@ AgentForge helps you compose agents into small workflows. This beginner Cog ran 
 - The second prompt uses `_state.summarize` from the first node.
 - This Cog has no branching, loops, memory nodes, personas, storage setup, custom Agent subclasses, or custom APIs.
 
-## Next
+## Navigation
 
+- Previous: [Core Concepts](core_concepts.md)
+- Start: [AgentForge Documentation](../README.md)
 - Use [Cogs](../cogs/cogs.md) for the full schema reference after this simple flow works.
 - Continue to [Branch/Loop Cog Walkthrough](branch_loop_cog_walkthrough.md) when you are ready for decisions, fallbacks, and `max_visits`.
 - Use [Advanced Reference](advanced_reference.md) later for memory, personas, storage-backed workflows, custom APIs, custom Agents, utilities, and legacy Tools/Actions.

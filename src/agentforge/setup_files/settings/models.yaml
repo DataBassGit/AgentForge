@@ -1,11 +1,12 @@
-# Default model settings for all agents unless overridden
+# Default model settings for all agents unless overridden.
+# Run `python -m agentforge.init_codex_oauth` before real calls with this default.
 default_model:
-  api: gemini_api
-  model: gemini_flash
+  api: openai_api
+  model: codex_gpt55
 
 # Example of using alternative default models
-#  api: lm_studio_api
-#  model: LMStudio
+#  api: gemini_api
+#  model: gemini_flash
 
 # Library of models and parameter defaults
 model_library:

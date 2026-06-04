@@ -1,6 +1,6 @@
 # Core Concepts
 
-This page is the third stop in the beginner documentation path.
+This page follows the first direct Agent runs.
 
 It gives the mental model before the reference pages introduce schemas, memory, storage, subclass hooks, and legacy compatibility surfaces.
 
@@ -24,7 +24,7 @@ The detailed prompt reference lives in [Agent Prompts](../agents/agent_prompts.m
 
 Settings live under `.agentforge/settings/`.
 
-Beginners mostly need `system.yaml` for debug mode and `models.yaml` for the provider used after debug mode.
+Beginners mostly need `system.yaml` for the debug smoke test and `models.yaml` for the provider used after debug mode.
 
 The detailed settings reference lives in [Settings](../settings/settings.md).
 
@@ -42,7 +42,9 @@ Memory, personas, storage internals, custom APIs, custom Agents, utilities, and 
 
 Use [Advanced Reference](advanced_reference.md) when you are ready for those surfaces.
 
-## Next
+## Navigation
 
+- Previous: [First Real Model Run](first_real_model_run.md)
+- Start: [AgentForge Documentation](../README.md)
 - Continue to [Beginner Cog Walkthrough](beginner_cog_walkthrough.md).
 - Open the [Agents](../agents/agents.md) and [Cogs](../cogs/cogs.md) references after the beginner examples are clear.

@@ -2,18 +2,24 @@
 
 Start here if you are new to AgentForge.
 
-This public documentation path leads with the smallest successful workflow first, then moves into reference material after the basic shape is clear.
+This is the canonical public documentation hub.
+The path below starts with a no-credential smoke test, moves to the default Codex OAuth real-model setup, and then introduces Cogs before advanced reference material.
 
 ## Beginner Path
 
-1. [Quickstart](guides/quickstart.md): Install AgentForge, scaffold `.agentforge/`, and understand the no-credential debug-mode first-run boundary.
-2. [First Real Model Run](guides/first_real_model_run.md): Learn when provider credentials or local model services are required.
+1. [Quickstart](guides/quickstart.md): Install AgentForge, scaffold `.agentforge/`, and run a debug-mode smoke test without provider credentials.
+2. [First Real Model Run](guides/first_real_model_run.md): Turn the same direct Agent path toward the default Codex OAuth model setup.
 3. [Core Concepts](guides/core_concepts.md): Build the mental model for Agents, prompts, settings, and Cogs.
 4. [Beginner Cog Walkthrough](guides/beginner_cog_walkthrough.md): Move from one Agent to a small multi-agent workflow.
 5. [Branch/Loop Cog Walkthrough](guides/branch_loop_cog_walkthrough.md): Add a decision branch, revision loop, fallback, and loop guard.
 6. [Advanced Reference](guides/advanced_reference.md): Continue into optional memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions.
 
-The [Using AgentForge](guides/using_agentforge.md) guide is the workflow hub for this path.
+## Setup And Support
+
+- [Using AgentForge](guides/using_agentforge.md): Project-root discovery, `.agentforge/` ownership, debug smoke-test boundaries, and real-model setup boundaries.
+- [Installation Details](guides/installation_guide.md): Extra environment setup detail beyond the quickstart.
+- [Prerequisites Details](guides/prerequisites_guide.md): Optional credentials, local model services, and platform dependencies.
+- [Troubleshooting](guides/troubleshooting_guide.md): Common setup and provider errors.
 
 ## Reference After The Beginner Path
 

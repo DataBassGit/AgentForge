@@ -13,8 +13,8 @@
 ```yaml
 # Default model selection for agents without overrides
 default_model:
-  api: gemini_api      # API key in model_library
-  model: gemini_flash  # Model key under the chosen API's classes
+  api: openai_api     # Library key in model_library
+  model: codex_gpt55  # Model key under the chosen API's classes
 
 # Detailed library of APIs, classes, models, and parameters
 model_library:
@@ -73,6 +73,9 @@ embedding_library:
 
 Any agent without a `model_overrides` block uses this selection.
 
+The shipped scaffold defaults to `openai_api` / `codex_gpt55` for real model calls.
+Run `python -m agentforge.init_codex_oauth` before using that default with `debug.mode: false`.
+
 ### model_library
 A mapping of **API keys** → **Class names** → settings:
 
@@ -103,6 +106,8 @@ api, cls, ident, final_params = Config().resolve_model_overrides(agent_yaml_dict
 ```
 
 ## Codex Parameters (`openai_api.Codex`)
+
+Codex models use OAuth credentials, not `OPENAI_API_KEY`.
 
 - `top_p`, `reasoning`, `text`: Supported response body parameters.
 - `host_url`, `timeout`, `verify_ssl`: Transport controls for the Codex HTTP/SSE endpoint.

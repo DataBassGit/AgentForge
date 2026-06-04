@@ -159,9 +159,12 @@ prompts:
         isolated_config.find_config("prompts", "TemporaryReloadAgent")
 
 
-def test_provider_defaults_are_current_and_codex_is_configurable(isolated_config: Config):
-    """Setup defaults should keep provider params and Codex config current."""
-    models = isolated_config.data["settings"]["models"]["model_library"]
+def test_provider_defaults_are_current_and_codex_is_default(isolated_config: Config):
+    """Setup defaults should keep provider params current and choose Codex for real calls."""
+    model_settings = isolated_config.data["settings"]["models"]
+    assert model_settings["default_model"] == {"api": "openai_api", "model": "codex_gpt55"}
+
+    models = model_settings["model_library"]
 
     openai_gpt = models["openai_api"]["GPT"]
     assert "max_tokens" not in openai_gpt["params"]

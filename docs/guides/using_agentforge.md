@@ -1,19 +1,10 @@
 # Using AgentForge
 
-This guide is the beginner workflow hub for AgentForge.
+This guide explains the setup boundaries AgentForge uses when your script runs.
 
-Use it to choose the next public guide in the recommended order instead of starting from schemas, storage internals, subclass hooks, or legacy tools.
+Use it when you need to understand where `.agentforge/` belongs, how AgentForge finds it, when debug mode is useful, and when provider setup begins.
 
-For optional extension points after this path, use [Advanced Reference](advanced_reference.md) as the advanced-reference hub.
-
-## Beginner Workflow
-
-1. [Quickstart](quickstart.md): Install AgentForge, scaffold `.agentforge/`, and use debug mode as the first no-credential boundary.
-2. [First Real Model Run](first_real_model_run.md): Turn the same direct Agent path toward a real model only after the debug path is understood.
-3. [Core Concepts](core_concepts.md): Learn what Agents, prompt files, settings, and Cogs do before reading reference schemas.
-4. [Beginner Cog Walkthrough](beginner_cog_walkthrough.md): Move from a direct Agent to a small no-memory Cog workflow.
-5. [Branch/Loop Cog Walkthrough](branch_loop_cog_walkthrough.md): Add a beginner decision branch, revision loop, fallback, and `max_visits`.
-6. [Advanced Reference](advanced_reference.md): Continue into memory, personas, storage, custom APIs, custom Agents, utilities, and legacy Tools/Actions.
+For the recommended first-run order, start from the [AgentForge Documentation](../README.md) hub.
 
 ## Setup Boundary
 
@@ -37,17 +28,33 @@ Use `AGENTFORGE_ROOT=/path/to/project` when your script lives somewhere else or 
 
 Use explicit `Config(root_path=...)` or `Config.reset(root_path=...)` only when you are writing advanced setup code, tests, or deterministic tooling.
 
-## Credential Boundary
+## Smoke-Test Boundary
 
-The first beginner path should not require cloud credentials.
+The first setup check should not require provider credentials.
 
-AgentForge's debug mode returns a simulated response instead of calling a provider, so it is the right boundary for a first setup check.
+AgentForge's debug mode returns a simulated response instead of calling a provider, so it is the right boundary for a smoke test.
 
-Real provider calls require credentials or a running local model service.
+Use debug mode to prove that Python imports, `.agentforge/` discovery, prompt loading, and direct Agent execution all work.
 
-The current scaffold's default model points at Gemini, so a real cloud call uses `GOOGLE_API_KEY` unless you change `.agentforge/settings/models.yaml`.
+## Real-Model Boundary
 
-Provider setup belongs in [First Real Model Run](first_real_model_run.md), not in the first no-credential quickstart.
+Real provider calls require either Codex OAuth, API keys, or a running local model service.
+
+The shipped scaffold's default real model path is:
+
+```yaml
+default_model:
+  api: openai_api
+  model: codex_gpt55
+```
+
+Initialize Codex OAuth before using that default real-model path:
+
+```shell
+python -m agentforge.init_codex_oauth
+```
+
+Provider setup belongs in [First Real Model Run](first_real_model_run.md), not in the no-credential quickstart.
 
 ## After The Beginner Path
 
@@ -63,3 +70,9 @@ Start from [Advanced Reference](advanced_reference.md) when you are not sure whi
 - [Utilities](../utils/utils_overview.md) and [Tools & Actions](../tools_and_actions/overview.md)
 
 Internal AgentForge development guidance is kept in `dev-docs/`, not in the public beginner path.
+
+## Navigation
+
+- Start: [AgentForge Documentation](../README.md)
+- First run: [Quickstart](quickstart.md)
+- Real model setup: [First Real Model Run](first_real_model_run.md)

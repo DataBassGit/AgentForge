@@ -2,7 +2,7 @@
 
 This is the first AgentForge workflow to run when you are new to the project.
 
-It installs AgentForge, scaffolds `.agentforge/`, turns on debug mode, and runs one direct Agent without provider credentials.
+It installs AgentForge, scaffolds `.agentforge/`, turns on debug mode for a smoke test, and runs one direct Agent without provider credentials.
 
 ## 1. Create A Project Environment
 
@@ -37,19 +37,13 @@ This creates the project-owned `.agentforge/` resource folder.
 
 For this first run, you only need `.agentforge/settings/system.yaml` and `.agentforge/prompts/hello_agent.yaml`.
 
-## 3. Enable Debug Mode
+## 3. Enable Debug Mode For A Smoke Test
 
 Debug mode returns a simulated response instead of calling a model provider.
 
 No API keys or local model services are needed for this quickstart.
 
-Use this copy/paste command to set `debug.mode` to `true`:
-
-```shell
-python -c "from pathlib import Path; p = Path('.agentforge/settings/system.yaml'); text = p.read_text(); p.write_text(text.replace('mode: false', 'mode: true', 1))"
-```
-
-You can also edit `.agentforge/settings/system.yaml` directly:
+Open `.agentforge/settings/system.yaml` and set `debug.mode` to `true`:
 
 ```yaml
 debug:
@@ -103,12 +97,14 @@ Explicit `Config(root_path=...)` and `Config.reset(root_path=...)` are advanced 
 
 This quickstart uses debug mode, so it does not need provider credentials.
 
-The current scaffold defaults to Gemini for real model calls, so a real call requires `GOOGLE_API_KEY` unless you change `.agentforge/settings/models.yaml`.
+When debug mode is off, the shipped scaffold defaults to the Codex OAuth model path in `.agentforge/settings/models.yaml`.
+That real-model path is covered in [First Real Model Run](first_real_model_run.md).
 
-Cloud credentials and local model services are covered in [First Real Model Run](first_real_model_run.md).
+API-key providers and local model services are alternatives after the smoke test works.
 
-## Next
+## Navigation
 
+- Start: [AgentForge Documentation](../README.md)
 - Continue to [First Real Model Run](first_real_model_run.md) when you are ready to leave debug mode.
 - Read [Core Concepts](core_concepts.md) when you want the mental model before editing more YAML.
 - Use [Installation Details](installation_guide.md) for environment setup, provider key examples, and troubleshooting links.
