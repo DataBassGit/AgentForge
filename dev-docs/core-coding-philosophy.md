@@ -85,7 +85,7 @@ Do not treat vertical formatting as the main solution for long signatures. A lon
 
 When configuring Ruff for this repo, keep signature formatting aligned with this rule: use Ruff for line-length and signature-adjacent linting, enable `E501`, `PLR0913`, and `UP045`, set the project line length to `120` unless a later tooling policy chooses otherwise, and configure `lint.pylint.max-args` deliberately. BasedPyright should remain focused on type checking and should not enforce formatting or line length.
 
-AgentForge now declares Python `>=3.10`, so touched code should use PEP 604 union syntax such as `str | None` instead of `Optional[str]`. Treat this as scoped cleanup for selected files, not a reason to bulk-convert untouched modules during an unrelated change.
+AgentForge declares Python `>=3.12,<3.15`, with Python 3.14 as the recommended target, so touched code should use PEP 604 union syntax such as `str | None` instead of `Optional[str]`.
 
 ### Classes And Abstractions
 

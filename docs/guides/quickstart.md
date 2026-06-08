@@ -6,7 +6,7 @@ It installs AgentForge, scaffolds `.agentforge/`, turns on debug mode for a smok
 
 ## 1. Create A Project Environment
 
-From the project directory that should own your AgentForge files, create and activate a Python environment:
+From the project directory that should own your AgentForge files, create and activate a Python environment. AgentForge requires Python 3.12 or newer; Python 3.14 is recommended when choosing a fresh interpreter:
 
 ```shell
 python3 -m venv .venv

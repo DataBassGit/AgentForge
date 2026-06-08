@@ -4,7 +4,7 @@ This document is for agents and developers running AgentForge locally. It is not
 
 ## Local Virtual Environment
 
-The repository uses a local `.venv/` using Python 3.14:
+The repository uses a local `.venv/` using Python 3.14, which is the recommended development target:
 
 ```shell
 source .venv/bin/activate
@@ -12,7 +12,7 @@ python --version
 python -m pip --version
 ```
 
-Use this venv for normal local checks when it exists. If the venv is missing, recreate it with the current local development Python:
+Use this venv for normal local checks when it exists. If the venv is missing, recreate it with Python 3.14 when available:
 
 ```shell
 python3.14 -m venv .venv
@@ -21,11 +21,22 @@ python3.14 -m venv .venv
 .venv/bin/python -m pip install -e .
 ```
 
-The package metadata declares `requires-python = ">=3.10"` and classifiers through Python 3.14. Python 3.14 is the preferred local development version; Python 3.10 remains the declared lower bound.
+The package metadata declares `requires-python = ">=3.12,<3.15"`. Python 3.12 and Python 3.14 have been verified; Python 3.14 is the recommended development and runtime target. Python 3.13 is allowed by the version range because it is expected to work, but it should remain unclassified and described as unverified until tested directly.
 
 ## Python Compatibility Checks
 
-Use a separate temporary venv when rechecking Python compatibility or dependency resolution without disturbing the repo-local `.venv/`:
+Use separate temporary venvs when rechecking Python compatibility or dependency resolution without disturbing the repo-local `.venv/`.
+Use Python 3.12 to prove the minimum supported version:
+
+```shell
+python3.12 -m venv --clear /tmp/agentforge-py312-compat
+/tmp/agentforge-py312-compat/bin/python -m pip install --upgrade pip
+/tmp/agentforge-py312-compat/bin/python -m pip install -r REQUIREMENTS.txt
+/tmp/agentforge-py312-compat/bin/python -m pip install -e .
+/tmp/agentforge-py312-compat/bin/python -m pytest
+```
+
+Use the same flow with Python 3.14 to validate the recommended target:
 
 ```shell
 python3.14 -m venv --clear /tmp/agentforge-py314-compat
@@ -35,7 +46,7 @@ python3.14 -m venv --clear /tmp/agentforge-py314-compat
 /tmp/agentforge-py314-compat/bin/python -m pytest
 ```
 
-Use this flow to validate `REQUIREMENTS.txt`, editable package metadata, and the default pytest suite on Python 3.14. The main environment cost is the size and build surface of the Chroma, Torch, sentence-transformers, and optional media stack.
+Use these flows to validate `REQUIREMENTS.txt`, editable package metadata, and the default pytest suite on Python 3.12 and Python 3.14. The main environment cost is the size and build surface of the Chroma, Torch, sentence-transformers, and optional media stack.
 
 ## Dependencies
 
@@ -188,7 +199,7 @@ Build package artifacts into `/tmp` when validating install workflow changes:
 python -m build --sdist --wheel --outdir /tmp/agentforge-package-dist
 ```
 
-Install the built wheel into a clean Python 3.14 venv and verify imports plus setup-file scaffolding:
+Install the built wheel into clean Python 3.12 and Python 3.14 venvs when validating compatibility. The Python 3.14 target check is:
 
 ```shell
 python3.14 -m venv --clear /tmp/agentforge-package-install
@@ -200,7 +211,7 @@ AgentForge package metadata lives in `pyproject.toml`. The built wheel includes 
 
 ## Known Boundaries
 
-- Package metadata supports Python 3.14 while keeping the lower bound at Python `>=3.10`; broad annotation modernization, such as replacing `Optional[...]` with `... | None`, should happen in scoped cleanup.
+- Package metadata supports Python `>=3.12,<3.15`, with Python 3.12 and Python 3.14 verified and Python 3.14 recommended. Python 3.13 is expected to work but remains unverified until directly tested.
 - No public `agentforge` console command is installed.
 - Tools and Actions are a legacy compatibility surface and still present in source and setup files.
 - Storage tests should use `FakeChromaStorage` unless exercising Chroma integration specifically.

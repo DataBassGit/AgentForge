@@ -10,14 +10,14 @@ If you are doing your first no-credential run, start with [Quickstart](quickstar
 
 ### 1. Ensure Python is Installed
 
-- **Python Version**: AgentForge requires **Python 3.10 or newer**.
+- **Python Version**: AgentForge requires **Python 3.12 or newer**. Python 3.14 is the recommended target when choosing a fresh interpreter.
 - **Check Python Version**:
 
   ```shell
   python3 --version
   ```
   
-  If Python is not installed or is older than **3.10**, download a supported version from the official [Python website](https://www.python.org/downloads/).
+  If Python is not installed or is older than **3.12**, download a supported version from the official [Python website](https://www.python.org/downloads/).
 
 ### 2. Set Up a Virtual Environment (Optional But Recommended)
 

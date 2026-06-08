@@ -1,7 +1,6 @@
 # Core Dependencies
 chromadb>=1.1.0
-numpy<2.0.0; python_version<'3.12'
-numpy>=2.0.0; python_version>='3.12'
+numpy>=2.0.0
 sentence-transformers
 groq
 pymupdf

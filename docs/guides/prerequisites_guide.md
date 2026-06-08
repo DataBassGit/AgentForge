@@ -8,7 +8,8 @@ The no-credential [Quickstart](quickstart.md) does not require API keys; use thi
 
 ## Python Version Requirement
 
-- **Python 3.10 or newer**
+- **Python 3.12 or newer**
+- **Recommended target: Python 3.14**
 - Verify your Python version:
 
   ```shell
