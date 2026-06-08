@@ -19,6 +19,10 @@ CALLER_NAMES = {
     "CwdAudit",
     "RepeatedName",
     "CategoryAudit",
+    "MissingDefaultAudit",
+    "MissingCategoryAudit",
+    "ConfiguredLevelAudit",
+    "FallbackAudit",
     "ModelAudit",
     "DuplicateAudit",
     "DisabledAudit",
@@ -96,14 +100,61 @@ def test_repeated_construction_does_not_ignore_default_logger(tmp_path: Path):
     assert "second-target warning" in second_log
 
 
-def test_unconfigured_category_falls_back_without_mutating_system_yaml(tmp_path: Path):
-    """Unknown categories should use the fallback logger and leave consumer config untouched."""
+def test_missing_default_logger_creates_dedicated_file_without_mutating_system_yaml(tmp_path: Path):
+    """A missing default logger should create a runtime file without editing system.yaml."""
     root = _copy_agentforge_root(tmp_path, "project_root")
     Config.reset(root_path=str(root))
     system_yaml = root / ".agentforge" / "settings" / "system.yaml"
     before = system_yaml.read_text(encoding="utf-8")
 
-    Logger("CategoryAudit", "agentforge").log("flow debug survives", "debug", "Flow")
+    Logger("MissingDefaultAudit", "runtime_default").warning("runtime default warning")
+    _flush_log_handlers()
+
+    assert system_yaml.read_text(encoding="utf-8") == before
+    assert "runtime default warning" in _read_log(root, "runtime_default")
+
+
+def test_missing_explicit_logger_file_uses_default_warning_level(tmp_path: Path):
+    """Runtime-created logger files should default to warning level."""
+    root = _copy_agentforge_root(tmp_path, "project_root")
+    Config.reset(root_path=str(root))
+    system_yaml = root / ".agentforge" / "settings" / "system.yaml"
+    before = system_yaml.read_text(encoding="utf-8")
+    logger = Logger("MissingCategoryAudit", "agentforge")
+
+    logger.log("runtime debug hidden", "debug", "runtime_category")
+    logger.log("runtime warning visible", "warning", "runtime_category")
+    _flush_log_handlers()
+
+    assert system_yaml.read_text(encoding="utf-8") == before
+    runtime_log = _read_log(root, "runtime_category")
+    assert "runtime warning visible" in runtime_log
+    assert "runtime debug hidden" not in runtime_log
+    assert "runtime warning visible" not in _read_log(root, "agentforge")
+
+
+def test_configured_runtime_category_preserves_configured_debug_level(tmp_path: Path):
+    """Configured categories should keep their configured level when requested at runtime."""
+    root = _copy_agentforge_root(tmp_path, "project_root")
+    _update_logging_settings(root, files={"agentforge": "warning", "runtime_debug": "debug"})
+    Config.reset(root_path=str(root))
+
+    Logger("ConfiguredLevelAudit", "agentforge").log("configured debug survives", "debug", "runtime_debug")
+    _flush_log_handlers()
+
+    assert "configured debug survives" in _read_log(root, "runtime_debug")
+    assert "configured debug survives" not in _read_log(root, "agentforge")
+
+
+def test_missing_logger_falls_back_when_runtime_creation_disabled(tmp_path: Path):
+    """The opt-out toggle should preserve fallback routing for unconfigured categories."""
+    root = _copy_agentforge_root(tmp_path, "project_root")
+    _update_logging_settings(root, create_missing_files=False)
+    Config.reset(root_path=str(root))
+    system_yaml = root / ".agentforge" / "settings" / "system.yaml"
+    before = system_yaml.read_text(encoding="utf-8")
+
+    Logger("FallbackAudit", "agentforge").log("flow debug survives", "debug", "Flow")
     _flush_log_handlers()
 
     assert system_yaml.read_text(encoding="utf-8") == before
@@ -174,7 +225,12 @@ def _copy_agentforge_root(tmp_path: Path, name: str) -> Path:
 
 
 def _update_logging_settings(
-    root: Path, *, enabled: bool | None = None, folder: str | None = None, files: dict[str, str] | None = None
+    root: Path,
+    *,
+    enabled: bool | None = None,
+    folder: str | None = None,
+    create_missing_files: bool | None = None,
+    files: dict[str, str] | None = None,
 ) -> None:
     system_yaml = root / ".agentforge" / "settings" / "system.yaml"
     data = yaml.safe_load(system_yaml.read_text(encoding="utf-8"))
@@ -183,6 +239,8 @@ def _update_logging_settings(
         logging_settings["enabled"] = enabled
     if folder is not None:
         logging_settings["folder"] = folder
+    if create_missing_files is not None:
+        logging_settings["create_missing_files"] = create_missing_files
     if files is not None:
         logging_settings["files"] = files
     system_yaml.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")

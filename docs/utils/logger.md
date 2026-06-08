@@ -5,7 +5,7 @@
 The **Logger** utility in **AgentForge** provides a flexible and comprehensive system for capturing log messages across different modules. It allows you to:
 
 1. Organize logs by categories or files (e.g., "agentforge", "model_io", "actions", etc.).  
-2. Route unconfigured log categories through a configured fallback without changing consumer configuration.
+2. Create dedicated files for logger categories requested by code without changing consumer configuration.
 3. Control verbosity with various log levels (debug, info, warning, error, critical).  
 4. Output logs to both console (with color-coded levels) and file (for auditing or later review).
 
@@ -15,7 +15,7 @@ The **Logger** utility in **AgentForge** provides a flexible and comprehensive s
 
 ### 1. `Logger` (High-Level Interface)
 
-When you instantiate `Logger(name='Something')`, it reads from your system's logging settings and sets up standard Python logging handlers for the configured log files. If code asks for a category that is not configured, AgentForge logs through the configured fallback category instead of editing `system.yaml`.
+When you instantiate `Logger(name='Something')`, it reads from your system's logging settings and sets up standard Python logging handlers for configured log files. If code asks for a category that is not configured, AgentForge creates a dedicated runtime file by default without editing `system.yaml`.
 
 **Example**:
 
@@ -48,6 +48,7 @@ logging:
   enabled: true
   console_level: warning
   folder: ./logs
+  create_missing_files: true
   files:
     agentforge: error
     model_io: debug
@@ -56,17 +57,20 @@ logging:
 - **`enabled`**: Set to `false` to disable logging globally.  
 - **`console_level`**: Minimum severity level to show in console logs (one of `debug`, `info`, `warning`, `error`, `critical`).  
 - **`folder`**: The directory where log files will be created. Relative paths resolve under the active AgentForge project root.
-- **`files`**: A dictionary of log file "names" → minimum levels. Only listed names get dedicated log files.
+- **`create_missing_files`**: Set to `true` to create dedicated runtime files for categories requested by code but missing from `files`. Set to `false` to route them through the configured fallback instead.
+- **`files`**: A dictionary of log file "names" → minimum levels. Listed names keep their configured levels.
 
 ### 2. Unconfigured Categories
 
-If code references a log file that doesn't exist in `files`, AgentForge does not update `system.yaml` and does not create a new category file. The message is routed to the configured fallback category, usually `agentforge`:
+If code references a log file that doesn't exist in `files`, AgentForge does not update `system.yaml`. With the default `create_missing_files: true`, AgentForge creates a dedicated runtime file for that category at `warning` level:
 
 ```python
 logger.log("Flow diagnostics", logger_file='Flow', level='debug')
 ```
 
-With the default setup, that message writes to `logs/agentforge.log` because `Flow` is not listed in `logging.files`.
+With the default setup, the first `Flow` message opens `logs/Flow.log`. Because runtime-created categories default to `warning`, `debug` messages are filtered unless you add `Flow: debug` under `logging.files`.
+
+Set `create_missing_files: false` when you want unconfigured categories to use the fallback category instead, usually `agentforge`.
 
 ---
 
@@ -81,7 +85,7 @@ my_logger = Logger(name='DataProcessor', default_logger='dataprocess')
 ```
 
 - **`name`**: A string typically matching your module or class. Shows up in log messages as `[DataProcessor] My message`.  
-- **`default_logger`**: The preferred category when you don't specify one. If it is not listed in `logging.files`, AgentForge falls back to `agentforge` or the first configured category.
+- **`default_logger`**: The preferred category when you don't specify one. If it is not listed in `logging.files`, AgentForge creates it at runtime by default, or falls back to `agentforge` when `create_missing_files` is `false`.
 
 2. **Logging Messages**
 
@@ -185,7 +189,8 @@ if __name__ == "__main__":
 What happens behind the scenes:
 
 - Configured categories write to their own log files under the active project root.
-- Unconfigured categories fall back to `agentforge` or the first configured category and leave `system.yaml` unchanged.
+- Runtime-created categories write to their own log files at `warning` level and leave `system.yaml` unchanged.
+- When `create_missing_files` is `false`, unconfigured categories fall back to `agentforge` or the first configured category.
 - Console output appears when the message meets or exceeds `console_level`.
 
 ---
@@ -211,7 +216,7 @@ What happens behind the scenes:
 
 ## Conclusion
 
-The Logger system in **AgentForge** lets you track and audit your agents' behavior with minimal setup. Configure dedicated categories in `system.yaml` when you want separate files, and rely on fallback routing for incidental diagnostic categories.
+The Logger system in **AgentForge** lets you track and audit your agents' behavior with minimal setup. Configure dedicated categories in `system.yaml` when you need custom levels, rely on runtime-created files for incidental diagnostic categories, or set `create_missing_files: false` to force unconfigured categories through the fallback logger.
 
 ---
 

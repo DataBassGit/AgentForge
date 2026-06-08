@@ -25,6 +25,7 @@ logging:
   enabled: true                 # Toggle all logging on or off
   console_level: warning        # Minimum severity for console output
   folder: ./logs                # Relative folder for log files
+  create_missing_files: true    # Create runtime files for unlisted logger categories
   files:                        # Per-logger file-level overrides
     agentforge: debug
     model_io: debug
@@ -56,6 +57,7 @@ paths:
 - **enabled** (bool): Globally enable or disable logging.
 - **console_level** (string): One of `critical`, `error`, `warning`, `info`, `debug`.
 - **folder** (string): Path for writing log files, relative to project root.
+- **create_missing_files** (bool): When `true`, logger categories requested by code but missing from `files` get dedicated runtime files at `warning` level without editing `system.yaml`. When `false`, those requests route through the configured fallback logger.
 - **files** (map[string,string]): Keys are logger names; values are minimum log level for that file.
 
 ### misc
@@ -92,6 +94,10 @@ debug:
 # Change global console log level but keep file logging enabled
 logging:
   console_level: info
+
+# Route unlisted logger categories through agentforge instead of creating new files
+logging:
+  create_missing_files: false
 
 # Add a custom paths entry for user content
 paths:

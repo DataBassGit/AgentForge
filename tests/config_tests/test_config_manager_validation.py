@@ -213,10 +213,16 @@ def test_config_manager_settings_building():
     assert settings.system.debug.mode is False
     assert settings.system.logging.enabled is True
     assert settings.system.logging.console_level == "info"
+    assert settings.system.logging.create_missing_files is True
     assert settings.system.misc.on_the_fly is True
     assert settings.system.paths.files == "./test_files"
     assert "openai" in settings.models
     assert "chroma" in settings.storage
+
+    raw_settings["system"]["logging"]["create_missing_files"] = False
+    settings = config_manager._build_settings(raw_settings)
+
+    assert settings.system.logging.create_missing_files is False
 
 
 def test_config_manager_cog_flow_parsing():

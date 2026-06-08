@@ -156,6 +156,7 @@ class Logger:
             self.default_logger = default_logger or "agentforge"
             self.logging_config: dict[str, str] = {}
             self.logging_enabled = True
+            self.create_missing_files = True
             self.loggers: dict[str, BaseLogger] = {}
             self.load_logging_config()
             self.update_logger_config(self.default_logger)
@@ -166,6 +167,7 @@ class Logger:
         """Load configured logging categories from system settings."""
         settings = self.config.settings.system.logging
         self.logging_enabled = settings.enabled
+        self.create_missing_files = settings.create_missing_files
         self.logging_config = dict(settings.files or {})
 
     def update_logger_config(self, logger_file: str) -> None:
@@ -181,14 +183,14 @@ class Logger:
             self.create_logger(logger_file, log_level)
 
     def create_logger(self, logger_file: str, log_level: str = "warning") -> None:
-        """Create or refresh a logger for a configured category."""
+        """Create or refresh a logger category with the requested file level."""
         _validate_logger_category(logger_file)
         self.loggers[logger_file] = BaseLogger(
             name=self.caller_name, log_file=f"{logger_file}.log", log_level=log_level
         )
 
     def log(self, msg: str, level: str = "info", logger_file: str | None = None) -> None:
-        """Log a message through the requested category or configured fallback."""
+        """Log through the requested category, runtime-created category, or fallback."""
         _get_level_code(level)
         if not self.logging_enabled:
             return
@@ -240,10 +242,13 @@ class Logger:
         self.error(msg)
 
     def _resolve_logger(self, logger_file: str | None) -> BaseLogger | None:
-        """Return the requested configured logger or a fallback without creating new categories."""
+        """Return the requested logger, creating missing categories only when configured."""
         requested_logger = logger_file or self.default_logger
         _validate_logger_category(requested_logger)
         if requested_logger in self.loggers:
+            return self.loggers[requested_logger]
+        if self.create_missing_files:
+            self.create_logger(requested_logger, self.logging_config.get(requested_logger, "warning"))
             return self.loggers[requested_logger]
 
         fallback_logger = self._fallback_logger_name()

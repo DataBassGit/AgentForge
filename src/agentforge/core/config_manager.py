@@ -261,6 +261,7 @@ class ConfigManager:
             enabled=raw_system.get("logging", {}).get("enabled", True),
             console_level=raw_system.get("logging", {}).get("console_level", "warning"),
             folder=raw_system.get("logging", {}).get("folder", "./logs"),
+            create_missing_files=raw_system.get("logging", {}).get("create_missing_files", True),
             files=raw_system.get("logging", {}).get("files", {}),
         )
 

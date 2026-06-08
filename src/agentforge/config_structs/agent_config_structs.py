@@ -36,6 +36,7 @@ class LoggingSettings:
     enabled: bool = True
     console_level: str = "warning"
     folder: str = "./logs"
+    create_missing_files: bool = True
     files: Dict[str, str] = field(default_factory=dict)
 
 
