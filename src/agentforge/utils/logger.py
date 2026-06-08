@@ -54,6 +54,7 @@ class BaseLogger:
     _handler_lock: ClassVar[threading.Lock] = threading.Lock()
 
     def __init__(self, name: str = "BaseLogger", log_file: str = "default.log", log_level: str = "error") -> None:
+        """Create a project-scoped logger and attach configured file and console handlers."""
         self.config = Config()
         self.log_file = log_file
         category = Path(log_file).stem
@@ -79,6 +80,7 @@ class BaseLogger:
         return _get_level_code(level)
 
     def _setup_file_handler(self, log_file_path: Path, level: int) -> None:
+        """Attach one cached file handler per resolved log path to avoid duplicate lines."""
         formatter = logging.Formatter(FILE_FORMAT, datefmt="%Y-%m-%d %H:%M:%S")
         resolved_path = log_file_path.resolve()
 
@@ -95,6 +97,7 @@ class BaseLogger:
                 self.logger.addHandler(handler)
 
     def _setup_console_handler(self, level: int) -> None:
+        """Attach one cached console handler per project-scoped Python logger name."""
         formatter = ColoredFormatter(CONSOLE_FORMAT)
 
         with self._handler_lock:
@@ -128,6 +131,7 @@ class Logger:
     VALID_LOGGER_NAME_PATTERN = VALID_LOGGER_NAME_PATTERN
 
     def __new__(cls, name: str, default_logger: str = "agentforge"):
+        """Reuse facade instances per project root, caller name, and default category."""
         config = Config()
         normalized_default = default_logger or "agentforge"
         key = (str(config.project_root.resolve()), name, normalized_default)
@@ -140,6 +144,7 @@ class Logger:
         return instance
 
     def __init__(self, name: str, default_logger: str = "agentforge") -> None:
+        """Load settings once and initialize only the configured logging categories."""
         if self._initialized:
             return
 
@@ -235,6 +240,7 @@ class Logger:
         self.error(msg)
 
     def _resolve_logger(self, logger_file: str | None) -> BaseLogger | None:
+        """Return the requested configured logger or a fallback without creating new categories."""
         requested_logger = logger_file or self.default_logger
         _validate_logger_category(requested_logger)
         if requested_logger in self.loggers:
@@ -244,6 +250,7 @@ class Logger:
         return self.loggers.get(fallback_logger) if fallback_logger else None
 
     def _fallback_logger_name(self) -> str | None:
+        """Choose the configured fallback category used for unconfigured logger requests."""
         if self.default_logger in self.loggers:
             return self.default_logger
         if "agentforge" in self.loggers:
@@ -252,6 +259,7 @@ class Logger:
 
 
 def _get_level_code(level: str) -> int:
+    """Map supported level names to logging constants and reject unknown levels."""
     normalized_level = level.lower()
     if normalized_level not in LOG_LEVELS:
         valid_levels = ", ".join(LOG_LEVELS)
@@ -260,6 +268,7 @@ def _get_level_code(level: str) -> int:
 
 
 def _validate_logger_category(logger_file: str) -> None:
+    """Reject category names that are unsafe for config keys or log file stems."""
     if not logger_file or not VALID_LOGGER_NAME_PATTERN.match(logger_file):
         raise ValueError(
             f"Invalid logger_file name: '{logger_file}'. Must match pattern: {VALID_LOGGER_NAME_PATTERN.pattern}"
@@ -267,6 +276,7 @@ def _validate_logger_category(logger_file: str) -> None:
 
 
 def _resolve_log_path(project_root: Path, log_folder: str, log_file: str) -> Path:
+    """Resolve relative log folders under the active AgentForge project root."""
     folder_path = Path(log_folder).expanduser()
     if not folder_path.is_absolute():
         folder_path = project_root / folder_path
@@ -274,9 +284,11 @@ def _resolve_log_path(project_root: Path, log_folder: str, log_file: str) -> Pat
 
 
 def _build_logger_name(project_root: Path, caller_name: str, category: str) -> str:
+    """Build a Python logger name isolated by project root, caller, and category."""
     root_token = hashlib.sha1(str(project_root.resolve()).encode("utf-8")).hexdigest()[:12]
     return f"agentforge.{root_token}.{_safe_logger_segment(caller_name)}.{_safe_logger_segment(category)}"
 
 
 def _safe_logger_segment(value: str) -> str:
+    """Normalize arbitrary caller or category text for Python logger names."""
     return re.sub(r"[^a-zA-Z0-9_.-]+", "_", value).strip("._") or "unnamed"
