@@ -78,8 +78,11 @@ AgentForge ships with the following built-in API classes. Each is configured via
 
 1. **Create a Python module** in `.agentforge/custom_apis/` and subclass `BaseModel`.
 2. **Implement** `_do_api_call` (required) and override `_process_response` or `_prepare_prompt` as needed.
-3. **Register your API** in your YAML config under `model_library`.
-4. **Reference your API** in agent or cog configs using the `api` and `model` keys.
+3. **Register your API** in YAML under `model_library.<api_key>.<ClassName>.models.<model_key>.identifier`.
+4. **Select your API** with `default_model` or `model_overrides` using the `api` key and model key; AgentForge discovers the provider class from `model_library`.
+
+The `api_key` maps to the provider module, and `ClassName` must be an exported class from that module.
+Keep the class layer in the YAML even when an API has only one class.
 
 ---
 
@@ -87,19 +90,19 @@ AgentForge ships with the following built-in API classes. Each is configured via
 
 ```yaml
 model_library:
-  openai_api:
-    GPT:
+  my_custom_api:
+    MyCustomModel:
       models:
-        gpt55_model:
-          identifier: gpt-5.5
+        my_model:
+          identifier: provider-model-name
           params:
             temperature: 0.7
       params:
         temperature: 0.7
 
 default_model:
-  api: openai_api
-  model: gpt55_model
+  api: my_custom_api
+  model: my_model
 ```
 
 ---

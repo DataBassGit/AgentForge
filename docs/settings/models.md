@@ -72,6 +72,9 @@ embedding_library:
 - **model** (string): Model key under one of the classes in that API section.
 
 Any agent without a `model_overrides` block uses this selection.
+The `model` value is not a provider identifier and does not include the class name.
+AgentForge finds the class by scanning the selected API section for a matching model key, then passes that model entry's `identifier` to the provider class.
+Keep model keys unique within an API section so class discovery stays unambiguous.
 
 The shipped scaffold defaults to `openai_api` / `codex_gpt55` for real model calls.
 Run `python -m agentforge.init_codex_oauth` before using that default with `debug.mode: false`.
@@ -79,13 +82,16 @@ Run `python -m agentforge.init_codex_oauth` before using that default with `debu
 ### model_library
 A mapping of **API keys** → **Class names** → settings:
 
-- **API key** (e.g., `openai_api`): Loads via `agentforge/apis/<api_key>.py` or custom APIs.
+- **API key** (e.g., `openai_api`): Loads via `agentforge/apis/<api_key>.py` or `.agentforge/custom_apis/<api_key>.py`.
 - **params** (optional map): API-level parameters applied to all classes/models under this API.
-- **Class name** (e.g., `GPT`): Python class used to instantiate calls.
+- **Class name** (e.g., `GPT`, `Codex`, `Gemini`, `LMStudioVision`, `Ollama`): Exported Python class used to instantiate calls.
 - **models**: Map of **model names** →
-  - **identifier** (string): The actual LLM identifier your code passes to the API.
+  - **identifier** (string): The actual provider model identifier passed to the API class.
   - **params** (optional map): Overrides for this specific model.
 - **params** (optional map): Default parameters applied to every model under this class.
+
+The class layer is required.
+Do not place model entries directly under the API key; they must live under `model_library.<api_key>.<ClassName>.models.<model_key>`.
 
 > **Note**: Parameters are merged in this order: API-level → class-level → model-level → agent-level (`model_overrides.params`).
 

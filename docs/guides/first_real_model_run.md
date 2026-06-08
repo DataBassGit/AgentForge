@@ -44,6 +44,9 @@ default_model:
   model: codex_gpt55
 ```
 
+This selects the packaged `model_library.openai_api.Codex.models.codex_gpt55` entry.
+Leave the existing `model_library` entry in place.
+
 Codex uses OAuth instead of `OPENAI_API_KEY`.
 
 Verify whether OAuth credentials are already available:
@@ -80,6 +83,8 @@ If Codex authentication fails before sending a request, run `python -m agentforg
 Use one of these alternatives only after the debug smoke test works.
 
 For detailed model configuration, see [Model Settings](../settings/models.md).
+When an example changes only `default_model`, it assumes the selected model key already exists in the packaged `model_library`.
+Do not remove the `api -> class -> models -> identifier` structure.
 
 ### OpenAI API Key Models
 
@@ -92,6 +97,7 @@ default_model:
 ```
 
 The packaged `gpt4o_model` entry points at OpenAI's `gpt-4o` model.
+Keep the existing `model_library.openai_api.GPT.models.gpt4o_model` entry unless you are deliberately changing the provider identifier or parameters.
 
 ### Gemini
 
@@ -116,6 +122,7 @@ $env:GOOGLE_API_KEY="your-google-api-key"
 ```
 
 If `GOOGLE_API_KEY` is missing, the Gemini call cannot run.
+The packaged `gemini_flash` entry lives under `model_library.gemini_api.Gemini.models`.
 
 ### Ollama
 
@@ -144,7 +151,7 @@ model_library:
 
 Replace `qwen3.5:9b` with a model name from your own `ollama list`.
 
-Keep the existing Ollama `params` block in `models.yaml`; only the model key and identifier need to match your local model.
+Keep the existing surrounding `model_library` entries and the Ollama `params` block in `models.yaml`; only the model key and `model_library.ollama_api.Ollama.models.<model_key>.identifier` need to match your local model.
 
 ### LM Studio
 
@@ -156,9 +163,18 @@ Start the LM Studio server, load a chat model, then edit `.agentforge/settings/m
 default_model:
   api: lm_studio_api
   model: llama3_8b
+
+model_library:
+  lm_studio_api:
+    LMStudio:
+      models:
+        llama3_8b:
+          identifier: lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF
 ```
 
-If your loaded model uses a different identifier, update the matching `model_library.lm_studio_api.LMStudio.models` entry so its `identifier` matches the model served by LM Studio.
+If your loaded model uses a different identifier, update the matching `model_library.lm_studio_api.LMStudio.models.<model_key>.identifier` entry so it matches the model served by LM Studio.
+For image-capable local models, use the vision class bucket, such as `model_library.lm_studio_api.LMStudioVision.models`, instead of flattening the model under `lm_studio_api`.
+The same pattern applies to vision provider classes such as `GeminiVision`.
 
 ## Troubleshooting The First Real Call
 
