@@ -275,33 +275,22 @@ class DiscordVoice:
     def create_wav_from_pcm(pcm_data: bytes, src_rate: int = 48000, src_channels: int = 2) -> bytes:
         """Convert raw PCM to 16kHz mono WAV directly in-memory via ffmpeg."""
         try:
-            result = subprocess.run(
-                [
-                    "ffmpeg",
-                    "-y",
-                    "-loglevel",
-                    "error",
-                    "-f",
-                    "s16le",
-                    "-ar",
-                    str(src_rate),
-                    "-ac",
-                    str(src_channels),
-                    "-i",
-                    "pipe:0",  # Read from standard input
-                    "-ar",
-                    "16000",
-                    "-ac",
-                    "1",
-                    "-f",
-                    "wav",
-                    "pipe:1",  # Write to standard output
-                ],
-                input=pcm_data,
-                capture_output=True,
-                check=True,
-                timeout=10,
-            )
+            flag_value_args = [
+                ("-loglevel", "error"),
+                ("-f", "s16le"),
+                ("-ar", str(src_rate)),
+                ("-ac", str(src_channels)),
+                ("-i", "pipe:0"),
+                ("-ar", "16000"),
+                ("-ac", "1"),
+                ("-f", "wav"),
+            ]
+            command = ["ffmpeg", "-y"]
+            for flag, value in flag_value_args:
+                command.extend([flag, value])
+            command.append("pipe:1")
+
+            result = subprocess.run(command, input=pcm_data, capture_output=True, check=True, timeout=10)
             return result.stdout
         except subprocess.CalledProcessError as e:
             print(f"FFmpeg conversion failed: {e.stderr.decode(errors='ignore')}")

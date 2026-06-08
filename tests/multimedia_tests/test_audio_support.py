@@ -11,6 +11,7 @@ from agentforge.apis.openai_api import STT, TTS
 from agentforge.agent import Agent
 from agentforge.config import Config
 from agentforge.core.config_manager import ConfigManager
+from agentforge.utils.discord.discord_voice import DiscordVoice
 
 ###############################################################################
 # 1. Mix-in capability flags
@@ -135,3 +136,49 @@ def test_audio_manager_save(tmp_path, monkeypatch, isolated_config):
 
     # Clean up
     Path(file_path).unlink(missing_ok=True)
+
+
+###############################################################################
+# 6. Discord voice FFmpeg command
+###############################################################################
+
+
+def test_discord_voice_ffmpeg_command_preserves_conversion_args(monkeypatch):
+    """DiscordVoice should pass the expected in-memory conversion command to FFmpeg."""
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append((command, kwargs))
+        return SimpleNamespace(stdout=b"WAV")
+
+    monkeypatch.setattr("agentforge.utils.discord.discord_voice.subprocess.run", fake_run)
+
+    wav_bytes = DiscordVoice.create_wav_from_pcm(b"PCM", src_rate=44100, src_channels=1)
+
+    assert wav_bytes == b"WAV"
+    assert calls == [
+        (
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-f",
+                "s16le",
+                "-ar",
+                "44100",
+                "-ac",
+                "1",
+                "-i",
+                "pipe:0",
+                "-ar",
+                "16000",
+                "-ac",
+                "1",
+                "-f",
+                "wav",
+                "pipe:1",
+            ],
+            {"input": b"PCM", "capture_output": True, "check": True, "timeout": 10},
+        )
+    ]
