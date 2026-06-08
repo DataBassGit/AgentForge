@@ -30,15 +30,19 @@ cog:
 
   agents:
     - id: draft
+      description: "Drafts an initial answer from the user request."
       template_file: beginner_draft_agent
 
     - id: review
+      description: "Reviews the draft and chooses approve or revise."
       template_file: beginner_review_agent
 
     - id: revise
+      description: "Improves the draft using review rationale."
       template_file: beginner_revise_agent
 
     - id: final
+      description: "Writes the final answer after review."
       template_file: beginner_final_agent
 
   flow:

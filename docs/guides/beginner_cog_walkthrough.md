@@ -30,9 +30,11 @@ cog:
 
   agents:
     - id: summarize
+      description: "Summarizes the user message for the response node."
       template_file: beginner_summary_agent
 
     - id: respond
+      description: "Writes the final beginner-friendly reply."
       template_file: beginner_response_agent
 
   flow:
@@ -43,7 +45,7 @@ cog:
         end: true
 ```
 
-The `agents` list gives each node an ID and points it at a prompt file under `.agentforge/prompts/`.
+The `agents` list gives each node an ID, optional description metadata, and a prompt file under `.agentforge/prompts/`.
 
 The `flow` starts with `summarize`, then moves directly to `respond`.
 
@@ -83,6 +85,7 @@ prompts:
 ```
 
 In a Cog prompt, `_ctx` is the context passed to `Cog.run(...)`, and `_state` stores earlier agent outputs by node ID.
+Structured agent outputs are available through `_state` when the prompt YAML uses `parse_response_as`; `_ctx` values are used as passed by the caller.
 
 ## Run The Cog
 

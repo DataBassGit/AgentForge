@@ -307,7 +307,12 @@ class ConfigManager:
                 raise ValueError(f"Agent '{agent_id}' must have at least a 'type' or a 'template_file' defined.")
 
             agents.append(
-                CogAgentDef(id=agent_id, template_file=agent_def.get("template_file"), type=agent_def.get("type"))
+                CogAgentDef(
+                    id=agent_id,
+                    description=agent_def.get("description"),
+                    template_file=agent_def.get("template_file"),
+                    type=agent_def.get("type"),
+                )
             )
 
         return agents

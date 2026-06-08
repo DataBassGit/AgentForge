@@ -16,6 +16,7 @@ class CogAgentDef:
     id: str
     template_file: str | None = None
     type: str | None = None  # Full class path for custom agent types
+    description: str | None = None
     # Additional agent configuration can be added here
 
 

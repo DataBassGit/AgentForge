@@ -63,8 +63,16 @@ def test_beginner_summary_cog_resources_are_loaded(isolated_config: Config):
     assert beginner_cog["flow"]["transitions"]["summarize"] == "respond"
     assert beginner_cog["flow"]["transitions"]["respond"] == {"end": True}
     assert beginner_cog["agents"] == [
-        {"id": "summarize", "template_file": "beginner_summary_agent"},
-        {"id": "respond", "template_file": "beginner_response_agent"},
+        {
+            "id": "summarize",
+            "description": "Summarizes the user message for the response node.",
+            "template_file": "beginner_summary_agent",
+        },
+        {
+            "id": "respond",
+            "description": "Writes the final beginner-friendly reply.",
+            "template_file": "beginner_response_agent",
+        },
     ]
 
     assert "{_ctx.user_input}" in summary_prompt["prompts"]["user"]
@@ -98,10 +106,26 @@ def test_beginner_branch_loop_cog_resources_are_loaded(isolated_config: Config):
     assert branch_cog["flow"]["transitions"]["revise"] == "review"
     assert branch_cog["flow"]["transitions"]["final"] == {"end": True}
     assert branch_cog["agents"] == [
-        {"id": "draft", "template_file": "beginner_draft_agent"},
-        {"id": "review", "template_file": "beginner_review_agent"},
-        {"id": "revise", "template_file": "beginner_revise_agent"},
-        {"id": "final", "template_file": "beginner_final_agent"},
+        {
+            "id": "draft",
+            "description": "Drafts an initial answer from the user request.",
+            "template_file": "beginner_draft_agent",
+        },
+        {
+            "id": "review",
+            "description": "Reviews the draft and chooses approve or revise.",
+            "template_file": "beginner_review_agent",
+        },
+        {
+            "id": "revise",
+            "description": "Improves the draft using review rationale.",
+            "template_file": "beginner_revise_agent",
+        },
+        {
+            "id": "final",
+            "description": "Writes the final answer after review.",
+            "template_file": "beginner_final_agent",
+        },
     ]
 
     assert "{_ctx.user_input}" in draft_prompt["prompts"]["user"]

@@ -5,9 +5,11 @@ cog:
 
   agents:
     - id: summarize
+      description: "Summarizes the user message for the response node."
       template_file: beginner_summary_agent
 
     - id: respond
+      description: "Writes the final beginner-friendly reply."
       template_file: beginner_response_agent
 
   flow:

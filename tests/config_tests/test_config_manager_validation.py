@@ -64,6 +64,7 @@ def test_config_manager_cog_config(isolated_config):
     # Verify agent definitions
     first_agent = cog_config.cog.agents[0]
     assert first_agent.id == "analysis"
+    assert first_agent.description is None
     assert first_agent.template_file == "cog_analyze_agent"
 
     # Verify flow transitions
@@ -85,6 +86,10 @@ def test_config_manager_beginner_summary_cog_config(isolated_config):
     assert cog_config.cog.name == "BeginnerSummaryCog"
     assert cog_config.cog.chat_memory_enabled is False
     assert [agent.id for agent in cog_config.cog.agents] == ["summarize", "respond"]
+    assert [agent.description for agent in cog_config.cog.agents] == [
+        "Summarizes the user message for the response node.",
+        "Writes the final beginner-friendly reply.",
+    ]
     assert cog_config.cog.flow is not None
     assert cog_config.cog.flow.start == "summarize"
     assert cog_config.cog.flow.transitions["summarize"].next_agent == "respond"
@@ -101,6 +106,12 @@ def test_config_manager_beginner_branch_loop_cog_config(isolated_config):
     assert cog_config.cog.name == "BeginnerBranchLoopCog"
     assert cog_config.cog.chat_memory_enabled is False
     assert [agent.id for agent in cog_config.cog.agents] == ["draft", "review", "revise", "final"]
+    assert [agent.description for agent in cog_config.cog.agents] == [
+        "Drafts an initial answer from the user request.",
+        "Reviews the draft and chooses approve or revise.",
+        "Improves the draft using review rationale.",
+        "Writes the final answer after review.",
+    ]
     assert cog_config.cog.flow is not None
     assert cog_config.cog.flow.start == "draft"
     assert cog_config.cog.flow.transitions["draft"].next_agent == "review"
