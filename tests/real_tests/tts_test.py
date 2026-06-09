@@ -6,36 +6,30 @@ wraps the OpenAI TTS endpoint.  Provide text via --text or type interactively.
 The agent returns the path where the generated WAV is saved.
 """
 
+import argparse
+
 from agentforge.testing.bootstrap import bootstrap_test_env
+
 # Ensure repo-root config and paths are patched before importing AgentForge
 bootstrap_test_env(use_fakes=False, silence_output=False, cleanup_on_exit=True)
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
+
 load_dotenv()
 
 from agentforge.agent import Agent  # noqa: E402 (after bootstrap)
 
-import argparse
-
-DEFAULT_SENTENCE = (
-    "Hello from AgentForge! This sentence demonstrates the Text to Speech "
-    "capabilities of the platform."
-)
+DEFAULT_SENTENCE = "Hello from AgentForge! This sentence demonstrates the Text to Speech capabilities of the platform."
 
 
 def main() -> None:  # noqa: D401
     parser = argparse.ArgumentParser(description="AgentForge TTS demo")
-    parser.add_argument(
-        "--text", metavar="STRING", help="Text to synthesise on first run"
-    )
+    parser.add_argument("--text", metavar="STRING", help="Text to synthesise on first run")
     args = parser.parse_args()
 
     tts_agent = Agent(agent_name="tts_agent")
 
-    print(
-        "TTS Agent ready – press <enter> for default text or type your own. "
-        "Type 'quit' to exit."
-    )
+    print("TTS Agent ready – press <enter> for default text or type your own. Type 'quit' to exit.")
 
     while True:
         # Use --text only on first iteration
@@ -61,4 +55,4 @@ def main() -> None:  # noqa: D401
 
 
 if __name__ == "__main__":
-    main() 
+    main()

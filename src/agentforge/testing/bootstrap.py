@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Reusable test-environment bootstrapper.
 
 This helper centralises the one-off environment side-effects that used to live
@@ -8,15 +6,15 @@ fixture to reproduce the same path manipulations, config patches, and optional
 in-memory fakes.
 """
 
+from __future__ import annotations
+
 import atexit
+import builtins
 import logging
 import os
 import shutil
 import sys
 from pathlib import Path
-from types import ModuleType
-import builtins
-from typing import Optional
 
 __all__ = ["bootstrap_test_env"]
 
@@ -24,6 +22,7 @@ __all__ = ["bootstrap_test_env"]
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _discover_repo_root() -> Path:
     """Walk up the filesystem until we find a directory that looks like the
@@ -47,12 +46,8 @@ def _ensure_src_on_path(repo_root: Path) -> None:
 # Public bootstrap
 # ---------------------------------------------------------------------------
 
-def bootstrap_test_env(
-    *,
-    use_fakes: bool = True,
-    silence_output: bool = True,
-    cleanup_on_exit: bool = True,
-) -> None:
+
+def bootstrap_test_env(*, use_fakes: bool = True, silence_output: bool = True, cleanup_on_exit: bool = True) -> None:
     """Replicate the critical test harness tweaks on demand.
 
     Parameters
@@ -96,7 +91,13 @@ def bootstrap_test_env(
     try:
         import agentforge.config as _afcfg  # pylint: disable=import-error
 
-        def _fixed_find_project_root(self, _root_path: Optional[str] = None):  # noqa: D401
+        def _fixed_find_project_root(self, _root_path: str | None = None):  # noqa: D401
+            if _root_path:
+                custom_root = Path(_root_path).resolve()
+                agentforge_dir = custom_root / ".agentforge"
+                if agentforge_dir.is_dir():
+                    return custom_root
+                raise FileNotFoundError(f"No .agentforge found in custom root path: {custom_root}")
             return repo_root
 
         _afcfg.Config.find_project_root = _fixed_find_project_root  # type: ignore[assignment]
@@ -137,17 +138,17 @@ def bootstrap_test_env(
                 if getattr(self, "settings", {}).get("system", {}).get("debug", {}).get("mode", False):
                     return _orig_run(self, **context)
 
-                if hasattr(self, "_cog") and hasattr(self._cog, "branch_call_counts"):
-                    self._cog.branch_call_counts[self.agent_name] = (
-                        self._cog.branch_call_counts.get(self.agent_name, 0) + 1
-                    )
+                cog = getattr(self, "_cog", None)
+                branch_call_counts = getattr(cog, "branch_call_counts", None)
+                if branch_call_counts is not None:
+                    branch_call_counts[self.agent_name] = branch_call_counts.get(self.agent_name, 0) + 1
 
                 name_l = self.agent_name.lower()
                 if "analyze" in name_l:
                     return {"analysis": "stub-analysis"}
                 if "decide" in name_l:
                     idx = getattr(self, "_call_idx", 0)
-                    self._call_idx = idx + 1
+                    setattr(self, "_call_idx", idx + 1)
                     return {"choice": _decisions[idx % len(_decisions)], "rationale": "stub"}
                 if "response" in name_l or "respond" in name_l:
                     return "FINAL RESPONSE"
@@ -173,6 +174,7 @@ def bootstrap_test_env(
 
     # Register cleanup -----------------------------------------------------
     if cleanup_on_exit:
+
         def _cleanup():  # noqa: D401
             if silence_output:
                 logging.disable(logging.NOTSET)
@@ -181,6 +183,7 @@ def bootstrap_test_env(
                     del builtins.__orig_print  # type: ignore[attr-defined]
             if created_dot_agentforge and default_af.exists():
                 shutil.rmtree(default_af, ignore_errors=True)
+
         atexit.register(_cleanup)
 
     # Record that we have run so subsequent calls don't redo work ----------
@@ -192,6 +195,7 @@ def bootstrap_test_env(
 # ---------------------------------------------------------------------------
 # Utilities
 # ---------------------------------------------------------------------------
+
 
 def _silence_stdout() -> None:  # noqa: D401 – helper, not public API
     logging.disable(logging.CRITICAL)
@@ -205,4 +209,4 @@ def _silence_stdout() -> None:  # noqa: D401 – helper, not public API
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    bootstrap_test_env(use_fakes=True, silence_output=True, cleanup_on_exit=True) 
+    bootstrap_test_env(use_fakes=True, silence_output=True, cleanup_on_exit=True)

@@ -1,7 +1,7 @@
 import requests
-import json
-from .base_api import BaseModel
+from .base_api import BaseModel, ModelResponseError
 from agentforge.apis.mixins.vision_mixin import VisionMixin
+
 
 class LMStudio(BaseModel):
     """
@@ -11,25 +11,23 @@ class LMStudio(BaseModel):
     def _do_api_call(self, prompt, **filtered_params):
         if isinstance(prompt, dict) and "messages" in prompt:
             prompt = prompt["messages"]
-        url = filtered_params.pop('host_url', 'http://localhost:1234/v1/chat/completions')
-        headers = {'Content-Type': 'application/json'}
-        data = {
-            "model": self.model_name,
-            "messages": prompt,
-            **filtered_params
-        }
+        url = filtered_params.pop("host_url", "http://localhost:1234/v1/chat/completions")
+        headers = {"Content-Type": "application/json"}
+        data = {"model": self.model_name, "messages": prompt, **filtered_params}
 
         response = requests.post(url, headers=headers, json=data)
 
         if response.status_code != 200:
-            # return error content
-            self.logger.error(f"Request error: {response}")
-            return None
+            body_excerpt = (response.text or "").strip().replace("\n", " ")[:200]
+            raise ModelResponseError(
+                f"LMStudio request for model '{self.model_name}' failed with HTTP {response.status_code}. "
+                f"Response excerpt: {body_excerpt}"
+            )
 
         return response.json()
 
     def _process_response(self, raw_response):
-        return raw_response["choices"][0]["message"]["content"]
+        return self._extract_chat_choice_content(raw_response)
 
 
 class LMStudioVision(VisionMixin, LMStudio):

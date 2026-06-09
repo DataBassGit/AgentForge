@@ -15,7 +15,7 @@ from agentforge.utils.logger import Logger
 # [AGENTFORGE EXCLUSIVE HACK] - Thread Assassin Catcher
 # ========================================================================
 def _global_thread_crash_catcher(args):
-    crash_logger = Logger(name='ThreadAssassin', default_logger='discord')
+    crash_logger = Logger(name="ThreadAssassin", default_logger="discord")
     tb_str = "".join(traceback.format_exception(args.exc_type, args.exc_value, args.exc_traceback))
     error_msg = (
         f"[🚨 THREAD ASSASSINATION DETECTED 🚨]\n"
@@ -39,6 +39,7 @@ class VoiceReceiver:
     Handles NaCl transport decryption, RTP padding removal, DAVE E2EE decryption,
     and Opus decoding natively. (Adapted from Hermes-Agent example.py)
     """
+
     SAMPLE_RATE = 48000
     CHANNELS = 2
 
@@ -66,7 +67,7 @@ class VoiceReceiver:
     def start(self):
         conn = self._vc._connection
         self._secret_key = bytes(conn.secret_key)
-        self._dave_session = getattr(conn, 'dave_session', None)
+        self._dave_session = getattr(conn, "dave_session", None)
         self._bot_ssrc = conn.ssrc
 
         self._install_speaking_hook(conn)
@@ -116,7 +117,8 @@ class VoiceReceiver:
         conn.hook = wrapped_hook
         try:
             from discord.utils import MISSING
-            if hasattr(conn, 'ws') and conn.ws is not MISSING:
+
+            if hasattr(conn, "ws") and conn.ws is not MISSING:
                 conn.ws._hook = wrapped_hook
                 self.logger.info("Speaking hook installed on live websocket")
         except Exception as e:
@@ -161,7 +163,8 @@ class VoiceReceiver:
         encrypted = bytes(payload_with_nonce[:-4])
 
         try:
-            import nacl.secret
+            import nacl.secret  # type: ignore[reportMissingImports]
+
             box = nacl.secret.Aead(self._secret_key)
             decrypted = box.decrypt(encrypted, header, bytes(nonce))
         except Exception as e:
@@ -191,10 +194,9 @@ class VoiceReceiver:
                 user_id = self._infer_user_for_ssrc(ssrc)
             if user_id:
                 try:
-                    import davey
-                    decrypted = self._dave_session.decrypt(
-                        user_id, davey.MediaType.audio, decrypted
-                    )
+                    import davey  # type: ignore[reportMissingImports]
+
+                    decrypted = self._dave_session.decrypt(user_id, davey.MediaType.audio, decrypted)
                 except Exception as e:
                     # Unencrypted passthrough — use NaCl-decrypted data as-is
                     if "Unencrypted" not in str(e):
@@ -248,7 +250,8 @@ class VoiceReceiver:
     def _infer_user_for_ssrc(self, ssrc: int) -> int:
         try:
             channel = self._vc.channel
-            if not channel: return 0
+            if not channel:
+                return 0
             candidates = [m.id for m in channel.members if not m.bot]
             if len(candidates) == 1:
                 uid = candidates[0]
@@ -263,7 +266,7 @@ class VoiceReceiver:
 class DiscordVoice:
     def __init__(self, discord_client):
         self.bot_client = discord_client.client
-        self.loop = getattr(discord_client, 'discord_loop', self.bot_client.loop)
+        self.loop = getattr(discord_client, "discord_loop", self.bot_client.loop)
         self.logger = discord_client.logger
         self.voice_receivers = {}
         self.keepalive_tasks = {}
@@ -272,23 +275,22 @@ class DiscordVoice:
     def create_wav_from_pcm(pcm_data: bytes, src_rate: int = 48000, src_channels: int = 2) -> bytes:
         """Convert raw PCM to 16kHz mono WAV directly in-memory via ffmpeg."""
         try:
-            result = subprocess.run(
-                [
-                    "ffmpeg", "-y", "-loglevel", "error",
-                    "-f", "s16le",
-                    "-ar", str(src_rate),
-                    "-ac", str(src_channels),
-                    "-i", "pipe:0",       # Read from standard input
-                    "-ar", "16000",
-                    "-ac", "1",
-                    "-f", "wav",
-                    "pipe:1",             # Write to standard output
-                ],
-                input=pcm_data,
-                capture_output=True,
-                check=True,
-                timeout=10,
-            )
+            flag_value_args = [
+                ("-loglevel", "error"),
+                ("-f", "s16le"),
+                ("-ar", str(src_rate)),
+                ("-ac", str(src_channels)),
+                ("-i", "pipe:0"),
+                ("-ar", "16000"),
+                ("-ac", "1"),
+                ("-f", "wav"),
+            ]
+            command = ["ffmpeg", "-y"]
+            for flag, value in flag_value_args:
+                command.extend([flag, value])
+            command.append("pipe:1")
+
+            result = subprocess.run(command, input=pcm_data, capture_output=True, check=True, timeout=10)
             return result.stdout
         except subprocess.CalledProcessError as e:
             print(f"FFmpeg conversion failed: {e.stderr.decode(errors='ignore')}")
@@ -311,7 +313,7 @@ class DiscordVoice:
                 if vc:
                     try:
                         await vc.disconnect(force=True)
-                    except:
+                    except BaseException:
                         pass
 
                 self.logger.info("Connecting to voice channel...")
@@ -348,7 +350,7 @@ class DiscordVoice:
             while vc.is_connected():
                 await asyncio.sleep(15)
                 try:
-                    vc._connection.send_packet(b'\xf8\xff\xfe')
+                    vc._connection.send_packet(b"\xf8\xff\xfe")
                 except Exception:
                     pass
         except asyncio.CancelledError:
@@ -378,7 +380,7 @@ class DiscordVoice:
                     "user_id": user_id,
                     "display_name": display_name,
                     "wav_bytes": wav_bytes,
-                    "duration": duration
+                    "duration": duration,
                 }
 
     def disconnect_voice(self, guild_id):
@@ -394,7 +396,8 @@ class DiscordVoice:
             if task:
                 task.cancel()
 
-            if not guild or not guild.voice_client: return False
+            if not guild or not guild.voice_client:
+                return False
             vc = guild.voice_client
             await vc.disconnect(force=True)
             return True
@@ -404,17 +407,19 @@ class DiscordVoice:
     def play_audio(self, guild_id, audio_file_path):
         async def play_async():
             guild = self.bot_client.get_guild(guild_id)
-            if not guild or not guild.voice_client: return False
+            if not guild or not guild.voice_client:
+                return False
             vc = guild.voice_client
 
             if vc.is_playing():
                 vc.stop()
 
             try:
-                if not os.path.exists(audio_file_path): return False
+                if not os.path.exists(audio_file_path):
+                    return False
                 vc.play(discord.FFmpegPCMAudio(audio_file_path))
                 return True
-            except:
+            except BaseException:
                 return False
 
         return asyncio.run_coroutine_threadsafe(play_async(), self.loop).result()

@@ -42,13 +42,13 @@ class GetText:
         ValueError: If the file format is unsupported.
         Exception: For general errors during reading.
         """
-        if file_name_or_url.startswith(('http://', 'https://')):
+        if file_name_or_url.startswith(("http://", "https://")):
             return self.read_from_url(file_name_or_url)
 
-        if file_name_or_url.endswith('.pdf'):
+        if file_name_or_url.endswith(".pdf"):
             return self.read_pdf(file_name_or_url)
 
-        if file_name_or_url.endswith(('.txt', '.md')):
+        if file_name_or_url.endswith((".txt", ".md")):
             return self.read_txt(file_name_or_url)
 
         raise ValueError("Unsupported file format - Use a URL or File with PDF, TXT, or Markdown formats.")
@@ -70,7 +70,7 @@ class GetText:
         path = self.resolve_path(filename)
 
         try:
-            with path.open('rb') as file:
+            with path.open("rb") as file:
                 content = io.BytesIO(file.read())
                 return self.extract_text_from_pdf(content)
         except Exception as e:
@@ -93,7 +93,7 @@ class GetText:
         path = self.resolve_path(filename)
 
         try:
-            return path.read_text(encoding='utf-8')
+            return path.read_text(encoding="utf-8")
         except Exception as e:
             raise Exception(f"Error reading TXT file: {str(e)}")
 
@@ -115,10 +115,10 @@ class GetText:
             response = requests.get(url)
             response.raise_for_status()
 
-            if url.endswith('.pdf'):
+            if url.endswith(".pdf"):
                 return self.extract_text_from_pdf(io.BytesIO(response.content))
 
-            if url.endswith('.txt') or url.endswith('.md'):
+            if url.endswith(".txt") or url.endswith(".md"):
                 return response.text
 
             raise ValueError("Unsupported file format for URL - Use PDF, TXT or Markdown formats.")
@@ -144,7 +144,7 @@ class GetText:
             doc = fitz.open(stream=data, filetype="pdf")
             text = ""
             for page in doc:
-                page_text = page.get_text()
+                page_text = str(page.get_text())
                 if page_text:
                     text += page_text
             doc.close()
@@ -155,7 +155,7 @@ class GetText:
 
 if __name__ == "__main__":
     gettext_instance = GetText()
-    filename_or_url = 'Documents/sample.pdf'  # Replace with your file path or URL
+    filename_or_url = "Documents/sample.pdf"  # Replace with your file path or URL
     try:
         file_content = gettext_instance.read_file(filename_or_url)
         print(file_content)

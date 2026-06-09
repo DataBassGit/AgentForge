@@ -1,7 +1,9 @@
-import os
-import shutil
+from __future__ import annotations
+
 import filecmp
 import importlib.util
+import os
+import shutil
 from pathlib import Path
 
 
@@ -24,98 +26,78 @@ def user_decision_prompt(existing_file: str) -> str:
         "[Z] Skip all existing files without asking again\n"
         "Enter your choice (Y/N/A/Z): "
     ).lower()
-    valid_choices = {'y', 'n', 'a', 'z'}
+    valid_choices = {"y", "n", "a", "z"}
     if response in valid_choices:
         return response
     print("Invalid option. Skipping this file by default.")
-    return ''
+    return ""
 
 
 def should_copy_file(
-        src_file: str,
-        dst_file: str,
-        skip_all: bool,
-        override_all: bool
-) -> (bool, bool, bool):
+    src_file: str | Path, dst_file: str | Path, skip_all: bool, override_all: bool
+) -> tuple[bool, bool, bool]:
     """
     Determines whether to copy a file from src_file to dst_file based on existing
     state flags and user decision. Returns a tuple of three booleans in the form:
       (copy_this_file, new_skip_all, new_override_all).
     """
+    src_path = Path(src_file)
+    dst_path = Path(dst_file)
+
     if skip_all:
-        # We’re skipping all conflicts globally, no copy, just return the updated flags.
         return False, skip_all, override_all
 
-    if not os.path.exists(dst_file):
-        # If there's no existing file, proceed with the copy.
+    if not dst_path.exists():
         return True, skip_all, override_all
 
-    # If the files match, skip copying; there's no reason to replace it.
-    if filecmp.cmp(src_file, dst_file, shallow=False):
+    if filecmp.cmp(src_path, dst_path, shallow=False):
         return False, skip_all, override_all
 
-    # If we’re overriding all conflicts globally, skip user prompt and copy.
     if override_all:
         return True, skip_all, override_all
 
-    # Otherwise, prompt the user for a decision.
-    decision = user_decision_prompt(os.path.relpath(dst_file))
-    if decision == 'a':
-        # Override all from now on.
+    decision = user_decision_prompt(os.path.relpath(dst_path))
+    if decision == "a":
         return True, skip_all, True
-    if decision == 'z':
-        # Skip all from now on.
+    if decision == "z":
         return False, True, override_all
-    if decision == 'n':
-        # Skip just this file.
+    if decision == "n":
         return False, skip_all, override_all
-    if decision == 'y':
-        # Copy just this file.
+    if decision == "y":
         return True, skip_all, override_all
 
-    # If user input is invalid or empty, skip the file by default.
     return False, skip_all, override_all
 
 
-def copy_directory(
-        root: Path,
-        src: Path,
-        override_all: bool = False,
-        skip_all: bool = False
-) -> None:
+def copy_directory(root: Path, src: Path, override_all: bool = False, skip_all: bool = False) -> None:
     """
     Recursively copies files from 'src' to 'root', skipping __pycache__ and __init__.py
     or .pyc files, while respecting user choices about overwriting.
     """
     for current_dir, dirs, files in os.walk(src):
-        dirs[:] = [d for d in dirs if d != '__pycache__']
-        dst_dir = current_dir.replace(str(src), str(root), 1)
-        if not os.path.exists(dst_dir):
-            os.makedirs(dst_dir)
+        dirs[:] = [directory for directory in dirs if directory != "__pycache__"]
+        current_path = Path(current_dir)
+        dst_dir = root / current_path.relative_to(src)
+        if not dst_dir.exists():
+            dst_dir.mkdir(parents=True)
             print(f"Created directory '{os.path.relpath(dst_dir, start=root)}'.")
 
         for file_ in files:
-            if file_ == '__init__.py' or file_.endswith('.pyc'):
+            if file_ == "__init__.py" or file_.endswith(".pyc"):
                 continue
 
-            src_file_str = str(os.path.join(current_dir, file_))
-            dst_file_str = str(os.path.join(dst_dir, file_))
+            src_file = current_path / file_
+            dst_file = dst_dir / file_
+            relative_src_path = src_file.relative_to(src)
+            relative_dst_path = dst_file.relative_to(root)
 
-            relative_src_path = os.path.relpath(src_file_str, start=src)
-            relative_dst_path = os.path.relpath(dst_file_str, start=root)
-
-            do_copy, skip_all, override_all = should_copy_file(
-                src_file_str,
-                dst_file_str,
-                skip_all,
-                override_all
-            )
+            do_copy, skip_all, override_all = should_copy_file(src_file, dst_file, skip_all, override_all)
 
             if not do_copy:
                 print(f"Skipped '{relative_dst_path}'.")
                 continue
 
-            shutil.copy2(src_file_str, dst_file_str)
+            shutil.copy2(src_file, dst_file)
             print(f"Copied '{relative_src_path}' to '{relative_dst_path}'.")
 
 
@@ -124,25 +106,30 @@ def setup_agentforge() -> None:
     Locates the AgentForge package, copies its 'setup_files' directory into
     the current working directory, and provides feedback on the process.
     """
-    package_name = 'agentforge'
+    package_name = "agentforge"
     try:
         spec = importlib.util.find_spec(package_name)
         if spec is None:
             print(f"{package_name} is not installed.")
             return
 
-        agentforge_path = spec.submodule_search_locations[0]
+        package_locations = list(spec.submodule_search_locations or [])
+        if not package_locations:
+            print(f"{package_name} package location could not be resolved.")
+            return
+
+        agentforge_path = Path(package_locations[0])
         print(f"Found {package_name} at {agentforge_path}")
-        installer_path = os.path.join(agentforge_path, 'setup_files')
+        installer_path = agentforge_path / "setup_files"
         project_root = Path.cwd() / ".agentforge"
         if not project_root.exists():
             project_root.mkdir()
             print(f"Created project template directory: {project_root}")
-        copy_directory(project_root, Path(installer_path))
+        copy_directory(project_root, installer_path)
         print("AgentForge setup is complete.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     setup_agentforge()

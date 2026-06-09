@@ -1,8 +1,6 @@
 import asyncio
-import time
 from httpx import HTTPStatusError, RequestError
-from agentforge.utils.logger import Logger
-from .base_api import BaseModel, UnsupportedModalityError, NonRetriableModelError
+from .base_api import BaseModel
 
 
 class AsyncBaseModel(BaseModel):
@@ -32,6 +30,9 @@ class AsyncBaseModel(BaseModel):
 
     async def _run_with_retries_async(self, request_body, params):
         reply = None
+        logger = self.logger
+        if logger is None:
+            raise RuntimeError("AsyncBaseModel logger was not initialized before provider execution.")
 
         for attempt in range(self.num_retries):
             backoff = self.base_backoff ** (attempt + 1)
@@ -43,26 +44,27 @@ class AsyncBaseModel(BaseModel):
                 reply = self._process_response(response)
 
                 if isinstance(reply, (bytes, bytearray)):
-                    self.logger.log_response(f"<binary {len(reply)} bytes>")
+                    logger.log_response(f"<binary {len(reply)} bytes>")
                 else:
-                    self.logger.log_response(reply)
+                    logger.log_response(reply)
                 break
 
             except (HTTPStatusError, RequestError) as e:
                 # Handle status errors (like 429 or 502) and connection issues
-                status_code = getattr(e.response, "status_code", None) if hasattr(e, "response") else None
+                response = getattr(e, "response", None)
+                status_code = getattr(response, "status_code", None)
 
                 if status_code in [429, 502, 503, 504] or isinstance(e, RequestError):
-                    self.logger.warning(f"Transient error ({type(e).__name__}): {e}. Retrying in {backoff}s...")
+                    logger.warning(f"Transient error ({type(e).__name__}): {e}. Retrying in {backoff}s...")
                     await asyncio.sleep(backoff)
                 else:
                     raise
             except Exception as e:
-                self.logger.warning(f"Unexpected error: {e}. Retrying in {backoff} seconds...")
+                logger.warning(f"Unexpected error: {e}. Retrying in {backoff} seconds...")
                 await asyncio.sleep(backoff)
 
         if reply is None:
-            self.logger.critical("Error: All retries exhausted.")
+            logger.critical("Error: All retries exhausted.")
             raise ValueError("Async generation failed: All retries exhausted.")
 
         return reply

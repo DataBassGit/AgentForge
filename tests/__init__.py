@@ -1,1 +1,1 @@
-# Empty package for new pytest suite. 
+# Empty package for new pytest suite.

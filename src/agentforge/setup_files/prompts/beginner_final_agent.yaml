@@ -1,0 +1,25 @@
+prompts:
+  system: |
+    You write the final user-facing answer for a beginner.
+
+  user:
+    original_request: |
+      Original request:
+      {_ctx.user_input}
+
+    draft: |
+      First draft:
+      {_state.draft}
+
+    revision: |
+      Latest revision:
+      {_state.revise}
+
+    review: |
+      Last review rationale:
+      {_state.review.rationale}
+
+    instruction: |
+      Return the final answer.
+
+simulated_response: "AgentForge helps you turn prompts into small agent workflows. This branch/loop Cog drafted, reviewed, revised, and finished through its fallback after max_visits."

@@ -1,0 +1,261 @@
+"""
+Test ConfigManager configuration validation and object building.
+
+This test suite validates that ConfigManager can:
+1. Build structured AgentConfig objects from raw data
+2. Build structured CogConfig objects from raw data
+3. Validate required fields and reject invalid configurations
+4. Handle both agent and cog configurations correctly
+
+These tests use raw configuration data and test the core validation logic.
+"""
+
+import pytest
+
+from agentforge.core.config_manager import ConfigManager
+
+
+def test_config_manager_agent_config_building(isolated_config):
+    """Test that ConfigManager can build structured agent configs from raw data."""
+    config_manager = ConfigManager()
+
+    # Get raw agent data
+    raw_agent_data = isolated_config.find_config("prompts", "cog_analyze_agent")
+
+    # Add required fields that might be missing in test config
+    raw_agent_data["name"] = "cog_analyze_agent"
+
+    # Resolve model for the agent
+    api_name, class_name, model_name, final_params = isolated_config.resolve_model_overrides(raw_agent_data)
+    model = isolated_config.get_model(api_name, class_name, model_name)
+    raw_agent_data["model"] = model
+    raw_agent_data["params"] = final_params
+
+    # Get settings
+    raw_agent_data["settings"] = isolated_config.data.get("settings", {})
+
+    # Test agent config building with raw data
+    agent_config = config_manager.build_agent_config(raw_agent_data)
+
+    # Verify structured config object
+    assert agent_config.name == "cog_analyze_agent"
+    assert agent_config.model is not None
+    assert "system" in agent_config.prompts
+    assert "user" in agent_config.prompts
+    assert agent_config.settings.system.persona.enabled is not None
+
+
+def test_config_manager_cog_config(isolated_config):
+    """Test that ConfigManager can build structured cog configs from raw data."""
+    config_manager = ConfigManager()
+
+    # Get raw cog data directly
+    raw_cog_data = isolated_config.find_config("cogs", "example_cog")
+
+    # Test cog config building with raw data
+    cog_config = config_manager.build_cog_config(raw_cog_data)
+
+    # Verify structured config object
+    assert cog_config.cog.name == "ExampleCog"
+    assert cog_config.cog.flow is not None
+    assert cog_config.cog.flow.start == "analysis"
+    assert len(cog_config.cog.agents) > 0
+
+    # Verify agent definitions
+    first_agent = cog_config.cog.agents[0]
+    assert first_agent.id == "analysis"
+    assert first_agent.description is None
+    assert first_agent.template_file == "cog_analyze_agent"
+
+    # Verify flow transitions
+    assert "decision" in cog_config.cog.flow.transitions
+    decide_transition = cog_config.cog.flow.transitions["decision"]
+    assert decide_transition.type == "decision"
+    assert decide_transition.decision_key == "choice"
+    assert "approve" in decide_transition.decision_map
+    assert "reject" in decide_transition.decision_map
+
+
+def test_config_manager_beginner_summary_cog_config(isolated_config):
+    """Test that the beginner no-memory Cog normalizes into the expected flow."""
+    config_manager = ConfigManager()
+    raw_cog_data = isolated_config.find_config("cogs", "beginner_summary_cog")
+
+    cog_config = config_manager.build_cog_config(raw_cog_data)
+
+    assert cog_config.cog.name == "BeginnerSummaryCog"
+    assert cog_config.cog.chat_memory_enabled is False
+    assert [agent.id for agent in cog_config.cog.agents] == ["summarize", "respond"]
+    assert [agent.description for agent in cog_config.cog.agents] == [
+        "Summarizes the user message for the response node.",
+        "Writes the final beginner-friendly reply.",
+    ]
+    assert cog_config.cog.flow is not None
+    assert cog_config.cog.flow.start == "summarize"
+    assert cog_config.cog.flow.transitions["summarize"].next_agent == "respond"
+    assert cog_config.cog.flow.transitions["respond"].end is True
+
+
+def test_config_manager_beginner_branch_loop_cog_config(isolated_config):
+    """Test that the beginner branch/loop Cog normalizes into the expected flow."""
+    config_manager = ConfigManager()
+    raw_cog_data = isolated_config.find_config("cogs", "beginner_branch_loop_cog")
+
+    cog_config = config_manager.build_cog_config(raw_cog_data)
+
+    assert cog_config.cog.name == "BeginnerBranchLoopCog"
+    assert cog_config.cog.chat_memory_enabled is False
+    assert [agent.id for agent in cog_config.cog.agents] == ["draft", "review", "revise", "final"]
+    assert [agent.description for agent in cog_config.cog.agents] == [
+        "Drafts an initial answer from the user request.",
+        "Reviews the draft and chooses approve or revise.",
+        "Improves the draft using review rationale.",
+        "Writes the final answer after review.",
+    ]
+    assert cog_config.cog.flow is not None
+    assert cog_config.cog.flow.start == "draft"
+    assert cog_config.cog.flow.transitions["draft"].next_agent == "review"
+    review_transition = cog_config.cog.flow.transitions["review"]
+    assert review_transition.type == "decision"
+    assert review_transition.decision_key == "choice"
+    assert review_transition.decision_map == {"approve": "final", "revise": "revise"}
+    assert review_transition.fallback == "final"
+    assert review_transition.max_visits == 2
+    assert cog_config.cog.flow.transitions["revise"].next_agent == "review"
+    assert cog_config.cog.flow.transitions["final"].end is True
+
+
+def test_config_manager_preserves_chat_history_settings():
+    """Test that documented Cog chat-history settings survive normalization."""
+    config_manager = ConfigManager()
+    raw_cog_data = {
+        "cog": {
+            "name": "ConfiguredChatHistoryCog",
+            "chat_memory_enabled": False,
+            "chat_history_max_results": 7,
+            "chat_history_max_retrieval": 3,
+            "agents": [{"id": "analysis", "template_file": "cog_analyze_agent"}],
+            "flow": {"start": "analysis", "transitions": {"analysis": {"end": True}}},
+        }
+    }
+
+    cog_config = config_manager.build_cog_config(raw_cog_data)
+
+    assert cog_config.cog.chat_memory_enabled is False
+    assert cog_config.cog.chat_history_max_results == 7
+    assert cog_config.cog.chat_history_max_retrieval == 3
+
+
+def test_config_manager_validation():
+    """Test that ConfigManager properly validates config data."""
+    config_manager = ConfigManager()
+
+    with pytest.raises(ValueError, match="missing required key"):
+        config_manager.build_agent_config({"name": "TestAgent"})
+
+    with pytest.raises(ValueError, match="missing required 'name' field"):
+        config_manager.build_agent_config(
+            {
+                "params": {},
+                "prompts": {"system": "test", "user": "test"},
+                "settings": {"system": {"persona": {"enabled": False}}},
+            }
+        )
+
+    with pytest.raises(ValueError, match="must have a non-empty 'prompts' dictionary"):
+        config_manager.build_agent_config(
+            {
+                "name": "TestAgent",
+                "params": {},
+                "prompts": {},
+                "settings": {"system": {"persona": {"enabled": False}}},
+                "model": object(),
+            }
+        )
+
+    with pytest.raises(ValueError, match="must have a 'model' specified"):
+        config_manager.build_agent_config(
+            {
+                "name": "TestAgent",
+                "params": {},
+                "prompts": {"system": "test", "user": "test"},
+                "settings": {"system": {"persona": {"enabled": False}}},
+                "model": None,
+            }
+        )
+
+    with pytest.raises(ValueError, match="invalid prompt format"):
+        config_manager.build_agent_config(
+            {
+                "name": "TestAgent",
+                "params": {},
+                "prompts": {"system": "test"},
+                "settings": {"system": {"persona": {"enabled": False}}},
+                "model": object(),
+            }
+        )
+
+    with pytest.raises(ValueError, match="must have a 'cog' dictionary"):
+        config_manager.build_cog_config({"not_cog": "invalid"})
+
+
+def test_config_manager_settings_building():
+    """Test that ConfigManager correctly builds Settings objects."""
+    config_manager = ConfigManager()
+
+    # Test with minimal settings
+    raw_settings = {
+        "system": {
+            "persona": {"enabled": True, "name": "TestPersona"},
+            "debug": {"mode": False},
+            "logging": {"enabled": True, "console_level": "info"},
+            "misc": {"on_the_fly": True},
+            "paths": {"files": "./test_files"},
+        },
+        "models": {"openai": {}},
+        "storage": {"chroma": {}},
+    }
+
+    settings = config_manager._build_settings(raw_settings)
+
+    # Verify settings structure
+    assert settings.system.persona.enabled is True
+    assert settings.system.persona.name == "TestPersona"
+    assert settings.system.debug.mode is False
+    assert settings.system.logging.enabled is True
+    assert settings.system.logging.console_level == "info"
+    assert settings.system.logging.create_missing_files is True
+    assert settings.system.misc.on_the_fly is True
+    assert settings.system.paths.files == "./test_files"
+    assert "openai" in settings.models
+    assert "chroma" in settings.storage
+
+    raw_settings["system"]["logging"]["create_missing_files"] = False
+    settings = config_manager._build_settings(raw_settings)
+
+    assert settings.system.logging.create_missing_files is False
+
+
+def test_config_manager_cog_flow_parsing():
+    """Test that ConfigManager correctly parses cog flow transitions."""
+    config_manager = ConfigManager()
+
+    # Test direct transition
+    direct_transition = config_manager._parse_flow_transition("next_agent")
+    assert direct_transition.type == "direct"
+    assert direct_transition.next_agent == "next_agent"
+
+    # Test end transition
+    end_transition = config_manager._parse_flow_transition({"end": True})
+    assert end_transition.type == "end"
+    assert end_transition.end is True
+
+    # Test decision transition
+    decision_transition = config_manager._parse_flow_transition(
+        {"choice": {"approve": "respond", "reject": "analyze"}, "fallback": "analyze"}
+    )
+    assert decision_transition.type == "decision"
+    assert decision_transition.decision_key == "choice"
+    assert decision_transition.decision_map["approve"] == "respond"
+    assert decision_transition.decision_map["reject"] == "analyze"
+    assert decision_transition.fallback == "analyze"

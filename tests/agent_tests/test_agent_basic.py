@@ -7,36 +7,32 @@ and idempotency work.
 
 from __future__ import annotations
 
-from copy import deepcopy
-from typing import Any
 from unittest.mock import patch
 
 import pytest
 
 from agentforge.agent import Agent
 from agentforge.config import Config
+from agentforge.config_structs import AgentConfig
 from agentforge.core.config_manager import ConfigManager
 
 
 @pytest.fixture()
-def dummy_agent_config(isolated_config: Config) -> 'ConfigManager.AgentConfig':  # noqa: D103
+def dummy_agent_config(isolated_config: Config) -> AgentConfig:  # noqa: D103
     # Create a ConfigManager instance to build structured config
     config_manager = ConfigManager()
-    
+
     # Minimal agent data dict; ensure debug mode true
     raw_agent_data = {
         "name": "TestAgent",
         "params": {},
-        "prompts": {
-            "system": "Hello {name}",
-            "user": "{message}",
-        },
+        "prompts": {"system": "Hello {name}", "user": "{message}"},
         "model": object(),
         "settings": isolated_config.data["settings"].copy(),
         "simulated_response": "SIMULATED",
     }
     raw_agent_data["settings"]["system"]["debug"]["mode"] = True
-    
+
     # Use ConfigManager to build structured config object
     return config_manager.build_agent_config(raw_agent_data)
 
@@ -58,4 +54,4 @@ def test_idempotent_run(dummy_agent_config):  # noqa: D103
         agent = Agent("TestAgent")
         first = agent.run(name="X", message="y")
         second = agent.run(name="X", message="y")
-        assert first == second 
+        assert first == second

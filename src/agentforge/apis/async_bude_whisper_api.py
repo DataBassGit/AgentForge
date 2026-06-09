@@ -1,5 +1,4 @@
 import httpx
-import asyncio
 from .async_base_api import AsyncBaseModel
 from agentforge.apis.mixins.audio_input_mixin import AudioInputMixin
 
@@ -31,7 +30,8 @@ class BudeWhisperAsyncRuntime:
             return text or caption or "[No transcription or caption generated]"
 
         except Exception as e:
-            if logger: logger.error(f"STT API Error: {e}")
+            if logger:
+                logger.error(f"STT API Error: {e}")
             raise
 
     async def close(self):
@@ -46,7 +46,8 @@ class AsyncSTT(AudioInputMixin, AsyncBaseModel):
 
     def _build_parts(self, model_prompt, images, audio):
         parts = {}
-        if audio: parts["audio"] = self._prepare_audio_payload(audio)
+        if audio:
+            parts["audio"] = self._prepare_audio_payload(audio)
         return parts
 
     def _merge_parts(self, parts):
@@ -54,16 +55,15 @@ class AsyncSTT(AudioInputMixin, AsyncBaseModel):
 
     async def _do_api_call_async(self, prompt, **filtered_params):
         audio_blob = prompt.get("audio")
-        if not audio_blob: return ""
+        if not audio_blob:
+            return ""
 
         return await self.runtime.stt(
-            model=self.model_name,
-            audio_blob=audio_blob,
-            params=filtered_params,
-            logger=self.logger
+            model=self.model_name, audio_blob=audio_blob, params=filtered_params, logger=self.logger
         )
 
     def _process_response(self, raw_response):
         processed = str(raw_response) if raw_response is not None else ""
-        if self.logger: self.logger.log_response(processed)
+        if self.logger:
+            self.logger.log_response(processed)
         return processed

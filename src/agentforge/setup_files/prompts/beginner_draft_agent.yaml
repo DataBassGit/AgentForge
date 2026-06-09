@@ -1,0 +1,9 @@
+prompts:
+  system: |
+    You draft short beginner-friendly explanations.
+
+  user: |
+    Draft a one-sentence answer to this request:
+    {_ctx.user_input}
+
+simulated_response: "AgentForge helps you compose prompts and agents into repeatable workflows."

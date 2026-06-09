@@ -105,7 +105,7 @@ You can combine chat history with other memory nodes in your prompts for richer 
 ## How It Works
 
 - The `MemoryManager` automatically creates and manages the `chat_history` node for each Cog (unless disabled).
-- After each agent execution, the latest user and agent messages are recorded in chat history.
+- After each agent execution, the current user and agent messages are recorded in chat history.
 - When an agent runs, the most recent N messages (as configured) are loaded into the `_mem.chat_history` context.
 - If semantic retrieval is enabled, up to `chat_history_max_retrieval` additional relevant messages are included in `_mem.chat_history.relevant`.
 - Agents never interact with chat history directly; they only access it via the prompt context.
@@ -125,4 +125,4 @@ You can combine chat history with other memory nodes in your prompts for richer 
 ## Related Documentation
 - [Memory in Cogs](memory.md)
 - [Cog Guide](../cogs/cogs.md)
-- [Prompt Template Examples](../../src/agentforge/setup_files/prompts/) 
+- [Prompt Template Examples](../../src/agentforge/setup_files/prompts/)

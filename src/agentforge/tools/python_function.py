@@ -53,13 +53,14 @@ class PythonFunction:
             raise TypeError("payload must be a dictionary")
 
         try:
-            tool = {'Script': function_name, 'Command': 'execute'}
+            tool = {"Script": function_name, "Command": "execute"}
             result = ToolUtils().dynamic_tool(tool, payload)
             return result
         except AttributeError as e:
             raise AttributeError(f"Function '{function_name}' not found: {str(e)}")
         except Exception as e:
             raise Exception(f"An error occurred while executing the function: {str(e)}")
+
 
 # Usage example (commented out)
 # if __name__ == "__main__":
@@ -72,4 +73,3 @@ class PythonFunction:
 #         print(f"Result: {result}")
 #     except Exception as e:
 #         print(f"Error: {str(e)}")
-

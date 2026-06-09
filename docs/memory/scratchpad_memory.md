@@ -64,7 +64,7 @@ You can combine the scratchpad with other memory nodes (e.g., chat history, pers
 ## How It Works
 
 - The `MemoryManager` creates and manages the scratchpad node for each Cog as configured in YAML.
-- When an agent triggers a query (via `query_before`), the latest scratchpad contents are loaded into the `_mem.scratchpad` context.
+- When an agent triggers a query (via `query_before`), the current scratchpad contents are loaded into the `_mem.scratchpad` context.
 - When an agent triggers an update (via `update_after`), new entries are added to the log collection.
 - When the log reaches a threshold (typically 10 entries), the scratchpad may automatically consolidate the log into the main pad and clear the log (see class docstring for details).
 - Agents never interact with the scratchpad directly; they only access it via the prompt context.
@@ -74,7 +74,7 @@ You can combine the scratchpad with other memory nodes (e.g., chat history, pers
 ## Best Practices
 
 - Use the scratchpad for accumulating intermediate results, notes, or working memory across multiple agents or steps.
-- Reference `{_mem.scratchpad.readable}` in prompts to provide agents with the latest consolidated notes.
+- Reference `{_mem.scratchpad.readable}` in prompts to provide agents with current consolidated notes.
 - Adjust `query_before` and `update_after` to control when the scratchpad is accessed or updated.
 - Use a unique `collection_id` if you want to separate scratchpad data across different workflows or Cogs.
 - Combine the scratchpad with chat history and persona memory for advanced, context-rich workflows.
@@ -84,4 +84,4 @@ You can combine the scratchpad with other memory nodes (e.g., chat history, pers
 ## Related Documentation
 - [Memory in Cogs](memory.md)
 - [Cog Guide](../cogs/cogs.md)
-- [Prompt Template Examples](../../src/agentforge/setup_files/prompts/) 
+- [Prompt Template Examples](../../src/agentforge/setup_files/prompts/)

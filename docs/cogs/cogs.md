@@ -29,12 +29,15 @@ cog:
 
   agents:                       # Declare agent nodes
     - id: analyze
+      description: "Extracts the useful facts from the request."
       template_file: analyze_agent  # Required: at least one of template_file or type
       
     - id: decide
+      description: "Chooses the next workflow branch."
       template_file: decide_agent
 
     - id: respond
+      description: "Writes the final answer."
       template_file: response_agent
 
   memory:                       # (Optional) shared memory nodes
@@ -64,6 +67,7 @@ cog:
 - **`cog.name`**, **`cog.description`**: Metadata.
 - **`agents`**: List of agent definitions:
   - `id`: Unique node key (required).
+  - `description`: Optional human-readable metadata for docs, review, and tooling. It is preserved in structured config but is not passed to prompts or used for routing.
   - `template_file`: Prompt YAML name (required if `type` not set).
   - `type`: Full Python path to Agent subclass (required if `template_file` not set).
 - **`memory`**: List of memory nodes (optional):
@@ -134,10 +138,15 @@ Memory nodes declared under `memory` are shared across all agents in a Cog. Each
 When an agent runs, the Cog engine provides three key variables in the prompt template context:
 
 - **`_ctx`**: The current external context, such as user input and any runtime values passed to `cog.run()`.
-- **`_state`**: The internal state dictionary, containing outputs from all previously executed agents in the workflow.
+- **`_state`**: The internal state dictionary, containing parsed outputs from all previously executed agents in the workflow.
 - **`_mem`**: The memory manager, where each memory node is accessible as an attribute. For example, if you have a memory node with `id: persona_memory`, you can access its properties in your prompt as `{_mem.persona_memory.<property>}`.
 
-This allows agents to reference both the latest user input/context and the outputs of other agents. For example, in a prompt template:
+`_ctx` is not auto-parsed from JSON or YAML strings.
+If a prompt needs nested context such as `{_ctx.profile.name}`, pass `profile` as a dictionary to `Cog.run(profile={"name": "Ada"})` rather than as a JSON string.
+Whole dictionaries and lists, including `{_ctx}` or `{_state}`, render as readable Markdown in prompts.
+Agent outputs become structured data in `_state` when the agent prompt YAML sets `parse_response_as`, such as `parse_response_as: json`.
+
+This allows agents to reference both current user input/context and the outputs of other agents. For example, in a prompt template:
 
 ```yaml
 prompts:

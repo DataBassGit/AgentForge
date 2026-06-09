@@ -1,0 +1,102 @@
+[build-system]
+requires = ["setuptools>=77.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentforge"
+version = "0.6.5"
+description = "AI-driven task automation system"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [
+    { name = "John Smith" },
+    { name = "Ansel Anselmi", email = "contact@agentforge.net" },
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "chromadb>=1.1.0",
+    "numpy>=2.0.0",
+    "sentence-transformers",
+    "groq",
+    "pymupdf",
+    "spacy",
+    "openai",
+    "oauth-cli-kit>=0.1.3,<1.0.0",
+    "anthropic",
+    "google-api-python-client",
+    "beautifulsoup4",
+    "browse",
+    "scipy",
+    "discord.py",
+    "semantic-text-splitter",
+    "google-generativeai",
+    "PyYAML",
+    "ruamel.yaml",
+    "requests",
+    "xmltodict",
+]
+
+[project.urls]
+Homepage = "https://github.com/DataBassGit/AgentForge"
+
+[project.optional-dependencies]
+other = [
+    "opencv-python",
+    "Pillow",
+    "pytesseract",
+]
+
+[tool.setuptools]
+include-package-data = true
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["agentforge*"]
+
+[tool.setuptools.package-data]
+agentforge = ["setup_files/**/*.yaml"]
+
+[tool.setuptools.exclude-package-data]
+agentforge = ["**/__pycache__/*", "**/*.pyc", "**/*.pyo"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+extend-select = ["E501", "PLR0913", "UP045"]
+
+[tool.ruff.lint.pylint]
+max-args = 6
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
+
+[tool.basedpyright]
+include = ["src", "tests"]
+exclude = [
+    "**/__pycache__",
+    ".agentforge",
+    ".venv",
+    ".pytest_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+    "docs",
+    "logs",
+    "src/agentforge.egg-info",
+    "venv",
+]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"

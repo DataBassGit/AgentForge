@@ -30,7 +30,7 @@ cog:
   
   agents:
     - id: understand
-      template_file: UnderstandAgent
+      template_file: understand_agent
       
     - id: respond
       template_file: response_agent
@@ -130,12 +130,12 @@ PersonaMemory can work alongside other memory types:
 
 ```yaml
 memory:
-  - id: general
-    type: agentforge.storage.episodic.EpisodicMemory
+  - id: general_memory
+    type: agentforge.storage.memory.Memory
     collection_id: conversations
   - id: persona_memory
     type: agentforge.storage.persona_memory.PersonaMemory
     collection_id: user_facts
 ```
 
-This allows you to maintain conversation history while building an evolving persona model. 
+This allows you to keep general workflow memory alongside an evolving persona model.

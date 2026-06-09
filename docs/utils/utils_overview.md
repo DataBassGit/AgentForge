@@ -2,6 +2,10 @@
 
 ## Introduction
 
+This is an advanced utilities reference.
+
+Use it after the beginner Agent and Cog path, when you need logger, parsing, prompt handling, Discord, or compatibility helpers directly.
+
 In **AgentForge**, utility classes make building and extending agents easier. Each utility focuses on a specific aspect of agent functionality—handling everything from logging, prompt rendering, and parsing structured data and Discord integration.
 
 ---
@@ -54,13 +58,7 @@ The core utility modules (found under `agentforge/utils/`) are summarized below.
 
 ### **5. Tool Utils**
 
-# ⚠️ DEPRECATION WARNING
-
-**The Tools system is DEPRECATED.**
-
-Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
-
-See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
+`ToolUtils` supports the legacy dynamic tool execution surface. Use it only with trusted project-owned tool definitions.
 
 - **Guide**: [ToolUtils Guide](tool_utils.md)
 - **Description**: Facilitates dynamic importing and execution of tool modules or built-in functions, plus formatting those tools for display. Enables flexible, pluggable functionality so agents can call new or external code.
@@ -77,7 +75,7 @@ See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
 2. **Extendibility**  
    If you have specialized requirements (e.g., advanced prompt placeholders), you can override or subclass these utilities.  
 3. **Documentation**  
-   Each utility is documented in its own guide. Refer to those guides for up-to-date usage and best practices.
+   Each utility is documented in its own guide. Refer to those guides for usage details.
 
 ---
 
