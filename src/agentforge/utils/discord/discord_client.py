@@ -22,6 +22,7 @@ class DiscordClient:
         self.token = str(os.getenv("DISCORD_TOKEN"))
         self.intents = discord.Intents.default()
         self.intents.message_content = True
+        self.intents.members = True
 
         # Dedicated loop for Voice WebSocket handling
         self.discord_loop = asyncio.new_event_loop()
@@ -108,17 +109,34 @@ class DiscordClient:
             except Exception as e:
                 print(f"Exception: {e}")
 
-    def send_message(self, channel_id, content, message_id=None):
+    def send_message(self, channel_id, content, message_id=None, images=None):
         try:
             self.utils.send_message(channel_id, content, message_id)
             return True
         except BaseException:
             return False
 
-    def send_dm(self, user_id, content):
-        self.utils.send_dm(user_id, content)
+    def send_dm(self, user_id, content, images=None):
+        self.utils.send_dm(user_id, content, images=images)
 
-    def send_embed(self, channel_id, title, fields, color="blue", image_url=None):
+    def get_message_image_urls(self, channel_id, message_id):
+        return self.utils.get_message_image_urls(channel_id, message_id)
+
+    def resolve_image_refs(self, refs):
+        """
+        Turn stored 'channel_id/message_id' refs into current image URLs (always refetched,
+        since Discord CDN links expire ~24h). Bad/missing refs are skipped.
+        """
+        urls = []
+        for ref in refs or []:
+            try:
+                channel_id, message_id = str(ref).split('/', 1)
+            except ValueError:
+                continue
+            urls.extend(self.get_message_image_urls(channel_id, message_id))
+        return urls
+
+    def send_embed(self, channel_id, title, fields, color='blue', image_url=None):
         self.utils.send_embed(channel_id, title, fields, color, image_url)
 
     def load_commands(self):
@@ -179,6 +197,30 @@ class DiscordClient:
         Lock a specific thread, making it read-only for normal users.
         """
         return self.utils.lock_thread(thread_id)
+
+    def set_channel_presence(self, channel_id, is_present=True):
+        """
+        Adds or removes the bot from a specific channel by modifying permissions.
+        """
+        return self.utils.set_channel_presence(channel_id, is_present)
+
+    def set_role_channel_presence(self, channel_id, role_name, is_present=True):
+        """
+        Adds or removes a role from a specific channel by modifying permissions.
+        """
+        return self.utils.set_role_channel_presence(channel_id, role_name, is_present)
+
+    def set_member_channel_presence(self, channel_id, user_id, is_present=True):
+        """
+        Adds or removes a specific user from a channel by modifying permissions.
+        """
+        return self.utils.set_member_channel_presence(channel_id, user_id, is_present)
+
+    def get_channel_members(self, channel_id):
+        """
+        Retrieves a list of non-bot members in a channel.
+        """
+        return self.utils.get_channel_members(channel_id)
 
 
 if __name__ == "__main__":
