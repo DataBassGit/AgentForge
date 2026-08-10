@@ -1,5 +1,6 @@
 import unicodedata
 
+
 class Strip:
     """
     A utility class for cleaning and sanitizing strings.
@@ -30,14 +31,19 @@ class Strip:
             raise TypeError("Input must be a string")
 
         try:
-            allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.!@#$%^&*()[]{};'" + chr(10) + chr(13) + " ")
+            allowed_chars = set(
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.!@#$%^&*()[]{};'"
+                + chr(10)
+                + chr(13)
+                + " "
+            )
             clean_text = []
             for char in text:
                 if char in allowed_chars:
                     clean_text.append(char)
                 else:
-                    clean_text.append('_')  # Replace invalid characters with underscores
-            return ''.join(clean_text)
+                    clean_text.append("_")  # Replace invalid characters with underscores
+            return "".join(clean_text)
         except Exception as e:
             raise Exception(f"Failed to strip invalid characters: {str(e)}") from e
 
@@ -60,7 +66,7 @@ class Strip:
             raise TypeError("Input must be a string")
 
         try:
-            return unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('ASCII')
+            return unicodedata.normalize("NFKD", text).encode("ASCII", "ignore").decode("ASCII")
         except Exception as e:
             raise Exception(f"Failed to normalize Unicode characters: {str(e)}") from e
 
@@ -83,6 +89,6 @@ class Strip:
             raise TypeError("Input must be a string")
 
         try:
-            return ''.join(char for char in text if unicodedata.category(char)[0] != 'C')
+            return "".join(char for char in text if unicodedata.category(char)[0] != "C")
         except Exception as e:
             raise Exception(f"Failed to remove control characters: {str(e)}") from e

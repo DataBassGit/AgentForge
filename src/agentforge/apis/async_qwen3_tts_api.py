@@ -1,6 +1,4 @@
 import httpx
-import asyncio
-from typing import Optional
 from .async_base_api import AsyncBaseModel
 
 # Port updated back to 8100 to hit the unified server
@@ -24,11 +22,7 @@ class Qwen3TTSAsyncRuntime:
         """
         url = f"{self.base_url}/v1/audio/speech"
 
-        payload = {
-            "input": text,
-            "instruction": instruction,
-            **params
-        }
+        payload = {"input": text, "instruction": instruction, **params}
 
         try:
             response = await self.client.post(url, json=payload)
@@ -96,12 +90,7 @@ class AsyncQwen3TTS(AsyncBaseModel):
         # Extract the instruction if provided in the params (e.g., "A female speaking with a sudden, bright laugh")
         instruction = filtered_params.pop("instruction", "")
 
-        return await self.runtime.tts(
-            text=text,
-            instruction=instruction,
-            params=filtered_params,
-            logger=self.logger
-        )
+        return await self.runtime.tts(text=text, instruction=instruction, params=filtered_params, logger=self.logger)
 
     def _process_response(self, raw_response):
         """

@@ -1,5 +1,9 @@
 # ChromaStorage Guide
 
+This is an advanced storage internals reference.
+
+Use it after the beginner Agent and Cog path, when you are intentionally working with memory persistence or ChromaDB behavior.
+
 ChromaStorage is the core interface to ChromaDB in **AgentForge**. It uses a thread‑safe registry keyed by `storage_id` to provide singleton storage clients, and supports both persistent and in‑memory (ephemeral) modes based on your configuration.
 
 ## 1. Quick Start
@@ -90,7 +94,7 @@ embedding_library:
 ## 6. Usage Examples
 ```python
 # Initialize or reuse storage client
-storage = ChromaStorage.get_or_create(storage_id="session_42")
+storage = ChromaStorage.get_or_create(storage_id="conversation_42")
 
 # Save a note
 storage.save_to_storage(

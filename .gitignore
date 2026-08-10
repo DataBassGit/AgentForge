@@ -53,3 +53,5 @@ src/agentforge/persona/chatbot.json
 
 
 .agentforge/
+drafts.md
+.ruff_cache/

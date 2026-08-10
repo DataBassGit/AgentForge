@@ -1,4 +1,5 @@
 """Contract tests for the in-memory FakeChromaStorage backend."""
+
 from __future__ import annotations
 
 import pytest
@@ -84,4 +85,4 @@ def test_peek_and_count_collection(chroma):
 def test_select_collection_invalid_name_raises(chroma):
     # Simulate invalid collection name (e.g., empty string)
     with pytest.raises(Exception):
-        chroma.create_collection("") 
+        chroma.create_collection("")

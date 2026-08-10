@@ -1,18 +1,16 @@
-# ⚠️ DEPRECATION WARNING
+# Tools and Actions
 
-**The Tools and Actions system is DEPRECATED.**
+This is a legacy compatibility reference.
 
-Do NOT use in production or with untrusted input. This system will be replaced in a future version with a secure implementation based on the MCP standard.
+Tools and Actions are AgentForge's legacy dynamic execution surface. They remain available for compatibility with trusted project-owned Python tools and action YAML files.
 
-See: https://github.com/DataBassGit/AgentForge/issues/116 for details.
-
-# **Tools and Actions**
+Do not allow untrusted users or model output to choose arbitrary module paths, class names, commands, file paths, or shell-like behavior. Treat every tool definition as executable project code.
 
 ## **Tools Overview**
 
-**Tools** are predefined functions or methods within our system that perform specific tasks. They are essential building blocks, each encapsulated within a **YAML** file that outlines its purpose, arguments, and usage. Tools can be utilized individually or combined to form Actions.
+**Tools** are predefined functions or methods that perform specific tasks. Each tool is described by a **YAML** file that outlines its purpose, arguments, command, and Python implementation.
 
-Any python script can be added as a tool by completing a simple yaml template and storing it in the .agentforge/tools directory in your project. This yaml file is loaded into the database at runtime, and thus new tools require the agent be restarted before they are loaded into the database. The intent is that the database can be queried for the most relevant tool for a specified task.
+Python tools live under `.agentforge/tools`. Tool metadata can be loaded into storage so AgentForge can search for tools relevant to a task.
 
 **Detailed Guide**: For more details on tools and utilities, please see [Tools Detailed Guide](tools.md).
 
@@ -44,7 +42,7 @@ Instruction: |
 Example: |
   # Example usage of the Brave Search tool:
   brave_search = BraveSearch()
-  results = brave_search.search(query='OpenAI GPT-4', count=5)
+  results = brave_search.search(query='AgentForge', count=5)
   for result in results['web_results']:
       print(f"Title: {result['title']}")
       print(f"URL: {result['url']}")
@@ -59,7 +57,7 @@ Class: BraveSearch
 
 ## **Actions Overview**
 
-**Actions** are structured sequences of one or more **Tools**, designed to accomplish complex tasks. They allow the chaining of tool functionalities to achieve a desired outcome, orchestrated via **YAML** files which describe the process flow and inter-tool dynamics.
+**Actions** are structured sequences of one or more **Tools**, designed to accomplish complex tasks. They are defined in **YAML** files under `.agentforge/actions`.
 
 **Detailed Guide**: To understand Actions in depth, including how to create and manage them, refer to [Actions Detailed Guide](actions.md).
 
@@ -73,7 +71,7 @@ Description: |
   Finally, it breaks the scraped text into manageable chunks using the 'Intelligent Chunk' tool.
 Example: |
   # Example usage of the Web Search action:
-  query = "OpenAI GPT-4"
+  query = "AgentForge"
   number_result = 5
   
   # Perform Google search
@@ -111,6 +109,6 @@ Tools:
   - Semantic Chunk
 ```
 
->Note: While **Tools** provide the fundamental functions of our system, **Actions** blend these functions to automate workflows and complex processes. Through the strategic use of both **Tools** and **Actions**, our system can cater to a variety of automation needs, offering users a versatile platform for their operational requirements.
+Tools provide callable project functions. Actions combine those tools into reusable workflows.
 
 ---

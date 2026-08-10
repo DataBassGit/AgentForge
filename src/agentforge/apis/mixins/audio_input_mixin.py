@@ -32,4 +32,4 @@ class AudioInputMixin:
         if isinstance(audio, (str, Path)):
             return Path(audio).expanduser().resolve().read_bytes()
 
-        raise TypeError(f"Unsupported audio input type: {type(audio)}") 
+        raise TypeError(f"Unsupported audio input type: {type(audio)}")

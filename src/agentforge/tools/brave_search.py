@@ -1,6 +1,7 @@
 import os
 import requests
 
+
 class BraveSearch:
     """
     A Python wrapper for the Brave Search API.
@@ -18,15 +19,11 @@ class BraveSearch:
     """
 
     def __init__(self):
-        self.base_url = 'https://api.search.brave.com'
-        self.api_key = os.environ.get('BRAVE_API_KEY')
+        self.base_url = "https://api.search.brave.com"
+        self.api_key = os.environ.get("BRAVE_API_KEY")
         if not self.api_key:
             raise ValueError("BRAVE_API_KEY environment variable is not set")
-        self.headers = {
-            'X-Subscription-Token': self.api_key,
-            'Accept': 'application/json',
-            'Accept-Encoding': 'gzip'
-        }
+        self.headers = {"X-Subscription-Token": self.api_key, "Accept": "application/json", "Accept-Encoding": "gzip"}
 
     def search(self, query, **kwargs):
         """
@@ -44,36 +41,40 @@ class BraveSearch:
             ValueError: If the response cannot be parsed or is invalid.
         """
         try:
-            params = {'q': query}
+            params = {"q": query}
             params.update(kwargs)
 
-            response = requests.get(self.base_url + '/res/v1/web/search', params=params, headers=self.headers)
+            response = requests.get(self.base_url + "/res/v1/web/search", params=params, headers=self.headers)
             response.raise_for_status()
             results = response.json()
 
             # Parse the search results
-            parsed_results = {'web_results': [], 'video_results': []}
+            parsed_results = {"web_results": [], "video_results": []}
 
             # Extract web search results
-            if 'web' in results and 'results' in results['web']:
-                for result in results['web']['results']:
-                    parsed_results['web_results'].append({
-                        'type': 'web_result',
-                        'title': result.get('title', 'No data'),
-                        'url': result.get('url', 'No data'),
-                        'description': result.get('description', 'No data'),
-                        'extra_snippets': result.get('extra_snippets', ["No data"])
-                    })
+            if "web" in results and "results" in results["web"]:
+                for result in results["web"]["results"]:
+                    parsed_results["web_results"].append(
+                        {
+                            "type": "web_result",
+                            "title": result.get("title", "No data"),
+                            "url": result.get("url", "No data"),
+                            "description": result.get("description", "No data"),
+                            "extra_snippets": result.get("extra_snippets", ["No data"]),
+                        }
+                    )
 
             # Extract video search results
-            if 'videos' in results and 'results' in results['videos']:
-                for result in results['videos']['results']:
-                    parsed_results['video_results'].append({
-                        'type': 'video_result',
-                        'title': result.get('title', 'No data'),
-                        'url': result.get('url', 'No data'),
-                        'description': result.get('description', 'No data')
-                    })
+            if "videos" in results and "results" in results["videos"]:
+                for result in results["videos"]["results"]:
+                    parsed_results["video_results"].append(
+                        {
+                            "type": "video_result",
+                            "title": result.get("title", "No data"),
+                            "url": result.get("url", "No data"),
+                            "description": result.get("description", "No data"),
+                        }
+                    )
 
             return parsed_results
 
@@ -98,53 +99,49 @@ class BraveSearch:
             ValueError: If the response cannot be parsed or is invalid.
         """
         try:
-            params = {'q': query, 'summary': 1}
+            params = {"q": query, "summary": 1}
             params.update(kwargs)
 
-            response = requests.get(self.base_url + '/res/v1/web/search', params=params, headers=self.headers)
+            response = requests.get(self.base_url + "/res/v1/web/search", params=params, headers=self.headers)
             response.raise_for_status()
 
             data = response.json()
 
-            if data.get('type') == 'summarizer':
+            if data.get("type") == "summarizer":
                 summary_info = {
-                    'status': data.get('status'),
-                    'title': data.get('title'),
-                    'summary': [msg.get('content') for msg in data.get('summary', [])],
-                    'followups': data.get('followups', []),
-                    'entities': data.get('entities_infos', {})
+                    "status": data.get("status"),
+                    "title": data.get("title"),
+                    "summary": [msg.get("content") for msg in data.get("summary", [])],
+                    "followups": data.get("followups", []),
+                    "entities": data.get("entities_infos", {}),
                 }
-                if 'enrichments' in data:
-                    summary_info['enrichments'] = data['enrichments']
-            elif data.get('type') == 'search':
-                summary_info = {
-                    'query': data.get('query', {}).get('original', ''),
-                    'results': [],
-                    'videos': []
-                }
+                if "enrichments" in data:
+                    summary_info["enrichments"] = data["enrichments"]
+            elif data.get("type") == "search":
+                summary_info = {"query": data.get("query", {}).get("original", ""), "results": [], "videos": []}
 
                 # Handle web results
-                for result in data.get('web', {}).get('results', []):
+                for result in data.get("web", {}).get("results", []):
                     result_info = {
-                        'type': 'web_result',
-                        'title': result.get('title', ''),
-                        'description': result.get('description', ''),
-                        'url': result.get('url', '')
+                        "type": "web_result",
+                        "title": result.get("title", ""),
+                        "description": result.get("description", ""),
+                        "url": result.get("url", ""),
                     }
-                    if 'extra_snippets' in result:
-                        result_info['extra_snippets'] = result['extra_snippets']
-                    summary_info['results'].append(result_info)
+                    if "extra_snippets" in result:
+                        result_info["extra_snippets"] = result["extra_snippets"]
+                    summary_info["results"].append(result_info)
 
                 # Handle video results
-                for video in data.get('videos', {}).get('results', []):
+                for video in data.get("videos", {}).get("results", []):
                     video_info = {
-                        'type': 'video_result',
-                        'title': video.get('title', ''),
-                        'description': video.get('description', ''),
-                        'url': video.get('url', ''),
-                        'thumbnail': video.get('thumbnail', {}).get('src', '')
+                        "type": "video_result",
+                        "title": video.get("title", ""),
+                        "description": video.get("description", ""),
+                        "url": video.get("url", ""),
+                        "thumbnail": video.get("thumbnail", {}).get("src", ""),
                     }
-                    summary_info['videos'].append(video_info)
+                    summary_info["videos"].append(video_info)
             else:
                 raise ValueError(f"Unexpected response type: {data.get('type')}")
 
@@ -155,15 +152,15 @@ class BraveSearch:
         except (KeyError, ValueError) as e:
             raise ValueError(f"Failed to parse API response: {str(e)}") from e
 
-if __name__ == '__main__':
 
+if __name__ == "__main__":
     brave = BraveSearch()
     import json
 
     # Perform a web search with additional parameters
-    search_results = brave.search(query='OpenAI ChatGPT', count=5)
+    search_results = brave.search(query="OpenAI ChatGPT", count=5)
     print(json.dumps(search_results, indent=4))
 
     # Get an AI-generated summary with additional parameters
-    summarize_result = brave.summarize(query='What is ChatGPT?')
+    summarize_result = brave.summarize(query="What is ChatGPT?")
     print(json.dumps(summarize_result, indent=4))

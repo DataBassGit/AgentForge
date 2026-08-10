@@ -4,22 +4,26 @@ import io
 
 try:
     from PIL import Image  # Pillow: lightweight fork of PIL
-except ImportError as e:
+except ImportError:
     Image = None
+
 
 class VisionMixin:
     """Shared helpers + capability flag for image modalities."""
+
     supported_modalities = {"text", "image"}
 
     def _prepare_image_payload(self, images):
-        if Image is None:
+        image_module = Image
+        if image_module is None:
             raise ImportError("Vision support requires Pillow.  pip install pillow")
 
         def to_png_b64(obj):
             if isinstance(obj, (str, Path)):
                 str_obj = str(obj)
-                if str_obj.startswith(('http://', 'https://')):
+                if str_obj.startswith(("http://", "https://")):
                     import requests
+
                     response = requests.get(str_obj)
                     response.raise_for_status()
                     data = response.content
@@ -27,7 +31,7 @@ class VisionMixin:
                     data = Path(obj).read_bytes()
             elif isinstance(obj, bytes):
                 data = obj
-            elif isinstance(obj, Image.Image):
+            elif isinstance(obj, image_module.Image):
                 buf = io.BytesIO()
                 obj.save(buf, format="PNG")
                 data = buf.getvalue()
@@ -38,8 +42,5 @@ class VisionMixin:
         parts = []
         for img in images:
             b64 = to_png_b64(img)
-            parts.append({
-                "type": "image_url",
-                "image_url": {"url": f"data:image/png;base64,{b64}"}
-            })
-        return parts 
+            parts.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}})
+        return parts

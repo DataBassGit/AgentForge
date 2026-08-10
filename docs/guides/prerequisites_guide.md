@@ -1,12 +1,15 @@
 # AgentForge Prerequisites Guide
 
-Before you begin using **AgentForge**, ensure your system meets the necessary requirements and configurations.
+This support guide lists optional credentials, local services, and platform dependencies for **AgentForge**.
+
+The no-credential [Quickstart](quickstart.md) does not require API keys; use this page when preparing for [First Real Model Run](first_real_model_run.md) or advanced memory/storage workflows.
 
 ---
 
 ## Python Version Requirement
 
-- **Python 3.11**
+- **Python 3.12 or newer**
+- **Recommended target: Python 3.14**
 - Verify your Python version:
 
   ```shell
@@ -15,9 +18,24 @@ Before you begin using **AgentForge**, ensure your system meets the necessary re
 
 ---
 
-## API Keys and Environment Variables
+## Default Real-Model Login
 
-**AgentForge** supports both cloud-based and local Large Language Models (LLMs).
+The shipped scaffold defaults to OpenAI Codex models for real calls.
+Codex uses an interactive OAuth login and does **not** use `OPENAI_API_KEY`.
+
+Run:
+
+```shell
+python -m agentforge.init_codex_oauth
+```
+
+Use this once per environment, or rerun when tokens expire.
+
+---
+
+## Optional API Keys and Environment Variables
+
+**AgentForge** also supports API-key cloud models and local Large Language Models (LLMs).
 
 ### Cloud-Based LLMs
 
@@ -62,20 +80,6 @@ $env:OPENAI_API_KEY='your-openai-api-key'
 ```
 
 ![Environment Variables](../../docs/images/EnvKeys.png)
-
----
-
-### Codex OAuth Requirement
-
-OpenAI Codex models use an interactive OAuth login and do **not** use `OPENAI_API_KEY`.
-
-Run:
-
-```shell
-python -m agentforge.init_codex_oauth
-```
-
-Use this once per environment (or rerun when tokens expire).
 
 ---
 
@@ -126,5 +130,6 @@ If you plan to use **ChromaDB** (the default database), you need the Microsoft C
 
 **Next Steps**:
 
-- Proceed to the [Installation Guide](InstallationGuide.md) to install AgentForge.
-- After installation, check out the [Using AgentForge Guide](UsingAgentForge.md) to get started with running agents.
+- Start with the [Quickstart](quickstart.md) for the no-credential path.
+- Use [First Real Model Run](first_real_model_run.md) when you are ready for provider credentials or local model services.
+- Use the [Installation Guide](installation_guide.md) when you need extra environment setup detail.

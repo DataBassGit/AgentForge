@@ -1,9 +1,6 @@
 import os
 import anthropic
-from .base_api import BaseModel
-
-API_KEY = os.getenv('ANTHROPIC_API_KEY')
-client = anthropic.Anthropic(api_key=API_KEY)
+from .base_api import BaseModel, ModelResponseError, NonRetriableModelError
 
 
 class Claude(BaseModel):
@@ -54,12 +51,26 @@ class Claude(BaseModel):
     def _do_api_call(self, prompt, **filtered_params):
         """Send the request to Anthropic with correctly separated params."""
 
-        return client.messages.create(
-            model=self.model_name,
-            messages=prompt["messages"],
-            system=prompt.get("system"),
-            **filtered_params,
+        return self._get_client().messages.create(
+            model=self.model_name, messages=prompt["messages"], system=prompt.get("system"), **filtered_params
         )
 
+    @staticmethod
+    def _get_client():
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise NonRetriableModelError(
+                "ANTHROPIC_API_KEY is not set. Export ANTHROPIC_API_KEY before using Anthropic models."
+            )
+        return anthropic.Anthropic(api_key=api_key)
+
     def _process_response(self, raw_response):
-        return raw_response.content[0].text
+        try:
+            first_content = raw_response.content[0]
+        except (AttributeError, IndexError, TypeError) as exc:
+            raise ModelResponseError(f"Claude received a malformed response for model '{self.model_name}'.") from exc
+
+        text = first_content.get("text") if isinstance(first_content, dict) else getattr(first_content, "text", None)
+        if not isinstance(text, str) or not text.strip():
+            raise ModelResponseError(f"Claude received an empty response for model '{self.model_name}'.")
+        return text

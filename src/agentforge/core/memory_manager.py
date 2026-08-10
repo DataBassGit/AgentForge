@@ -20,20 +20,27 @@ class MemoryManager:
         self.cog_config = cog_config
         self.cog_name = cog_name
         self.logger = Logger(self.cog_name, "mem_mgr")
-        self.config = Config() 
+        self.config = Config()
         self._resolve_persona()
         self._initialize_memory_nodes()
         self._initialize_agent_memory_maps()
-        
-        self.logger.debug(f"Initialized MemoryManager for cog='{self.cog_name}', persona='{self.persona}' with {len(self.memory_nodes)} memory nodes.")
+
+        self.logger.debug(
+            f"Initialized MemoryManager for cog='{self.cog_name}', "
+            f"persona='{self.persona}' with {len(self.memory_nodes)} memory nodes."
+        )
 
     def _resolve_persona(self) -> None:
         """
         Resolve persona using precedence: Cog > Agent > default.
         """
-        persona_data = self.config.resolve_persona(
-            cog_config={"cog": {"persona": self.cog_config.cog.persona}}
-        )
+        cog_persona = self.cog_config.cog.persona
+        if cog_persona:
+            self.config.resolve_persona(cog_config={"persona": cog_persona})
+            self.persona = cog_persona
+            return
+
+        persona_data = self.config.resolve_persona()
         self.persona = persona_data.get("name") if persona_data else None
 
     def _initialize_memory_nodes(self) -> None:
@@ -42,7 +49,7 @@ class MemoryManager:
         """
         self.memory_nodes = self._build_memory_nodes()
         self._initialize_chat_memory()
-        
+
     def _initialize_chat_memory(self) -> None:
         """
         Initialize the chat history memory node if enabled.
@@ -53,18 +60,14 @@ class MemoryManager:
 
         if not self._chat_memory_enabled:
             return
-        
+
         max_results = self.cog_config.cog.chat_history_max_results
         self._chat_history_max_results = max_results if max_results is not None and max_results >= 0 else 20
 
-        # Pull chat_history_max_retrieval from cog config, defaulting to 20 if missing or negative
-        max_retrieval = getattr(self.cog_config.cog, "chat_history_max_retrieval", None)
+        max_retrieval = self.cog_config.cog.chat_history_max_retrieval
         self._chat_history_max_retrieval = max_retrieval if max_retrieval is not None and max_retrieval >= 0 else 20
 
-        self.memory_nodes["chat_history"] = {
-            "instance": ChatHistoryMemory(self.cog_name, self.persona),
-            "config": None,
-        }
+        self.memory_nodes["chat_history"] = {"instance": ChatHistoryMemory(self.cog_name, self.persona), "config": None}
 
     def _initialize_agent_memory_maps(self) -> None:
         """
@@ -89,7 +92,9 @@ class MemoryManager:
             if self._query_memory_node(mem_id, agent_id, _ctx, _state):
                 results_found += 1
             queried += 1
-        self.logger.info(f"Queried {queried} memory node(s) before agent '{agent_id}'; {results_found} returned results.")
+        self.logger.info(
+            f"Queried {queried} memory node(s) before agent '{agent_id}'; {results_found} returned results."
+        )
 
     def update_after(self, agent_id: str, _ctx: dict, _state: dict) -> None:
         """
@@ -128,10 +133,7 @@ class MemoryManager:
         for mem_def in memory_list:
             mem_id = mem_def.id
             mem_obj = self._create_memory_node(mem_def)
-            memories[mem_id] = {
-                "instance": mem_obj,
-                "config": mem_def,
-            }
+            memories[mem_id] = {"instance": mem_obj, "config": mem_def}
         self.logger.debug(f"Built {len(memories)} memory node(s) from configuration.")
         return memories
 
@@ -149,11 +151,7 @@ class MemoryManager:
         Resolve and return the memory class for a given memory definition.
         Extension point: override to customize class resolution.
         """
-        return Config.resolve_class(
-            mem_def.type,
-            default_class=Memory,
-            context=f"memory '{mem_def.id}'"
-        )
+        return Config.resolve_class(mem_def.type, default_class=Memory, context=f"memory '{mem_def.id}'")
 
     def _map_agents_to_memory_nodes(self, trigger: str) -> Dict[str, List[str]]:
         """
@@ -213,7 +211,7 @@ class MemoryManager:
         cfg = mem_data["config"]
         mem_obj = mem_data["instance"]
         self.logger.debug(f"Updating memory '{mem_id}' after agent '{agent_id}'")
-        mem_obj.update_memory(cfg.update_keys, _ctx, _state) 
+        mem_obj.update_memory(cfg.update_keys, _ctx, _state)
 
     # -----------------------------------------------------------------
     # Chat History Methods
@@ -223,20 +221,20 @@ class MemoryManager:
         """
         Record a chat turn in the chat history memory node, if enabled.
         """
-        if not self._chat_memory_enabled:
+        if not self._chat_memory_enabled or "chat_history" not in self.memory_nodes:
             return
-        
-        chat_node = self.memory_nodes.get("chat_history").get("instance")
+
+        chat_node = self.memory_nodes["chat_history"]["instance"]
         chat_node.update_memory(_ctx, output)
 
-    def load_chat(self, _ctx: dict = None, _state: dict = None):
+    def load_chat(self, _ctx: dict | None = None, _state: dict | None = None):
         """
         Query the chat history node and load the most recent N messages into its store.
-        N is determined by chat_history_max_results in the cog config (default 10, 0 means no limit).
+        N is determined by chat_history_max_results in the cog config (default 20, 0 means no limit).
         """
         if not self._chat_memory_enabled or "chat_history" not in self.memory_nodes:
             return
-      
+
         chat_node = self.memory_nodes["chat_history"]["instance"]
         chat_node.query_memory(
             num_results=self._chat_history_max_results,

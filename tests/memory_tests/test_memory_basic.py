@@ -1,12 +1,10 @@
 """Tests for agentforge.storage.memory.Memory using FakeChroma."""
-from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
+from __future__ import annotations
 
 import pytest
 
 from agentforge.storage.memory import Memory
-from tests.utils.fakes import FakeChromaStorage
 
 
 @pytest.fixture()
@@ -31,7 +29,8 @@ def test_storage_id_isolation(fake_chroma):  # noqa: D103
     m2 = Memory(cog_name="c2", persona=None, collection_id="col")
 
     m1.update_memory(["x"], _ctx=ctx, _state=state)
-    assert m2.query_memory(["x"], _ctx=ctx, _state=state) is None or m2.query_memory(["x"], _ctx=ctx, _state=state)["raw"]["documents"] == [] 
+    m2.query_memory(["x"], _ctx=ctx, _state=state)
+    assert m2.store == {}
 
 
 def test_delete_existing_and_nonexistent_id(mem_a):
@@ -69,4 +68,4 @@ def test_update_memory_with_no_data(mem_a):
     # No update keys, empty context/state
     mem_a.update_memory([], _ctx={}, _state={})
     # Should not raise or update anything
-    assert mem_a.store == {} 
+    assert mem_a.store == {}

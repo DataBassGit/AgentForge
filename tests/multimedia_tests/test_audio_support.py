@@ -1,23 +1,17 @@
-import os
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 
-# Ensure src/ is on path – conftest.bootstrap already does this, but add
-SRC_ROOT = Path(__file__).resolve().parents[2] / "src"
-if str(SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(SRC_ROOT))
-
-from agentforge.apis.base_api import BaseModel, UnsupportedModalityError  # noqa: E402
-from agentforge.apis.mixins.audio_input_mixin import AudioInputMixin  # noqa: E402
-from agentforge.apis.mixins.audio_output_mixin import AudioOutputMixin  # noqa: E402
-from agentforge.apis.openai_api import STT, TTS  # noqa: E402
-from agentforge.agent import Agent  # noqa: E402
-from agentforge.config import Config  # noqa: E402
-from agentforge.core.config_manager import ConfigManager  # noqa: E402
+from agentforge.apis.base_api import BaseModel, UnsupportedModalityError
+from agentforge.apis.mixins.audio_input_mixin import AudioInputMixin
+from agentforge.apis.mixins.audio_output_mixin import AudioOutputMixin
+from agentforge.apis.openai_api import STT, TTS
+from agentforge.agent import Agent
+from agentforge.config import Config
+from agentforge.core.config_manager import ConfigManager
+from agentforge.utils.discord.discord_voice import DiscordVoice
 
 ###############################################################################
 # 1. Mix-in capability flags
@@ -34,6 +28,7 @@ def test_audio_mixins_flags():
     assert DummyIn("m").supported_modalities == {"text", "audio"}
     assert DummyOut("m").supported_modalities == {"text", "audio"}
 
+
 ###############################################################################
 # 2. BaseModel rejects audio when unsupported
 ###############################################################################
@@ -45,8 +40,9 @@ def test_base_model_rejects_audio(monkeypatch):
     # Avoid needing a real prompt
     monkeypatch.setattr(model, "_prepare_prompt", lambda mp: [])
 
-    with pytest.raises(UnsupportedModalityError):
+    with pytest.raises(UnsupportedModalityError, match="requested modality 'audio'.*Supported modalities: text"):
         model.generate({}, audio=b"1234")
+
 
 ###############################################################################
 # 3. STT wrapper (mocked OpenAI Whisper)
@@ -63,15 +59,14 @@ def test_stt_wrapper(monkeypatch):
     audio_ns = SimpleNamespace(transcriptions=SimpleNamespace(create=MagicMock(return_value=dummy_resp)))
     client_ns = SimpleNamespace(audio=audio_ns)
     monkeypatch.setattr(
-        "agentforge.apis.openai_runtime.OpenAIRuntime._get_sdk_client",
-        lambda _self: client_ns,
-        raising=True,
+        "agentforge.apis.openai_runtime.OpenAIRuntime._get_sdk_client", lambda _self: client_ns, raising=True
     )
 
     stt = STT("whisper-1")
     out = stt.generate({"system": "", "user": ""}, audio=b"\x00\x01")
     assert out == "hello world"
     audio_ns.transcriptions.create.assert_called_once()
+
 
 ###############################################################################
 # 4. TTS wrapper (mocked OpenAI TTS)
@@ -88,9 +83,7 @@ def test_tts_wrapper(monkeypatch):
     audio_ns = SimpleNamespace(speech=speech_ns)
     client_ns = SimpleNamespace(audio=audio_ns)
     monkeypatch.setattr(
-        "agentforge.apis.openai_runtime.OpenAIRuntime._get_sdk_client",
-        lambda _self: client_ns,
-        raising=True,
+        "agentforge.apis.openai_runtime.OpenAIRuntime._get_sdk_client", lambda _self: client_ns, raising=True
     )
 
     tts = TTS("tts-1")
@@ -99,6 +92,7 @@ def test_tts_wrapper(monkeypatch):
     assert isinstance(out, (bytes, bytearray))
     assert out == fake_bytes
     speech_ns.create.assert_called_once()
+
 
 ###############################################################################
 # 5. Agent helper for saving audio
@@ -113,10 +107,9 @@ def _build_dummy_agent_config(isolated_config: Config):
         "params": {},
         "prompts": {"system": "", "user": ""},
         "model": object(),
-        "settings": isolated_config.data["settings"].copy(),
+        "settings": isolated_config.data.get("settings", {}).copy(),
         "simulated_response": "SIMULATED",
     }
-    raw["settings"]["system"]["debug"]["mode"] = True
     return cm.build_agent_config(raw)
 
 
@@ -136,9 +129,56 @@ def test_audio_manager_save(tmp_path, monkeypatch, isolated_config):
     dummy_cfg.settings.system.audio.save_dir = str(tmp_path)
     dummy_cfg.settings.system.audio.autoplay = False
 
+    assert agent.audio_manager is not None
     file_path = agent.audio_manager.save_tts_bytes(b"12345", fmt="wav")
     assert Path(file_path).exists(), "Audio file was not written"
     assert Path(file_path).read_bytes() == b"12345"
 
     # Clean up
     Path(file_path).unlink(missing_ok=True)
+
+
+###############################################################################
+# 6. Discord voice FFmpeg command
+###############################################################################
+
+
+def test_discord_voice_ffmpeg_command_preserves_conversion_args(monkeypatch):
+    """DiscordVoice should pass the expected in-memory conversion command to FFmpeg."""
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append((command, kwargs))
+        return SimpleNamespace(stdout=b"WAV")
+
+    monkeypatch.setattr("agentforge.utils.discord.discord_voice.subprocess.run", fake_run)
+
+    wav_bytes = DiscordVoice.create_wav_from_pcm(b"PCM", src_rate=44100, src_channels=1)
+
+    assert wav_bytes == b"WAV"
+    assert calls == [
+        (
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-f",
+                "s16le",
+                "-ar",
+                "44100",
+                "-ac",
+                "1",
+                "-i",
+                "pipe:0",
+                "-ar",
+                "16000",
+                "-ac",
+                "1",
+                "-f",
+                "wav",
+                "pipe:1",
+            ],
+            {"input": b"PCM", "capture_output": True, "check": True, "timeout": 10},
+        )
+    ]

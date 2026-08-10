@@ -1,5 +1,9 @@
 # Storage Settings Guide
 
+This is an advanced storage settings reference.
+
+Use it after the beginner Agent and Cog path, when you are intentionally configuring memory persistence.
+
 > **Important:** Storage in AgentForge is managed by cogs through their memory nodes. Individual agents do not directly interact with storage. This design simplifies the architecture and centralizes memory management.
 
 `storage.yaml` is loaded from the project's `.agentforge/settings/storage.yaml` and merged into `Config().data['settings']['storage']`.
@@ -20,6 +24,11 @@ options:
   unix_timestamp: true  # Include Unix epoch timestamps in stored records
   persist_directory: ./db/ChromaDB  # Path for storage files, relative to project root
   fresh_start: false    # Wipe existing storage on initialization if true (useful for testing)
+  use_http_client: false
+  http_host: localhost
+  http_port: 8000
+  http_ssl: false
+  http_headers: null
 
 embedding:
   selected: distil_roberta  # Key from embedding_library to use for vector encoding
@@ -38,6 +47,8 @@ embedding_library:
 - **unix_timestamp** (bool): Add Unix epoch timestamps to stored entries.
 - **persist_directory** (string): Folder path (relative to project root) where the vector DB or storage files reside.
 - **fresh_start** (bool): When `true`, clears existing storage at startup (useful for testing, avoid in production).
+- **use_http_client** (bool): Connect to a Chroma HTTP service instead of creating a local client.
+- **http_host**, **http_port**, **http_ssl**, **http_headers**: Connection settings used when `use_http_client` is enabled.
 
 ### embedding
 

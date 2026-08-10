@@ -1,6 +1,7 @@
 import spacy
 import sys
 
+
 def download_spacy_model(model_name):
     """
     Download a SpaCy model using SpaCy's CLI.
@@ -13,10 +14,11 @@ def download_spacy_model(model_name):
     """
     try:
         print(f"Downloading the {model_name} model...")
-        spacy.cli.download(model_name)
+        spacy.cli.download(model_name)  # type: ignore[reportAttributeAccessIssue]
         print(f"Model {model_name} downloaded successfully.")
     except Exception as e:
         raise Exception(f"Failed to download model {model_name}: {str(e)}")
+
 
 # Attempt to load the English model
 spacy_model_name = "en_core_web_trf"
@@ -31,6 +33,7 @@ except OSError:
     except Exception as e:
         print(f"Error: {str(e)}", file=sys.stderr)
         sys.exit(1)
+
 
 class TripleExtract:
     """
@@ -72,7 +75,7 @@ class TripleExtract:
                     subject = token
                 elif token.pos_ == "VERB":
                     # Check if it's part of a verb phrase indicating the predicate
-                    if token.dep_ == "aux" and nlp(token.head.text).pos_ == "VERB":
+                    if token.dep_ == "aux" and nlp(token.head.text).pos_ == "VERB":  # type: ignore[reportAttributeAccessIssue]
                         continue  # Skip auxiliary verbs
                     else:
                         predicate = token.head  # Consider the head of the verb phrase as the predicate
@@ -111,8 +114,8 @@ class TripleExtract:
             predicate_text = predicate.lemma_ if predicate else None  # Using lemma for base form of verb
             object_text = _object.text if _object else None
 
-            print(
-                f"Debug Trip:\n\nSentence: {sentence}\nSubject: {subject_text}\nPredicate: {predicate_text}\nObject: {object_text}")
+            print(f"Debug Trip:\n\nSentence: {sentence}")
+            print(f"Subject: {subject_text}\nPredicate: {predicate_text}\nObject: {object_text}")
             return subject_text, predicate_text, object_text  # Return the identified elements
 
         except Exception as e:
@@ -170,10 +173,10 @@ class TripleExtract:
                     subject = token
 
                     # Filter irrelevant words based on POS tags and additional stop words
-                    if subject and isinstance(subject, spacy.tokens.Doc):
+                    if subject and isinstance(subject, spacy.tokens.Doc):  # type: ignore[reportAttributeAccessIssue]
                         filtered_subject_words = [
                             word.text
-                            for word in subject.words
+                            for word in subject.words  # type: ignore[reportAttributeAccessIssue]
                             if word.pos_ not in ["STOP", "ADP", "DET", "AUX"]  # Add AUX for auxiliary verbs
                         ]
                     else:
@@ -181,11 +184,12 @@ class TripleExtract:
 
                     # Join the filtered words with a space
                     subject_text = " ".join(filtered_subject_words) if filtered_subject_words else None
-                    print(f"\nDEBUG CHUNK: \nFiltered subject words: {filtered_subject_words}\nSubject text: {subject_text}\n")
+                    print(f"\nDEBUG CHUNK: \nFiltered subject words: {filtered_subject_words}")
+                    print(f"Subject text: {subject_text}\n")
 
                 elif token.pos_ == "VERB":
                     # Check if it's part of a verb phrase indicating the predicate
-                    if token.dep_ == "aux" and nlp(token.head.text).pos_ == "VERB":
+                    if token.dep_ == "aux" and nlp(token.head.text).pos_ == "VERB":  # type: ignore[reportAttributeAccessIssue]
                         continue  # Skip auxiliary verbs
                     else:
                         predicate = token.head  # Consider the head of the verb phrase as the predicate
@@ -197,8 +201,9 @@ class TripleExtract:
                     # Check for subject within relative clauses or previous entities
                     for child in predicate.children:
                         if child.dep_ == "relcl":
-                            subject = TripleExtract.find_subject_in_clause_with_chunk(child,
-                                                                                      entities.copy())  # Pass a copy of entities
+                            subject = TripleExtract.find_subject_in_clause_with_chunk(
+                                child, entities.copy()
+                            )  # Pass a copy of entities
                             if subject:
                                 break
                         elif child.dep_ == "pobj" and len(entities) > 0:
@@ -233,8 +238,7 @@ class TripleExtract:
             predicate_text = predicate.lemma_ if predicate else None  # Using lemma for base form of verb
             object_text = _object.text if _object else None
 
-            print(
-                f"usingContext:\nSubject: {subject_text}\nPredicate: {predicate_text}\nObject: {object_text}")
+            print(f"usingContext:\nSubject: {subject_text}\nPredicate: {predicate_text}\nObject: {object_text}")
             return subject_text, predicate_text, object_text
 
         except Exception as e:
@@ -264,6 +268,7 @@ class TripleExtract:
                     if ent.text == token.text:
                         return ent  # Pronoun referring to previous entity
         return None  # No subject found in clause or previous entities
+
 
 # Usage example (commented out)
 # if __name__ == "__main__":

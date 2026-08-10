@@ -15,6 +15,7 @@ logging:
   enabled: true
   console_level: warning
   folder: ./logs
+  create_missing_files: true  # Create dedicated files for logger categories requested by code but missing below
   files:  # Log levels: critical, error, warning, info, debug
     agentforge: debug
     model_io: debug

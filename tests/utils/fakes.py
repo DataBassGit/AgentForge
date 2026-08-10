@@ -1,8 +1,9 @@
 """In-memory stand-ins for production storage back-ends used in unit tests."""
+
 from __future__ import annotations
 
 import threading
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 __all__ = ["FakeChromaStorage"]
 
@@ -22,7 +23,7 @@ class _FakeCollection:
                 self._docs[_id] = doc
                 self._metas[_id] = meta or {}
 
-    def get(self, ids: Optional[List[str]] = None):  # noqa: D401
+    def get(self, ids: List[str] | None = None):  # noqa: D401
         # Lock-free read: copy current state once to avoid partial reads.
         snapshot_docs = self._docs.copy()
         snapshot_meta = self._metas.copy()
@@ -34,7 +35,7 @@ class _FakeCollection:
             "metadatas": [snapshot_meta.get(i, {}) for i in ids],
         }
 
-    def delete(self, ids: Optional[List[str]] = None) -> None:  # noqa: D401
+    def delete(self, ids: List[str] | None = None) -> None:  # noqa: D401
         with self._lock:
             ids = ids or list(self._docs.keys())
             for _id in ids:
@@ -60,7 +61,7 @@ class FakeChromaStorage:
     def __init__(self, storage_id: str):
         self.storage_id = storage_id
         self._collections: Dict[str, _FakeCollection] = {}
-        self._current: Optional[_FakeCollection] = None
+        self._current: _FakeCollection | None = None
         self._lock = threading.RLock()
 
     # Registry helpers ----------------------------------------------------
@@ -96,14 +97,12 @@ class FakeChromaStorage:
         ids = list(col._docs.keys())[:10]
         if not ids:
             return {"documents": "No Results!"}
-        return {
-            "documents": [col._docs[i] for i in ids],
-            "ids": ids,
-            "metadatas": [col._metas.get(i, {}) for i in ids],
-        }
+        return {"documents": [col._docs[i] for i in ids], "ids": ids, "metadatas": [col._metas.get(i, {}) for i in ids]}
 
     # High-level API (subset) --------------------------------------------
-    def save_to_storage(self, collection_name: str, data: list | str, ids: Optional[list] = None, metadata: Optional[list[dict]] = None):
+    def save_to_storage(
+        self, collection_name: str, data: list | str, ids: list | None = None, metadata: list[dict] | None = None
+    ):
         data = [data] if isinstance(data, str) else list(data)
         if ids is None:
             # Generate incremental ids based on current collection size
@@ -126,7 +125,7 @@ class FakeChromaStorage:
 
         self.select_collection(collection_name).upsert(data, processed_metas, ids)
 
-    def query_storage(self, *, collection_name: str, query: Optional[str | List[str]] = None, num_results: int = 1, **_):
+    def query_storage(self, *, collection_name: str, query: str | List[str] | None = None, num_results: int = 1, **_):
         col = self.select_collection(collection_name)
         res = col.query(num_results=num_results)
         # If collection empty, return {} to mirror production behaviour
@@ -142,7 +141,7 @@ class FakeChromaStorage:
     def reset_storage(self):
         self._collections.clear()
 
-    def get_last_x_entries(self, collection_name: str, x: int, include: list = None):
+    def get_last_x_entries(self, collection_name: str, x: int, include: list | None = None):
         """
         Retrieve the last X entries from a collection, ordered by insertion (id ascending).
         Args:
@@ -154,7 +153,7 @@ class FakeChromaStorage:
             dict: The collection entries, sorted by id ascending, with only the requested fields.
         """
         if include is None:
-            include = ['documents', 'metadatas', 'ids']
+            include = ["documents", "metadatas", "ids"]
         col = self.select_collection(collection_name)
         # Sort ids as integers if possible, else as strings
         try:
@@ -165,9 +164,9 @@ class FakeChromaStorage:
         # Always return in ascending order
         last_ids = sorted(last_ids, key=lambda i: int(i) if i.isdigit() else i)
         result = {
-            'documents': [col._docs[i] for i in last_ids],
-            'metadatas': [col._metas.get(i, {}) for i in last_ids],
-            'ids': last_ids
+            "documents": [col._docs[i] for i in last_ids],
+            "metadatas": [col._metas.get(i, {}) for i in last_ids],
+            "ids": last_ids,
         }
         # Only include requested fields
-        return {k: result[k] for k in include if k in result} 
+        return {k: result[k] for k in include if k in result}

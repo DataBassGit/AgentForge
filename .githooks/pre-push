@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+log() {
+    printf '\n[pre-push] %s\n' "$*"
+}
+
+fail() {
+    printf '\n[pre-push] %s\n' "$*" >&2
+    exit 1
+}
+
+find_python() {
+    if [[ -n "${AGENTFORGE_PYTHON:-}" ]]; then
+        printf '%s\n' "$AGENTFORGE_PYTHON"
+        return 0
+    fi
+
+    if [[ -x ".venv/bin/python" ]]; then
+        printf '%s\n' "$(pwd)/.venv/bin/python"
+        return 0
+    fi
+
+    if [[ -x "venv/bin/python" ]]; then
+        printf '%s\n' "$(pwd)/venv/bin/python"
+        return 0
+    fi
+
+    if command -v python3 >/dev/null 2>&1; then
+        command -v python3
+        return 0
+    fi
+
+    if command -v python >/dev/null 2>&1; then
+        command -v python
+        return 0
+    fi
+
+    return 1
+}
+
+run_check() {
+    local label="$1"
+    shift
+
+    log "$label"
+    "$@"
+}
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+python_bin="$(find_python)" || fail "Could not find a Python interpreter. Activate .venv or set AGENTFORGE_PYTHON."
+log "Using Python: $python_bin"
+
+run_check "Ruff lint" "$python_bin" -m ruff check .
+run_check "Ruff format check" "$python_bin" -m ruff format --check .
+run_check "basedpyright" "$python_bin" -m basedpyright --project pyproject.toml
+run_check "pytest default suite" "$python_bin" -m pytest
+
+log "All pre-push checks passed."

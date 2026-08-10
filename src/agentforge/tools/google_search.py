@@ -3,6 +3,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import json
 
+
 def google_search(query, number_result=5):
     """
     Perform a Google search using the Custom Search API.
@@ -19,8 +20,8 @@ def google_search(query, number_result=5):
         HttpError: If there's an error with the API request.
         Exception: For any other unexpected errors during execution.
     """
-    google_api_key = os.getenv('GOOGLE_API_KEY')
-    search_engine_id = os.getenv('SEARCH_ENGINE_ID')
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+    search_engine_id = os.getenv("SEARCH_ENGINE_ID")
 
     if not google_api_key:
         raise ValueError("GOOGLE_API_KEY environment variable is not set")
@@ -56,6 +57,7 @@ def google_search(query, number_result=5):
 
     except Exception as e:
         return f"An unexpected error occurred: {str(e)}"
+
 
 def parse_tool_results(tool_result):
     """

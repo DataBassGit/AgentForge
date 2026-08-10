@@ -28,7 +28,7 @@ prompts:
     rationale: |
       ### Rationale
       ---
-      {_state.decide.rationale}
+      {_state.decision.rationale}
       ---
 
     instruction: |

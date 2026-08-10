@@ -18,22 +18,20 @@ class TestAgentRunner:
         runner = AgentRunner()
         mock_agent = Mock()
         mock_agent.run.return_value = "test output"
-        
+
         # Execute
         result = runner.run_agent(
             agent_id="test_agent",
             agent=mock_agent,
             context={"key": "value"},
             state={"state_key": "state_value"},
-            memory={"mem_key": "mem_value"}
+            memory={"mem_key": "mem_value"},
         )
-        
+
         # Verify
         assert result == "test output"
         mock_agent.run.assert_called_once_with(
-            _ctx={"key": "value"},
-            _state={"state_key": "state_value"},
-            _mem={"mem_key": "mem_value"}
+            _ctx={"key": "value"}, _state={"state_key": "state_value"}, _mem={"mem_key": "mem_value"}
         )
 
     def test_retry_on_empty_output(self):
@@ -43,16 +41,10 @@ class TestAgentRunner:
         mock_agent = Mock()
         # First call returns None, second call returns valid output
         mock_agent.run.side_effect = [None, "valid output"]
-        
+
         # Execute
-        result = runner.run_agent(
-            agent_id="test_agent",
-            agent=mock_agent,
-            context={},
-            state={},
-            memory={}
-        )
-        
+        result = runner.run_agent(agent_id="test_agent", agent=mock_agent, context={}, state={}, memory={})
+
         # Verify
         assert result == "valid output"
         assert mock_agent.run.call_count == 2
@@ -65,13 +57,7 @@ class TestAgentRunner:
         mock_agent.run.side_effect = Exception("temporary failure")
 
         with pytest.raises(Exception) as exc_info:
-            runner.run_agent(
-                agent_id="test_agent",
-                agent=mock_agent,
-                context={},
-                state={},
-                memory={}
-            )
+            runner.run_agent(agent_id="test_agent", agent=mock_agent, context={}, state={}, memory={})
         assert "temporary failure" in str(exc_info.value)
         assert mock_agent.run.call_count == 1
 
@@ -81,18 +67,11 @@ class TestAgentRunner:
         runner = AgentRunner()
         mock_agent = Mock()
         mock_agent.run.return_value = None  # Always returns empty
-        
+
         # Execute and verify exception
         with pytest.raises(Exception) as exc_info:
-            runner.run_agent(
-                agent_id="test_agent",
-                agent=mock_agent,
-                context={},
-                state={},
-                memory={},
-                max_attempts=2
-            )
-        
+            runner.run_agent(agent_id="test_agent", agent=mock_agent, context={}, state={}, memory={}, max_attempts=2)
+
         assert "Failed to get valid response from test_agent" in str(exc_info.value)
         assert mock_agent.run.call_count == 2
 
@@ -104,14 +83,7 @@ class TestAgentRunner:
         mock_agent.run.side_effect = test_exception
 
         with pytest.raises(Exception) as exc_info:
-            runner.run_agent(
-                agent_id="test_agent",
-                agent=mock_agent,
-                context={},
-                state={},
-                memory={},
-                max_attempts=2
-            )
+            runner.run_agent(agent_id="test_agent", agent=mock_agent, context={}, state={}, memory={}, max_attempts=2)
         assert exc_info.value is test_exception
         assert mock_agent.run.call_count == 1
 
@@ -121,21 +93,14 @@ class TestAgentRunner:
         runner = AgentRunner()
         mock_agent = Mock()
         mock_agent.run.return_value = None  # Always returns empty
-        
+
         # Execute and verify exception
         with pytest.raises(Exception):
-            runner.run_agent(
-                agent_id="test_agent",
-                agent=mock_agent,
-                context={},
-                state={},
-                memory={},
-                max_attempts=5
-            )
-        
+            runner.run_agent(agent_id="test_agent", agent=mock_agent, context={}, state={}, memory={}, max_attempts=5)
+
         assert mock_agent.run.call_count == 5
 
-    @patch('agentforge.core.agent_runner.Logger')
+    @patch("agentforge.core.agent_runner.Logger")
     def test_logging_behavior(self, mock_logger_class):
         """Test that AgentRunner creates its own logger and logs appropriately (debug/warning/error)."""
         mock_logger = Mock()
@@ -147,15 +112,9 @@ class TestAgentRunner:
 
         mock_logger_class.assert_called_once_with("AgentRunner", "agent_runner")
 
-        runner.run_agent(
-            agent_id="test_agent",
-            agent=mock_agent,
-            context={},
-            state={},
-            memory={}
-        )
+        runner.run_agent(agent_id="test_agent", agent=mock_agent, context={}, state={}, memory={})
 
         # Check that debug was called for execution start and success
         debug_calls = [call for call in mock_logger.debug.call_args_list]
         assert len(debug_calls) >= 2
-        # No longer check for .log, but for .debug/.warning/.error 
+        # No longer check for .log, but for .debug/.warning/.error

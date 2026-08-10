@@ -1,17 +1,23 @@
 import time
 from openai import APIError, RateLimitError, APIConnectionError
 from agentforge.utils.logger import Logger
-import os
-import base64
 
 
 class UnsupportedModalityError(Exception):
     """Raised when a model doesn't support a requested modality."""
+
     pass
 
 
 class NonRetriableModelError(Exception):
     """Raised when retrying cannot resolve the model failure."""
+
+    pass
+
+
+class ModelResponseError(ValueError, NonRetriableModelError):
+    """Raised when a provider returns an empty or malformed response."""
+
     pass
 
 
@@ -54,7 +60,7 @@ class BaseModel:
         self._validate_modalities(images, audio)
         self._init_logger(model_prompt, params)
 
-        parts        = self._build_parts(model_prompt, images, audio)
+        parts = self._build_parts(model_prompt, images, audio)
         request_body = self._merge_parts(parts)
 
         return self._run_with_retries(request_body, params)
@@ -62,12 +68,20 @@ class BaseModel:
     # ─────────────────── helper trio for readability ────────────────────
     def _validate_modalities(self, images, audio):
         if images and "image" not in self.supported_modalities:
-            raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle images")
+            supported = ", ".join(sorted(self.supported_modalities))
+            raise UnsupportedModalityError(
+                f"{self.__class__.__name__} does not support requested modality 'image'. "
+                f"Supported modalities: {supported}."
+            )
         if audio and "audio" not in self.supported_modalities:
-            raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle audio inputs")
+            supported = ", ".join(sorted(self.supported_modalities))
+            raise UnsupportedModalityError(
+                f"{self.__class__.__name__} does not support requested modality 'audio'. "
+                f"Supported modalities: {supported}."
+            )
 
     def _init_logger(self, model_prompt, params):
-        self.logger = Logger(name=params.pop('agent_name', 'NamelessAgent'))
+        self.logger = Logger(name=params.pop("agent_name", "NamelessAgent"))
         if model_prompt:
             self.logger.log_prompt(model_prompt)
 
@@ -82,57 +96,81 @@ class BaseModel:
     # ─────────────────── retry/back‑off execution ───────────────────────
     def _run_with_retries(self, request_body, params):
         reply = None
-        
+        logger = self.logger
+        if logger is None:
+            raise RuntimeError("BaseModel logger was not initialized before provider execution.")
+
         for attempt in range(self.num_retries):
             backoff = self.base_backoff ** (attempt + 1)
-            
+
             try:
                 filtered = self._prepare_params(**params)
                 response = self._do_api_call(request_body, **filtered)
-                reply    = self._process_response(response)
+                reply = self._process_response(response)
 
                 # Avoid dumping binary blobs into logs
                 if isinstance(reply, (bytes, bytearray)):
-                    self.logger.log_response(f"<binary {len(reply)} bytes>")
+                    logger.log_response(f"<binary {len(reply)} bytes>")
                 else:
-                    self.logger.log_response(reply)
+                    logger.log_response(reply)
                 break
             except RateLimitError as e:
-                self.logger.warning(f"Rate limit exceeded: {e}. Retrying in {backoff} seconds...")
+                logger.warning(f"Rate limit exceeded: {e}. Retrying in {backoff} seconds...")
                 time.sleep(backoff)
             except APIConnectionError as e:
-                self.logger.warning(f"Connection error: {e}. Retrying in {backoff} seconds...")
+                logger.warning(f"Connection error: {e}. Retrying in {backoff} seconds...")
                 time.sleep(backoff)
             except APIError as e:
                 if getattr(e, "status_code", None) == 502:
-                    self.logger.warning(f"502 Bad Gateway. Retrying in {backoff} seconds...")
+                    logger.warning(f"502 Bad Gateway. Retrying in {backoff} seconds...")
                     time.sleep(backoff)
                 else:
                     raise
             except NonRetriableModelError:
                 raise
             except Exception as e:
-                self.logger.warning(f"Error: {e}. Retrying in {backoff} seconds...")
+                logger.warning(f"Error: {e}. Retrying in {backoff} seconds...")
                 time.sleep(backoff)
 
         if reply is None:
-            self.logger.critical("Error: All retries exhausted. No response received.")
+            logger.critical("Error: All retries exhausted. No response received.")
             raise ValueError("Model generation failed: All retries exhausted. No response received.")
-        
+
         # Validate that we received a non-empty response
         if not reply or (isinstance(reply, str) and not reply.strip()):
-            self.logger.critical("Error: Model returned empty response.")
-            raise ValueError("Model generation failed: Received empty response.")
-            
+            logger.critical("Error: Model returned empty response.")
+            raise ModelResponseError(
+                f"{self.__class__.__name__} returned an empty response for model '{self.model_name}'."
+            )
+
         return reply
 
     def _prepare_image_payload(self, images):
         """Default implementation raises UnsupportedModalityError for image modality."""
-        raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle images")
+        supported = ", ".join(sorted(self.supported_modalities))
+        raise UnsupportedModalityError(
+            f"{self.__class__.__name__} does not support requested modality 'image'. Supported modalities: {supported}."
+        )
 
     def _prepare_audio_payload(self, audio):
         """Default implementation raises UnsupportedModalityError for audio modality."""
-        raise UnsupportedModalityError(f"{self.__class__.__name__} can't handle audio inputs")
+        supported = ", ".join(sorted(self.supported_modalities))
+        raise UnsupportedModalityError(
+            f"{self.__class__.__name__} does not support requested modality 'audio'. Supported modalities: {supported}."
+        )
+
+    def _extract_chat_choice_content(self, raw_response):
+        try:
+            content = raw_response["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ModelResponseError(
+                f"{self.__class__.__name__} received malformed chat response for model '{self.model_name}'."
+            ) from exc
+        if not isinstance(content, str) or not content.strip():
+            raise ModelResponseError(
+                f"{self.__class__.__name__} received empty chat content for model '{self.model_name}'."
+            )
+        return content
 
     def _merge_parts(self, parts):
         """
@@ -146,7 +184,7 @@ class BaseModel:
                 content = [{"type": "text", "text": messages[-1]["content"]}]
                 content.extend(parts["image"])
                 messages[-1]["content"] = content
-            
+
         # Include audio payload directly if provided.
         if "audio" in parts and parts["audio"] is not None:
             return {"messages": messages, "audio": parts["audio"]}
@@ -157,8 +195,8 @@ class BaseModel:
     def _prepare_prompt(model_prompt):
         # Format system/user messages in the appropriate style
         return [
-            {"role": "system", "content": model_prompt.get('system')},
-            {"role": "user", "content": model_prompt.get('user')}
+            {"role": "system", "content": model_prompt.get("system")},
+            {"role": "user", "content": model_prompt.get("user")},
         ]
 
     def _prepare_params(self, **params):

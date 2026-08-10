@@ -1,6 +1,7 @@
 import re
-from typing import Any, Mapping, Sequence, Iterable, Tuple, Callable
+from typing import Any, Mapping, Sequence
 from agentforge.utils.logger import Logger
+
 
 class PromptProcessor:
     """
@@ -58,7 +59,7 @@ class PromptProcessor:
             data = {"A2": {"answer": "42"}}, path = "A2.answer"
             -> returns "42"
         """
-        keys = path.split('.')
+        keys = path.split(".")
         val = data
         for key in keys:
             if isinstance(val, dict) and key in val:
@@ -123,6 +124,7 @@ class PromptProcessor:
             Exception: Logs an error message and raises an exception if an error occurs during the rendering process.
         """
         try:
+
             def replacement_function(match):
                 variable_name = match.group(1)  # e.g. "A2.answer"
                 val = self._nested_lookup(data, variable_name)
@@ -132,16 +134,15 @@ class PromptProcessor:
                     # Detect indentation before the placeholder
                     start = match.start()
                     # Find the start of the line
-                    line_start = template.rfind('\n', 0, start) + 1
+                    line_start = template.rfind("\n", 0, start) + 1
                     indent = template[line_start:start]
                     # Apply indentation to all lines except the first
-                    lines = formatted_val.split('\n')
+                    lines = formatted_val.split("\n")
                     if len(lines) > 1:
                         lines = [lines[0]] + [indent + line if line.strip() else line for line in lines[1:]]
-                    return '\n'.join(lines).strip()
+                    return "\n".join(lines).strip()
                 else:
                     return match.group(0)
-
 
             variable_pattern = re.compile(self.pattern)
             # Perform variable substitution
@@ -173,11 +174,11 @@ class PromptProcessor:
         """
         try:
             rendered_prompts = {}
-            for prompt_type in ['system', 'user']:
+            for prompt_type in ["system", "user"]:
                 rendered_sections = []
                 prompt_content = prompts.get(prompt_type, {})
                 if isinstance(prompt_content, str):
-                    prompt_sections = {'main': prompt_content}
+                    prompt_sections = {"main": prompt_content}
                 else:
                     prompt_sections = prompt_content
 
@@ -191,12 +192,12 @@ class PromptProcessor:
                             f"Skipping '{prompt_name}' in '{prompt_type}' prompt due to missing variables."
                         )
                 # Join the rendered sections into a single string for each prompt type
-                final_prompt = '\n'.join(rendered_sections)
+                final_prompt = "\n".join(rendered_sections)
                 rendered_prompts[prompt_type] = final_prompt
-            
+
             # Validate rendered prompts before returning
             self._validate_rendered_prompts(rendered_prompts)
-            
+
             return rendered_prompts
         except Exception as e:
             error_message = f"Error rendering prompts: {e}"
@@ -213,10 +214,10 @@ class PromptProcessor:
         Raises:
             ValueError: If any of the prompts are empty strings after rendering.
         """
-        required_prompt_types = {"user"}        # expand later if needed
+        required_prompt_types = {"user"}  # expand later if needed
         for prompt_type, prompt_content in rendered_prompts.items():
             if prompt_type not in required_prompt_types:
-                continue      # optional → skip emptiness check
+                continue  # optional → skip emptiness check
             if not prompt_content.strip():
                 error_message = (
                     f"Error: The '{prompt_type}' prompt is empty after rendering. "
@@ -229,28 +230,28 @@ class PromptProcessor:
         """
         Build markdown representation of static persona content for system prompt injection.
         Truncate if exceeds character cap from settings.
-        
+
         Args:
             static_content (dict): Dictionary containing static content from persona
             persona_settings (dict): Dictionary containing persona settings
-            
+
         Returns:
             str: Markdown formatted representation of persona static content
         """
         if not static_content:
             return None
-            
+
         # Use the centralized markdown formatting helper
         persona_md = self.value_to_markdown(static_content)
-        
+
         # Get character cap from settings - treat 0 as no cap
-        if hasattr(persona_settings, 'static_char_cap'):
-            static_char_cap = getattr(persona_settings, 'static_char_cap', 8000)
+        if hasattr(persona_settings, "static_char_cap"):
+            static_char_cap = getattr(persona_settings, "static_char_cap", 8000)
         elif isinstance(persona_settings, dict):
-            static_char_cap = persona_settings.get('static_char_cap', 8000)
+            static_char_cap = persona_settings.get("static_char_cap", 8000)
         else:
             static_char_cap = 8000
-        
+
         # Only truncate if cap is greater than 0 and persona_md exceeds the cap
         if static_char_cap > 0 and len(persona_md) > static_char_cap:
             self.logger.warning(
@@ -258,7 +259,7 @@ class PromptProcessor:
                 f"Truncating to {static_char_cap} characters."
             )
             persona_md = persona_md[:static_char_cap] + "..."
-        
+
         return persona_md
 
     @staticmethod
@@ -272,7 +273,7 @@ class PromptProcessor:
         Returns:
             str: The template with escaped braces unescaped.
         """
-        return re.sub(r'/\{(.*?)/}', r'{\1}', template)
+        return re.sub(r"/\{(.*?)/}", r"{\1}", template)
 
     ##################################################
     # Value Formatting
@@ -280,7 +281,7 @@ class PromptProcessor:
 
     def value_to_markdown(self, val: Any, indent: int = 0) -> str:
         """Render a dict, list, or scalar into minimalist Markdown."""
-        pad = "  " * indent     # two-space indent per level
+        pad = "  " * indent  # two-space indent per level
 
         if isinstance(val, Mapping):
             segments = []

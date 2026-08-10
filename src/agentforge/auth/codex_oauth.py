@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from agentforge.apis.base_api import NonRetriableModelError
 
@@ -11,7 +11,7 @@ class CodexCredentials:
     access_token: str
 
 
-def _extract_value(payload: Any, *keys: str) -> Optional[str]:
+def _extract_value(payload: Any, *keys: str) -> str | None:
     if payload is None:
         return None
 
@@ -29,7 +29,7 @@ def _extract_value(payload: Any, *keys: str) -> Optional[str]:
     return None
 
 
-def _normalize_credentials(payload: Any) -> Optional[CodexCredentials]:
+def _normalize_credentials(payload: Any) -> CodexCredentials | None:
     access_token = _extract_value(payload, "access_token", "access")
     account_id = _extract_value(payload, "account_id", "accountId")
     if not access_token or not account_id:
@@ -56,10 +56,7 @@ def _load_oauth_helpers() -> tuple[Callable[[], Any], Callable[..., Any]]:
 
 
 def get_codex_credentials(
-    interactive: bool = False,
-    force_reauth: bool = False,
-    print_fn=print,
-    prompt_fn=input,
+    interactive: bool = False, force_reauth: bool = False, print_fn=print, prompt_fn=input
 ) -> CodexCredentials:
     get_token, login_oauth_interactive = _load_oauth_helpers()
 

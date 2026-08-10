@@ -24,7 +24,7 @@ class CommandExecutor:
         """
         pass
 
-    def execute(self, cmd: str, env_vars: dict = None) -> str:
+    def execute(self, cmd: str, env_vars: dict | None = None) -> str:
         """
         Execute a command and return its output.
 
@@ -55,7 +55,7 @@ class CommandExecutor:
 
         try:
             output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, env=environment)
-            return output.decode('utf-8')
+            return output.decode("utf-8")
         except subprocess.CalledProcessError as e:
             # In case of an error, return the error output.
             raise Exception(f"Command execution failed: {e.output.decode('utf-8')}") from e

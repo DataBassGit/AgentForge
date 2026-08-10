@@ -17,19 +17,12 @@ from .agent_config_structs import (
     AgentConfig,
 )
 
-from .cog_config_structs import (
-    CogAgentDef,
-    CogMemoryDef,
-    CogFlowTransition,
-    CogFlow,
-    CogDefinition,
-    CogConfig,
-)
+from .cog_config_structs import CogAgentDef, CogMemoryDef, CogFlowTransition, CogFlow, CogDefinition, CogConfig
 
 __all__ = [
     # Agent config structs
     "PersonaSettings",
-    "DebugSettings", 
+    "DebugSettings",
     "LoggingSettings",
     "MiscSettings",
     "AudioSettings",
@@ -44,4 +37,4 @@ __all__ = [
     "CogFlow",
     "CogDefinition",
     "CogConfig",
-] 
+]

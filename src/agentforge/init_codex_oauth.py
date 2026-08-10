@@ -12,9 +12,7 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Verify that cached credentials already exist without launching interactive login.",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force interactive OAuth login even when cached credentials exist.",
+        "--force", action="store_true", help="Force interactive OAuth login even when cached credentials exist."
     )
     return parser
 
@@ -30,10 +28,7 @@ def main(argv=None) -> int:
     force_reauth = bool(args.force)
 
     try:
-        credentials = get_codex_credentials(
-            interactive=interactive,
-            force_reauth=force_reauth,
-        )
+        credentials = get_codex_credentials(interactive=interactive, force_reauth=force_reauth)
         print(f"Codex OAuth ready. Account ID: {credentials.account_id}")
         return 0
     except KeyboardInterrupt:

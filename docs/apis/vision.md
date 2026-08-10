@@ -9,7 +9,7 @@ AgentForge supports image and multimodal prompts for APIs that implement vision 
 
 ## How to Use
 
-- To use image/multimodal support, select an API/model that supports images (e.g., `GeminiVision`).
+- To use image/multimodal support, select a provider class that supports images, such as `GeminiVision` or `LMStudioVision`.
 - Pass images to the `generate` method via the `images` argument.
 
 ## Example
@@ -25,12 +25,12 @@ model_library:
   gemini_api:
     GeminiVision:
       models:
-        gemini-vision:
-          identifier: "gemini-vision"
+        gemini_vision:
+          identifier: gemini-3.5-flash
           params:
             temperature: 0.7
 ```
 
 ## Notes
 - Not all APIs support images. Check the API documentation for support.
-- For custom APIs, inherit from `VisionMixin` and implement required methods. 
+- For custom APIs, inherit from `VisionMixin` and implement required methods.

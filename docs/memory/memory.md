@@ -1,5 +1,9 @@
 # Memory in AgentForge Cogs
 
+This is an advanced context reference.
+
+Use it after the beginner no-memory Cog and branch/loop Cog examples are clear.
+
 Memory in AgentForge is designed to be used as part of a **Cog**—not as a standalone utility. Memory nodes are declared in your Cog YAML, managed by the `MemoryManager`, and made available to agents as part of the execution context. This enables agents to access, share, and update contextual information throughout a workflow.
 
 ---
@@ -116,8 +120,6 @@ AgentForge currently ships with the following memory node types:
 - **PersonaMemory**: Specialized memory for managing persona-related facts and generating dynamic persona narratives ([see persona_memory.md](persona_memory.md)).
 - **ChatHistoryMemory**: Automatically manages chat history for a Cog, providing recent conversation context to agents. This node is added automatically unless disabled.
 - **ScratchPad**: A memory node for maintaining a working scratchpad or notes, with support for log consolidation.
-
-> **Note:** Additional memory types may be released in the future as the framework evolves.
 
 ---
 

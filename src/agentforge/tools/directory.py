@@ -1,5 +1,6 @@
 import os
 
+
 class DirectoryNode:
     """
     Represents a node in the directory tree.
@@ -65,7 +66,7 @@ class Directory:
             node = self.root
 
         if max_depth is not None and node.depth >= max_depth:
-            node.add_child(DirectoryNode('... more files ...', False, node.depth + 1))
+            node.add_child(DirectoryNode("... more files ...", False, node.depth + 1))
             return
 
         try:
@@ -82,9 +83,9 @@ class Directory:
                     child_node = DirectoryNode(full_path, False, node.depth + 1)
                     node.add_child(child_node)
         except PermissionError:
-            node.add_child(DirectoryNode('Permission denied', False, node.depth + 1))
+            node.add_child(DirectoryNode("Permission denied", False, node.depth + 1))
         except Exception as e:
-            node.add_child(DirectoryNode(f'Error: {str(e)}', False, node.depth + 1))
+            node.add_child(DirectoryNode(f"Error: {str(e)}", False, node.depth + 1))
 
     def pretty_print(self, node=None, indent=""):
         """
@@ -161,6 +162,7 @@ class Directory:
                 output += f"An unexpected error occurred: {str(e)}\n"
 
         return output.strip()
+
 
 # Usage example (commented out)
 # if __name__ == "__main__":
