@@ -5,6 +5,8 @@ from discord import app_commands
 import os
 import asyncio
 import threading
+import requests
+import time
 from agentforge.utils.logger import Logger
 from agentforge.utils.discord.discord_utils import DiscordUtils
 
@@ -111,9 +113,10 @@ class DiscordClient:
 
     def send_message(self, channel_id, content, message_id=None, images=None):
         try:
-            self.utils.send_message(channel_id, content, message_id)
+            self.utils.send_message(channel_id, content, message_id, images=images)
             return True
-        except BaseException:
+        except BaseException as e:
+            self.logger.error(f"[DiscordClient.send_message] Exception: {e}")
             return False
 
     def send_dm(self, user_id, content, images=None):
@@ -131,10 +134,32 @@ class DiscordClient:
         for ref in refs or []:
             try:
                 channel_id, message_id = str(ref).split('/', 1)
-            except ValueError:
+            except (ValueError, AttributeError, TypeError):
                 continue
-            urls.extend(self.get_message_image_urls(channel_id, message_id))
+
+            fetched_urls = self.get_message_image_urls(channel_id, message_id)
+            if fetched_urls:  # prevents extending NoneType if fetch fails utterly
+                urls.extend(fetched_urls)
         return urls
+
+    def download_image_with_retry(self, url, max_retries=3, timeout=15):
+        """
+        Helper method designed to prevent the agent from failing with
+        'HTTPSConnectionPool: Read timed out' errors when downloading discord CDN links.
+        """
+        delay = 2
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = requests.get(url, timeout=timeout)
+                response.raise_for_status()
+                return response.content
+            except requests.RequestException as e:
+                self.logger.warning(f"[DiscordClient.download] Attempt {attempt}/{max_retries} failed for {url}: {e}")
+                if attempt < max_retries:
+                    time.sleep(delay)
+                    delay *= 2
+        self.logger.error(f"[DiscordClient.download] Failed to download {url} after {max_retries} attempts.")
+        return None
 
     def send_embed(self, channel_id, title, fields, color='blue', image_url=None):
         self.utils.send_embed(channel_id, title, fields, color, image_url)
@@ -154,7 +179,7 @@ class DiscordClient:
         self.logger.info(f"[DiscordClient.load_commands] Register Command: {name} - Function: {function_name}")
 
     async def handle_command(
-        self, interaction: discord.Interaction, command_name: str, function_name: str, kwargs: dict
+            self, interaction: discord.Interaction, command_name: str, function_name: str, kwargs: dict
     ):
         message_data = {
             "channel": str(interaction.channel),

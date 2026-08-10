@@ -1,9 +1,48 @@
 import asyncio
 import os
-import threading
+import time
+import functools
 
 import discord
 from agentforge.tools.semantic_chunk import semantic_chunk
+
+
+def network_retry(max_retries=3, delay=2.0, backoff=2.0, default_return=None):
+    """
+    Robust decorator designed to handle Discord WebSocket and network connectivity drops.
+    Handles 'concurrent.futures._base.TimeoutError' and API exceptions gracefully.
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            current_delay = delay
+            for attempt in range(1, max_retries + 1):
+                try:
+                    return func(self, *args, **kwargs)
+                except (discord.errors.Forbidden, discord.errors.NotFound, ValueError) as e:
+                    # Do not retry permanent permission or missing entity errors
+                    if hasattr(self, 'logger'):
+                        self.logger.error(f"[{func.__name__}] Permanent error: {e}")
+                    return default_return
+                except Exception as e:
+                    # Catches HTTPExceptions, Timeouts, and Connection Resets
+                    if attempt < max_retries:
+                        if hasattr(self, 'logger'):
+                            self.logger.warning(
+                                f"[{func.__name__}] Attempt {attempt}/{max_retries} failed ({type(e).__name__}: {e}). "
+                                f"Retrying in {current_delay}s..."
+                            )
+                        time.sleep(current_delay)
+                        current_delay *= backoff
+                    else:
+                        if hasattr(self, 'logger'):
+                            self.logger.error(f"[{func.__name__}] All {max_retries} attempts failed: {e}")
+                        return default_return
+
+        return wrapper
+
+    return decorator
 
 
 class DiscordUtils:
@@ -18,6 +57,7 @@ class DiscordUtils:
         self.client = client
         self.logger = logger
 
+    @network_retry(max_retries=3, default_return=None)
     def send_message(self, channel_id, content, message_id=None, images=None):
         """
         Send a message to a specified Discord channel, optionally replying to a specific message.
@@ -56,8 +96,10 @@ class DiscordUtils:
                     files, embeds = self._build_image_payloads(images)
                     if files or embeds:
                         kwargs = {}
-                        if files:  kwargs['files'] = files
-                        if embeds: kwargs['embeds'] = embeds
+                        if files:
+                            kwargs['files'] = files
+                        if embeds:
+                            kwargs['embeds'] = embeds
                         await channel.send(**kwargs)
                 return sent_id
             except discord.errors.Forbidden:
@@ -72,10 +114,11 @@ class DiscordUtils:
                 )
 
         try:
-            return asyncio.run_coroutine_threadsafe(send(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(send(), self.client.loop).result(timeout=30)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.send_message] Failed to schedule: {str(e)}")
 
+    @network_retry(max_retries=3, default_return=None)
     def send_dm(self, user_id, content, images=None):
         """
         Send a direct message to a specified Discord user.
@@ -115,10 +158,11 @@ class DiscordUtils:
                 self.logger.error(f"[DiscordUtils.send_dm] Error sending DM to {user_id}: {str(e)}")
 
         try:
-            asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop)
+            asyncio.run_coroutine_threadsafe(send_dm_async(), self.client.loop).result(timeout=30)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.send_dm] Failed to schedule DM: {str(e)}")
 
+    @network_retry(max_retries=3, default_return=None)
     def send_embed(self, channel_id, title, fields, color="blue", image_url=None):
         """
         Send an embed message to a specified Discord channel.
@@ -153,12 +197,13 @@ class DiscordUtils:
                 self.logger.error(f"[DiscordUtils.send_embed] Error sending embed to channel {channel_id}: {str(e)}")
 
         try:
-            asyncio.run_coroutine_threadsafe(send_embed_async(), self.client.loop)
+            asyncio.run_coroutine_threadsafe(send_embed_async(), self.client.loop).result(timeout=20)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.send_embed] Failed to schedule embed sending: {str(e)}")
 
+    @network_retry(max_retries=3, default_return=None)
     def create_thread(
-        self, channel_id, message_id, name, auto_archive_duration=1440, remove_author=True, do_lock_thread=True
+            self, channel_id, message_id, name, auto_archive_duration=1440, remove_author=True, do_lock_thread=True
     ):
         """
         Create a new thread in a specified channel, attached to a specific message.
@@ -225,11 +270,12 @@ class DiscordUtils:
             return None
 
         try:
-            return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(create_thread_async(), self.client.loop).result(timeout=30)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.create_thread] Failed to schedule thread creation: {str(e)}")
             return None
 
+    @network_retry(max_retries=3, default_return=False)
     def reply_to_thread(self, thread_id, content):
         """
         Reply to a specific thread.
@@ -266,11 +312,12 @@ class DiscordUtils:
             return False
 
         try:
-            return asyncio.run_coroutine_threadsafe(reply_async(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(reply_async(), self.client.loop).result(timeout=30)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.reply_to_thread] Failed to schedule reply: {str(e)}")
             return False
 
+    @network_retry(max_retries=3, default_return=False)
     def lock_thread(self, thread_id):
         """
         Lock a thread so that only users with MANAGE_THREADS (like the bot) can send messages.
@@ -311,12 +358,12 @@ class DiscordUtils:
             return False
 
         try:
-            return asyncio.run_coroutine_threadsafe(lock_async(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(lock_async(), self.client.loop).result(timeout=20)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.lock_thread] Failed to schedule thread lock: {str(e)}")
             return False
 
-
+    @network_retry(max_retries=3, default_return=False)
     def set_channel_presence(self, channel_id, is_present=True):
         """
         Modifies the bot's permissions in a channel to simulate entering/leaving a room.
@@ -334,13 +381,10 @@ class DiscordUtils:
                         return False
 
                 bot_member = channel.guild.get_member(self.client.user.id)
-                overwrite = channel.overwrites_for(bot_member)
 
                 # Toggle view and send permissions to physically show/hide her from the room
-                overwrite.view_channel = is_present
-                overwrite.send_messages = is_present
+                await channel.set_permissions(bot_member, view_channel=is_present, send_messages=is_present)
 
-                await channel.set_permissions(bot_member, overwrite=overwrite)
                 self.logger.info(f"[DiscordUtils.set_channel_presence] Set presence in {channel_id} to {is_present}")
                 return True
 
@@ -352,11 +396,12 @@ class DiscordUtils:
             return False
 
         try:
-            return asyncio.run_coroutine_threadsafe(update_presence(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(update_presence(), self.client.loop).result(timeout=20)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.set_channel_presence] Failed to schedule presence update: {str(e)}")
             return False
 
+    @network_retry(max_retries=3, default_return=False)
     def set_role_channel_presence(self, channel_id, role_name, is_present=True):
         """
         Modifies a specific role's permissions in a channel to simulate entering/leaving a room.
@@ -379,13 +424,9 @@ class DiscordUtils:
                     self.logger.error(f"[DiscordUtils.set_role_channel_presence] Role '{role_name}' not found in guild")
                     return False
 
-                overwrite = channel.overwrites_for(target_role)
-
                 # Toggle view and send permissions for the role
-                overwrite.view_channel = is_present
-                overwrite.send_messages = is_present
+                await channel.set_permissions(target_role, view_channel=is_present, send_messages=is_present)
 
-                await channel.set_permissions(target_role, overwrite=overwrite)
                 self.logger.info(
                     f"[DiscordUtils.set_role_channel_presence] Set presence for role '{role_name}' in {channel_id} to {is_present}")
                 return True
@@ -398,12 +439,13 @@ class DiscordUtils:
             return False
 
         try:
-            return asyncio.run_coroutine_threadsafe(update_role_presence(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(update_role_presence(), self.client.loop).result(timeout=20)
         except RuntimeError as e:
             self.logger.error(
                 f"[DiscordUtils.set_role_channel_presence] Failed to schedule role presence update: {str(e)}")
             return False
 
+    @network_retry(max_retries=3, default_return=False)
     def set_member_channel_presence(self, channel_id, user_id, is_present=True):
         """
         Modifies a specific user's permissions in a channel to simulate letting them into a room.
@@ -430,32 +472,29 @@ class DiscordUtils:
                             f"[DiscordUtils.set_member_channel_presence] Member {user_id} not found in guild")
                         return False
 
-                overwrite = channel.overwrites_for(member)
-
                 # Toggle view and send permissions for the specific user
-                overwrite.view_channel = is_present
-                overwrite.send_messages = is_present
+                await channel.set_permissions(member, view_channel=is_present, send_messages=is_present)
 
-                await channel.set_permissions(member, overwrite=overwrite)
                 self.logger.info(
                     f"[DiscordUtils.set_member_channel_presence] Set presence for user {user_id} in {channel_id} to {is_present}")
                 return True
 
             except discord.errors.Forbidden:
                 self.logger.error(
-                    f"[DiscordUtils.set_member_channel_presence] Missing 'Manage Roles/Channels' permission")
+                    "[DiscordUtils.set_member_channel_presence] Missing 'Manage Roles/Channels' permission")
             except Exception as e:
                 self.logger.error(
                     f"[DiscordUtils.set_member_channel_presence] Error updating member presence: {str(e)}")
             return False
 
         try:
-            return asyncio.run_coroutine_threadsafe(update_member_presence(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(update_member_presence(), self.client.loop).result(timeout=20)
         except RuntimeError as e:
             self.logger.error(
                 f"[DiscordUtils.set_member_channel_presence] Failed to schedule member presence update: {str(e)}")
             return False
 
+    @network_retry(max_retries=3, default_return=False)
     def clear_channel(self, channel_id, limit=1000):
         """
         Purges messages from a channel to provide a fresh start.
@@ -472,13 +511,13 @@ class DiscordUtils:
                 self.logger.info(f"[DiscordUtils.clear_channel] Deleted {len(deleted)} messages in {channel_id}")
                 return True
             except discord.errors.Forbidden:
-                self.logger.error(f"[DiscordUtils.clear_channel] Missing 'Manage Messages' permission")
+                self.logger.error("[DiscordUtils.clear_channel] Missing 'Manage Messages' permission")
             except Exception as e:
                 self.logger.error(f"[DiscordUtils.clear_channel] Error: {e}")
             return False
 
         try:
-            return asyncio.run_coroutine_threadsafe(purge_async(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(purge_async(), self.client.loop).result(timeout=60)
         except RuntimeError as e:
             self.logger.error(f"[DiscordUtils.clear_channel] Failed: {e}")
             return False
@@ -502,6 +541,10 @@ class DiscordUtils:
         Returns (files, embeds), each capped at Discord's per-message limit of 10.
         """
         files, embeds = [], []
+
+        if isinstance(images, str):
+            images = [images]
+
         for img in images or []:
             if not img or not isinstance(img, str):
                 continue
@@ -515,6 +558,7 @@ class DiscordUtils:
                     files.append(discord.File(img))
         return files, embeds
 
+    @network_retry(max_retries=3, default_return=[])
     def get_message_image_urls(self, channel_id, message_id):
         """
         Fetch a message and return current (freshly re-signed) URLs for its image
@@ -535,7 +579,7 @@ class DiscordUtils:
             return urls
 
         try:
-            return asyncio.run_coroutine_threadsafe(_fetch(), self.client.loop).result()
+            return asyncio.run_coroutine_threadsafe(_fetch(), self.client.loop).result(timeout=20)
         except Exception as e:
             self.logger.error(f"[DiscordUtils.get_message_image_urls] {channel_id}/{message_id}: {e}")
             return []
