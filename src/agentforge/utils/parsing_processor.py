@@ -131,7 +131,7 @@ class ParsingProcessor:
     def preprocess_json_string(s: str) -> str:
         """
         Preprocess a string to increase the chance of successful JSON parsing from LLM outputs.
-        - Trims whitespace
+        - Trims whitespace and preserves already-valid JSON
         - Extracts the first JSON object if stray text is present
         - Removes trailing commas in objects/arrays
         - Double-escapes backslashes not already escaped (for LaTeX/math)
@@ -139,6 +139,13 @@ class ParsingProcessor:
         import re
 
         s = s.strip()
+        try:
+            json.loads(s)
+        except json.JSONDecodeError:
+            pass
+        else:
+            return s
+
         # Extract the first JSON object (handles stray text)
         match = re.search(r"(\{.*\})", s, re.DOTALL)
         if match:
