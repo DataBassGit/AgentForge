@@ -135,7 +135,8 @@ class PromptProcessor:
                     start = match.start()
                     # Find the start of the line
                     line_start = template.rfind("\n", 0, start) + 1
-                    indent = template[line_start:start]
+                    line_prefix = template[line_start:start]
+                    indent = line_prefix[: len(line_prefix) - len(line_prefix.lstrip(" \t"))]
                     # Apply indentation to all lines except the first
                     lines = formatted_val.split("\n")
                     if len(lines) > 1:
